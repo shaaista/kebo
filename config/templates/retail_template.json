@@ -1,0 +1,69 @@
+{
+  "_template": "Retail / E-commerce",
+  "_description": "Configuration template for retail stores and e-commerce businesses",
+
+  "business": {
+    "id": "your_store_id",
+    "name": "Your Store Name",
+    "type": "retail",
+    "city": "City Name",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "language": "en",
+    "bot_name": "Assistant Name",
+    "welcome_message": "Hello! Welcome to {business_name}. How can I help you today?"
+  },
+
+  "capabilities": {
+    "product_search": {"enabled": true, "description": "Search products"},
+    "product_info": {"enabled": true, "description": "Get product details"},
+    "order_placement": {"enabled": true, "description": "Place orders"},
+    "order_tracking": {"enabled": true, "description": "Track order status"},
+    "returns": {"enabled": true, "window_days": 30, "description": "Return products"},
+    "refunds": {"enabled": true, "description": "Process refunds"},
+    "home_delivery": {"enabled": true, "description": "Home delivery"},
+    "store_pickup": {"enabled": true, "description": "Store pickup"},
+    "price_check": {"enabled": true, "description": "Check prices"},
+    "stock_check": {"enabled": true, "description": "Check availability"},
+    "offers": {"enabled": true, "description": "Current offers/discounts"},
+    "human_escalation": {"enabled": true, "description": "Connect to support"}
+  },
+
+  "services": [
+    {
+      "id": "dept_1",
+      "name": "Electronics",
+      "type": "department",
+      "description": "TVs, Phones, Laptops",
+      "is_active": true
+    },
+    {
+      "id": "dept_2",
+      "name": "Clothing",
+      "type": "department",
+      "description": "Men, Women, Kids",
+      "is_active": true
+    }
+  ],
+
+  "intents": [
+    {"id": "greeting", "label": "Greeting", "enabled": true},
+    {"id": "product_search", "label": "Search Products", "enabled": true},
+    {"id": "product_info", "label": "Product Info", "enabled": true},
+    {"id": "add_to_cart", "label": "Add to Cart", "enabled": true},
+    {"id": "checkout", "label": "Checkout", "enabled": true},
+    {"id": "order_status", "label": "Order Status", "enabled": true},
+    {"id": "return_request", "label": "Return Request", "enabled": true},
+    {"id": "refund_status", "label": "Refund Status", "enabled": true},
+    {"id": "offers", "label": "Current Offers", "enabled": true},
+    {"id": "complaint", "label": "Complaint", "enabled": true},
+    {"id": "faq", "label": "General Question", "enabled": true},
+    {"id": "human_request", "label": "Talk to Support", "enabled": true}
+  ],
+
+  "escalation": {
+    "confidence_threshold": 0.4,
+    "max_clarification_attempts": 3,
+    "modes": ["live_chat", "ticket", "email", "callback"]
+  }
+}

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Test Interface</title>
+    <link rel="stylesheet" href="/static/css/chat.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🤖 {{ app_name }}</h2>
+                <span class="badge">Test Mode</span>
+            </div>
+
+            <div class="session-info">
+                <h3>Session Info</h3>
+                <div class="info-row">
+                    <span class="label">Session ID:</span>
+                    <span id="session-id" class="value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">State:</span>
+                    <span id="session-state" class="value state-badge">idle</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Messages:</span>
+                    <span id="message-count" class="value">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Last Intent:</span>
+                    <span id="last-intent" class="value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Confidence:</span>
+                    <span id="confidence" class="value">-</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button id="new-session-btn" class="btn btn-primary">New Session</button>
+                <button id="reset-btn" class="btn btn-secondary">Reset State</button>
+                <button id="view-history-btn" class="btn btn-secondary">View History</button>
+            </div>
+
+            <div class="test-scenarios">
+                <h3>Quick Test</h3>
+                <div class="scenario-buttons">
+                    <button class="scenario-btn" data-message="Hi">Greeting</button>
+                    <button class="scenario-btn" data-message="What services are available?">Services</button>
+                    <button class="scenario-btn" data-message="I want to order 2 burgers">Order</button>
+                    <button class="scenario-btn" data-message="Yes">Confirm</button>
+                    <button class="scenario-btn" data-message="No">Cancel</button>
+                    <button class="scenario-btn" data-message="Where is my order?">Status</button>
+                    <button class="scenario-btn" data-message="I want to speak to a human">Escalate</button>
+                </div>
+            </div>
+
+            <div class="hotel-selector">
+                <h3>Hotel</h3>
+                <select id="hotel-code">
+                    <option value="DEFAULT" selected>Default Business</option>
+                    <option value="MUMBAI_GRAND">Mumbai Grand Hotel</option>
+                    <option value="DELHI_PALACE">Delhi Palace</option>
+                    <option value="BANGALORE_INN">Bangalore Inn</option>
+                    <option value="TEST_HOTEL">Test Hotel</option>
+                </select>
+            </div>
+
+            <div class="phase-selector">
+                <h3>Phase</h3>
+                <select id="journey-phase">
+                    <option value="pre_booking" selected>Pre Booking</option>
+                    <option value="pre_checkin">Pre Checkin</option>
+                    <option value="during_stay">During Stay</option>
+                    <option value="post_checkout">Post Checkout</option>
+                </select>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <div class="chat-header">
+                <h1>Chat Test Interface</h1>
+                <p>Test the chatbot flow, context retention, and state management</p>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="welcome-message">
+                    <p>👋 Start a conversation to test the bot.</p>
+                    <p>Use the quick test buttons on the left or type your own messages.</p>
+                </div>
+            </div>
+
+            <div class="suggested-actions" id="suggested-actions"></div>
+
+            <div class="chat-input-container">
+                <form id="chat-form">
+                    <input
+                        type="text"
+                        id="message-input"
+                        placeholder="Type a message..."
+                        autocomplete="off"
+                        maxlength="2000"
+                    >
+                    <button type="submit" id="send-btn">Send</button>
+                </form>
+            </div>
+        </main>
+
+        <!-- Debug Panel -->
+        <aside class="debug-panel" id="debug-panel">
+            <div class="debug-header">
+                <h3>Debug Info</h3>
+                <button id="toggle-debug" class="btn-icon">×</button>
+            </div>
+            <pre id="debug-content">No data yet</pre>
+        </aside>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="history-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Conversation History</h2>
+                <button class="modal-close" id="close-modal">×</button>
+            </div>
+            <div class="modal-body" id="history-content">
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

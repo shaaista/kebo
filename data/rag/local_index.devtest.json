@@ -1,0 +1,912 @@
+[
+  {
+    "id": "9bff676275862450fd3e2396fd0dc7dd",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 0,
+    "chunk_id": "ROHL_Test_property.txt:0",
+    "section": "document",
+    "content": "# Source: ROHL_Test_property.txt"
+  },
+  {
+    "id": "0fd5a1e51497dbcd982ed79f7f2232d4",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 1,
+    "chunk_id": "ROHL_Test_property.txt:1",
+    "section": "hotel name",
+    "content": "Section: hotel name\nICONIQA"
+  },
+  {
+    "id": "4e1bc69f2ff2215fd1cf804be74b4b59",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 2,
+    "chunk_id": "ROHL_Test_property.txt:2",
+    "section": "city",
+    "content": "Section: city\nMumbai"
+  },
+  {
+    "id": "d84c8d1a609d186130933595152edd71",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 3,
+    "chunk_id": "ROHL_Test_property.txt:3",
+    "section": "total area",
+    "content": "Section: total area\nOver 300,000 sqft of built up space"
+  },
+  {
+    "id": "072f218824bf8803a37a31b5ad55064a",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 4,
+    "chunk_id": "ROHL_Test_property.txt:4",
+    "section": "building height",
+    "content": "Section: building height\n34 meters"
+  },
+  {
+    "id": "ef1a8c7ac44939ad157be1c8125644ba",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 5,
+    "chunk_id": "ROHL_Test_property.txt:5",
+    "section": "total floors",
+    "content": "Section: total floors\n15 (including 4 basements and 10 guest floors)"
+  },
+  {
+    "id": "63604425e647f0ff866685ee79831a93",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 6,
+    "chunk_id": "ROHL_Test_property.txt:6",
+    "section": "total rooms",
+    "content": "Section: total rooms\n291"
+  },
+  {
+    "id": "c21fef098dbe54eaebb11853eeae7ddd",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 7,
+    "chunk_id": "ROHL_Test_property.txt:7",
+    "section": "room distribution",
+    "content": "Section: room distribution\n1st: 9, 6th: 34, 7th: 32, 2nd-5th, 8th-9th: 36 each"
+  },
+  {
+    "id": "79a5fdab4d10957c72b0bae899b5e381",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 8,
+    "chunk_id": "ROHL_Test_property.txt:8",
+    "section": "premier king room",
+    "content": "Section: premier king room\nTotal 134 rooms 109 rooms are of 229–285 sq. ft. 25 rooms are 300 - 340 sq. ft A calming palette, cloud-soft linens, and a versatile table-and-chair duo designed to flow effortlessly from work to wind-down, where essentials feel elevated. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "59c28c64986a730b586a69e094108699",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 9,
+    "chunk_id": "ROHL_Test_property.txt:9",
+    "section": "premier twin room",
+    "content": "Section: premier twin room\nTotal 48 rooms, 31 rooms are 230–310 sq. ft. 17 rooms are 310 to 380 sq. ft Designed for comfort and versatility, our Premier Twin Room offers 231 to 380 sq. ft. of stylish space. Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "9e8e51d2abaf24a31b1f7c12f01118c9",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 10,
+    "chunk_id": "ROHL_Test_property.txt:10",
+    "section": "lux suite",
+    "content": "Section: lux suite\nTotal 79 rooms, 15 rooms are 380-425 sq.ft with King bed. 64 rooms are 430 - 485 sq. ft with Twin bed Step into the epitome of luxury in our LUX Suite, designed for those who appreciate space and sophistication. Spanning 381 to 485 sq. ft., this suite features a sumptuous king-size bed with premium linens, a separate seating area, and floor-to-ceiling windows with panoramic city views. The spacious bathroom is fitted with premium fixtures for a rejuvenating experience. A uniquely crafted bedside reading lamp adds a touch of thoughtful elegance, creating the perfect ambiance for relaxation. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "99ae459185cfb8c89b1957e4f243e839",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 11,
+    "chunk_id": "ROHL_Test_property.txt:11",
+    "section": "reserve suite",
+    "content": "Section: reserve suite\n16 rooms, 375–415 sq. ft. A sophisticated retreat, the Reserve Suite offers 375 or 415 sq. ft. of elegant living space. A king- size bed with the finest linens linens ensures restful sleep, while the separate lounge area provides a stylish space to unwind. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "18fa13ac8bafb5e8dd7e06db1b3d60a4",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 12,
+    "chunk_id": "ROHL_Test_property.txt:12",
+    "section": "prestige suite",
+    "content": "Section: prestige suite\n6 rooms, 485 sq. ft., includes bathtub Experience grandeur in the Prestige Suite, boasting 487 sq. ft. of luxury. This suite features a lavish king-size bed, an elegant seating area, and a spacious bathroom with premium fittings. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "584dedc3157b162b64d097bb4e68d99e",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 13,
+    "chunk_id": "ROHL_Test_property.txt:13",
+    "section": "ultimate suite",
+    "content": "Section: ultimate suite\n8 rooms, 603 sq. ft., Our most spacious and opulent accommodation, the Ultimate Suite, offers 603 sq. ft. of indulgence. Featuring a king-size bed, a separate living and dining area, Bedroom and floor-ceiling windows, this suite is thoughtfully designed for longer stays and entertaining. All our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable"
+  },
+  {
+    "id": "a9f1c38c22c372b9d50958b2ae871e89",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 14,
+    "chunk_id": "ROHL_Test_property.txt:14",
+    "section": "in room amenities",
+    "content": "Section: in room amenities\nAll our rooms feature an incredible collection of amenities that are designed around you, the guest: In-room smart laundry closet to iron, steam, refresh your clothes Complimentary well-stocked non-alcoholic minibar Custom created \"Bed of Dreams\" with traceable cotton linen Espresso Machines + coffee pods with ICONIQA's single origin coffees High-speed WiFi with unlimited device usage Power shower with Indian Ayurvedic influenced bath products Slew of thoughtful bathroom amenities that are sustainable and recyclable Tea Maker with multiple flavours and options ICONIQA's custom label water bottling plant with Still and Sparkling Water Smart TV's with streaming options"
+  },
+  {
+    "id": "b8da2048e35352605965641e8c0c0b6b",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 15,
+    "chunk_id": "ROHL_Test_property.txt:15",
+    "section": "banquet spaces",
+    "content": "Section: banquet spaces\nLobby Level: ICONIQA Rooms ICONIQA Rooms inside boast of a combined 3,000 sq. ft. of flexible, personality-packed space. Perfect for intimate gatherings, stylish socials, and standout events that deserve more than a standard setup. Adaptable layouts, elevated aesthetics, and a setting that speaks volumes, without saying a word. Pre-function space of over 1200 sqft Lawns attached are 2500 sqft ICONIQA Rooms can be split into two halls - ICONIQA ROOM 1 and ICONIQA ROOM 2, so you could take one space for a more intimate setting Genius Rooms on the First Floor are smaller yet equally impressive spaces, perfect for intimate meetings, brainstorming sessions, or workshops. Equipped with state-of-the-art technology and professional support. Genius I : 300+ sq. ft Genius II : 650+ sq. ft Genius III : 430+ sq. ft The hotel has multiple spaces at Aviator, Kadak or Bombay Swim Club that can be taken out for private-hire from 10 to 300 people. Kadak Lab on Level 1 has a lovely space of about 1000 sqft that is divisible. The space can be used for private gatherings or conferences. Large windows with tree views make this a beautiful spot to work or entertain in."
+  },
+  {
+    "id": "799e8300ebb14ba527cffc7d113710e8",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 16,
+    "chunk_id": "ROHL_Test_property.txt:16",
+    "section": "spa timings",
+    "content": "Section: spa timings\n9:00 AM – 11:00 PM"
+  },
+  {
+    "id": "e93b76b09e94182eb745a156619c9434",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 17,
+    "chunk_id": "ROHL_Test_property.txt:17",
+    "section": "pool timings",
+    "content": "Section: pool timings\n7:00 AM to 7:00PM open to all. No children allowed after 7:00pm Guests with reservations at Bombay Swim Club may use the pool until 11 PM"
+  },
+  {
+    "id": "23696cbe8c6137c346d91c84a79e4195",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 18,
+    "chunk_id": "ROHL_Test_property.txt:18",
+    "section": "jacuzzi timings",
+    "content": "Section: jacuzzi timings\n6:00 AM – 8:00 PM"
+  },
+  {
+    "id": "8218b36f014607a78078a5109eb59fcf",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 19,
+    "chunk_id": "ROHL_Test_property.txt:19",
+    "section": "yoga sessions",
+    "content": "Section: yoga sessions\nLive: 8–9 AM (twice a week), The Yoga studio is powered by AI Yoga Screens that you can access 24x7 and do a self-driven workout."
+  },
+  {
+    "id": "582c623c9c8dadf10c81f61ce6a40f00",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 20,
+    "chunk_id": "ROHL_Test_property.txt:20",
+    "section": "airport transfer",
+    "content": "Section: airport transfer\nAvailable, Toyota Innova Hycross 5 seater. ₹2000 for T1, ₹1500 for T2"
+  },
+  {
+    "id": "630adeb0a7706a2905d54ab63ed6e173",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 21,
+    "chunk_id": "ROHL_Test_property.txt:21",
+    "section": "checkin time",
+    "content": "Section: checkin time\n14:00 hrs"
+  },
+  {
+    "id": "6673649a82b3b736092ad77f903cc51d",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 22,
+    "chunk_id": "ROHL_Test_property.txt:22",
+    "section": "checkout time",
+    "content": "Section: checkout time\n11:00 hrs"
+  },
+  {
+    "id": "8a3a0f86a0db156f4c962d0199dae654",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 23,
+    "chunk_id": "ROHL_Test_property.txt:23",
+    "section": "early checkin policy",
+    "content": "Section: early checkin policy\nBefore 07:00 AM → 50% of room rate, subject to availability"
+  },
+  {
+    "id": "f64666ad8170513880bccfa424538653",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 24,
+    "chunk_id": "ROHL_Test_property.txt:24",
+    "section": "late checkout policy",
+    "content": "Section: late checkout policy\nComplimentary till 12 noon, 50% of the room rate till 4 PM, post 4 PM full night charges are applicable , subject to availability"
+  },
+  {
+    "id": "9917fa0e6e343cf29788ac6bf0bc15e8",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 25,
+    "chunk_id": "ROHL_Test_property.txt:25",
+    "section": "doctor on call",
+    "content": "Section: doctor on call\nYes, Dr. Deepak Tiwari M.B.S(BOM), 24x7, ₹2500 consultation"
+  },
+  {
+    "id": "ac29c2d5f82cae55b28e4723d0bfbd0c",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 26,
+    "chunk_id": "ROHL_Test_property.txt:26",
+    "section": "valet parking",
+    "content": "Section: valet parking\nYes, capacity: 300 vehicles in the Basement"
+  },
+  {
+    "id": "b2b7645c5374968040638319b51560e7",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 27,
+    "chunk_id": "ROHL_Test_property.txt:27",
+    "section": "smoking policy",
+    "content": "Section: smoking policy\nAll rooms non-smoking, designated zones: Roof top, Outside the main porch,"
+  },
+  {
+    "id": "481edc8867c374ec24a3c21a120758c9",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 28,
+    "chunk_id": "ROHL_Test_property.txt:28",
+    "section": "nearby attractions",
+    "content": "Section: nearby attractions\nOur concierge will help curate an experience for you - be it shopping in Chor Bazaar, an Art-Deco tour of Mumbai, a visit to Mahakali Caves, or simply to go to the movies. Just pop in to see the concierge."
+  },
+  {
+    "id": "660549ffde7d9e1b4b4105b4467bfcd2",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 29,
+    "chunk_id": "ROHL_Test_property.txt:29",
+    "section": "nearby hospitals",
+    "content": "Section: nearby hospitals\nSevenHills, Mukund, Holy Spirit"
+  },
+  {
+    "id": "0d24a29a42342f7b4bc7df890930c4f2",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 30,
+    "chunk_id": "ROHL_Test_property.txt:30",
+    "section": "business center",
+    "content": "Section: business center\nWhile we do not have a formal business center, ICONIQA blurs the lines between Business and Leisure. Multiple spaces are available around the hotel to work, print sheets, have a quick meeting or get some real work done."
+  },
+  {
+    "id": "14e718015bd3bcac6590dadee7bf979a",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 31,
+    "chunk_id": "ROHL_Test_property.txt:31",
+    "section": "Pilate Timings",
+    "content": "Section: Pilate Timings\nSelf Use of Pilates equipment is available 24x7 However, the hotel is happy to arrange classes with a trainer for you at an additional charge"
+  },
+  {
+    "id": "6865df55f68fa77828b75aa60bc4731e",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 32,
+    "chunk_id": "ROHL_Test_property.txt:32",
+    "section": "Cancellation Policy",
+    "content": "Section: Cancellation Policy\nOn BAR : 48 hrs prior to the arrival date Advance Purchase : Non-refundable, Non-amendable, Non-cancellable (Same has to be charged on the same day of the received booking) Corporate / TA : As per the cancellation policy mentioned in the signed contract"
+  },
+  {
+    "id": "4f3d6fd96ef0a84f81f1ff2b0e939275",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 33,
+    "chunk_id": "ROHL_Test_property.txt:33",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nStarting in the Lobby – First Impressions Welcome to ICONIQA Hotel – Mumbai International Airport. We are trying to reimagine the traditional airport hotel, and on this walk I will show you how. We’re just 300 meters from Terminal 2, but the moment you step inside, it feels more like a lifestyle destination than a boring hotel stop. That’s the whole idea: just because you're between flights-or meetings-doesn’t mean your experience should feel \"in between.\" Unlike the norm, when you enter the hotel, you enter a vibrant bar - the Aviator Lounge. At Aviator, we focus on a global small plates menu – non-messy, all day, and really cool. This has been designed as a space for you to have a meeting or enjoy a cocktail, as it seamlessly blends business and pleasure. Its not your usual lobby lounge, but the heart of the ground floor. Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be. The idea is to make the lobby a place you actually want to hang out in. From a sensory perspective – we have kinetic sculptures, incredible AI generated digital art, a beautiful Japanese hand crushed paper sculpture as if it’s fabric billowing in the wind, music to match the mood and a just every small through to ensure this space goes from"
+  },
+  {
+    "id": "094459e14c5edf076cdbae92894a88da",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 34,
+    "chunk_id": "ROHL_Test_property.txt:34",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nhave kinetic sculptures, incredible AI generated digital art, a beautiful Japanese hand crushed paper sculpture as if it’s fabric billowing in the wind, music to match the mood and a just every small through to ensure this space goes from work to play seamlessly It’s more than just the heart of the lobby-it’s your anytime-anywhere hangout zone. Key Talking Points: Entrance – Enter a bar and not the lobby. Bar is multi-purpose. Cocktails. Global menu. Multi-sensory experience – interactive art, ICONIQA playlist on Spotify. So where do we check in… That’s to the right. Lets talk about design a little bit. Baccarat inspired chandeliers dot the entrance foyer, and then you go towards the reception that is crowned with an incredible black crystal chandelier. The counter is made with little Bisazza tiles – and the pattern is from an antique Kashmiri rug. But instead of putting the Kashmiri rug in the lobby, we decided to get one made to mimic the pixelation of the Bisazza tiles. Lights are by Roche Bobois and Baccarat. Design is at the heart of everything we do, and hence I’m spending this time to tell you about it A reception counter is a reception counter as with all hotels, but this hotel is completely enabled by Whatsapp. You don’t have to check in using the"
+  },
+  {
+    "id": "38a8733e5e8f84765f106c5d195bc913",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 35,
+    "chunk_id": "ROHL_Test_property.txt:35",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nwe do, and hence I’m spending this time to tell you about it A reception counter is a reception counter as with all hotels, but this hotel is completely enabled by Whatsapp. You don’t have to check in using the desk! If you want, you can go the entire stay glued to your screen on whatsapp. Key Talking Points Design is at the heart of everything we do. The Kashmiri rug became the Bisazza tile counter. The Bisazza tile counter became the handmade rug. Whatsapp powers the entire guest experience So what can you do on Whatsapp with the hotel? (You will explain whatsapp as you walk from the lobby to the Iconiqa Room) Pretty much everything. From Checkin in, ordering a car, linen, or booking a massage – its all available seamless. No app downloads, no waiting. Just seamless, instant hospitality. THE ICONIQA ROOM – Work, Celebrate, Create Now this is The ICONIQA Room-approximately 3000 square feet of modular, sunlit space, designed for anything from brand pitches to brainstorming retreats, from stylish socials to intimate gatherings. The hall can be split into 2, with each area getting its own private outdoor patio. We could easily do a social for 300+ people and a sit down dinner for 150 with space for a dance floor. It is fully kitted out,"
+  },
+  {
+    "id": "e33558671c2d1363a9d4a6795aff1bee",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 36,
+    "chunk_id": "ROHL_Test_property.txt:36",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nbe split into 2, with each area getting its own private outdoor patio. We could easily do a social for 300+ people and a sit down dinner for 150 with space for a dance floor. It is fully kitted out, with its own sound system, mood lighting, projections systems and the like. Key Talking Points Flexible modern banquet room Fully kitted out Great pre-function space and outdoor spaces Lets go to the first floor All hotels have a bigger larger fancier coffee shop, with mundane food. We decided to do away with the idea of the coffee shop. Welcome to Kadak Lab: our indoor-outdoor modern bazaar inspired Pan-Indian restaurant that is multi-sensory and multi-functional Again,we’ve done things differently. The first bit is the Sweet Lab that’s open 24x7. Think of this as a cute café with incredible desserts and Indian inspired snacks all day. This isn’t your typical Indian dining space. Kadak brings together the heart of regional Indian cuisine, elevated with global inspiration. Here, you'll experience bold flavours crafted from premium ingredients sourced from around the world—where every dish feels familiar yet new. A few highlights to notice: • Kadak Restaurant, a vibrant, open live kitchen brings the energy of the restaurant to life. • Kadak Garden - Step outdoors and you’ll find two live counters—a South Indian street"
+  },
+  {
+    "id": "c6cc2cf8ff884a4b538115e67b867d25",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 37,
+    "chunk_id": "ROHL_Test_property.txt:37",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nfeels familiar yet new. A few highlights to notice: • Kadak Restaurant, a vibrant, open live kitchen brings the energy of the restaurant to life. • Kadak Garden - Step outdoors and you’ll find two live counters—a South Indian street food spot, Cocktail Bar and Snack Bar. • Kadak Parlour - with floor to ceiling window, the space can be used for breakfast, meetings, or even hired privately for parties and events. The Garden bar vibe is niche, casual, and experiential—with a signature bar offering house-crafted cocktails crafted exclusively for the space. • The immersive ambience, complemented by atmospheric lighting and curated soundscapes, sets the tone for every meal. • And every dish arrives on handcrafted crockery—with custom presentation that’s as considered as the flavours themselves. Kadak Lab serves a buffet breakfast exclusively for in-house guests, while lunch and dinner are à la carte, crafted to offer a more personalized, plate-by-plate experience. It’s comfort food—but designed to surprise you. Kadak Cafe – Sweet, Progressive, Open 24/7 Kadak Cafe—a lively, all-day, all-night space where bold flavours meet artistic presentation. A few highlights to savour: • Elegant, flavour-forward plated desserts with a modern, creative edge. • A progressive pastry counter offering inventive takes on nostalgic favourites. • Signature handcrafted coffees—perfect for pairing with your sweet fix at any hour. And because sweet"
+  },
+  {
+    "id": "94c5321510f641a2f9ff070d1d81ba27",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 38,
+    "chunk_id": "ROHL_Test_property.txt:38",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nhighlights to savour: • Elegant, flavour-forward plated desserts with a modern, creative edge. • A progressive pastry counter offering inventive takes on nostalgic favourites. • Signature handcrafted coffees—perfect for pairing with your sweet fix at any hour. And because sweet cravings don’t follow a clock, the 24/7 menu keeps things flowing-with pastries, quick bites, and coffee available for dine-in or takeaway. The Cafe is where creativity, nostalgia, and everyday indulgence come together-with moments that taste as good as they look. GENIUS SPACES – Small, Smart, Purposeful Just alongside, we have our Genius Spaces. These are smaller, but equally impressive rooms-perfect for brainstorming sessions, creative workshops, or intimate meetings that need a touch of polish. Each space comes equipped with state-of-the-art technology and seamless professional support-because great ideas deserve a great setting. ROOM - Where Calm Meets Character Let’s step into our rooms, designed not just for a stay, but to elevate your mood. Across our 291 rooms, you’ll find a soothing blend of light pastels, soft blues and greens, and warm wood textures-spaces that instantly calm you after a journey. Every detail here has been thoughtfully curated to create an experience that feels both welcoming and refreshing. You’ll notice: • Mumbai’s spirit reflected in the curated art-hot air balloons, intricate cityscapes, and local motifs, weaving quiet stories on the walls."
+  },
+  {
+    "id": "7effea5bb89e9d1f300de0ced1dd1c36",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 39,
+    "chunk_id": "ROHL_Test_property.txt:39",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nEvery detail here has been thoughtfully curated to create an experience that feels both welcoming and refreshing. You’ll notice: • Mumbai’s spirit reflected in the curated art-hot air balloons, intricate cityscapes, and local motifs, weaving quiet stories on the walls. • A Blue Tokai <Not sure if we need to consider mentioning the brand names>espresso machine in every room, unlike other hotels with ICONIQA’s unique blends-because airport coffee just doesn’t cut it. <else> An espresso machine in every room, serving ICONIQA’s unique coffee blends-because airport coffee just doesn’t cut it. • Hypoallergenic linen for a truly cloud-like sleep experience. • An indulgent, non-alcoholic minibar, included as part of your stay—because meaningful touches should simply be a given. And this-this is something you won’t find anywhere else: ICONIQA Hotel Mumbai is the world’s first hotel to feature an in-room Smart Laundry Closet. Refresh your garments at your convenience-no waiting, no calls, just seamless comfort built into your space. These rooms aren’t just where you stay. They’re where your mood resets, and your journey finds its pause. THE BOMBAY SWIM CLUB + SCARLETTA - The Rooftop Escape \"Now let’s head upstairs-where the energy shifts and the city skyline become part of your experience. Welcome to The Bombay Swim Club-Mumbai’s first true day club. It’s a rooftop playground with splash pools, an infinity"
+  },
+  {
+    "id": "da19c6d709fd5c07e9aecbbbaaba68a5",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 40,
+    "chunk_id": "ROHL_Test_property.txt:40",
+    "section": "Hotel Sales Script",
+    "content": "Section: Hotel Sales Script\nSCARLETTA - The Rooftop Escape \"Now let’s head upstairs-where the energy shifts and the city skyline become part of your experience. Welcome to The Bombay Swim Club-Mumbai’s first true day club. It’s a rooftop playground with splash pools, an infinity jacuzzi, a spa, and a fully equipped gym. And soon, it will also be home to an exciting Japanese-Mexican kitchen-where sushi meets tacos, served with uninterrupted skyline views. Bombay Swim Club is open to everyone with a minimum spend of Rs. 2500 per head. Up here, it’s not just about being above the city. It’s about feeling a little beyond it. Hidden from public view, and open to those who know is Scarletta-our invitation-only speakeasy Unapologetically bold, Scarletta is the space for exclusive gatherings, after-parties, or simply soaking in private time with friends. Closing lines At ICONIQA, it’s not about ticking boxes — it’s about tuning into how you feel. Whether it’s a quick pitstop, a rooftop escape, or a sweet moment at midnight — you’ll always find a space that fits your vibe. Hope you enjoyed the walk — and even more, we hope you come back to live it for real. ****"
+  },
+  {
+    "id": "83998b8b925ba3be23d2a925a03b35ec",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 41,
+    "chunk_id": "ROHL_Test_property.txt:41",
+    "section": "Hotel Address",
+    "content": "Section: Hotel Address\nNear Terminal 2, Hasan Pada Road , Andheri (E), Mumbai, Maharashtra 400099"
+  },
+  {
+    "id": "064d6a072a5d5442188e436edc4540ea",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 42,
+    "chunk_id": "ROHL_Test_property.txt:42",
+    "section": "Beauty Bar",
+    "content": "Section: Beauty Bar\nThe nail and beauty bar offers a slew of quick fix beauty therapies. From nail art, manicures, pedicures, or a quick blow dry, we have a star crew to glam you up from 9am through to 10pm"
+  },
+  {
+    "id": "941c21b5c963078c136c21419a201cd1",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 43,
+    "chunk_id": "ROHL_Test_property.txt:43",
+    "section": "Wellness Rooms",
+    "content": "Section: Wellness Rooms\nTraditional spa therapies are replaced ICONIQA style with candlelight therapies. Functional massages to help with jetlag or hangovers, along with foot massages by the poolside at Bombay Swim Club."
+  },
+  {
+    "id": "c046d1df948339aaba6b444de0d5c1df",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 44,
+    "chunk_id": "ROHL_Test_property.txt:44",
+    "section": "Aviator Food Menu",
+    "content": "Section: Aviator Food Menu\nmenu_name: THE_AVIATOR_MENU notes: - \"Calorie counts are specified per 100 grams of the serving.\" - \"All prices are in INR and exclusive of taxes.\" sections: - section_name: SNACKS items: - item_name: \"GOLDEN CASHEW NUTS, LEMONGRASS DUST\" categorization: \"Vegetarian\" price_inr: \"465\" calorie_count_per_100g: \"590 Kcal\" ingredients: \"Crispy Cashew, Kaffir Lime Dust\" allergen_details: \"Treenuts\" - item_name: \"RUSSET POTATO CROQUETTES, TRUFFLE MORNAY\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"258 Kcal\" ingredients: \"Cheddar Cheese Stuffed Croquettes, Black Truffle Paste, Truffle Mornay\" allergen_details: \"Dairy, Gluten\" - item_name: \"SHRIMP KATSU, WASABI AIOLI\" categorization: \"Non Vegetarian\" price_inr: \"625\" calorie_count_per_100g: \"228 Kcal\" ingredients: \"Crispy Ocean Shrimp, Wasabi Aioli, Burnt Lemon\" allergen_details: \"Crustacean, Gluten, Soy, Dairy, Eggs\" - section_name: SMALL PLATE items: - item_name: \"EDAMAME HUMMUS, CRISPS\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"214 Kcal\" ingredients: \"Edamame Hummus, Assorted Crisps, Buttered Edamame\" allergen_details: \"Gluten\" - item_name: \"CHARRED BROCCOLI, TOGARASHI & NUTS\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"171 Kcal\" ingredients: \"Bincho Charred Broccoli, Yuzu Mayo, Nut Crumble\" allergen_details: \"Treenuts, Dairy, Soy\" - item_name: \"CHICKEN THIGH KARAAGE, CHILLI LIME\" categorization: \"Non Vegetarian\" price_inr: \"585\" calorie_count_per_100g: \"212 Kcal\" ingredients: \"Japanese Fried Chicken, Chilli Lime Sauce, House Dust\" allergen_details: \"Gluten, Soy, Eggs\" - item_name: \"SHRIMP OKONOMIYAKI, BONITO FLAKES\" categorization: \"Vegetarian / Non Vegetarian (Both symbols listed)\" price_inr: \"645 / 745\" calorie_count_per_100g: \"181 Kcal / 196 Kcal\" ingredients: \"Japanese Pancake, Yuzu Mayo, Bonito Flakes\" allergen_details: \"Fish, Crustacean,"
+  },
+  {
+    "id": "ed57dbd7ab3c787a80a29efea45ceecb",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 45,
+    "chunk_id": "ROHL_Test_property.txt:45",
+    "section": "Aviator Food Menu",
+    "content": "Section: Aviator Food Menu\nHouse Dust\" allergen_details: \"Gluten, Soy, Eggs\" - item_name: \"SHRIMP OKONOMIYAKI, BONITO FLAKES\" categorization: \"Vegetarian / Non Vegetarian (Both symbols listed)\" price_inr: \"645 / 745\" calorie_count_per_100g: \"181 Kcal / 196 Kcal\" ingredients: \"Japanese Pancake, Yuzu Mayo, Bonito Flakes\" allergen_details: \"Fish, Crustacean, Soy, Gluten, Eggs\" - item_name: \"MALAYSIAN FRIED SQUID, CURRY LEAF GARLIC\" categorization: \"Non Vegetarian\" price_inr: \"695\" calorie_count_per_100g: \"211 Kcal\" ingredients: \"Crisp Fried Squid, Garlic Pepper Sauce, Crispy Curry Leaf\" allergen_details: \"Fish, Soy, Gluten\" - item_name: \"TIGER PRAWNS, THAI RED CURRY GLAZE\" categorization: \"Non Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"163 Kcal\" ingredients: \"Grilled Tiger Prawns, Coconut Curry, Chilli Oil\" allergen_details: \"Crustacean, Gluten, Soy, Dairy\" - section_name: DIM SUM items: - item_name: \"EDAMAME & WATER CHESTNUT, SPRING ONION & SESAME DIP\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"149 kcal\" ingredients: \"Edamame & Water Chestnut Dumpling, Beetroot Skin, Herb Dip\" allergen_details: \"Diary, Gluten, Soy\" - item_name: \"CHICKEN & CHIVES, CRISPY CHILLI SAUCE\" categorization: \"Non Vegetarian\" price_inr: \"595\" calorie_count_per_100g: \"168 kcal\" ingredients: \"Chicken Steam Dumpling, Crispy Chilli, Chives\" allergen_details: \"Soy, Gluten\" - section_name: SLIDER items: - item_name: \"KOREAN CAULIFLOWER, GOCHUJANG & SHALLOTS\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"211 kcal\" ingredients: \"Crispy Fried Cauliflower, Gochujang Cream, Burnt Shallots, Brioche\" allergen_details: \"Diary, Soy, Gluten\" - item_name: \"PULLED PORK, COCONUT & LIME\" categorization: \"Non Vegetarian\" price_inr: \"585\" calorie_count_per_100g: \"243 kcal\" ingredients: \"Slow-Cooked Pulled Pork, Lime Mayo, Burnt Shallots, Brioche\""
+  },
+  {
+    "id": "c4539a6d043b39a51ea40ea0e5816625",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 46,
+    "chunk_id": "ROHL_Test_property.txt:46",
+    "section": "Aviator Food Menu",
+    "content": "Section: Aviator Food Menu\ncalorie_count_per_100g: \"211 kcal\" ingredients: \"Crispy Fried Cauliflower, Gochujang Cream, Burnt Shallots, Brioche\" allergen_details: \"Diary, Soy, Gluten\" - item_name: \"PULLED PORK, COCONUT & LIME\" categorization: \"Non Vegetarian\" price_inr: \"585\" calorie_count_per_100g: \"243 kcal\" ingredients: \"Slow-Cooked Pulled Pork, Lime Mayo, Burnt Shallots, Brioche\" allergen_details: \"Diary, Gluten, Soy\" - item_name: \"GROUND LAMB & CHEDDAR, CARAMELISED ONIONS\" categorization: \"Non Vegetarian\" price_inr: \"585\" calorie_count_per_100g: \"271 kcal\" ingredients: \"Herb Lamb Patty, Cheddar Cheese, Caramelized Onions, Brioche\" allergen_details: \"Diary, Gluten, Soy\" - section_name: BOWLS items: - item_name: \"RAW PAPAYA & PEANUT SALAD, JAGGERY GLAZE\" categorization: \"Vegetarian and Non Vegetarian options available\" price_inr: \"495 (Veg) / 565 (Shrimp)\" calorie_count_per_100g: \"122 kcal (Veg) / 128 kcal (Shrimp)\" ingredients: \"Raw Papaya, Peanuts, Jaggery Glaze, Lime, Chili\" allergen_details: \"CrustaceanCrustacean, Gluten, Soy\" - item_name: \"PORCINI & KING OYSTER MUSHROOM RICE\" categorization: \"Vegetarian\" price_inr: \"615\" calorie_count_per_100g: \"137 kcal\" ingredients: \"Short Grain Rice, Pepper Sauce, Flamed Porcini & King Oyster Mushrooms\" allergen_details: \"Soy\" - item_name: \"CHARRED LEEK CONGEE, CORIANDER OIL\" categorization: \"Vegetarian and Non Vegetarian options available\" price_inr: \"615\" calorie_count_per_100g: \"125 kcal (Veg) | 143 kcal (Non-Veg)\" ingredients: \"Rice Porridge, Charred Leeks, Fresh Herbs, Coriander Oil, 63 degree Egg\" allergen_details: \"Dairy, Eggs, Soy, Peanut\" - item_name: \"LAKSA CHICKEN NOODLE\" categorization: \"Non Vegetarian\" price_inr: \"645\" calorie_count_per_100g: \"168 kcal\" ingredients: \"Spicy Coconut Curry, Noodles, Crumb-Fried Chicken, 63 degree Egg\" allergen_details: \"Eggs, Soy\" - item_name: \"PAD KRA PAO\""
+  },
+  {
+    "id": "bad3d4381b4a7852a2fd69d7e5cff3df",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 47,
+    "chunk_id": "ROHL_Test_property.txt:47",
+    "section": "Aviator Food Menu",
+    "content": "Section: Aviator Food Menu\nOil, 63 degree Egg\" allergen_details: \"Dairy, Eggs, Soy, Peanut\" - item_name: \"LAKSA CHICKEN NOODLE\" categorization: \"Non Vegetarian\" price_inr: \"645\" calorie_count_per_100g: \"168 kcal\" ingredients: \"Spicy Coconut Curry, Noodles, Crumb-Fried Chicken, 63 degree Egg\" allergen_details: \"Eggs, Soy\" - item_name: \"PAD KRA PAO\" categorization: \"Non Vegetarian\" price_inr: \"665\" calorie_count_per_100g: \"186 kcal\" ingredients: \"Thai Basil Minced Pork, Sticky Rice, Sunny-Side-Up Egg\" allergen_details: \"Eggs, Soy, Crustacean\" - section_name: SWEET items: - item_name: \"DARSAAN, VANILLA BEAN ICE CREAM\" categorization: \"Vegetarian\" price_inr: \"465\" calorie_count_per_100g: \"287 kcal\" ingredients: \"Honey-Glazed Wonton, Vanilla Pod Ice Cream, Candied Nuts\" allergen_details: \"Dairy, Gluten, Treenuts\" - item_name: \"55% CHOCOLATE MOUSSE, CRANBERRIES\" categorization: \"Non Vegetarian\" price_inr: \"465\" calorie_count_per_100g: \"312 kcal\" ingredients: \"Silky Chocolate Mousse, 55% Dark Chocolate, Tart Cranberries\" allergen_details: \"Eggs, Dairy\""
+  },
+  {
+    "id": "fd3705fb2be01eca7c1ba0a3c03be425",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 48,
+    "chunk_id": "ROHL_Test_property.txt:48",
+    "section": "Hotel Location Google Maps",
+    "content": "Section: Hotel Location Google Maps\nHotel Location on Google Maps https://maps.app.goo.gl/zvGW4DQF5prhpexM6"
+  },
+  {
+    "id": "01650d345b5af0b719b5613931744d9f",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 49,
+    "chunk_id": "ROHL_Test_property.txt:49",
+    "section": "Happy Hours",
+    "content": "Section: Happy Hours\nDouble the drinks, double the vibe. Happy Every Day at Aviator, 12 PM to 5 PM. For reservations call on 022 6188 6188/ 0 from your in room phone."
+  },
+  {
+    "id": "c0dfee201eb8e4b611a67c6b65b9eb03",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 50,
+    "chunk_id": "ROHL_Test_property.txt:50",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\nmenu_name: BOMBAY SWIM CLUB MENU sections: - section_name: SMALL PLATES items: - item_name: \"RUSSET ROCKETS\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"635 kcal\" ingredients: \"Cheddar Cheese Croquettes, Black Truffle Paste, Truffle Mornay\" allergen_details: \"Gluten, Dairy\" - item_name: \"GREEN ROOM DIP\" categorization: \"Vegetarian\" price_inr: \"625\" calorie_count_per_100g: \"370 kcal\" ingredients: \"Edamame Hummus, Assorted Crisps, Spiced Edamame\" allergen_details: \"Sesame, Treenuts, Gluten\" - item_name: \"SHRIMP POP STAR\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"745 kcal\" ingredients: \"Crispy Shrimp, Chipotle Aioli\" allergen_details: \"Crustacean, Gluten, Soy, Eggs\" - item_name: \"SPICE MINE CROQUETTE\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"540 kcal\" ingredients: \"Pork Chorizo, Salsa Tatemada\" allergen_details: \"Gluten, Dairy\" - item_name: \"YUCATÁN POPPER\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"620 kcal\" ingredients: \"Pulled Lamb Croquette, Achiote-Naranja Salsa\" allergen_details: \"Gluten, Dairy\" - item_name: \"TOKYO HOT BITE\" categorization: \"Non Vegetarian\" price_inr: \"745\" calorie_count_per_100g: \"490 kcal\" ingredients: \"Japanese Style Fried Chicken, Chilli Lime Sauce, Caviar\" allergen_details: \"Gluten, Soy, Eggs\" - item_name: \"LAMB SLAM SLIDE\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"585 kcal\" ingredients: \"Herb Lamb Patty, Cheddar, Caramelized Onions, Brioche\" allergen_details: \"Gluten, Dairy, Soy, Eggs\" - item_name: \"TINGA STREET CRUNCH\" categorization: \"Non Vegetarian\" price_inr: \"745\" calorie_count_per_100g: \"500 kcal\" ingredients: \"Chicken, Adobo Chili, Cheddar\" allergen_details: \"Gluten, Dairy\" - section_name: TACOS items: - item_name: \"SQUASH & BEAN TACO\" categorization: \"Vegetarian\" price_inr: \"625\" calorie_count_per_100g: \"430 kcal\" ingredients: \"Chile Pasilla, Avocado Cream, Fire-Roasted Squash\" allergen_details:"
+  },
+  {
+    "id": "5fb375d8fc66e40ffba39e50b27fc593",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 51,
+    "chunk_id": "ROHL_Test_property.txt:51",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\n\"Non Vegetarian\" price_inr: \"745\" calorie_count_per_100g: \"500 kcal\" ingredients: \"Chicken, Adobo Chili, Cheddar\" allergen_details: \"Gluten, Dairy\" - section_name: TACOS items: - item_name: \"SQUASH & BEAN TACO\" categorization: \"Vegetarian\" price_inr: \"625\" calorie_count_per_100g: \"430 kcal\" ingredients: \"Chile Pasilla, Avocado Cream, Fire-Roasted Squash\" allergen_details: \"Gluten, Soy, Dairy\" - item_name: \"PULLED PORK\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"565 kcal\" ingredients: \"Slow-Cooked Pork, Lime Mayo, Burnt Shallots\" allergen_details: \"Gluten, Soy\" - item_name: \"CHARRED CHICKEN TACO\" categorization: \"Non Vegetarian\" price_inr: \"745\" calorie_count_per_100g: \"505 kcal\" ingredients: \"Avocado Cream, Salsa De Tomate, Pickled Onion\" allergen_details: \"Gluten, Soy, Dairy\" - item_name: \"LAMB BARBACOA\" categorization: \"Non Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"490 kcal\" ingredients: \"Salsa Roja, Shaved Radish, Cilantro\" allergen_details: \"Gluten, Soy\" - section_name: DIM SUM (VEGETARIAN) items: - item_name: \"JADE DUMPLING\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"230 kcal\" ingredients: \"Edamame, Lemongrass, Water Chestnut, Sesame\" allergen_details: \"Gluten, Soy, Sesame, Treenuts\" - item_name: \"PORCINI SILK BLOOM\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"270 kcal\" ingredients: \"Porcini, White Mushroom, Crème Cheese, Truffle\" allergen_details: \"Gluten, Soy, Dairy, Treenuts\" - item_name: \"PEPPER BLOSSOM\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"215 kcal\" ingredients: \"Pak Choi, Sichuan Pepper, Bamboo Shoot\" allergen_details: \"Gluten, Soy\" - item_name: \"TANGRA STREET WONTONS\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"210 kcal\" ingredients: \"Broccoli, Mustard Leaf, Soy-Ginger, Green Chili Oil\" allergen_details: \"Gluten, Soy, Sesame\" - item_name: \"GOLDEN SPRING DIM SUM\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"210"
+  },
+  {
+    "id": "c16afa3c5247a8f096ed093703d104c6",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 52,
+    "chunk_id": "ROHL_Test_property.txt:52",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\nShoot\" allergen_details: \"Gluten, Soy\" - item_name: \"TANGRA STREET WONTONS\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"210 kcal\" ingredients: \"Broccoli, Mustard Leaf, Soy-Ginger, Green Chili Oil\" allergen_details: \"Gluten, Soy, Sesame\" - item_name: \"GOLDEN SPRING DIM SUM\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"210 kcal\" ingredients: \"Asparagus, Sweet Corn, Fresh Coriander, Light Soy\" allergen_details: \"Gluten, Soy, Treenuts\" - section_name: DIM SUM (NON-VEGETARIAN) items: - item_name: \"THE DRAGON’S BREATH\" categorization: \"Non Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"295 kcal\" ingredients: \"Norwegian Salmon, Escabeche Pepper, Black Vinegar\" allergen_details: \"Fish, Gluten, Soy, Sesame\" - item_name: \"THE CHAIRMAN’S DUMPLING\" categorization: \"Non Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"255 kcal\" ingredients: \"Chicken, Smoked Chilli, Fermented Bean\" allergen_details: \"Gluten, Soy, Treenuts\" - item_name: \"SHAOXING CHILLI PRAWNS\" categorization: \"Non Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"260 kcal\" ingredients: \"Sea Prawns, Chilli-Garlic, Sesame Oil\" allergen_details: \"Crustacean, Gluten, Soy, Molluscus, Sesame\" - item_name: \"FOREST FLOOR CHICKEN\" categorization: \"Non Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"265 kcal\" ingredients: \"Shiitake, Cracked Pepper, Garlic-Sesame\" allergen_details: \"Gluten, Soy, Treenuts, Sesame\" - item_name: \"BANGKOK PRISM DUMPLING\" categorization: \"Non Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"250 kcal\" ingredients: \"Chicken, Chili Lemongrass Paste\" allergen_details: \"Gluten, Soy, Treenuts\" - section_name: CEVICHE & SUSHI items: - item_name: \"GREEN LINE ROLL\" categorization: \"Vegetarian\" price_inr: \"695\" calorie_count_per_100g: \"260 kcal\" ingredients: \"Avocado, Cucumber, Wasabi Soy Cream\" allergen_details: \"Dairy, Gluten\" - item_name: \"YUZU ZEN ROLL\" categorization: \"Vegetarian\" price_inr: \"695\" calorie_count_per_100g: \"270 kcal\" ingredients: \"Radish, Cucumber, Avocado,"
+  },
+  {
+    "id": "a57f4e9a316006ca3aebab1fc4598b63",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 53,
+    "chunk_id": "ROHL_Test_property.txt:53",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\n& SUSHI items: - item_name: \"GREEN LINE ROLL\" categorization: \"Vegetarian\" price_inr: \"695\" calorie_count_per_100g: \"260 kcal\" ingredients: \"Avocado, Cucumber, Wasabi Soy Cream\" allergen_details: \"Dairy, Gluten\" - item_name: \"YUZU ZEN ROLL\" categorization: \"Vegetarian\" price_inr: \"695\" calorie_count_per_100g: \"270 kcal\" ingredients: \"Radish, Cucumber, Avocado, Yuzu Kosho Cream\" allergen_details: \"Dairy, Gluten, Sesame\" - item_name: \"CITRUS CURRENT\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"190 kcal\" ingredients: \"Citrus Tuna Ceviche, Cucumber, Yuzu, Lemon\" allergen_details: \"Fish, Gluten, Soy\" - item_name: \"MONSOON TIDE\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"240 kcal\" ingredients: \"Prawn & Green Mango Ceviche, Coconut-Lime Tigre\" allergen_details: \"Crustacean, Gluten, Soy\" - item_name: \"TROPIC VEIL\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"200 kcal\" ingredients: \"Cold-Smoked Hamachi Tiradito, Watermelon & Chili Oil\" allergen_details: \"Fish, Soy\" - item_name: \"SPICY TUNA ROLL\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"350 kcal\" ingredients: \"Wasabi Mayo, Avocado, Cucumber\" allergen_details: \"Fish, Eggs\" - item_name: \"YELLOWTAIL JALAPEÑO\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"320 kcal\" ingredients: \"Yuzu-Soy Glaze, Avocado, Pickled Jalapeño\" allergen_details: \"Fish, Gluten, Sesame\" - item_name: \"TEMPURA SHRIMP\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"390 kcal\" ingredients: \"Tamarind Unagi Gel, Avocado, Cucumber\" allergen_details: \"Molluscus, Crustacean, Gluten, Sesame\" - item_name: \"TORCHED SALMON ROLL\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"360 kcal\" ingredients: \"Charred Salmon, Pickled Ginger Cream, Avocado\" allergen_details: \"Fish, Dairy, Eggs, Sesame\" - section_name: ROBATA (FIRE) items: - item_name: \"BROCCO-LIT\" categorization: \"Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"230 kcal\" ingredients: \"Charred Broccoli, Yuzu"
+  },
+  {
+    "id": "7258b21a3d03c631f46afa39c12f8e55",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 54,
+    "chunk_id": "ROHL_Test_property.txt:54",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\nSALMON ROLL\" categorization: \"Non-Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"360 kcal\" ingredients: \"Charred Salmon, Pickled Ginger Cream, Avocado\" allergen_details: \"Fish, Dairy, Eggs, Sesame\" - section_name: ROBATA (FIRE) items: - item_name: \"BROCCO-LIT\" categorization: \"Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"230 kcal\" ingredients: \"Charred Broccoli, Yuzu Mayo, Nut Crumble\" allergen_details: \"Dairy, Eggs, Soy, Treenuts\" - item_name: \"THE SIRLOIN OF THE FOREST\" categorization: \"Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"210 kcal\" ingredients: \"Shimeji & Portobello, Miso-Brown Butter\" allergen_details: \"Dairy, Gluten\" - item_name: \"GRILL & CHILL\" categorization: \"Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"230 kcal\" ingredients: \"Green Asparagus, Iceberg, Tare, Citrus\" allergen_details: \"Gluten\" - item_name: \"STONE HEART TARO\" categorization: \"Vegetarian\" price_inr: \"795\" calorie_count_per_100g: \"220 kcal\" ingredients: \"Smoked Honey, Togarashi, White Miso, Chili-Coconut\" allergen_details: \"Gluten\" - item_name: \"SALMON PAVÉ\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"390 kcal\" ingredients: \"Dalle Khusrani, Citrus, Caviar\" allergen_details: \"Fish, Soy\" - item_name: \"HACHI HEAT\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"210 kcal\" ingredients: \"Baby Lobster, Yuzu Kosho Citrus, Charred Allium\" allergen_details: \"Crustacean\" - item_name: \"ONI FLAME COLLAR\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"370 kcal\" ingredients: \"Queen Fish Collar, Bone Butter, Black Garlic\" allergen_details: \"Dairy, Fish\" - item_name: \"PIÑA VOLTAGE\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"370 kcal\" ingredients: \"Charred Lamb Loin Skewers, Pineapple Salsa\" allergen_details: \"(None listed on menu)\" - item_name: \"SHISO VERDE\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"490 kcal\" ingredients: \"Pork Belly Skewers, Salsa Verde\" allergen_details: \"(None listed on menu)\""
+  },
+  {
+    "id": "a1b9ef5081020f83f571b3b18b09e0ae",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 55,
+    "chunk_id": "ROHL_Test_property.txt:55",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\n\"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"370 kcal\" ingredients: \"Charred Lamb Loin Skewers, Pineapple Salsa\" allergen_details: \"(None listed on menu)\" - item_name: \"SHISO VERDE\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"490 kcal\" ingredients: \"Pork Belly Skewers, Salsa Verde\" allergen_details: \"(None listed on menu)\" - item_name: \"CITRUS LACQUER\" categorization: \"Non-Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"320 kcal\" ingredients: \"Chicken Skewers, Salsa Taquera\" allergen_details: \"(None listed on menu)\" - section_name: BOWLS items: - item_name: \"TOFU UMAMI\" categorization: \"Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"420 kcal\" ingredients: \"Charred Tofu, Edamame, Pak Choi, Sticky Rice\" allergen_details: \"Soy, Sesame\" - item_name: \"MUSHROOM MAFIA\" categorization: \"Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"335 kcal\" ingredients: \"Short Grain Rice, Porcini, Morels, King Oyster\" allergen_details: \"Dairy\" - item_name: \"PAD THAI\" categorization: \"Vegetarian\" price_inr: \"895\" calorie_count_per_100g: \"440 kcal\" ingredients: \"Flat Rice Noodles, Tamarind-Chili, Asparagus, Edamame\" allergen_details: \"Soy, Eggs\" - item_name: \"SALMON SUNSET\" categorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"615 kcal\" ingredients: \"Citrus Salmon, Furikake Rice, Wasabi Mayo\" allergen_details: \"Fish, Eggs, Sesame\" - item_name: \"LAKSA CHICKEN NOODLE\" categorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"620 kcal\" ingredients: \"Coconut Curry, Fried Chicken, 63° Egg\" allergen_details: \"Gluten, Soy, Eggs\" - item_name: \"BANGKOK STREET\" categorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"630 kcal\" ingredients: \"Thai Basil Pork, Sticky Rice, Sunny Egg\" allergen_details: \"Eggs, Soy\" - item_name: \"BAD BOY LAMB CHOP\" categorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"500 kcal\" ingredients: \"Salt & Pepper Lamb, Jacket Potato,"
+  },
+  {
+    "id": "7b416737cc70f284ceaeb4b19e113217",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 56,
+    "chunk_id": "ROHL_Test_property.txt:56",
+    "section": "Bombay Swim Club Menu",
+    "content": "Section: Bombay Swim Club Menu\ncategorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"630 kcal\" ingredients: \"Thai Basil Pork, Sticky Rice, Sunny Egg\" allergen_details: \"Eggs, Soy\" - item_name: \"BAD BOY LAMB CHOP\" categorization: \"Non Vegetarian\" price_inr: \"995\" calorie_count_per_100g: \"500 kcal\" ingredients: \"Salt & Pepper Lamb, Jacket Potato, Chili–Chocolate Jus\" allergen_details: \"Dairy\" - section_name: DESSERT items: - item_name: \"MISO DOI\" categorization: \"Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"300 kcal\" ingredients: \"Baked Mishti Doi, Miso Caramel, Sesame Crumble\" allergen_details: \"Dairy, Sesame\" - item_name: \"WTF WASABI\" categorization: \"Non Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"390 kcal\" ingredients: \"Wasabi Ice Cream, Macadamia, Matcha Cone\" allergen_details: \"Dairy, Eggs, Treenuts, Gluten\" - item_name: \"MILK MONEY\" categorization: \"Non Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"410 kcal\" ingredients: \"Tres Leches, Whipped Cream, Burnt Caramel\" allergen_details: \"Dairy, Eggs\" - item_name: \"SAN SEBASTIÁN SIN\" categorization: \"Non Vegetarian\" price_inr: \"545\" calorie_count_per_100g: \"420 kcal\" ingredients: \"Basque Cheesecake\" allergen_details: \"Dairy, Eggs\""
+  },
+  {
+    "id": "7c3ea00f49a83c52aa618af72cfa1205",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 57,
+    "chunk_id": "ROHL_Test_property.txt:57",
+    "section": "Midnight selections IN ROOM DINING (IRD)",
+    "content": "Section: Midnight selections IN ROOM DINING (IRD)\nmenu_name: \"Midnight selections - IN-ROOM DINING (IRD)\" notes: - \"All calorie counts listed are per 100 grams of the serving as per the menu footer.\" sections: - section_name: \"24 HOURS BREAD\" items: - item_name: \"6. BOMBAY TOASTIE\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"91 Kcal\" ingredients: \"Brioche, Potato Mash, Cheese\" allergen_details: \"Gluten, Milk, Mustard\" - item_name: \"7. GRILLED VEGGIE\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"150 Kcal\" ingredients: \"Shokupan Sando, Boursin\" allergen_details: \"Gluten, Milk\" - item_name: \"8. TAMARI TOFU\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"134 Kcal\" ingredients: \"Bao, Mesclun\" allergen_details: \"Gluten, Soybeans\" - item_name: \"9. UFO BURGER WITH MUSHROOMS\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"133 Kcal\" ingredients: \"Sautéed Mushroom, Sliced Tomato, Caramelised Onion, Cheese\" allergen_details: \"Milk, Gluten\" - item_name: \"10. TEXAS VEGETABLE QUESADILLA\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"185 Kcal\" ingredients: \"Red Kidney Bean, Cheese, In Grilled Tortilla\" allergen_details: \"Milk, Gluten\" - item_name: \"11. PANEER KATHI ROLL\" categorization: \"Vegetarian\" price_inr: \"575\" calorie_count_per_100g: \"159 Kcal\" ingredients: \"Tempered Cottage Cheese, Capsicum, Onion, Malabar Parotta\" allergen_details: \"Milk, Gluten\" - item_name: \"12. CHICKEN CROISSANT\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"258 Kcal\" ingredients: \"Smoked Paprika, Goat Cheese\" allergen_details: \"Milk, Gluten, Eggs\" - item_name: \"13. TRUFFLED EGGS TOAST\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"146 Kcal\" ingredients: \"Sourdough, Cream Cheese\" allergen_details: \"Milk, Gluten, Eggs, Soybeans\" - section_name: \"24 HOURS BREADS\" items: - item_name: \"1. ICONIQA CLUB\" categorization: \"Non-Vegetarian\" price_inr:"
+  },
+  {
+    "id": "4026b2d7a9bdae5f946c930c1d785029",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 58,
+    "chunk_id": "ROHL_Test_property.txt:58",
+    "section": "Midnight selections IN ROOM DINING (IRD)",
+    "content": "Section: Midnight selections IN ROOM DINING (IRD)\nallergen_details: \"Milk, Gluten, Eggs\" - item_name: \"13. TRUFFLED EGGS TOAST\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"146 Kcal\" ingredients: \"Sourdough, Cream Cheese\" allergen_details: \"Milk, Gluten, Eggs, Soybeans\" - section_name: \"24 HOURS BREADS\" items: - item_name: \"1. ICONIQA CLUB\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"154 Kcal\" ingredients: \"Chicken, Bacon, Egg\" allergen_details: \"Milk, Gluten, Eggs\" - item_name: \"2. KOREAN FRIED CHICKEN BURGER\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"161 Kcal\" ingredients: \"Crispy Fried Chicken, Kimchi, Chilli Sauce, Fried Onion\" allergen_details: \"Milk, Gluten, Eggs, Soybeans, Sesame\" - item_name: \"3. CHICKEN KATHI ROLL\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"167 Kcal\" ingredients: \"Chicken Tikka, Onion, Capsicum, Malabar Parotta\" allergen_details: \"Gluten, Milk\" - item_name: \"4. PULLED LAMB\" categorization: \"Non-Vegetarian\" price_inr: \"700\" calorie_count_per_100g: \"219 Kcal\" ingredients: \"Sealed Burger, Shallots\" allergen_details: \"Mustard, Tree nuts, Milk\" - item_name: \"5. GHEE ROAST PRAWN\" categorization: \"Non-Vegetarian\" price_inr: \"800\" calorie_count_per_100g: \"169 Kcal\" ingredients: \"Sealed Bun, Gherkins\" allergen_details: \"Gluten, Milk, Fish\" - item_name: \"6. MALWANI PRAWN\" categorization: \"Non-Vegetarian\" price_inr: \"800\" calorie_count_per_100g: \"153 Kcal\" ingredients: \"Shokupan Sando, Ginger Chilli\" allergen_details: \"Gluten, Milk, Fish, Eggs\" - section_name: \"Desi Khana\" items: - item_name: \"Paneer Roulade Makhani\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"215 Kcal\" ingredients: \"Cottage cheese, tomato chutney, smooth makhani, edamame\" allergen_details: \"Milk, Soybeans\" - item_name: \"Kadhai Asparagus and Water Chestnut\" categorization: \"Vegan\" price_inr: \"750\" calorie_count_per_100g: \"68 Kcal\" ingredients: \"Asparagus, water chestnut, tomato onion masala\" allergen_details: \"Tree Nuts"
+  },
+  {
+    "id": "4da5e3c44c20d190ba0c4e3bdf981ae7",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 59,
+    "chunk_id": "ROHL_Test_property.txt:59",
+    "section": "Midnight selections IN ROOM DINING (IRD)",
+    "content": "Section: Midnight selections IN ROOM DINING (IRD)\nprice_inr: \"750\" calorie_count_per_100g: \"215 Kcal\" ingredients: \"Cottage cheese, tomato chutney, smooth makhani, edamame\" allergen_details: \"Milk, Soybeans\" - item_name: \"Kadhai Asparagus and Water Chestnut\" categorization: \"Vegan\" price_inr: \"750\" calorie_count_per_100g: \"68 Kcal\" ingredients: \"Asparagus, water chestnut, tomato onion masala\" allergen_details: \"Tree Nuts , Milk\" - item_name: \"Garhwali Dal Khichdi\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"76 Kcal\" ingredients: \"Rice, lentil porridge\" allergen_details: \"Milk\" - item_name: \"Malai Butter Chicken\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"176 Kcal\" ingredients: \"Chicken tikka, smooth makhani gravy\" allergen_details: \"Milk, Tree Nuts\" - item_name: \"Hyderabadi Chicken Biryani\" categorization: \"Non-Vegetarian\" price_inr: \"875\" calorie_count_per_100g: \"146 Kcal\" ingredients: \"Chicken, aromatic spices, long grain rice\" allergen_details: \"Gluten, Milk\" - item_name: \"Nalli Salan\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"129 Kcal\" ingredients: \"Lamb shank, spices, lamb broth\" allergen_details: \"Gluten, Milk\" - item_name: \"Chingri Malai Curry\" categorization: \"Non-Vegetarian\" price_inr: \"875\" calorie_count_per_100g: \"122 Kcal\" ingredients: \"Prawns, spices, coconut milk\" allergen_details: \"Crustaceans, Milk\""
+  },
+  {
+    "id": "3c8402ffd33f9370bb71039e31adfc6e",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 60,
+    "chunk_id": "ROHL_Test_property.txt:60",
+    "section": "Kids section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Kids section IN ROOM DINING (IRD) MENU\nmenu_name: \"Kids - IN ROOM DINING (IRD) MENU\" service_time: \"12:00 PM TO 6:00 AM\" sections: - section_name: \"KIDS EXPERIENCE\" items: - item_name: \"VEGGIE SLIDERS\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"148 Kcal\" ingredients: \"Vegetable Patty, Mini Burger, Cheese\" allergen_details: \"Gluten, Milk\" - item_name: \"RAINBOW VEGGIE PIZZA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"175 Kcal\" ingredients: \"Assorted Veggies, Cheese\" allergen_details: \"Gluten, Milk\" - item_name: \"MAC N CHEESE\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"176 Kcal\" ingredients: \"Classic Macaroni, Melted Cheddar Cheese\" allergen_details: \"Gluten, Milk\" - item_name: \"RED SAUCE SPAGHETTI\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"132 Kcal\" ingredients: \"Tomato Sauce, Basil, Cheese, Spaghetti\" allergen_details: \"Gluten, Milk\" - item_name: \"BUCKET OF ASSORTED POTATO FRIES\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"254 Kcal\" ingredients: \"Potato Chips, Wedges, Corn, Cheese pop\" allergen_details: \"Gluten, Milk\" - item_name: \"MASHED POTATO\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"111 Kcal\" ingredients: \"Creamy Mashed, Butter, Cheese\" allergen_details: \"Milk\" - item_name: \"CRISPY CHICKEN SLIDERS\" categorization: \"Non-Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"208 Kcal\" ingredients: \"Crispy Chicken, Mini Burger, Cheese\" allergen_details: \"Gluten, Milk, Egg\""
+  },
+  {
+    "id": "81133ffe1546cf62f6757fb0e43554f6",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 61,
+    "chunk_id": "ROHL_Test_property.txt:61",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\nmenu_name: \"All Day IN ROOM DINING (IRD)\" service_time: \"12:00 PM TO 11:30 PM\" sections: - section_name: \"SOUPS\" items: - item_name: \"MINESTRONE ALLA GENOVESE SOUP\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"48 Kcal\" ingredients: \"Beans, Potato, Cheese, Tomato\" allergen_details: \"Milk, Celery\" - item_name: \"HOMEMADE MUSHROOM SOUP\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"46 Kcal\" ingredients: \"Mushroom, Cream, Aromatic Vegetables\" allergen_details: \"Milk, Celery\" - item_name: \"VEGETABLE WONTON SOUP\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"48 Kcal\" ingredients: \"Vegetable Wonton, Clear Soup, Scallion\" allergen_details: \"Gluten, Soybeans\" - item_name: \"SWEET CORN CHICKEN SOUP\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"60 Kcal\" ingredients: \"Creamy Corn, Chicken, Scallion\" allergen_details: \"Milk\" - section_name: \"SALADS\" items: - item_name: \"BABY SPINACH SALAD\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"176 Kcal\" ingredients: \"Spinach, Date, Walnut, Sumac Lemon\" allergen_details: \"Gluten, Tree Nuts, Milk\" - item_name: \"BURRATA SALAD\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"129 Kcal\" ingredients: \"Fresh Burrata, Tomato, Olive Oil\" allergen_details: \"Gluten, Tree Nuts, Milk\" - item_name: \"CLASSIC CAESAR SALAD\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"124 Kcal\" ingredients: \"Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg\" allergen_details: \"Gluten, Mustard, Milk, Eggs, Fish\" - section_name: \"SMALL PLATES\" items: - item_name: \"KOREAN CHICKEN BAO\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"241 Kcal\" ingredients: \"Steam Bao, Crispy Chicken\" allergen_details: \"Gluten, Celery, Milk, Sesame, Soybeans\" - item_name: \"GENERAL TSO’S CHICKEN\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"275 Kcal\" ingredients: \"Chicken Tossed With"
+  },
+  {
+    "id": "f41531c4d104a2d2f4625b23726ee82b",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 62,
+    "chunk_id": "ROHL_Test_property.txt:62",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\nitems: - item_name: \"KOREAN CHICKEN BAO\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"241 Kcal\" ingredients: \"Steam Bao, Crispy Chicken\" allergen_details: \"Gluten, Celery, Milk, Sesame, Soybeans\" - item_name: \"GENERAL TSO’S CHICKEN\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"275 Kcal\" ingredients: \"Chicken Tossed With Soy, Ginger, Hoisin\" allergen_details: \"Soybeans, Sesame\" - item_name: \"BANNO KEBAB\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"138 Kcal\" ingredients: \"Saffron Scented Chicken, Egg Coated Tandoor Cooked\" allergen_details: \"Milk, Eggs\" - item_name: \"BAKED BRUSCHETTA\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"156 Kcal\" ingredients: \"Sliced Baked, Mozzarella, Marinated Cherry Tomato\" allergen_details: \"Milk, Gluten\" - item_name: \"ULTIMATE VEGGIE NACHOS\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"142 Kcal\" ingredients: \"Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked\" allergen_details: \"Milk\" - item_name: \"HUMMUS\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"99 Kcal\" ingredients: \"Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket\" allergen_details: \"Celery, Sesame\" - item_name: \"MANGO PICKLE PANEER TIKKA\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"162 Kcal\" ingredients: \"Cottage Cheese, Spices, Mango Pickle\" allergen_details: \"Milk, Mustard\" - item_name: \"MALAI BROCCOLI KEBAB\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"171 Kcal\" ingredients: \"Broccoli Florets, Creamy Cheese, Yoghurt, Mild Spices\" allergen_details: \"Milk , Tree Nuts\" - item_name: \"MATTAR TIKKI\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"119 Kcal\" ingredients: \"Green Peas, Chilli, Spices, Panko Crust\" allergen_details: \"Milk\" - item_name: \"PEPPER CHICKEN TIKKA\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"150 Kcal\" ingredients: \"Creamy Chicken, Crushed Pink Pepper\" allergen_details: \"Milk\""
+  },
+  {
+    "id": "88628238e32f129656618710f4667af7",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 63,
+    "chunk_id": "ROHL_Test_property.txt:63",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\n- item_name: \"MATTAR TIKKI\" categorization: \"Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"119 Kcal\" ingredients: \"Green Peas, Chilli, Spices, Panko Crust\" allergen_details: \"Milk\" - item_name: \"PEPPER CHICKEN TIKKA\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"150 Kcal\" ingredients: \"Creamy Chicken, Crushed Pink Pepper\" allergen_details: \"Milk\" - item_name: \"MUTTON PEPPER SUKKHA\" categorization: \"Non-Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"141 Kcal\" ingredients: \"Tender Lamb, Pepper Masala, Tempered Mustard, Curry Leaves\" allergen_details: \"Milk, Mustard\" - item_name: \"CRISPY CALAMARI\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"261 Kcal\" ingredients: \"Squid Rings, Semolina Flour, Lemon\" allergen_details: \"Molluscs, Gluten\" - section_name: \"FLATBREADS\" items: - item_name: \"THE MEDITERRANEAN FLATBREAD\" categorization: \"Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"187 Kcal\" ingredients: \"Artichoke Heart, Kalamata, Roasted Garlic, Feta\" allergen_details: \"Milk, Gluten\" - item_name: \"ICONIQA NEAPOLITAN FLATBREAD\" categorization: \"Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"200 Kcal\" ingredients: \"Sourdough, Tomato Sauce, Mozzarella Cheese\" allergen_details: \"Milk, Gluten\" - item_name: \"GRILLED MUSHROOM FLATBREAD\" categorization: \"Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"208 Kcal\" ingredients: \"Mushroom, Tomato, Mozzarella, Basil\" allergen_details: \"Milk, Gluten\" - item_name: \"LOW CARB PIZZA BOWL\" categorization: \"Non-Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"110 Kcal\" ingredients: \"Lean Turkey, Jalapeño, Cheese\" allergen_details: \"Milk\" - item_name: \"BBQ CHICKEN FLATBREAD\" categorization: \"Non-Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"157 Kcal\" ingredients: \"BBQ Chicken, Tomato, Mozzarella\" allergen_details: \"Milk, Gluten\" - section_name: \"FROM THE ORIENT\" items: - item_name: \"ASPARAGUS & MUSHROOM STIR FRY\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"31 Kcal\" ingredients: \"Asparagus, Mushroom, Garlic, Sesame Oil\" allergen_details: \"Gluten, Fish,"
+  },
+  {
+    "id": "266ebc20194522b6b807b32e0f4e21fe",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 64,
+    "chunk_id": "ROHL_Test_property.txt:64",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\ncalorie_count_per_100g: \"157 Kcal\" ingredients: \"BBQ Chicken, Tomato, Mozzarella\" allergen_details: \"Milk, Gluten\" - section_name: \"FROM THE ORIENT\" items: - item_name: \"ASPARAGUS & MUSHROOM STIR FRY\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"31 Kcal\" ingredients: \"Asparagus, Mushroom, Garlic, Sesame Oil\" allergen_details: \"Gluten, Fish, Sesame, Soybeans\" - item_name: \"THAI GREEN CURRY\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"62 Kcal\" ingredients: \"Zucchini, Bamboo Shoots, Bok Choy, Pea Brinjal, Coconut Milk\" allergen_details: \"Soybeans, Gluten\" - item_name: \"AMERICAN CHOPSUEY WITH VEGETABLES\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"93 Kcal\" ingredients: \"Fried Noodle, Sweet And Sour Vegetables\" allergen_details: \"Soybeans, Gluten\" - item_name: \"MAPO TOFU\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"111 Kcal\" ingredients: \"Silken Tofu, Shiitake Mushroom, Black Beans, Sichuan Peppercorns\" allergen_details: \"Gluten, Soybeans, Sesame\" - item_name: \"SIMPLE HAKKA NOODLES\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"146 Kcal\" ingredients: \"Shredded Vegetables, Noodle, Light Soy, Spring Onion\" allergen_details: \"Gluten, Soybeans\" - item_name: \"HAINANESE CHICKEN RICE\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"127 Kcal\" ingredients: \"Steamed Chicken, Poaching Broth, Ginger, Garlic, Rice\" allergen_details: \"Gluten\" - item_name: \"THAI RED CURRY\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"111 Kcal\" ingredients: \"Lemongrass, Galangal, Chicken, Coconut Milk, Kaffir Lime Leaf\" allergen_details: \"Gluten, Soybeans\" - section_name: \"FROM THE ORIENT – SEAFOOD & SPECIALS\" items: - item_name: \"NASI GORENG\" categorization: \"Non-Vegetarian\" price_inr: \"900\" calorie_count_per_100g: \"150 Kcal\" ingredients: \"Fried Rice, Prawn Cracker, Chicken Satay, Peanut Sauce\" allergen_details: \"Gluten, Crustaceans, Egg, Soybeans, Peanuts\" -"
+  },
+  {
+    "id": "d1a1ed41b7123cda7f5f4c98c7587332",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 65,
+    "chunk_id": "ROHL_Test_property.txt:65",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\nallergen_details: \"Gluten, Soybeans\" - section_name: \"FROM THE ORIENT – SEAFOOD & SPECIALS\" items: - item_name: \"NASI GORENG\" categorization: \"Non-Vegetarian\" price_inr: \"900\" calorie_count_per_100g: \"150 Kcal\" ingredients: \"Fried Rice, Prawn Cracker, Chicken Satay, Peanut Sauce\" allergen_details: \"Gluten, Crustaceans, Egg, Soybeans, Peanuts\" - item_name: \"KUNG PAO CHICKEN\" categorization: \"Non-Vegetarian\" price_inr: \"900\" calorie_count_per_100g: \"145 Kcal\" ingredients: \"Chicken, Sichuan Peppercorns, Cashewnuts, Sticky Rice\" allergen_details: \"Gluten, Tree Nuts, Soybeans\" - item_name: \"WOKKED SWEET AND SOUR PRAWNS\" categorization: \"Non-Vegetarian\" price_inr: \"875\" calorie_count_per_100g: \"92 Kcal\" ingredients: \"Prawn, Bell Pepper, Pineapple, Chilli Vinegar\" allergen_details: \"Gluten , Sesame, Crustaceans\" - item_name: \"SHANGHAI FRIED NOODLES\" categorization: \"Non-Vegetarian\" price_inr: \"875\" calorie_count_per_100g: \"103 Kcal\" ingredients: \"Prawn, Dark Soy, Udon Noodle, Spring Onion\" allergen_details: \"Crustaceans, Gluten, Soybeans\" - section_name: \"FROM THE MEDITERRANEAN\" items: - item_name: \"RATATOUILLE (FROM THE MOVIE)\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"70 Kcal\" ingredients: \"Grilled Med Vegetables, Tomato Sauce, Baked\" allergen_details: \"Milk\" - item_name: \"WILD MUSHROOM RISOTTO\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"111 Kcal\" ingredients: \"Assorted Mushroom, Arborio, Cream, Cheese\" allergen_details: \"Milk, Sulphur Dioxide\" - item_name: \"GNOCCHI SORRENTINA\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"122 Kcal\" ingredients: \"Potato Gnocchi, Tomato Sauce, Cheese\" allergen_details: \"Milk, Gluten\" - item_name: \"SPINACH RAVIOLI\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"144 Kcal\" ingredients: \"Spinach Ravioli, Tomato Sauce, Cheese\" allergen_details: \"Milk, Gluten, Egg\" - item_name: \"HONEY MUSTARD CHICKEN\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"114 Kcal\" ingredients: \"Honey Mustard Glaze"
+  },
+  {
+    "id": "07692e248ef6a701cf29e7c3cee232ee",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 66,
+    "chunk_id": "ROHL_Test_property.txt:66",
+    "section": "All day section IN ROOM DINING (IRD) MENU",
+    "content": "Section: All day section IN ROOM DINING (IRD) MENU\nallergen_details: \"Milk, Gluten\" - item_name: \"SPINACH RAVIOLI\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"144 Kcal\" ingredients: \"Spinach Ravioli, Tomato Sauce, Cheese\" allergen_details: \"Milk, Gluten, Egg\" - item_name: \"HONEY MUSTARD CHICKEN\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"114 Kcal\" ingredients: \"Honey Mustard Glaze Chicken, Sautéed Mushroom, Peas, Dipping Jus\" allergen_details: \"Gluten, Mustard, Egg\" - item_name: \"GRILLED LAMB CHOPS\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"241 Kcal\" ingredients: \"Mint Grilled Lamb Chops, Arugula Salad, Dipping Sauce\" allergen_details: \"(None listed on menu)\" - item_name: \"PANKO CRUSTED FISH AND CHIPS\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"170 Kcal\" ingredients: \"Fish Fillet, Panko Crust, Tarter Sauce\" allergen_details: \"Fish, Gluten, Eggs, Mustard\" - item_name: \"SPICY PRAWN SPAGHETTI\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"176 Kcal\" ingredients: \"Grilled Prawn Spicy Tomato Sauce, Tossed Spaghetti\" allergen_details: \"Crustaceans, Gluten, Milk\""
+  },
+  {
+    "id": "59972c04b02e261dd02f69be5ed4529c",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 67,
+    "chunk_id": "ROHL_Test_property.txt:67",
+    "section": "15 minutes meals section IN ROOM DINING (IRD) MENU",
+    "content": "Section: 15 minutes meals section IN ROOM DINING (IRD) MENU\nmenu_name: \"15 minutes meals - IN-ROOM DINING (IRD)\" service_time: \"12:00 PM TO 6:00 AM\" notes: - \"15 MINUTES MEALS\" - \"SERVED IN SUSTAINABLE MEAL BOXES\" sections: - section_name: \"15 MINUTES MEALS\" items: - item_name: \"PAV BHAJI\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"94 Kcal\" ingredients: \"Assorted Spiced Vegetables, Buttered Pav Bun, Onion Salad\" allergen_details: \"Milk, Gluten\" - item_name: \"DUNKED IDLI SAMBAR BOWL\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"45 Kcal\" ingredients: \"Mini Idli, Dipped In Sambar\" allergen_details: \"Mustard, Milk\" - item_name: \"RAJMA CHAWAL\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"110 Kcal\" ingredients: \"Spiced Kidney Bean Curry, Steam Rice\" allergen_details: \"Milk\" - item_name: \"GNOCCHI WITH TOMATO AND BURRATA\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"166 Kcal\" ingredients: \"Potato Gnocchi, Tomato Sauce, Creamy Burrata\" allergen_details: \"Gluten, Milk\" - item_name: \"VEGETABLE MINESTRONE SOUP\" categorization: \"Vegetarian\" price_inr: \"500\" calorie_count_per_100g: \"48 Kcal\" ingredients: \"Beans, Potato, Cheese And Tomato\" allergen_details: \"Milk, Celery\" - item_name: \"SUBZI BIRYANI\" categorization: \"Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"123 Kcal\" ingredients: \"Aromatic Vegetables, Long Grain Rice, Served With Raita\" allergen_details: \"Milk\" - item_name: \"DOON SCHOOL BULLS BUN ANDA\" categorization: \"Non-Vegetarian\" price_inr: \"750\" calorie_count_per_100g: \"180 Kcal\" ingredients: \"Quick Cooked Eggs, Grilled Pav With Butter\" allergen_details: \"Milk, Egg, Gluten\" - item_name: \"CHICKEN WONTON SOUP\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"51 Kcal\" ingredients: \"Chicken Wonton, Clear Soup, Scallion\" allergen_details: \"Gluten, Sesame, Soybeans\" - item_name: \"BUTTER CHICKEN PULAO\" categorization: \"Non-Vegetarian\" price_inr:"
+  },
+  {
+    "id": "24d3d6b06fe80936ca0255a2e21a647e",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 68,
+    "chunk_id": "ROHL_Test_property.txt:68",
+    "section": "15 minutes meals section IN ROOM DINING (IRD) MENU",
+    "content": "Section: 15 minutes meals section IN ROOM DINING (IRD) MENU\nCooked Eggs, Grilled Pav With Butter\" allergen_details: \"Milk, Egg, Gluten\" - item_name: \"CHICKEN WONTON SOUP\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"51 Kcal\" ingredients: \"Chicken Wonton, Clear Soup, Scallion\" allergen_details: \"Gluten, Sesame, Soybeans\" - item_name: \"BUTTER CHICKEN PULAO\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"159 Kcal\" ingredients: \"Chicken Tikka, Smooth Makhani Gravy, Served With Pulao\" allergen_details: \"Mustard, Milk\" - item_name: \"LAMB MINCE SHEPHERD’S PIE\" categorization: \"Non-Vegetarian\" price_inr: \"850\" calorie_count_per_100g: \"149 Kcal\" ingredients: \"Minced Lamb, Rosemary, Tomato Jus, Mashed Potato Baked\" allergen_details: \"Milk\""
+  },
+  {
+    "id": "db554a02d183a70f3c399edecd596a37",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 69,
+    "chunk_id": "ROHL_Test_property.txt:69",
+    "section": "Breakfast section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Breakfast section IN ROOM DINING (IRD) MENU\nmenu_name: \"Breakfast - IN-ROOM_DINING (IRD)\" notes: - \"All calorie counts listed are per 100 grams of the serving as per the menu footer.\" sections: - section_name: \"À LA CARTE BREAKFAST (6:30 AM TO 10:30 AM)\" items: - item_name: \"VIENNOISERIE BASKET\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"392 Kcal\" ingredients: \"Croissant, Danish, Pain Au Chocolat, Cinnamon Roll\" allergen_details: \"Milk, Gluten\" - item_name: \"AVOCADO TOAST\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"179.24 Kcal\" ingredients: \"Sour Dough, Sriracha Aioli\" allergen_details: \"Milk, Gluten\" - item_name: \"PANCAKES\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"243.83 Kcal\" ingredients: \"Nutella, Maple Syrup and Raspberry Jam\" allergen_details: \"Milk, Gluten, Eggs\" - item_name: \"DOSA WAFFLES\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"92.23 Kcal\" ingredients: \"Masala Aloo, Chutneys\" allergen_details: \"Mustard, Peanuts\" - item_name: \"THE ORIGINAL BENNE MASALA DOSA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"148.69 Kcal\" ingredients: \"Crispy Dosa, Butter, Spiced Potato Stuffed\" allergen_details: \"Milk\" - item_name: \"IDLI AND VADA PLATTER\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"120.05 Kcal\" ingredients: \"Steamed Rice Cake, With Savory Lentil Doughnut\" allergen_details: \"Mustard\" - item_name: \"TRIO OF STUFFED PARATHA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"171.17 Kcal\" ingredients: \"Spiced Cottage Cheese, Spiced Potato, Minced Cabbage\" allergen_details: \"Milk, Gluten\" - item_name: \"PUNJABI POHA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"111.28 Kcal\" ingredients: \"Beaten Rice, Peanut, Diced Potato\" allergen_details: \"Mustard, Peanuts\" - section_name: \"À LA CARTE BREAKFAST (6:30 AM TO 10:30 AM) (page 2)\" items:"
+  },
+  {
+    "id": "17dd852e6399a1f9d9b693805454ea04",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 70,
+    "chunk_id": "ROHL_Test_property.txt:70",
+    "section": "Breakfast section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Breakfast section IN ROOM DINING (IRD) MENU\nPotato, Minced Cabbage\" allergen_details: \"Milk, Gluten\" - item_name: \"PUNJABI POHA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"111.28 Kcal\" ingredients: \"Beaten Rice, Peanut, Diced Potato\" allergen_details: \"Mustard, Peanuts\" - section_name: \"À LA CARTE BREAKFAST (6:30 AM TO 10:30 AM) (page 2)\" items: - item_name: \"Seasonal Fruit Platter\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"41 Kcal (per 100g)\" ingredients: \"Watermelon, Papaya, Pineapple\" allergen_details: \"None mentioned\" - item_name: \"Quinoa Upma\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"110.07 Kcal (per 100g)\" ingredients: \"Tempered Mustard, Curry Leaf\" allergen_details: \"Mustard, Peanuts\" - item_name: \"Acai Bowl\" categorization: \"Vegetarian\" price_inr: \"650\" calorie_count_per_100g: \"87 Kcal (per 100g)\" ingredients: \"Granola, Banana, Almond Butter, Yogurt\" allergen_details: \"Milk, Gluten, Soybeans, Tree Nuts\" - item_name: \"Truffle Egg White Omelette\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"67.96 Kcal (per 100g)\" ingredients: \"Wilted Spinach, Truffle Oil, Rolled In Egg White\" allergen_details: \"Milk, Eggs\" - item_name: \"Turkish Shakshuka\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"82.05 Kcal (per 100g)\" ingredients: \"Tomato, Chilli Flakes, Egg And Feta\" allergen_details: \"Milk, Eggs\" - item_name: \"Eggs Benedict\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"269 Kcal (per 100g)\" ingredients: \"English Muffin, Grilled Ham, Poached Egg, Hollandaise\" allergen_details: \"Milk, Gluten, Eggs\" - item_name: \"Breakfast Meat Plattery\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"195 Kcal (per 100g)\" ingredients: \"Grilled Ham, Bacon, Sausage, Salami And Pepperoni\" allergen_details: \"Mustard, Soybeans, Gluten, Milk\" - section_name: \"BREAKFAST BOOSTER (6:30 AM TO 10:30 AM) (page 3)\""
+  },
+  {
+    "id": "25e31945dc5018f34d4787a3c4c78928",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 71,
+    "chunk_id": "ROHL_Test_property.txt:71",
+    "section": "Breakfast section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Breakfast section IN ROOM DINING (IRD) MENU\nGluten, Eggs\" - item_name: \"Breakfast Meat Plattery\" categorization: \"Non-Vegetarian\" price_inr: \"550\" calorie_count_per_100g: \"195 Kcal (per 100g)\" ingredients: \"Grilled Ham, Bacon, Sausage, Salami And Pepperoni\" allergen_details: \"Mustard, Soybeans, Gluten, Milk\" - section_name: \"BREAKFAST BOOSTER (6:30 AM TO 10:30 AM) (page 3)\" items: - item_name: \"1. POWER SHAKE WITH VANILLA, STRAWBERRIES AND BANANA\" categorization: \"Vegetarian\" price_inr: \"350\" calorie_count_per_100g: \"51 Kcal\" allergen_details: \"Tree Nuts, Milk, Soybeans\" - item_name: \"2. KALE, CELERY, CUCUMBER, OLIVE OIL\" categorization: \"Vegetarian\" price_inr: \"350\" calorie_count_per_100g: \"23 Kcal\" allergen_details: \"Celery\" - item_name: \"3. STRAWBERRIES, BEETROOT POWDER, BANANA DATE PUREE\" categorization: \"Vegetarian\" price_inr: \"350\" calorie_count_per_100g: \"40 Kcal\" allergen_details: \"Tree Nuts, Milk, Soybeans\" - item_name: \"4. CARROT, TURMERIC, GINGER, LEMON, APPLE, OLIVE OIL\" categorization: \"Vegetarian\" price_inr: \"350\" calorie_count_per_100g: \"30 Kcal\" allergen_details: \"None Listed\" - item_name: \"5. COCONUT WATER, SPINACH, LEMON AND GINGER\" categorization: \"Vegetarian\" price_inr: \"350\" calorie_count_per_100g: \"18 Kcal\" allergen_details: \"None Listed\""
+  },
+  {
+    "id": "e81db6a854b4058d194670f1d176eda3",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 72,
+    "chunk_id": "ROHL_Test_property.txt:72",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\nmenu_name: \"Beverage – In-Room Dining\" sections: - section_name: \"Ready-to-Drink Cocktails\" items: - item_name: \"OLD FASHIONED\" price_inr: \"750\" ingredients: \"JIM BEAM, SUGAR, AROMATIC BITTERS\" - item_name: \"NEGRONI\" price_inr: \"750\" ingredients: \"GREATER THAN, CAMPARI, DOLIN VERMOUTH\" - item_name: \"GIMLET\" price_inr: \"750\" ingredients: \"HAPUSA, SUGAR SYRUP, LIME JUICE\" - item_name: \"PICANTE\" price_inr: \"750\" ingredients: \"CAMINO SILVER, CORIANDER LEAVES, JALAPENO, AGAVE SYRUP, LIME JUICE\" - item_name: \"PALOMA\" price_inr: \"750\" ingredients: \"CAMINO SILVER, GRAPEFRUIT JUICE, AGAVE SYRUP, LIME JUICE, SODA\" - item_name: \"COSMOPOLITON\" price_inr: \"750\" ingredients: \"ABSOLUT, TRIPLE SEC, CRANBERRY JUICE, LIME JUICE\" - section_name: \"Whiskey – Speyside\" items: - item_name: \"SINGLETON OF DUFFTOWN 12\" price_inr: \"850\" - item_name: \"MONKEY SHOULDER\" price_inr: \"750\" - section_name: \"Whiskey – Islay\" items: - item_name: \"TALISKER 10\" price_inr: \"700\" - section_name: \"Whiskey – Indian\" items: - item_name: \"PAUL JOHN BOLD\" price_inr: \"750\" - item_name: \"PAUL JOHN NIRVANA\" price_inr: \"450\" - section_name: \"Whiskey – Bourbon\" items: - item_name: \"JACK DANIEL'S NO. 7\" price_inr: \"500\" - item_name: \"JIM BEAM\" price_inr: \"450\" - section_name: \"Whiskey – Blended Scotch\" items: - item_name: \"J.W. DOUBLE BLACK\" price_inr: \"650\" - item_name: \"J.W. BLACK LABEL\" price_inr: \"600\" - item_name: \"DEWAR'S 12\" price_inr: \"500\" - item_name: \"BALLANTINE'S FINEST\" price_inr: \"500\" - item_name: \"CHIVAS REGAL 12\" price_inr: \"500\" - item_name: \"DEWAR'S WHITE LABEL\" price_inr: \"450\" - item_name: \"TEACHER'S HIGHLAND CREAM\" price_inr: \"500\" - section_name: \"Whiskey – Japanese\" items:"
+  },
+  {
+    "id": "fe2dc480cb1881b01fc57749e09a66e5",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 73,
+    "chunk_id": "ROHL_Test_property.txt:73",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\n\"600\" - item_name: \"DEWAR'S 12\" price_inr: \"500\" - item_name: \"BALLANTINE'S FINEST\" price_inr: \"500\" - item_name: \"CHIVAS REGAL 12\" price_inr: \"500\" - item_name: \"DEWAR'S WHITE LABEL\" price_inr: \"450\" - item_name: \"TEACHER'S HIGHLAND CREAM\" price_inr: \"500\" - section_name: \"Whiskey – Japanese\" items: - item_name: \"TOKI\" price_inr: \"750\" - section_name: \"Whiskey – Irish\" items: - item_name: \"JAMESON\" price_inr: \"500\" - item_name: \"BUSHMILLS\" price_inr: \"450\" - section_name: \"Vodka\" items: - item_name: \"GREY GOOSE\" price_inr: \"700\" - item_name: \"BELVEDERE\" price_inr: \"700\" - item_name: \"HAKU\" price_inr: \"600\" - item_name: \"CIROC\" price_inr: \"550\" - item_name: \"ABSOLUT\" price_inr: \"400\" - item_name: \"KETEL ONE\" price_inr: \"400\" - section_name: \"Gin\" items: - item_name: \"TANQUERAY NO. 10\" price_inr: \"650\" - item_name: \"JODHPUR\" price_inr: \"600\" - item_name: \"ROKU\" price_inr: \"600\" - item_name: \"BOMBAY SAPPHIRE\" price_inr: \"450\" - item_name: \"TANQUERAY\" price_inr: \"450\" - item_name: \"BULLDOG\" price_inr: \"400\" - section_name: \"Rum\" items: - item_name: \"BACARDÍ RESERVA OCHO\" price_inr: \"550\" - item_name: \"BACARDÍ AÑEJO CUATRO\" price_inr: \"500\" - item_name: \"BACARDÍ CARTA BLANCA\" price_inr: \"450\" - item_name: \"BLACK BY BACARDÍ\" price_inr: \"400\" - section_name: \"Tequila\" items: - item_name: \"DON JULIO REPOSADO\" price_inr: \"1100\" - item_name: \"DON JULIO BLANCO\" price_inr: \"1000\" - item_name: \"PATRON SILVER\" price_inr: \"950\" - item_name: \"JOSE CUERVO REPOSADO\" price_inr: \"550\" - item_name: \"JOSE CUERVO SILVER\" price_inr: \"500\" - section_name: \"Cognac\" items: - item_name: \"HENNESSY VSOP\" price_inr: \"1800\" - item_name: \"HENNESSY VS\" price_inr: \"900\""
+  },
+  {
+    "id": "5716d86a7df514ac6b137f92ba53f248",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 74,
+    "chunk_id": "ROHL_Test_property.txt:74",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\nJULIO BLANCO\" price_inr: \"1000\" - item_name: \"PATRON SILVER\" price_inr: \"950\" - item_name: \"JOSE CUERVO REPOSADO\" price_inr: \"550\" - item_name: \"JOSE CUERVO SILVER\" price_inr: \"500\" - section_name: \"Cognac\" items: - item_name: \"HENNESSY VSOP\" price_inr: \"1800\" - item_name: \"HENNESSY VS\" price_inr: \"900\" - section_name: \"Liqueur\" items: - item_name: \"JÄGERMEISTER\" price_inr: \"500\" - item_name: \"MOLINARI SAMBUCA\" price_inr: \"500\" - item_name: \"QUAFFINE\" price_inr: \"400\" - item_name: \"CAMPARI\" price_inr: \"400\" - item_name: \"APEROL\" price_inr: \"400\" - section_name: \"Beers\" items: - item_name: \"HOEGAARDEN\" price_inr: \"500\" - item_name: \"CORONA\" price_inr: \"500\" - item_name: \"BUDWEISER\" price_inr: \"350\" - item_name: \"KINGFISHER ULTRA\" price_inr: \"350\" - item_name: \"KINGFISHER PREMIUM\" price_inr: \"350\" - section_name: \"Champagne\" items: - item_name: \"DRAPPIER CARTE D'OR BRUT, FRANCE\" price_inr: \"24000\" - item_name: \"MOET & CHANDON ICE IMPERIAL, FRANCE\" price_inr: \"21000\" - section_name: \"Sparkling Wines\" items: - item_name: \"FILIPETTI PROSECCO, ITALY\" price_inr: \"8000\" - item_name: \"MONT MARCAL BRUT SEMI SECO RESERVA, SPAIN\" price_inr: \"6500\" - section_name: \"Red Wines\" items: - item_name: \"SPIER CREATIVE BLOCK 5, SOUTH AFRICA\" price_inr: \"3000 (Glass) | 14000 (Bottle)\" - item_name: \"VILLA ANTINORI ROSSO, ITALY\" price_inr: \"2500 (Glass) | 11000 (Bottle)\" - item_name: \"TEMPO D' ANGELUS, FRANCE\" price_inr: \"2500 (Glass) | 11000 (Bottle)\" - item_name: \"CAVINO NEMEA AGIORGITIKO, GREECE\" price_inr: \"1500 (Glass) | 6000 (Bottle)\" - section_name: \"White Wines\" items: - item_name: \"CANNONBALL CHARDONNAY, USA\" price_inr: \"3000 (Glass) | 12000 (Bottle)\" - item_name:"
+  },
+  {
+    "id": "7b5f3bc7c13ba1f60c3690b22712eb89",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 75,
+    "chunk_id": "ROHL_Test_property.txt:75",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\n\"TEMPO D' ANGELUS, FRANCE\" price_inr: \"2500 (Glass) | 11000 (Bottle)\" - item_name: \"CAVINO NEMEA AGIORGITIKO, GREECE\" price_inr: \"1500 (Glass) | 6000 (Bottle)\" - section_name: \"White Wines\" items: - item_name: \"CANNONBALL CHARDONNAY, USA\" price_inr: \"3000 (Glass) | 12000 (Bottle)\" - item_name: \"SCHLOSS VOLLRADS RIESLING, GERMANY\" price_inr: \"2500 (Glass) | 11000 (Bottle)\" - item_name: \"WOLFMERGER GEWURZTRAENR, FRANCE\" price_inr: \"2000 (Glass) | 9500 (Bottle)\" - item_name: \"MANNARA PINOT GRIGIO, ITALY\" price_inr: \"1500 (Glass) | 7000 (Bottle)\" - section_name: \"Rosé Wines\" items: - item_name: \"WHISPERING ANGEL ROSE, FRANCE\" price_inr: \"3000 (Glass) | 14000 (Bottle)\" - item_name: \"LOVE BY LEOUBE, FRANCE\" price_inr: \"2500 (Glass) | 12000 (Bottle)\" - item_name: \"CHATEAU ROUTAS PROVENCE ROSE, FRANCE\" price_inr: \"2500 (Glass) | 11000 (Bottle)\" - item_name: \"STONECROSS PINOTAGE ROSE, SOUTH AFRICA\" price_inr: \"1200 (Glass) | 5500 (Bottle)\" - section_name: \"HOT BEVERAGES Coffee\" items: - item_name: \"BLACK COFFEE\" price_inr: \"350\" - item_name: \"CAPPUCCINO\" price_inr: \"350\" - item_name: \"CAFÉ LATTE\" price_inr: \"350\" - item_name: \"ESPRESSO\" price_inr: \"350\" - item_name: \"AMERICANO\" price_inr: \"350\" - item_name: \"HOT CHOCOLATE\" price_inr: \"350\" - section_name: \" HOT BEVERAGES Tea\" items: - item_name: \"BLACK TEA\" price_inr: \"350\" - item_name: \"ENGLISH BREAKFAST TEA\" price_inr: \"350\" - item_name: \"DARJEELING TEA\" price_inr: \"350\" - item_name: \"MASALA TEA\" price_inr: \"350\" - item_name: \"EARL GREY TEA\" price_inr: \"350\" - item_name: \"GREEN TEA\" price_inr: \"350\" - item_name: \"CHAMOMILE TEA\" price_inr: \"350\" - item_name:"
+  },
+  {
+    "id": "d82dda0585f9ffcf6e0169444a330bc3",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 76,
+    "chunk_id": "ROHL_Test_property.txt:76",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\n- item_name: \"ENGLISH BREAKFAST TEA\" price_inr: \"350\" - item_name: \"DARJEELING TEA\" price_inr: \"350\" - item_name: \"MASALA TEA\" price_inr: \"350\" - item_name: \"EARL GREY TEA\" price_inr: \"350\" - item_name: \"GREEN TEA\" price_inr: \"350\" - item_name: \"CHAMOMILE TEA\" price_inr: \"350\" - item_name: \"PEPPERMINT TEA\" price_inr: \"350\" - item_name: \"KASHMIRI KAHWA\" price_inr: \"350\" - item_name: \"ROOIBOS ORANGE AND CINNAMON TEA\" price_inr: \"350\" - section_name: \"Dessert Wines\" items: - item_name: \"CALDAS PORTO TAWNY SPECIAL RESERVE, PORTUGAL\" price_inr: \"3000 (Glass) | 12500 (Bottle)\" - item_name: \"LEYENDA OLOROSO SHERRY, SPAIN\" price_inr: \"2500 (Glass) | 12000 (Bottle)\" - section_name: \" COLD BEVERAGES Mineral Water\" items: - item_name: \"SPARKLING (PERRIER - 330 ML)\" price_inr: \"250\" - item_name: \"STILL (VEDICA - 750 ML)\" price_inr: \"200\" - section_name: \"COLD BEVERAGES Freshly Squeezed Juice\" items: - item_name: \"ORANGE\" price_inr: \"350\" - item_name: \"WATERMELON\" price_inr: \"350\" - item_name: \"PINEAPPLE\" price_inr: \"350\" - section_name: \"COLD BEVERAGES Wellness Juice\" items: - item_name: \"APPLE, BEETROOT AND CARROT\" price_inr: \"350\" - item_name: \"SPINACH, CUCUMBER AND BASIL\" price_inr: \"350\" - item_name: \"BEETROOT, CARROT AND GINGER\" price_inr: \"350\" - section_name: \" COLD BEVERAGES Soft Beverages\" items: - item_name: \"FLAVOURED TONIC WATER (INDIAN TONIC / CUCUMBER / ELDERFLOWER)\" price_inr: \"300\" - item_name: \"AERATED BEVERAGE such as COKE / SPRITE / DIET COKE\" price_inr: \"250\" - item_name: \"GINGER ALE\" price_inr: \"250\" - item_name: \"RED BULL\" price_inr: \"250\" - item_name: \"FRESH"
+  },
+  {
+    "id": "a987fdcd97aa2116f51aba2327ad3b24",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 77,
+    "chunk_id": "ROHL_Test_property.txt:77",
+    "section": "Beverages section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Beverages section IN ROOM DINING (IRD) MENU\n\"FLAVOURED TONIC WATER (INDIAN TONIC / CUCUMBER / ELDERFLOWER)\" price_inr: \"300\" - item_name: \"AERATED BEVERAGE such as COKE / SPRITE / DIET COKE\" price_inr: \"250\" - item_name: \"GINGER ALE\" price_inr: \"250\" - item_name: \"RED BULL\" price_inr: \"250\" - item_name: \"FRESH LIME SODA\" price_inr: \"250\" - item_name: \"CANNED JUICES (MANGO / LITCHI / APPLE)\" price_inr: \"250\" - section_name: \"COLD BEVERAGES Cold Coffee\" items: - item_name: \"CLASSIC\" price_inr: \"350\" - item_name: \"HAZELNUT\" price_inr: \"350\" - item_name: \"CARAMEL\" price_inr: \"350\" - section_name: \"COLD BEVERAGES Iced Tea\" items: - item_name: \"LEMON ICED TEA\" price_inr: \"350\" - item_name: \"PEACH ICED TEA\" price_inr: \"350\" - item_name: \"PASSION FRUIT ICED TEA\" price_inr: \"350\" - section_name: \"COLD BEVERAGES Milkshakes\" items: - item_name: \"VANILLA MILKSHAKE\" price_inr: \"350\" - item_name: \"CHOCOLATE MILKSHAKE\" price_inr: \"350\" - item_name: \"BANANA MILKSHAKE\" price_inr: \"350\" - section_name: \"Mocktails\" items: - item_name: \"MALABAR ZONE\" price_inr: \"350\" ingredients: \"KOKUM SYRUP, CITRUS, JALAPEÑO, NON-ALCOHOLIC RED SPARKLING\" - item_name: \"KADAK VIBE\" price_inr: \"350\" ingredients: \"PINEAPPLE JUICE, COCONUT SYRUP, CITRUS, KAFFIR LIME LEAF\" - item_name: \"HOMECOMING\" price_inr: \"350\" ingredients: \"LYCHEE JUICE, GRAPEFRUIT SYRUP, CITRUS, GINGER ALE\" - item_name: \"SMASH 2.0\" price_inr: \"350\" ingredients: \"ORANGE JUICE, CITRUS, SUGAR SYRUP, BASIL, CARBONATION\""
+  },
+  {
+    "id": "e4d63b4ce633a4e49cb41939bea6e126",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 78,
+    "chunk_id": "ROHL_Test_property.txt:78",
+    "section": "Desserts Section IN ROOM DINING (IRD) MENU",
+    "content": "Section: Desserts Section IN ROOM DINING (IRD) MENU\nmenu_name: \"IN ROOM DINING\" service_time: \"12:00 PM TO 6:00 AM\" sections: - section_name: \"DESSERT\" items: - item_name: \"OPERA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"370 Kcal\" ingredients: \"Almond Sponge, Coee Butter Cream, Dark Tru-e, Espresso Coee\" allergen_details: \"Gluten, Milk, Tree Nuts, Soybeans, Egg\" - item_name: \"OOTY BANANA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"337 Kcal\" ingredients: \"Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable\" allergen_details: \"Gluten, Milk\" - item_name: \"BISCOFF CHEESECAKE\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"393 Kcal\" ingredients: \"Bisco Spread, Cream Cheese, Caramel Glaze, Sable\" allergen_details: \"Gluten, Milk\" - item_name: \"BELGIUM CHOCOLATE TART\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"432 Kcal\" ingredients: \"Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch\" allergen_details: \"Gluten, Milk\" - item_name: \"PASSIONFRUIT PANNA COTTA\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"155 Kcal\" ingredients: \"Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits\" allergen_details: \"Milk\" - item_name: \"TIRAMISU\" categorization: \"Vegetarian\" price_inr: \"450\" calorie_count_per_100g: \"398 Kcal\" ingredients: \"Vanilla Sabayon Cream, Crunchy Lady Finger, Coee Ganache Cocoa Powder, Espresso Coee\" allergen_details: \"Gluten, Milk, egg\""
+  },
+  {
+    "id": "188676aaa49c5e010e371ffa337e1d13",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 79,
+    "chunk_id": "ROHL_Test_property.txt:79",
+    "section": "Aviator À LA CARTE MENU section Aviator Menu",
+    "content": "Section: Aviator À LA CARTE MENU section Aviator Menu\nmenu_name: \"Aviator\" sections: - section_name: \"À LA CARTE MENU\" items: - item_name: \"TOFU & PEANUT LETTUCE CUPS\" categorization: \"Vegan\" price_inr: \"350\" ingredients: \"ginger–chilli, peanut–sesame, lime\" - item_name: \"BABY SPINACH SALAD WITH DATES & ALMONDS\" categorization: \"Vegetarian\" price_inr: \"350\" ingredients: \"carmelised dates, toasted almonds, lemon, sumac\" - item_name: \"HEIRLOOM TOMATO & STRACCIATELLA\" categorization: \"Vegetarian\" price_inr: \"350\" ingredients: \"basil oil, black olive caramel\" - item_name: \"ASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI\" categorization: \"Vegetarian\" price_inr: \"350\" ingredients: \"ultra-crisp spears, pepper, lemon\" - item_name: \"RUSSET POTATO, TRUFFLE, CAVIAR\" categorization: \"Seafood\" price_inr: \"495\" ingredients: \"crisp potato, hot truffle sauce, oscietra\" - item_name: \"SMOKED CHICKEN & GREEN TOMATO\" categorization: \"Non-Vegetarian\" price_inr: \"450\" ingredients: \"chilled slices, dill oil, kombu–chicken dashi gel, pickled green tomatoes\" - item_name: \"SEA BASS CRUDO\" categorization: \"Seafood\" price_inr: \"750\" ingredients: \"chilled slices, finger-lime pearls, aromatic oil\" - item_name: \"TAGLIATELLE & TRUFFLE\" categorization: \"Vegetarian\" price_inr: \"950\" ingredients: \"rich yolk pasta, beurre monté, shaved truffle\" - item_name: \"BUTTERNUT SQUASH “CARBONARA”\" categorization: \"Vegetarian\" price_inr: \"650\" ingredients: \"butternut cream, pecorino, black pepper\" - item_name: \"ASPARAGUS & PARMESAN CUSTARD\" categorization: \"Vegetarian\" price_inr: \"650\" ingredients: \"raw-shaved tips, warm parmesan custard, citrus crumb\" - item_name: \"CHARRED BABY CORN, BLACK GARLIC BUTTER\" categorization: \"Vegetarian\" price_inr: \"650\" ingredients: \"brown-butter glaze, manchego snow\" - item_name: \"CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION\" categorization: \"Vegetarian\" price_inr: \"750\" ingredients: \"capers, toasted hazelnut crumb\" - item_name: \"COURGETTE &"
+  },
+  {
+    "id": "618754da48374857c4db966a33838362",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 80,
+    "chunk_id": "ROHL_Test_property.txt:80",
+    "section": "Aviator À LA CARTE MENU section Aviator Menu",
+    "content": "Section: Aviator À LA CARTE MENU section Aviator Menu\ncustard, citrus crumb\" - item_name: \"CHARRED BABY CORN, BLACK GARLIC BUTTER\" categorization: \"Vegetarian\" price_inr: \"650\" ingredients: \"brown-butter glaze, manchego snow\" - item_name: \"CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION\" categorization: \"Vegetarian\" price_inr: \"750\" ingredients: \"capers, toasted hazelnut crumb\" - item_name: \"COURGETTE & CHICKPEA PANCAKES\" categorization: \"Vegetarian\" price_inr: \"450\" ingredients: \"socca-style, dill yoghurt, herb salad\" - item_name: \"TOMATO BENEDICT CROISSANT\" categorization: \"Vegetarian\" price_inr: \"450\" ingredients: \"poached egg, crushed tomatoes, chili hollandaise\" - item_name: \"AVIATOR BIG MACWICH\" categorization: \"Vegetarian\" price_inr: \"350\" ingredients: \"seasonal veggie patties, mozzarella, beet slaw, rocket\" - item_name: \"ICONIQ CLUB\" categorization: \"Non-Vegetarian\" price_inr: \"450\" ingredients: \"grilled chicken, herb mayo, bacon, tomatoes, rocket\" - item_name: \"LOBSTER ROLL\" categorization: \"Seafood\" price_inr: \"650\" ingredients: \"warm buttered brioche, truffle mayo, butter garlic, chive\" - item_name: \"PRAWN & SCOTCH BONNET BUNS\" categorization: \"Seafood\" price_inr: \"550\" ingredients: \"steamed buns, prawn salad, scotchbonnet mayo\" - item_name: \"SMOKED CHICKEN BUN\" categorization: \"Non-Vegetarian\" price_inr: \"450\" ingredients: \"wood smoked chicken, garlic cream, thyme, parmesan\" - item_name: \"CHILI CHEESE BUN\" categorization: \"Vegetarian\" price_inr: \"350\" ingredients: \"green chilli, cheddar–mozzarella-belper knolle, scallion, chaat spice\""
+  },
+  {
+    "id": "290bdeddf7b90862068d13b6c823d0ed",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 81,
+    "chunk_id": "ROHL_Test_property.txt:81",
+    "section": "Aviator Dessert Section Aviator Menu",
+    "content": "Section: Aviator Dessert Section Aviator Menu\nmenu_name: \"Aviator Dessert\" sections - section_name: \"AFFOGATO\" items: - item_name: \"AFFOGATO CLASSIC\" price_inr: \"295\" ingredients: \"vanilla gelato, dark espresso\" - item_name: \"AFFOGATO SMORE\" price_inr: \"295\" ingredients: \"vanilla gelato, blond espresso, marshmallow, graham cracker crumb, chocolate drizzle\" - item_name: \"AFFOGATO DUBAI CHOCOLATE\" price_inr: \"295\" ingredients: \"dark chocolate gelato, pistachio, blond espresso, kunafa crisp\" - item_name: \"AFFOGATO DAIRY QUEEN\" categorization: \"Vegan / Non-Dairy\" price_inr: \"295\" ingredients: \"non-dairy gelato, vegan caramel, low-caff espresso, vegan choco chip cookie crumb\" - section_name: \"I DOLCI\" items: - item_name: \"TABLE SIDE TIRAMISÙ\" price_inr: \"395\" ingredients: \"Mascarpone, espresso-soaked savoiardi, cocoa\" - item_name: \"MAMMA’S PANETTONE\" price_inr: \"395\" ingredients: \"Panettone bread pudding, nolen-gur anglaise, gondhoraj cream\" - item_name: \"NAMELAKA\" price_inr: \"395\" ingredients: \"EVOO namelaka, basil granita, compressed grapes, almond croccante, basil powder\" - section_name: \"APERITIVO + DIGESTIVO\" items: - item_name: \"KOCHI AMERICANO\" price_inr: \"495\" ingredients: \"campari, sweet vermouth, rasam brine\" - item_name: \"HANKY PANKY\" price_inr: \"495\" ingredients: \"gin, sweet vermouth, fernet branca\" - item_name: \"APEROL SPRITZ\" price_inr: \"495\" ingredients: \"aperol, prosecco\" - item_name: \"HYBRID NEGRONI\" price_inr: \"495\" ingredients: \"gin, lilet rosé, luxardo bianco\" - item_name: \"LIMONCELLO SOUR\" price_inr: \"495\" ingredients: \"limoncello, vegan foam\""
+  },
+  {
+    "id": "8b390e48f1c16f860a33bfd1254df78f",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 82,
+    "chunk_id": "ROHL_Test_property.txt:82",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\nmenu_name: \"Kadak\" sections: - section_name: \"Soup\" items: - item_name: \"BLACK CHICKPEA RASSAM, CHANA JOR GARAM\" categorization: \"Vegetarian\" price_inr: 415 calorie_count: 126 ingredients: \"Bengal chickpea broth, chickpea cracker, sesame oil, spiced pate\" - item_name: \"TOMATO SAAR, COCONUT CLOUD\" categorization: \"Vegetarian\" price_inr: 445 calorie_count: 112 ingredients: \"Malwani tomato broth, coconut cloud, curry leaf stick\" - item_name: \"IR PANTRY CHICKEN BROTH, CURRY SPHERE\" categorization: \"Non Vegetarian\" price_inr: 465 calorie_count: 94 ingredients: \"Indian railway tori dashi, masala chicken\" - item_name: \"NEPALESE WAI-WAI RAMEN, SHRIMP CAKE\" categorization: \"Non Vegetarian\" price_inr: 515 calorie_count: 112 ingredients: \"Spicy ramen broth, wai-wai noodles, shrimp cake, bok choy, nori flakes\" - item_name: \"LOBSTER RASSAM, DOSAI CRISP\" categorization: \"Non Vegetarian\" price_inr: 615 calorie_count: 128 ingredients: \"Palakkad tomato broth, lobster fritter, dosa crisp\" - section_name: \"Snacks\" items: - item_name: \"GOLDEN GRAIN & YOGHURT CHAT, PEANUT CRUMBLE\" categorization: \"Vegetarian\" price_inr: 415 calorie_count: 134 ingredients: \"Sweet mango yoghurt, sharbati wheat, puffed grain\" - item_name: \"HASS AVOCADO CHAAT, BEETS GEL\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 189 ingredients: \"Hass avocado, raw mango chutney, crispies, beet gel\" - item_name: \"RAM LADOU, DAIKON CHIMICHURRI\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 211 ingredients: \"Lentil fritter, coriander chimichurri, daikon salad\" - item_name: \"RAJ KACHORI, SPROUTS SALAD\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 183 ingredients: \"Semolina puff, bean sprouts, yoghurt espuma, chutneys\" - item_name: \"PYAAZ KI KACHORI, POTATO RASSA\" categorization: \"Vegetarian\" price_inr: 425"
+  },
+  {
+    "id": "153040b1d973f106bb7ee54976ffb3d9",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 83,
+    "chunk_id": "ROHL_Test_property.txt:83",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\ncalorie_count: 211 ingredients: \"Lentil fritter, coriander chimichurri, daikon salad\" - item_name: \"RAJ KACHORI, SPROUTS SALAD\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 183 ingredients: \"Semolina puff, bean sprouts, yoghurt espuma, chutneys\" - item_name: \"PYAAZ KI KACHORI, POTATO RASSA\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 213 ingredients: \"Baby onion kachori, potato curry, crispies\" - item_name: \"SPONGE DAHI BHALLA, AERATED YOGHURT\" categorization: \"Non Vegetarian\" price_inr: 425 calorie_count: 156 ingredients: \"Airy sponge, tempered yoghurt espuma, assorted chutneys\" - item_name: \"CHICKEN CHANGEZI TART, PICKLED PEARL ONION\" categorization: \"Non Vegetarian\" price_inr: 515 calorie_count: 214 ingredients: \"Savory tart, tawa chicken, burnt garlic mayo\" - item_name: \"CHUTNEY MUD CRAB, KHAKRA\" categorization: \"Non Vegetarian\" price_inr: 615 calorie_count: 179 ingredients: \"Mud crab akuri, ghati chutney pickle, wheat crisp\" - item_name: \"SALMON TARTARE PAPDI TOSTADA\" categorization: \"Non Vegetarian\" price_inr: 765 calorie_count: 201 ingredients: \"Atlantic salmon, tostada, yuzu, Japanese mayo, tobiko\" - item_name: \"SHRIMP & CRAB PANIYARAM, TOMATO CHUTNEY\" categorization: \"Non Vegetarian\" price_inr: 715 calorie_count: 187 ingredients: \"Rice cake, shrimp, mud crab, tomato chutney\" - section_name: \"Small\" subsections: - subsection_name: \"Vegetarian\" items: - item_name: \"CRISPY CORN CURD, KHANDVI\" price_inr: 465 calorie_count: 202 ingredients: \"Layered khandvi fritter, tomato hot sauce, coconut\" - item_name: \"CORIANDER PESTO KEBAB, PARMESAN CRISP\" price_inr: 495 calorie_count: 216 ingredients: \"Cashew basil kebab, olive tapenade, parmesan crisp\" - item_name: \"FIELD MUSHROOMS, TRUFFLE DUST\" price_inr: 515 calorie_count: 183 ingredients: \"Wild mushrooms, truffle snow,"
+  },
+  {
+    "id": "80df6ef8384346a729cdd283ee9ccac2",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 84,
+    "chunk_id": "ROHL_Test_property.txt:84",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\nkhandvi fritter, tomato hot sauce, coconut\" - item_name: \"CORIANDER PESTO KEBAB, PARMESAN CRISP\" price_inr: 495 calorie_count: 216 ingredients: \"Cashew basil kebab, olive tapenade, parmesan crisp\" - item_name: \"FIELD MUSHROOMS, TRUFFLE DUST\" price_inr: 515 calorie_count: 183 ingredients: \"Wild mushrooms, truffle snow, parmesan\" - item_name: \"CREAM CHEESE TIKKI, SMOKED PIMENTO COULIS\" price_inr: 515 calorie_count: 262 ingredients: \"Cream cheese patty, pimento coulis, mint chutney\" - item_name: \"PLANTAIN CAFREAL, PAROTA QUESADILLA\" price_inr: 465 calorie_count: 271 ingredients: \"Malabar parota, nendran plantain, cheddar, aioli\" - item_name: \"TOFU & EDAMAME AKURI, TOAST\" price_inr: 465 calorie_count: 242 ingredients: \"Edamame, tofu akuri, butter toast\" - subsection_name: \"Ulta Tawa Tacos\" items: - item_name: \"KASHMIR RAJMA\" categorization: \"Vegetarian\" price_inr: 465 calorie_count: 211 ingredients: \"Baby tawa paratha, rajma, assorted sauces\" - item_name: \"CHICKEN ROAST\" categorization: \"Non Vegetarian\" price_inr: 565 calorie_count: 228 ingredients: \"Baby tawa paratha, chicken roast, assorted sauces\" - item_name: \"GOAT BOTI ROAST\" categorization: \"Non Vegetarian\" price_inr: 595 calorie_count: 258 ingredients: \"Baby tawa paratha, goat boti roast, assorted sauces\" - section_name: \"Kebabs & Grill\" items: - item_name: \"TANDOORI FRUIT CHAT, KING PINEAPPLE\" categorization: \"Vegetarian\" price_inr: 515 calorie_count: 89 ingredients: \"King pineapple, raw mango glaze, carpaccio\" - item_name: \"NUT FUDGE PANEER TIKKA, RED ONION SALSA\" categorization: \"Vegetarian\" price_inr: 545 calorie_count: 271 ingredients: \"Paneer, cheese core, cashew crumb, onion salsa\" - item_name: \"CHARRED BROCCOLI, ALMOND MALAI\" categorization: \"Vegetarian\" price_inr: 515 calorie_count: 198 ingredients:"
+  },
+  {
+    "id": "707f79caf4f058ed25c125d48d8e4413",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 85,
+    "chunk_id": "ROHL_Test_property.txt:85",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\nraw mango glaze, carpaccio\" - item_name: \"NUT FUDGE PANEER TIKKA, RED ONION SALSA\" categorization: \"Vegetarian\" price_inr: 545 calorie_count: 271 ingredients: \"Paneer, cheese core, cashew crumb, onion salsa\" - item_name: \"CHARRED BROCCOLI, ALMOND MALAI\" categorization: \"Vegetarian\" price_inr: 515 calorie_count: 198 ingredients: \"Broccoli, almond cream, almond flake\" - item_name: \"SMOKED PAPRIKA CHICKEN TIKKA, CHARCOAL CREAM\" categorization: \"Non Vegetarian\" price_inr: 665 calorie_count: 198 ingredients: \"Chicken thigh, smoked paprika, charcoal cream\" - item_name: \"TANDOORI SALMON TIKKA, RAW MANGO CHUTNEY\" categorization: \"Non Vegetarian\" price_inr: 1025 calorie_count: 234 ingredients: \"Atlantic salmon, chilli ginger marinade, mango chutney\" - item_name: \"LEMON GINGER PRAWN, KASUNDI\" categorization: \"Non Vegetarian\" price_inr: 815 calorie_count: 168 ingredients: \"Tiger prawn, lemon ginger marinade, kasundi hollandaise\" - section_name: \"Large\" items: - item_name: \"ARTICHOKE & WATER CHESTNUT BHAAJI, FOCACCIA\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 192 ingredients: \"Artichoke, water chestnut mash, pico de gallo, focaccia\" - item_name: \"RATATOUILLE KHURCHAN, CHILLI GARLIC NAAN\" categorization: \"Vegetarian\" price_inr: 545 calorie_count: 187 ingredients: \"Seasonal vegetables, creamy gravy, chilli garlic naan, parmesan\" - item_name: \"EDAMAME MALAI PANEER, OLIVE KULCHA\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 211 ingredients: \"Paneer, edamame, onion tomato gravy, malai leather, olive kulcha\" - item_name: \"SEASONAL GREENS SAAG, MISSI ROTI\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 153 ingredients: \"Garlic palak, mustard greens, gram flour roti\" - item_name: \"BROCCOLI MALAI TIKKA, RAJASTHAN KADHI\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 141 ingredients: \"Tandoori broccoli,"
+  },
+  {
+    "id": "4a1895f4e6f83dc8b62e7942bbcf3ec8",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 86,
+    "chunk_id": "ROHL_Test_property.txt:86",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\nleather, olive kulcha\" - item_name: \"SEASONAL GREENS SAAG, MISSI ROTI\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 153 ingredients: \"Garlic palak, mustard greens, gram flour roti\" - item_name: \"BROCCOLI MALAI TIKKA, RAJASTHAN KADHI\" categorization: \"Vegetarian\" price_inr: 615 calorie_count: 141 ingredients: \"Tandoori broccoli, yoghurt curry, chilli oil, mint paratha\" - item_name: \"KADHI CHAWAL RISOTTO, PICO DE GALLO\" categorization: \"Vegetarian\" price_inr: 645 calorie_count: 143 ingredients: \"Risotto rice, tempered yoghurt curry, pico de gallo, parmesan\" - item_name: \"TANDOORI GUCCI PULAO\" categorization: \"Vegetarian\" price_inr: 985 calorie_count: 172 ingredients: \"Tandoori morels, fragrant rice, roasted walnut, fried onion\" - item_name: \"THE CHICKEN TIKKA MASALA, HERB CRUST NAAN\" categorization: \"Non Vegetarian\" price_inr: 695 calorie_count: 189 ingredients: \"Chicken tikka, onion tomato gravy, herb crust naan\" - item_name: \"COORG CHICKEN CURRY, BLACK PEPPER APPAM\" categorization: \"Non Vegetarian\" price_inr: 695 calorie_count: 172 ingredients: \"Coorg style chicken curry, appam sponge, kachampoli\" - item_name: \"TAWA BHEJA FRY, MIRCHI PARATHA\" categorization: \"Non Vegetarian\" price_inr: 785 calorie_count: 211 ingredients: \"Goat brain, goat kheema, tawa masala, mirchi paratha\" - item_name: \"PRAWN & BIVALVIA CHETTINAD PAROTA\" categorization: \"Non Vegetarian\" price_inr: 895 calorie_count: 198 ingredients: \"Prawn, seasonal bivalves, coconut pepper masala, flaky parota\" - item_name: \"KONKAN SEAFOOD & RED RICE RISOTTO\" categorization: \"Non Vegetarian\" price_inr: 865 calorie_count: 172 ingredients: \"Goan red rice, prawn, seasonal bivalves\" - item_name: \"KADAK FISH CURRY\" categorization: \"Non Vegetarian\" price_inr: 795 calorie_count: 149 ingredients: \"Smoked"
+  },
+  {
+    "id": "4e42572150fcef7e6dd16227b91c921f",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 87,
+    "chunk_id": "ROHL_Test_property.txt:87",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\npepper masala, flaky parota\" - item_name: \"KONKAN SEAFOOD & RED RICE RISOTTO\" categorization: \"Non Vegetarian\" price_inr: 865 calorie_count: 172 ingredients: \"Goan red rice, prawn, seasonal bivalves\" - item_name: \"KADAK FISH CURRY\" categorization: \"Non Vegetarian\" price_inr: 795 calorie_count: 149 ingredients: \"Smoked chilli coconut curry, sea bass, steamed rice\" - item_name: \"DUCK & PLUM KORMA, CORIANDER NAAN\" categorization: \"Non Vegetarian\" price_inr: 785 calorie_count: 196 ingredients: \"Kashmiri plum, confit duck, coriander naan\" - item_name: \"JUNGLI MUTTON, KHASTA ROTI\" categorization: \"Non Vegetarian\" price_inr: 785 calorie_count: 212 ingredients: \"Slow cooked mutton, smoked chilli curry, semolina roti\" - item_name: \"LAMB SHANK KORMA, TURKISH NAAN\" categorization: \"Non Vegetarian\" price_inr: 1425 calorie_count: 243 ingredients: \"Braised lamb shank, mace curry, Turkish naan\" - section_name: \"Sides\" items: - item_name: \"POPPADOM SAMPLER, HOUSE DIPS\" categorization: \"Vegetarian\" price_inr: 415 calorie_count: 214 ingredients: \"Seasonal assorted poppadoms, house dips\" - item_name: \"DAL OF THE DAY\" categorization: \"Vegetarian\" price_inr: 495 calorie_count: 134 ingredients: \"Lentil curry of the day\" - item_name: \"STEAMED RICE\" categorization: \"Vegetarian\" price_inr: 415 calorie_count: 130 ingredients: \"Steamed rice\" - section_name: \"Biryani\" items: - item_name: \"CHICKEN BIRYANI\" categorization: \"Non Vegetarian\" price_inr: 665 calorie_count: 181 ingredients: \"Slow cooked fragrant rice, chicken chunks, burhani raita\" - item_name: \"LAMB BIRYANI\" categorization: \"Non Vegetarian\" price_inr: 715 calorie_count: 185 ingredients: \"Slow cooked fragrant rice, lamb chunks, burhani raita\" - section_name: \"Traditional Indian Breads\" items: - item_name: \"ROTI\" categorization:"
+  },
+  {
+    "id": "d00109fa9ae2943b056d1a820cf07bd9",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 88,
+    "chunk_id": "ROHL_Test_property.txt:88",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\n181 ingredients: \"Slow cooked fragrant rice, chicken chunks, burhani raita\" - item_name: \"LAMB BIRYANI\" categorization: \"Non Vegetarian\" price_inr: 715 calorie_count: 185 ingredients: \"Slow cooked fragrant rice, lamb chunks, burhani raita\" - section_name: \"Traditional Indian Breads\" items: - item_name: \"ROTI\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Whole wheat flatbread\" - item_name: \"NAAN\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Leavened wheat bread\" - item_name: \"KULCHA\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Leavened bread, dairy enriched\" - item_name: \"LACCHA PAROTHA\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Layered paratha with dairy\" - item_name: \"MISSI ROTI\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Gram flour and wheat flatbread\" - item_name: \"MALABAR PAROTHA\" categorization: \"Vegetarian\" price_inr: 225 calorie_count: 260 ingredients: \"Flaky layered paratha with dairy\" - section_name: \"Dessert\" items: - item_name: \"RE-CONSTRUCTED SERRADURA, SEASONAL FRUITS\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 312 ingredients: \"Condensed dairy espuma, blueberry compote, seasonal fruits, cookie crumble\" - item_name: \"BAKED COOKIE SKILLET, GAJAR HALWA ICE-CREAM\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 368 ingredients: \"Baked cookie dough, roasted nuts, carrot butter ice cream\" - item_name: \"BAKED CHENNA PAYAS, FRUIT & NUT\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 246 ingredients: \"Dairy sponge, caramel anglaise, seasonal fruits and nuts\" - item_name: \"THE KADAK CHEESECAKE\" categorization: \"Non Vegetarian\" price_inr: 425 calorie_count: 397 ingredients: \"Cheesecake with jaggery, nut chikki crumb, jaggery caramel\" - item_name: \"TEXTURES"
+  },
+  {
+    "id": "3cb967ecfa40d5d6a1ced593cb919189",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 89,
+    "chunk_id": "ROHL_Test_property.txt:89",
+    "section": "Kadak Menu",
+    "content": "Section: Kadak Menu\nNUT\" categorization: \"Vegetarian\" price_inr: 425 calorie_count: 246 ingredients: \"Dairy sponge, caramel anglaise, seasonal fruits and nuts\" - item_name: \"THE KADAK CHEESECAKE\" categorization: \"Non Vegetarian\" price_inr: 425 calorie_count: 397 ingredients: \"Cheesecake with jaggery, nut chikki crumb, jaggery caramel\" - item_name: \"TEXTURES OF SAFFRON\" categorization: \"Non Vegetarian\" price_inr: 425 calorie_count: 271 ingredients: \"Semolina dairy cake, saffron dairy, strawberry compote\" - section_name: \"Kulcha Bombs\" items: - item_name: \"CHILLI CHEESE, SET OF CHUTNEY\" categorization: \"Vegetarian\" price_inr: 250 calorie_count: 250 ingredients: \"Chilli cheese filling, kulcha dough, assorted chutneys\" - item_name: \"FOUR CHEESE TRUFFLE, SET OF CHUTNEY\" categorization: \"Vegetarian\" price_inr: 300 calorie_count: 251 ingredients: \"Four cheese blend, truffle, kulcha dough, assorted chutneys\" - item_name: \"BUTTER CHICKEN, SET OF CHUTNEY\" categorization: \"Non Vegetarian\" price_inr: 300 calorie_count: 252 ingredients: \"Butter chicken filling, kulcha dough, assorted chutneys\" - item_name: \"MUTTON KHEEMA, SET OF CHUTNEY\" categorization: \"Non Vegetarian\" price_inr: 300 calorie_count: 253 ingredients: \"Spiced mutton kheema, kulcha dough, assorted chutneys\""
+  },
+  {
+    "id": "9ce1814d93562750e8e2a137b04dd3c3",
+    "tenant_id": "hotel_1771313500444",
+    "business_type": "hotel",
+    "source": "ROHL_Test_property.txt",
+    "chunk_index": 90,
+    "chunk_id": "ROHL_Test_property.txt:90",
+    "section": "Restaurant Info",
+    "content": "Section: Restaurant Info\nThe Aviation Bar Food Menu (11am-11pm) Bar open till 1am Coffee, Tea & Deserts is 24/7 Kadak (12pm-3:30pm , 6:30pm-11:30pm) Breakfast at Kadak is 6:30am to 10:30am / sat & sun it istill 11am Desert Lounge attached to Kadak 24/7 Scarletta - open for members only Bombay Swim Club 4pm to 1am (Mon to Friday) 12pm to 12am (Sat & Sun) For Scarletta, we can write its member only access. If guests would like to inquire or apply for membership please speak to front office."
+  }
+]

@@ -1,0 +1,77 @@
+{
+  "_template": "Healthcare / Hospital",
+  "_description": "Configuration template for hospitals, clinics, and healthcare providers",
+
+  "business": {
+    "id": "your_hospital_id",
+    "name": "Your Hospital Name",
+    "type": "healthcare",
+    "city": "City Name",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "language": "en",
+    "bot_name": "Assistant Name",
+    "welcome_message": "Hello! Welcome to {business_name}. How can I assist you today?"
+  },
+
+  "capabilities": {
+    "appointment_booking": {"enabled": true, "description": "Book doctor appointments"},
+    "appointment_reschedule": {"enabled": true, "description": "Reschedule appointments"},
+    "appointment_cancel": {"enabled": true, "description": "Cancel appointments"},
+    "doctor_info": {"enabled": true, "description": "Doctor profiles and availability"},
+    "department_info": {"enabled": true, "description": "Department information"},
+    "report_download": {"enabled": true, "description": "Download test reports"},
+    "prescription_refill": {"enabled": true, "description": "Request prescription refill"},
+    "bill_inquiry": {"enabled": true, "description": "Billing inquiries"},
+    "insurance_info": {"enabled": true, "description": "Insurance information"},
+    "visiting_hours": {"enabled": true, "description": "Visiting hours info"},
+    "emergency_info": {"enabled": true, "description": "Emergency contact info"},
+    "human_escalation": {"enabled": true, "description": "Connect to reception"}
+  },
+
+  "services": [
+    {
+      "id": "dept_cardio",
+      "name": "Cardiology",
+      "type": "department",
+      "description": "Heart and cardiovascular care",
+      "is_active": true
+    },
+    {
+      "id": "dept_ortho",
+      "name": "Orthopedics",
+      "type": "department",
+      "description": "Bone and joint care",
+      "is_active": true
+    },
+    {
+      "id": "dept_general",
+      "name": "General Medicine",
+      "type": "department",
+      "description": "General health checkups",
+      "is_active": true
+    }
+  ],
+
+  "intents": [
+    {"id": "greeting", "label": "Greeting", "enabled": true},
+    {"id": "book_appointment", "label": "Book Appointment", "enabled": true},
+    {"id": "reschedule", "label": "Reschedule", "enabled": true},
+    {"id": "cancel_appointment", "label": "Cancel Appointment", "enabled": true},
+    {"id": "doctor_availability", "label": "Doctor Availability", "enabled": true},
+    {"id": "report_request", "label": "Get Reports", "enabled": true},
+    {"id": "prescription", "label": "Prescription", "enabled": true},
+    {"id": "billing", "label": "Billing Inquiry", "enabled": true},
+    {"id": "visiting_hours", "label": "Visiting Hours", "enabled": true},
+    {"id": "emergency", "label": "Emergency", "enabled": true},
+    {"id": "faq", "label": "General Question", "enabled": true},
+    {"id": "human_request", "label": "Talk to Reception", "enabled": true}
+  ],
+
+  "escalation": {
+    "confidence_threshold": 0.5,
+    "max_clarification_attempts": 2,
+    "modes": ["live_chat", "callback"],
+    "emergency_escalation": true
+  }
+}

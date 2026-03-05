@@ -1,0 +1,169 @@
+{
+  "_template": "Hotel / Hospitality",
+  "_description": "Configuration template for hotels, resorts, and hospitality businesses",
+
+  "business": {
+    "id": "your_hotel_id",
+    "name": "Your Hotel Name",
+    "type": "hotel",
+    "city": "City Name",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "language": "en",
+    "bot_name": "Assistant Name",
+    "welcome_message": "Hello! Welcome to {business_name}. How can I assist you today?"
+  },
+
+  "capabilities": {
+    "food_ordering": {"enabled": true, "description": "Place food or product orders"},
+    "room_delivery": {"enabled": true, "description": "Deliver food to guest rooms"},
+    "table_booking": {"enabled": true, "description": "Reservation workflow support"},
+    "room_service": {"enabled": true, "hours": "24/7", "description": "In-room amenities"},
+    "spa_booking": {"enabled": true, "hours": "09:00-21:00", "description": "Spa appointments"},
+    "housekeeping": {"enabled": true, "description": "Housekeeping requests"},
+    "laundry": {"enabled": true, "description": "Laundry services"},
+    "local_transport": {"enabled": true, "description": "Local cab services"},
+    "airport_transfer": {"enabled": true, "description": "Airport pickup/drop"},
+    "intercity_transport": {"enabled": false, "description": "Inter-city travel"},
+    "concierge": {"enabled": true, "description": "Concierge services"},
+    "human_escalation": {"enabled": true, "description": "Connect to staff"}
+  },
+
+  "services": [
+    {
+      "id": "service_1",
+      "name": "Service Name",
+      "type": "service",
+      "cuisine": "Category",
+      "hours": {"open": "07:00", "close": "23:00"},
+      "delivery_zones": ["room", "pool"],
+      "is_active": true
+    }
+  ],
+
+  "tools": [
+    {
+      "id": "ticketing",
+      "name": "Ticketing",
+      "description": "Create support tickets for unresolved guest requests.",
+      "type": "workflow",
+      "handler": "ticket_create",
+      "channels": ["web_widget", "whatsapp"],
+      "enabled": true,
+      "requires_confirmation": false,
+      "ticketing_plugin_enabled": true,
+      "ticketing_cases": [
+        "Pre-booking guest asks for human sales callback or manual follow-up.",
+        "Pre-booking room discovery request needs custom/manual room arrangement or non-standard requirement.",
+        "Pre-booking rate enquiry needs custom quotation, corporate pricing, group pricing, or manual discount approval.",
+        "Pre-booking policy enquiry requires exception approval by staff.",
+        "Pre-booking website booking issue remains unresolved (OTP/login/form/technical error).",
+        "Pre-booking payment issue: failed, pending, duplicate debit, or confirmation mismatch.",
+        "Sales callback request captured during pre-booking.",
+        "Group/corporate booking enquiry requiring manual proposal support.",
+        "Pre-checkin booking status request has mismatch/not-found booking and needs manual verification.",
+        "Pre-checkin booking modification needs staff/PMS update or approval.",
+        "Pre-checkin booking cancellation needs manual cancellation execution, refund follow-up, or exception approval.",
+        "Pre-checkin pre-arrival coordination requires operational handoff.",
+        "Early check-in request requires availability check and approval.",
+        "Airport transfer request requires manual transport coordination.",
+        "Pre-checkin document validation failed or needs manual verification/override.",
+        "Special occasion or amenity setup before arrival requires operations task ownership.",
+        "During-stay housekeeping request requires staff action.",
+        "During-stay maintenance issue (AC/electrical/plumbing/device) requires engineering intervention.",
+        "During-stay in-room dining request or order issue requires staff fulfillment/follow-up.",
+        "During-stay restaurant reservation request requires outlet staff confirmation.",
+        "During-stay spa/recreation booking request requires staff confirmation.",
+        "During-stay transport request requires dispatch coordination.",
+        "During-stay complaint/dissatisfaction requires staff resolution or escalation.",
+        "During-stay late checkout or stay extension requires front office approval.",
+        "During-stay front desk assistance request needs manual intervention.",
+        "During-stay emergency/safety/medical/security issue needs immediate escalation.",
+        "Post-checkout invoice or billing clarification needs finance/front office follow-up.",
+        "Post-checkout refund, security deposit, or charge reversal request needs manual verification.",
+        "Post-checkout lost-and-found request requires item search, verification, or courier coordination.",
+        "Post-checkout complaint or negative feedback requires service recovery ownership.",
+        "Post-checkout tax invoice/GST correction request needs manual document reissue.",
+        "Post-checkout loyalty points or membership benefit correction needs manual support.",
+        "Post-checkout stay confirmation, folio copy, or receipt resend failed and needs staff action.",
+        "Post-checkout rebooking callback request needs sales/reservations follow-up.",
+        "Guest reports a complaint or maintenance issue that requires staff action.",
+        "Guest requests human escalation or live agent support.",
+        "A booking or order requires manual staff follow-up after final confirmation.",
+        "Table booking request requires staff support.",
+        "In-room dining food order requires staff action.",
+        "Spa booking requires staff confirmation.",
+        "Room booking requires staff confirmation.",
+        "Transport/pickup request that requires staff coordination.",
+        "Information not available in provided data/context; create a follow-up ticket.",
+        "Requested menu is unavailable and needs team follow-up.",
+        "Pre-booking website issue, payment issue, or quotation issue.",
+        "Booking assistance update, modify, or follow-up request.",
+        "Sightseeing directions unavailable or unclear; route to Guest Relations.",
+        "Generic booking-help request requiring staff support.",
+        "Special immediate requests like birthday cake or shaving gel."
+      ]
+    },
+    {
+      "id": "human_handoff",
+      "name": "Human Handoff",
+      "description": "Escalate the conversation to hotel staff.",
+      "type": "handoff",
+      "handler": "human_escalation",
+      "channels": ["web_widget", "whatsapp"],
+      "enabled": true,
+      "requires_confirmation": false
+    }
+  ],
+
+  "intents": [
+    {"id": "greeting", "label": "Greeting", "enabled": true},
+    {"id": "menu_request", "label": "Knowledge Query", "enabled": true},
+    {"id": "order_food", "label": "Order Food", "enabled": true},
+    {"id": "table_booking", "label": "Book Service", "enabled": true},
+    {"id": "room_service", "label": "Room Service", "enabled": true},
+    {"id": "spa_booking", "label": "Spa Booking", "enabled": true},
+    {"id": "housekeeping", "label": "Housekeeping", "enabled": true},
+    {"id": "transport", "label": "Transport", "enabled": true},
+    {"id": "complaint", "label": "Complaint", "enabled": true},
+    {"id": "faq", "label": "General Question", "enabled": true},
+    {"id": "human_request", "label": "Talk to Staff", "enabled": true}
+  ],
+
+  "escalation": {
+    "confidence_threshold": 0.4,
+    "max_clarification_attempts": 3,
+    "modes": ["live_chat", "ticket", "callback"]
+  },
+
+  "journey_phases": [
+    {
+      "id": "pre_booking",
+      "name": "Pre Booking",
+      "description": "Guest is exploring and asking questions before reservation confirmation.",
+      "is_active": true,
+      "order": 1
+    },
+    {
+      "id": "pre_checkin",
+      "name": "Pre Checkin",
+      "description": "Guest booking is confirmed and needs support before arrival.",
+      "is_active": true,
+      "order": 2
+    },
+    {
+      "id": "during_stay",
+      "name": "During Stay",
+      "description": "Guest is in-house and needs operational or service support.",
+      "is_active": true,
+      "order": 3
+    },
+    {
+      "id": "post_checkout",
+      "name": "Post Checkout",
+      "description": "Guest has checked out and needs follow-up assistance.",
+      "is_active": true,
+      "order": 4
+    }
+  ]
+}

@@ -1,0 +1,362 @@
+{
+  "business": {
+    "id": "hotel_1771350722785",
+    "name": "ICONIQA Demo Hotel",
+    "city": "Mumbai",
+    "timezone": "Asia/Kolkata",
+    "type": "hotel",
+    "bot_name": "kebo",
+    "welcome_message": "Welcome to iconiqa Demo Hotel. How may I assist you today?",
+    "currency": "INR",
+    "language": "en",
+    "location": "Mumbai, India",
+    "address": "opp. Terminal 2, Navpada, Marol Village, Andheri (E, Mumbai, Maharashtra 400099, India",
+    "timestamp_format": "24h",
+    "contact_email": "venkyreddy6155@gmail.com",
+    "contact_phone": "+917036718200",
+    "website": "",
+    "channels": {
+      "web_widget": true,
+      "whatsapp": false
+    }
+  },
+  "capabilities": {
+    "food_ordering": {
+      "enabled": true,
+      "description": "Place food or product orders"
+    },
+    "room_service": {
+      "enabled": true,
+      "description": "In-room assistance service"
+    },
+    "table_booking": {
+      "enabled": true,
+      "description": "Reservation workflow support"
+    },
+    "spa_booking": {
+      "enabled": true,
+      "description": "Book spa treatments"
+    },
+    "transport": {
+      "enabled": true,
+      "description": "Cab and transport booking"
+    },
+    "housekeeping": {
+      "enabled": true,
+      "description": "Housekeeping requests"
+    },
+    "concierge": {
+      "enabled": true,
+      "description": "General assistance"
+    },
+    "checkout": {
+      "enabled": true,
+      "description": "Express checkout"
+    },
+    "human_escalation": {
+      "enabled": true,
+      "description": "Connect to staff"
+    }
+  },
+  "services": [
+    {
+      "id": "hotel_enquiry_sales",
+      "name": "Hotel Enquiry & Sales",
+      "type": "service",
+      "description": "Answer hotel questions and guide guests toward booking decisions.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_booking",
+      "is_builtin": true
+    },
+    {
+      "id": "room_discovery",
+      "name": "Room Discovery",
+      "type": "service",
+      "description": "Help guests compare room types, amenities, and suitability.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_booking",
+      "is_builtin": true
+    },
+    {
+      "id": "sightseeing_around_hotel",
+      "name": "sightseeing around hotel",
+      "type": "service",
+      "description": "Explore nearby attractions with our pre-booking sightseeing recommendations for an unforgettable stay.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": false,
+      "phase_id": "pre_booking",
+      "is_builtin": false
+    }
+  ],
+  "intents": [
+    {
+      "id": "greeting",
+      "label": "Greeting",
+      "enabled": false
+    },
+    {
+      "id": "menu_request",
+      "label": "Knowledge Query",
+      "enabled": false
+    },
+    {
+      "id": "order_food",
+      "label": "Order Food",
+      "enabled": false
+    },
+    {
+      "id": "table_booking",
+      "label": "Book Table",
+      "enabled": false
+    },
+    {
+      "id": "room_service",
+      "label": "Room Service",
+      "enabled": false
+    },
+    {
+      "id": "spa_booking",
+      "label": "Spa Booking",
+      "enabled": false
+    },
+    {
+      "id": "transport",
+      "label": "Transport Request",
+      "enabled": false
+    },
+    {
+      "id": "complaint",
+      "label": "Complaint",
+      "enabled": false
+    },
+    {
+      "id": "faq",
+      "label": "General Question",
+      "enabled": false
+    },
+    {
+      "id": "human_request",
+      "label": "Talk to Human",
+      "enabled": false
+    },
+    {
+      "id": "feedback",
+      "label": "Feedback",
+      "enabled": false
+    },
+    {
+      "id": "health_support",
+      "label": "health support",
+      "enabled": false,
+      "maps_to": "human_request"
+    },
+    {
+      "id": "room_booking",
+      "label": "room_booking",
+      "enabled": false
+    }
+  ],
+  "escalation": {
+    "confidence_threshold": 0.4,
+    "max_clarification_attempts": 3,
+    "escalation_message": "Let me connect you with our team for better assistance.",
+    "modes": [
+      "live_chat",
+      "ticket",
+      "callback"
+    ]
+  },
+  "prompts": {
+    "template_id": "hotel_concierge",
+    "system_prompt": "You are {bot_name}, a concierge assistant for {business_name} in {city}. Be warm and efficient. Confirm service, booking, and transport details clearly, and avoid committing to services that are not enabled.",
+    "classifier_prompt": "Prefer hospitality intents such as faq, order_food, room_service, table_booking, and transport when user intent is clear.",
+    "response_style": "Warm, premium hospitality tone with concise confirmations."
+  },
+  "knowledge_base": {
+    "sources": [
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\test_hotel\\c9eeb2d2_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\d5179f73_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\a20ca084_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\499d0f02_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\99582da2_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\d4c039fb_ROHL_Test_property.txt",
+      "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot\\config\\knowledge_base\\uploads\\default\\1c37e498_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_bot\\new_bot\\config\\knowledge_base\\uploads\\default\\229dddd6_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_bot\\new_bot\\config\\knowledge_base\\uploads\\default\\7849d931_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_bot\\new_bot\\config\\knowledge_base\\uploads\\default\\30478297_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\default\\a5f5a764_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\default\\d3664895_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\hotel_1771350722785\\4cb87742_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\hotel_1771350722785\\a6ca1e01_ROHL_Test_property.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\default\\4cc03558_ROHL_Test_property.txt"
+    ],
+    "notes": "",
+    "nlu_policy": {
+      "dos": [
+        "Confirm timing, location, and count for service requests.",
+        "Mention service windows only if available in capabilities.",
+        "Escalate guest complaints politely when needed.",
+        "give medical help when needed"
+      ],
+      "donts": [
+        "Do not fabricate offerings or pricing.",
+        "Do not commit intercity transfers unless explicitly enabled.",
+        "Do not share internal operational details."
+      ],
+      "capability_constraints": {}
+    }
+  },
+  "ui_settings": {
+    "theme": {
+      "primary_color": "#ec83cb",
+      "accent_color": "#6a76d2",
+      "background_color": "#8ba3bb",
+      "text_color": "#234d2a"
+    },
+    "widget": {
+      "position": "right",
+      "show_branding": true,
+      "compact_mode": false
+    },
+    "channels": {
+      "web_widget": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": false
+      }
+    },
+    "industry_features": []
+  },
+  "faq_bank": [],
+  "tools": [
+    {
+      "id": "ticketing",
+      "name": "Ticketing",
+      "description": "Backend workflow that monitors conversation and creates support tickets when configured cases match.",
+      "type": "workflow",
+      "handler": "ticket_create",
+      "channels": [
+        "web_widget"
+      ],
+      "enabled": true,
+      "requires_confirmation": false,
+      "ticketing_plugin_enabled": true,
+      "ticketing_cases": [
+        "Pre-booking guest asks for human sales callback or manual follow-up.",
+        "Pre-booking room discovery request needs custom/manual room arrangement or non-standard requirement.",
+        "Pre-booking rate enquiry needs custom quotation, corporate pricing, group pricing, or manual discount approval.",
+        "Pre-booking policy enquiry requires exception approval by staff.",
+        "Pre-booking website booking issue remains unresolved (OTP/login/form/technical error).",
+        "Pre-booking payment issue: failed, pending, duplicate debit, or confirmation mismatch.",
+        "Sales callback request captured during pre-booking.",
+        "Group/corporate booking enquiry requiring manual proposal support.",
+        "Pre-checkin booking status request has mismatch/not-found booking and needs manual verification.",
+        "Pre-checkin booking modification needs staff/PMS update or approval.",
+        "Pre-checkin booking cancellation needs manual cancellation execution, refund follow-up, or exception approval.",
+        "Pre-checkin pre-arrival coordination requires operational handoff.",
+        "Early check-in request requires availability check and approval.",
+        "Airport transfer request requires manual transport coordination.",
+        "Pre-checkin document validation failed or needs manual verification/override.",
+        "Special occasion or amenity setup before arrival requires operations task ownership.",
+        "During-stay housekeeping request requires staff action.",
+        "During-stay maintenance issue (AC/electrical/plumbing/device) requires engineering intervention.",
+        "During-stay in-room dining request or order issue requires staff fulfillment/follow-up.",
+        "During-stay restaurant reservation request requires outlet staff confirmation.",
+        "During-stay spa/recreation booking request requires staff confirmation.",
+        "During-stay transport request requires dispatch coordination.",
+        "During-stay complaint/dissatisfaction requires staff resolution or escalation.",
+        "During-stay late checkout or stay extension requires front office approval.",
+        "During-stay front desk assistance request needs manual intervention.",
+        "During-stay emergency/safety/medical/security issue needs immediate escalation.",
+        "Post-checkout invoice or billing clarification needs finance/front office follow-up.",
+        "Post-checkout refund, security deposit, or charge reversal request needs manual verification.",
+        "Post-checkout lost-and-found request requires item search, verification, or courier coordination.",
+        "Post-checkout complaint or negative feedback requires service recovery ownership.",
+        "Post-checkout tax invoice/GST correction request needs manual document reissue.",
+        "Post-checkout loyalty points or membership benefit correction needs manual support.",
+        "Post-checkout stay confirmation, folio copy, or receipt resend failed and needs staff action.",
+        "Post-checkout rebooking callback request needs sales/reservations follow-up.",
+        "Guest reports a complaint or maintenance issue that requires staff action.",
+        "Guest requests human escalation or live agent support.",
+        "table booking at a restuarant",
+        "in room dining food order",
+        "spa booking",
+        "room booking"
+      ]
+    },
+    {
+      "id": "human_handoff",
+      "name": "Human Handoff",
+      "description": "Escalate the conversation to hotel staff.",
+      "type": "handoff",
+      "handler": "human_escalation",
+      "channels": [
+        "web_widget"
+      ],
+      "enabled": true,
+      "requires_confirmation": false
+    }
+  ],
+  "runtime": {
+    "menu_runtime_enabled": false
+  },
+  "journey_phases": [
+    {
+      "id": "pre_booking",
+      "name": "Pre Booking",
+      "description": "Guest is exploring and asking questions before reservation confirmation.",
+      "is_active": true,
+      "order": 1
+    },
+    {
+      "id": "pre_checkin",
+      "name": "Pre Checkin",
+      "description": "Guest booking is confirmed and needs support before arrival.",
+      "is_active": true,
+      "order": 2
+    },
+    {
+      "id": "during_stay",
+      "name": "During Stay",
+      "description": "Guest is in-house and needs operational or service support.",
+      "is_active": true,
+      "order": 3
+    },
+    {
+      "id": "post_checkout",
+      "name": "Post Checkout",
+      "description": "Guest has checked out and needs follow-up assistance.",
+      "is_active": true,
+      "order": 4
+    }
+  ],
+  "agent_plugins": {
+    "enabled": false,
+    "shared_context": true,
+    "strict_mode": true,
+    "strict_unavailable_response": "I can only help with configured service-agent data right now. Please contact staff for anything outside this scope.",
+    "plugins": []
+  },
+  "service_kb": {
+    "records": []
+  },
+  "service_agent_releases": []
+}
