@@ -443,6 +443,86 @@ def test_service_detail_followup_collects_and_requests_confirmation():
     assert "20th Feb to 23rd Feb" in result.response_text
 
 
+def test_phase_mismatch_does_not_use_connector_token_as_service_match(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="phase-stopword-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "during_stay"}},
+    )
+
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "housekeeping_request",
+                "name": "Housekeeping Request",
+                "type": "service",
+                "description": "Cleaning and linen support.",
+                "phase_id": "during_stay",
+                "is_active": True,
+            },
+            {
+                "id": "lost_found_desk",
+                "name": "Lost And Found Desk",
+                "type": "service",
+                "description": "Lost and found support.",
+                "phase_id": "post_checkout",
+                "is_active": True,
+            },
+        ],
+    )
+
+    mismatch = service._detect_ticketing_phase_service_mismatch(
+        message="Room 612 needs deep cleaning and fresh towels.",
+        context=context,
+        pending_data=context.pending_data,
+        entities={},
+    )
+
+    assert mismatch is None
+
+
+def test_phase_mismatch_prefers_llm_service_signal_over_fuzzy_match(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="phase-llm-signal-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "during_stay"}},
+    )
+
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "housekeeping_request",
+                "name": "Housekeeping Request",
+                "type": "service",
+                "description": "Cleaning and linen support.",
+                "phase_id": "during_stay",
+                "is_active": True,
+            },
+            {
+                "id": "lost_found_desk",
+                "name": "Lost And Found Desk",
+                "type": "service",
+                "description": "Lost and found support.",
+                "phase_id": "post_checkout",
+                "is_active": True,
+            },
+        ],
+    )
+
+    mismatch = service._detect_ticketing_phase_service_mismatch(
+        message="Need deep cleaning and fresh towels.",
+        context=context,
+        pending_data=context.pending_data,
+        entities={"service_id": "housekeeping_request"},
+    )
+
+    assert mismatch is None
+
+
 @pytest.mark.asyncio
 async def test_dispatch_handles_confirm_service_request_yes():
     service = ChatService()

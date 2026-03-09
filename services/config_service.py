@@ -6,6 +6,7 @@ Supports multiple industries with template-based setup.
 """
 
 import copy
+import hashlib
 import json
 import re
 from datetime import UTC, datetime
@@ -719,11 +720,19 @@ class ConfigService:
             },
             "service_kb": {
                 "records": [],
+                "compiler": {
+                    "enabled": True,
+                    "max_facts_per_service": 60,
+                    "max_source_chars": 220000,
+                    "max_sources": 25,
+                    "version": "v1",
+                },
             },
             "service_agent_releases": [],
             "runtime": {
                 # Runtime-level feature switches for deterministic handlers.
                 "menu_runtime_enabled": False,
+                "service_kb_auto_compile": True,
             },
         }
 
@@ -1006,6 +1015,9 @@ class ConfigService:
             fact_id = f"fact_{uuid4().hex[:10]}"
 
         source = str(fact.get("source") or "").strip()
+        origin = cls._normalize_identifier(fact.get("origin") or "")
+        if origin not in {"manual", "auto", "menu_ocr"}:
+            origin = "manual" if source.startswith("manual") else "auto"
 
         tags_value = fact.get("tags", [])
         if isinstance(tags_value, str):
@@ -1026,6 +1038,13 @@ class ConfigService:
         updated_at = str(fact.get("updated_at") or created_at).strip()
         approved_by = str(fact.get("approved_by") or "").strip()
         approved_at = str(fact.get("approved_at") or "").strip()
+        confidence_raw = fact.get("confidence")
+        try:
+            confidence = float(confidence_raw)
+        except (TypeError, ValueError):
+            confidence = 0.0
+        confidence = max(0.0, min(confidence, 1.0))
+        evidence = str(fact.get("evidence") or "").strip()
         if status == "approved":
             if not approved_at:
                 approved_at = datetime.now(UTC).isoformat()
@@ -1037,12 +1056,15 @@ class ConfigService:
             "id": fact_id,
             "text": text,
             "source": source,
+            "origin": origin,
             "tags": normalized_tags,
             "status": status,
             "approved_by": approved_by or None,
             "approved_at": approved_at or None,
             "created_at": created_at,
             "updated_at": updated_at,
+            "confidence": confidence,
+            "evidence": evidence or None,
         }
 
     @classmethod
@@ -1647,6 +1669,22 @@ class ConfigService:
             raw_service_kb = {}
             config["service_kb"] = raw_service_kb
             changed = True
+        compiler_cfg = raw_service_kb.get("compiler", {})
+        if not isinstance(compiler_cfg, dict):
+            compiler_cfg = {}
+            raw_service_kb["compiler"] = compiler_cfg
+            changed = True
+        compiler_defaults = {
+            "enabled": True,
+            "max_facts_per_service": 60,
+            "max_source_chars": 220000,
+            "max_sources": 25,
+            "version": "v1",
+        }
+        for key, default_value in compiler_defaults.items():
+            if key not in compiler_cfg:
+                compiler_cfg[key] = default_value
+                changed = True
         raw_kb_records = raw_service_kb.get("records", [])
         if not isinstance(raw_kb_records, list):
             raw_kb_records = []
@@ -1881,9 +1919,15 @@ class ConfigService:
         for index, existing in enumerate(services):
             if self._normalize_identifier(existing.get("id")) == normalized["id"]:
                 services[index] = {**existing, **normalized}
-                return self.save_config(config)
+                saved = self.save_config(config)
+                if saved:
+                    self._maybe_auto_compile_service_kb(service_id=normalized["id"])
+                return saved
         services.append(normalized)
-        return self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb(service_id=normalized["id"])
+        return saved
 
     def update_service(self, service_id: str, updates: Dict[str, Any]) -> bool:
         """Update a service."""
@@ -1901,7 +1945,10 @@ class ConfigService:
                 if not normalized:
                     return False
                 services[index] = normalized
-                return self.save_config(config)
+                saved = self.save_config(config)
+                if saved:
+                    self._maybe_auto_compile_service_kb(service_id=normalized["id"])
+                return saved
         return False
 
     def delete_service(self, service_id: str) -> bool:
@@ -1913,13 +1960,19 @@ class ConfigService:
             for s in config.get("services", [])
             if self._normalize_identifier(s.get("id")) != normalized_id
         ]
-        return self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb()
+        return saved
 
     def clear_services(self) -> bool:
         """Delete all services from config."""
         config = self.load_config()
         config["services"] = []
-        return self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb()
+        return saved
 
     def get_agent_plugin_settings(self) -> Dict[str, Any]:
         """Get global service-agent plugin settings."""
@@ -2444,6 +2497,720 @@ class ConfigService:
             active_only=False,
         )
 
+    @staticmethod
+    def _service_fact_text_key(fact: Any) -> str:
+        if not isinstance(fact, dict):
+            return ""
+        text = re.sub(r"\s+", " ", str(fact.get("text") or "").strip().lower())
+        return text
+
+    @classmethod
+    def _service_facts_fingerprint(cls, facts: Any) -> str:
+        if not isinstance(facts, list):
+            return ""
+        parts: list[str] = []
+        for fact in facts:
+            if not isinstance(fact, dict):
+                continue
+            text_key = cls._service_fact_text_key(fact)
+            if not text_key:
+                continue
+            origin = str(fact.get("origin") or "").strip().lower()
+            source = str(fact.get("source") or "").strip().lower()
+            status = str(fact.get("status") or "").strip().lower()
+            parts.append(f"{text_key}|{origin}|{source}|{status}")
+        return hashlib.sha1("\n".join(parts).encode("utf-8")).hexdigest()
+
+    def _service_kb_compiler_config(self, config: dict[str, Any]) -> dict[str, Any]:
+        service_kb = config.setdefault("service_kb", {})
+        if not isinstance(service_kb, dict):
+            service_kb = {"records": []}
+            config["service_kb"] = service_kb
+        compiler = service_kb.setdefault("compiler", {})
+        if not isinstance(compiler, dict):
+            compiler = {}
+            service_kb["compiler"] = compiler
+        defaults = {
+            "enabled": True,
+            "max_facts_per_service": 60,
+            "max_source_chars": 220000,
+            "max_sources": 25,
+            "version": "v1",
+        }
+        for key, default_value in defaults.items():
+            if key not in compiler:
+                compiler[key] = default_value
+        return compiler
+
+    @staticmethod
+    def _knowledge_sources_signature(paths: list[Path]) -> str:
+        signature_parts: list[str] = []
+        for path in paths:
+            try:
+                stat = path.stat()
+                signature_parts.append(f"{path.resolve()}|{stat.st_mtime_ns}|{stat.st_size}")
+            except Exception:
+                signature_parts.append(str(path))
+        raw = "|".join(signature_parts)
+        return hashlib.sha1(raw.encode("utf-8")).hexdigest() if raw else ""
+
+    @staticmethod
+    def _service_keywords(service: dict[str, Any]) -> set[str]:
+        tokens: set[str] = set()
+        seed_parts = [
+            str(service.get("id") or "").replace("_", " "),
+            str(service.get("name") or ""),
+            str(service.get("description") or ""),
+            str(service.get("cuisine") or ""),
+            str(service.get("type") or ""),
+            str(service.get("phase_id") or "").replace("_", " "),
+        ]
+        stopwords = {
+            "a",
+            "an",
+            "the",
+            "and",
+            "or",
+            "to",
+            "for",
+            "of",
+            "in",
+            "on",
+            "at",
+            "with",
+            "by",
+            "is",
+            "are",
+            "be",
+            "service",
+            "services",
+            "hotel",
+            "guest",
+            "guests",
+            "support",
+            "request",
+            "requests",
+        }
+        for part in seed_parts:
+            for token in re.findall(r"[a-z0-9]+", str(part or "").lower()):
+                if len(token) <= 2 or token in stopwords:
+                    continue
+                tokens.add(token)
+                if token.endswith("s") and len(token) > 4:
+                    singular = token[:-1]
+                    if singular and singular not in stopwords:
+                        tokens.add(singular)
+        return tokens
+
+    def _service_default_plugin_id(self, service_id: str) -> str:
+        normalized_service_id = self._normalize_identifier(service_id)
+        for plugin in self.get_agent_plugins(active_only=False):
+            if self._normalize_identifier(plugin.get("service_id")) == normalized_service_id:
+                plugin_id = self._normalize_identifier(plugin.get("id"))
+                if plugin_id:
+                    return plugin_id
+        return f"{normalized_service_id}_agent" if normalized_service_id else ""
+
+    @classmethod
+    def _build_service_fact(
+        cls,
+        *,
+        text: str,
+        source: str,
+        tags: list[str],
+        origin: str,
+        confidence: float,
+        approved_by: str,
+        evidence: str = "",
+    ) -> dict[str, Any]:
+        now_iso = datetime.now(UTC).isoformat()
+        normalized_tags = []
+        for tag in tags:
+            normalized = cls._normalize_slug(tag)
+            if normalized and normalized not in normalized_tags:
+                normalized_tags.append(normalized)
+        return {
+            "id": f"fact_{uuid4().hex[:10]}",
+            "text": re.sub(r"\s+", " ", str(text or "").strip()),
+            "source": str(source or "").strip(),
+            "origin": cls._normalize_identifier(origin or "auto") or "auto",
+            "tags": normalized_tags,
+            "status": "approved",
+            "approved_by": str(approved_by or "system").strip() or "system",
+            "approved_at": now_iso,
+            "created_at": now_iso,
+            "updated_at": now_iso,
+            "confidence": max(0.0, min(float(confidence), 1.0)),
+            "evidence": re.sub(r"\s+", " ", str(evidence or "").strip()) or None,
+        }
+
+    def _build_service_admin_facts(
+        self,
+        service: dict[str, Any],
+        *,
+        approved_by: str,
+    ) -> list[dict[str, Any]]:
+        service_id = self._normalize_identifier(service.get("id"))
+        service_name = str(service.get("name") or service_id).strip()
+        phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+        phase_label = phase_id.replace("_", " ").title() if phase_id else "General"
+        tags = [service_id, phase_id, "admin_config", "service_kb"]
+        facts: list[dict[str, Any]] = []
+
+        facts.append(
+            self._build_service_fact(
+                text=f"{service_name} is configured as an active service for {phase_label} phase.",
+                source="admin_config",
+                tags=tags,
+                origin="auto",
+                confidence=0.99,
+                approved_by=approved_by,
+            )
+        )
+        description = str(service.get("description") or "").strip()
+        if description:
+            facts.append(
+                self._build_service_fact(
+                    text=f"{service_name}: {description}",
+                    source="admin_config",
+                    tags=tags + ["description"],
+                    origin="auto",
+                    confidence=0.98,
+                    approved_by=approved_by,
+                )
+            )
+        if "ticketing_enabled" in service:
+            ticketing_enabled = bool(service.get("ticketing_enabled"))
+            ticketing_text = (
+                f"Ticketing is enabled for {service_name} in {phase_label} phase."
+                if ticketing_enabled
+                else f"Ticketing is disabled for {service_name} in {phase_label} phase."
+            )
+            facts.append(
+                self._build_service_fact(
+                    text=ticketing_text,
+                    source="admin_config",
+                    tags=tags + ["ticketing"],
+                    origin="auto",
+                    confidence=0.99,
+                    approved_by=approved_by,
+                )
+            )
+        ticketing_policy = str(service.get("ticketing_policy") or "").strip()
+        if ticketing_policy:
+            facts.append(
+                self._build_service_fact(
+                    text=f"Ticketing policy for {service_name}: {ticketing_policy}",
+                    source="admin_config",
+                    tags=tags + ["ticketing_policy"],
+                    origin="auto",
+                    confidence=0.99,
+                    approved_by=approved_by,
+                )
+            )
+        hours_value = service.get("hours")
+        if isinstance(hours_value, dict) and hours_value:
+            hours_chunks: list[str] = []
+            for key, value in hours_value.items():
+                label = str(key or "").strip()
+                val = str(value or "").strip()
+                if label and val:
+                    hours_chunks.append(f"{label}: {val}")
+            if hours_chunks:
+                facts.append(
+                    self._build_service_fact(
+                        text=f"{service_name} service hours - " + "; ".join(hours_chunks),
+                        source="admin_config",
+                        tags=tags + ["hours"],
+                        origin="auto",
+                        confidence=0.96,
+                        approved_by=approved_by,
+                    )
+                )
+        delivery_zones = service.get("delivery_zones")
+        if isinstance(delivery_zones, list):
+            zones = [str(zone).strip() for zone in delivery_zones if str(zone).strip()]
+            if zones:
+                facts.append(
+                    self._build_service_fact(
+                        text=f"{service_name} delivery zones: {', '.join(zones)}.",
+                        source="admin_config",
+                        tags=tags + ["delivery"],
+                        origin="auto",
+                        confidence=0.95,
+                        approved_by=approved_by,
+                    )
+                )
+        return facts
+
+    def _extract_service_facts_from_sources(
+        self,
+        service: dict[str, Any],
+        source_texts: list[dict[str, str]],
+        *,
+        limit: int,
+        approved_by: str,
+    ) -> list[dict[str, Any]]:
+        if limit <= 0:
+            return []
+        service_id = self._normalize_identifier(service.get("id"))
+        phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+        keywords = self._service_keywords(service)
+        aliases = [
+            str(service.get("name") or "").strip().lower(),
+            self._normalize_identifier(service.get("id")).replace("_", " ").strip(),
+        ]
+        aliases = [alias for alias in aliases if alias]
+        scored_rows: list[tuple[float, str, str]] = []
+        seen_texts: set[str] = set()
+
+        useful_markers = {
+            "available",
+            "availability",
+            "hours",
+            "timing",
+            "time",
+            "book",
+            "booking",
+            "order",
+            "price",
+            "cost",
+            "menu",
+            "service",
+            "included",
+            "not available",
+            "closed",
+        }
+
+        for source_row in source_texts:
+            text = str(source_row.get("text") or "").strip()
+            if not text:
+                continue
+            source_name = str(source_row.get("name") or "knowledge_source").strip()
+            chunks = re.split(r"(?:\n+|(?<=[.!?])\s+)", text)
+            for chunk in chunks:
+                clean = re.sub(r"\s+", " ", str(chunk or "").strip(" -•\t\r\n"))
+                if len(clean) < 30 or len(clean) > 320:
+                    continue
+                lower = clean.lower()
+                tokens = set(re.findall(r"[a-z0-9]+", lower))
+                overlap = keywords & tokens
+                alias_hit = any(alias and alias in lower for alias in aliases)
+                if not overlap and not alias_hit:
+                    continue
+
+                score = float(len(overlap))
+                if alias_hit:
+                    score += 2.5
+                if any(marker in lower for marker in useful_markers):
+                    score += 0.75
+                if "not available" in lower or "unavailable" in lower:
+                    score += 0.4
+
+                dedupe_key = clean.lower()
+                if dedupe_key in seen_texts:
+                    continue
+                seen_texts.add(dedupe_key)
+                scored_rows.append((score, clean, source_name))
+
+        scored_rows.sort(key=lambda row: (-row[0], -len(row[1])))
+        facts: list[dict[str, Any]] = []
+        for score, text, source_name in scored_rows[: max(limit * 2, limit)]:
+            if len(facts) >= limit:
+                break
+            confidence = min(0.95, 0.45 + (score * 0.08))
+            facts.append(
+                self._build_service_fact(
+                    text=text,
+                    source=f"kb_source:{source_name}",
+                    tags=[service_id, phase_id, "service_kb", "knowledge_source"],
+                    origin="auto",
+                    confidence=confidence,
+                    approved_by=approved_by,
+                )
+            )
+        return facts
+
+    @classmethod
+    def _manual_override_facts(cls, facts: Any) -> list[dict[str, Any]]:
+        if not isinstance(facts, list):
+            return []
+        manual: list[dict[str, Any]] = []
+        for fact in facts:
+            if not isinstance(fact, dict):
+                continue
+            status = str(fact.get("status") or "").strip().lower()
+            if status == "rejected":
+                continue
+            origin = cls._normalize_identifier(fact.get("origin"))
+            source = str(fact.get("source") or "").strip().lower()
+            tags_value = fact.get("tags", [])
+            tags = [cls._normalize_slug(tag) for tag in tags_value] if isinstance(tags_value, list) else []
+            is_manual = origin == "manual" or source.startswith("manual") or "manual_override" in tags
+            if not is_manual:
+                continue
+            manual.append(dict(fact))
+        return manual
+
+    @classmethod
+    def _merge_service_facts(
+        cls,
+        manual_facts: list[dict[str, Any]],
+        auto_facts: list[dict[str, Any]],
+        *,
+        max_total: int,
+    ) -> list[dict[str, Any]]:
+        merged: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for group in (manual_facts, auto_facts):
+            for fact in group:
+                text_key = cls._service_fact_text_key(fact)
+                if not text_key or text_key in seen:
+                    continue
+                seen.add(text_key)
+                merged.append(dict(fact))
+                if len(merged) >= max_total:
+                    return merged
+        return merged
+
+    def _build_service_pack_signature(
+        self,
+        service: dict[str, Any],
+        *,
+        source_signature: str,
+        faq_bank: list[dict[str, Any]],
+        nlu_policy: dict[str, Any],
+        compiler_version: str,
+    ) -> str:
+        service_payload = {
+            "id": self._normalize_identifier(service.get("id")),
+            "name": str(service.get("name") or "").strip(),
+            "type": str(service.get("type") or "").strip(),
+            "description": str(service.get("description") or "").strip(),
+            "cuisine": str(service.get("cuisine") or "").strip(),
+            "phase_id": self._normalize_phase_identifier(service.get("phase_id")),
+            "ticketing_enabled": bool(service.get("ticketing_enabled", True)),
+            "ticketing_policy": str(service.get("ticketing_policy") or "").strip(),
+            "hours": service.get("hours", {}),
+            "delivery_zones": service.get("delivery_zones", []),
+            "is_active": bool(service.get("is_active", True)),
+        }
+        faq_signature_payload = []
+        for faq in faq_bank[:120]:
+            if not isinstance(faq, dict):
+                continue
+            if not bool(faq.get("enabled", True)):
+                continue
+            faq_signature_payload.append(
+                {
+                    "id": self._normalize_identifier(faq.get("id")),
+                    "question": str(faq.get("question") or "").strip(),
+                    "answer": str(faq.get("answer") or "").strip(),
+                    "tags": faq.get("tags", []),
+                }
+            )
+        payload = {
+            "service": service_payload,
+            "source_signature": source_signature,
+            "faq_signature": faq_signature_payload,
+            "nlu_policy": nlu_policy if isinstance(nlu_policy, dict) else {},
+            "compiler_version": str(compiler_version or "v1"),
+        }
+        raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+        return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+    def compile_service_kb_records(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        force: bool = False,
+        max_facts_per_service: Optional[int] = None,
+        preserve_manual: bool = True,
+        published_by: str = "system",
+    ) -> dict[str, Any]:
+        config = self.load_config()
+        compiler_cfg = self._service_kb_compiler_config(config)
+        if not bool(compiler_cfg.get("enabled", True)):
+            return {
+                "compiled_count": 0,
+                "skipped_count": 0,
+                "compiled_service_ids": [],
+                "skipped_service_ids": [],
+                "records": [],
+                "reason": "service_kb_compiler_disabled",
+            }
+
+        bounded_max_facts = int(
+            max_facts_per_service
+            or compiler_cfg.get("max_facts_per_service")
+            or 60
+        )
+        bounded_max_facts = max(10, min(bounded_max_facts, 200))
+        max_source_chars = int(compiler_cfg.get("max_source_chars") or 220000)
+        max_source_chars = max(25000, min(max_source_chars, 600000))
+        max_sources = int(compiler_cfg.get("max_sources") or 25)
+        max_sources = max(1, min(max_sources, 100))
+        compiler_version = str(compiler_cfg.get("version") or "v1").strip() or "v1"
+
+        target_service_id = self._normalize_identifier(service_id)
+        service_rows = [
+            svc
+            for svc in self.get_services()
+            if isinstance(svc, dict) and bool(svc.get("is_active", True))
+        ]
+        if target_service_id:
+            service_rows = [
+                svc
+                for svc in service_rows
+                if self._normalize_identifier(svc.get("id")) == target_service_id
+            ]
+        if not service_rows:
+            return {
+                "compiled_count": 0,
+                "skipped_count": 0,
+                "compiled_service_ids": [],
+                "skipped_service_ids": [],
+                "records": [],
+                "reason": "no_matching_services",
+            }
+
+        source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
+        source_signature = self._knowledge_sources_signature(source_paths)
+        source_texts: list[dict[str, str]] = []
+        for path in source_paths:
+            text = self._load_knowledge_source_text(path, max_chars=max_source_chars)
+            if not text:
+                continue
+            source_texts.append({"name": path.name, "path": str(path), "text": text})
+
+        faq_bank = self.get_faq_bank()
+        nlu_policy = self.get_nlu_policy()
+        compiled_records: list[dict[str, Any]] = []
+        compiled_service_ids: list[str] = []
+        skipped_service_ids: list[str] = []
+        now_iso = datetime.now(UTC).isoformat()
+        published_by_clean = str(published_by or "system").strip() or "system"
+
+        for service in service_rows:
+            normalized_service_id = self._normalize_identifier(service.get("id"))
+            if not normalized_service_id:
+                continue
+            default_plugin_id = self._service_default_plugin_id(normalized_service_id)
+            existing = self.get_service_kb_record(
+                service_id=normalized_service_id,
+                plugin_id=default_plugin_id or None,
+                active_only=False,
+            ) or self.get_service_kb_record(service_id=normalized_service_id, active_only=False)
+            existing_facts = (existing or {}).get("facts", [])
+            existing_completeness = (existing or {}).get("completeness", {})
+            if not isinstance(existing_completeness, dict):
+                existing_completeness = {}
+
+            service_signature = self._build_service_pack_signature(
+                service,
+                source_signature=source_signature,
+                faq_bank=faq_bank,
+                nlu_policy=nlu_policy,
+                compiler_version=compiler_version,
+            )
+            existing_signature = str(existing_completeness.get("service_signature") or "").strip()
+            if (
+                not force
+                and existing
+                and existing_signature
+                and existing_signature == service_signature
+            ):
+                skipped_service_ids.append(normalized_service_id)
+                continue
+
+            manual_facts = self._manual_override_facts(existing_facts) if preserve_manual else []
+            auto_admin_facts = self._build_service_admin_facts(service, approved_by=published_by_clean)
+            remaining_slots = max(0, bounded_max_facts - len(auto_admin_facts))
+            auto_source_facts = self._extract_service_facts_from_sources(
+                service,
+                source_texts,
+                limit=remaining_slots,
+                approved_by=published_by_clean,
+            )
+            auto_facts = auto_admin_facts + auto_source_facts
+            merged_facts = self._merge_service_facts(
+                manual_facts,
+                auto_facts,
+                max_total=max(bounded_max_facts + len(manual_facts), 20),
+            )
+
+            new_fingerprint = self._service_facts_fingerprint(merged_facts)
+            existing_fingerprint = self._service_facts_fingerprint(existing_facts)
+            if (
+                not force
+                and existing
+                and new_fingerprint == existing_fingerprint
+                and existing_signature == service_signature
+            ):
+                skipped_service_ids.append(normalized_service_id)
+                continue
+
+            previous_version = int((existing or {}).get("version") or 0)
+            next_version = previous_version + 1 if previous_version > 0 else 1
+            plugin_id = str((existing or {}).get("plugin_id") or default_plugin_id or "").strip() or None
+            kb_record = {
+                "id": str((existing or {}).get("id") or f"{normalized_service_id}_kb").strip(),
+                "service_id": normalized_service_id,
+                "plugin_id": plugin_id,
+                "strict_mode": bool((existing or {}).get("strict_mode", True)),
+                "facts": merged_facts,
+                "menu_documents": (existing or {}).get("menu_documents", []),
+                "version": next_version,
+                "is_active": True,
+                "published_at": now_iso,
+                "published_by": published_by_clean,
+                "release_notes": (
+                    f"Auto-compiled service knowledge pack ({compiler_version}) at {now_iso}."
+                ),
+                "completeness": {
+                    "generated_at": now_iso,
+                    "compiler_version": compiler_version,
+                    "service_signature": service_signature,
+                    "source_signature": source_signature,
+                    "source_count": len(source_texts),
+                    "manual_fact_count": len(manual_facts),
+                    "auto_fact_count": len(auto_facts),
+                    "total_fact_count": len(merged_facts),
+                },
+            }
+            saved = self.upsert_service_kb_record(kb_record)
+            if saved:
+                compiled_records.append(saved)
+                compiled_service_ids.append(normalized_service_id)
+
+        return {
+            "compiled_count": len(compiled_service_ids),
+            "skipped_count": len(skipped_service_ids),
+            "compiled_service_ids": compiled_service_ids,
+            "skipped_service_ids": skipped_service_ids,
+            "records": compiled_records,
+            "source_count": len(source_texts),
+            "source_signature": source_signature,
+            "compiler_version": compiler_version,
+        }
+
+    def set_service_kb_manual_facts(
+        self,
+        *,
+        service_id: str,
+        facts: list[str],
+        plugin_id: Optional[str] = None,
+        published_by: str = "admin",
+    ) -> Optional[dict[str, Any]]:
+        normalized_service_id = self._normalize_identifier(service_id)
+        if not normalized_service_id:
+            return None
+        clean_plugin_id = self._normalize_identifier(plugin_id)
+        existing = self.get_service_kb_record(
+            service_id=normalized_service_id,
+            plugin_id=clean_plugin_id or None,
+            active_only=False,
+        ) or self.get_service_kb_record(service_id=normalized_service_id, active_only=False)
+
+        # Ensure there is a current auto-generated baseline if record does not exist.
+        if not existing:
+            self.compile_service_kb_records(
+                service_id=normalized_service_id,
+                force=True,
+                preserve_manual=True,
+                published_by="system",
+            )
+            existing = self.get_service_kb_record(
+                service_id=normalized_service_id,
+                plugin_id=clean_plugin_id or None,
+                active_only=False,
+            ) or self.get_service_kb_record(service_id=normalized_service_id, active_only=False)
+
+        existing_facts = (existing or {}).get("facts", [])
+        auto_facts = []
+        for fact in existing_facts if isinstance(existing_facts, list) else []:
+            if not isinstance(fact, dict):
+                continue
+            origin = self._normalize_identifier(fact.get("origin"))
+            source = str(fact.get("source") or "").strip().lower()
+            tags_value = fact.get("tags", [])
+            tags = [self._normalize_slug(tag) for tag in tags_value] if isinstance(tags_value, list) else []
+            is_manual = origin == "manual" or source.startswith("manual") or "manual_override" in tags
+            if is_manual:
+                continue
+            auto_facts.append(dict(fact))
+
+        manual_facts: list[dict[str, Any]] = []
+        published_by_clean = str(published_by or "admin").strip() or "admin"
+        for line in facts if isinstance(facts, list) else []:
+            text = re.sub(r"\s+", " ", str(line or "").strip())
+            if not text:
+                continue
+            manual_facts.append(
+                self._build_service_fact(
+                    text=text,
+                    source="manual_override",
+                    tags=[normalized_service_id, "manual_override", "service_kb"],
+                    origin="manual",
+                    confidence=1.0,
+                    approved_by=published_by_clean,
+                )
+            )
+
+        merged_facts = self._merge_service_facts(
+            manual_facts,
+            auto_facts,
+            max_total=max(20, len(manual_facts) + len(auto_facts)),
+        )
+
+        current_version = int((existing or {}).get("version") or 0)
+        next_version = current_version + 1 if current_version > 0 else 1
+        now_iso = datetime.now(UTC).isoformat()
+        completeness = (existing or {}).get("completeness", {})
+        if not isinstance(completeness, dict):
+            completeness = {}
+        completeness = dict(completeness)
+        completeness.update(
+            {
+                "updated_at": now_iso,
+                "manual_fact_count": len(manual_facts),
+                "auto_fact_count": len(auto_facts),
+                "total_fact_count": len(merged_facts),
+            }
+        )
+        payload = {
+            "id": str((existing or {}).get("id") or f"{normalized_service_id}_kb").strip(),
+            "service_id": normalized_service_id,
+            "plugin_id": str((existing or {}).get("plugin_id") or clean_plugin_id or self._service_default_plugin_id(normalized_service_id)).strip() or None,
+            "strict_mode": bool((existing or {}).get("strict_mode", True)),
+            "facts": merged_facts,
+            "menu_documents": (existing or {}).get("menu_documents", []),
+            "version": next_version,
+            "is_active": True,
+            "published_at": now_iso,
+            "published_by": published_by_clean,
+            "release_notes": f"Manual override update at {now_iso}.",
+            "completeness": completeness,
+        }
+        return self.upsert_service_kb_record(payload)
+
+    def _maybe_auto_compile_service_kb(self, service_id: Optional[str] = None) -> None:
+        config = self.load_config()
+        runtime_cfg = config.get("runtime", {})
+        if not isinstance(runtime_cfg, dict):
+            runtime_cfg = {}
+        if not bool(runtime_cfg.get("service_kb_auto_compile", True)):
+            return
+        try:
+            self.compile_service_kb_records(
+                service_id=service_id,
+                force=False,
+                preserve_manual=True,
+                published_by="system",
+            )
+        except Exception:
+            return
+
     def is_menu_runtime_enabled(self) -> bool:
         """
         Backward-compatible feature flag for deterministic catalog runtime.
@@ -2474,9 +3241,15 @@ class ConfigService:
                 merged = dict(existing)
                 merged.update(normalized)
                 faq_bank[index] = self._normalize_faq_entry(merged) or merged
-                return self.save_config(config)
+                saved = self.save_config(config)
+                if saved:
+                    self._maybe_auto_compile_service_kb()
+                return saved
         faq_bank.append(normalized)
-        return self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb()
+        return saved
 
     def update_faq_entry(self, faq_id: str, updates: Dict[str, Any]) -> bool:
         """Update a FAQ entry by ID."""
@@ -2495,7 +3268,10 @@ class ConfigService:
                 if not normalized:
                     return False
                 faq_bank[index] = normalized
-                return self.save_config(config)
+                saved = self.save_config(config)
+                if saved:
+                    self._maybe_auto_compile_service_kb()
+                return saved
         return False
 
     def delete_faq_entry(self, faq_id: str) -> bool:
@@ -2507,7 +3283,10 @@ class ConfigService:
             for faq in config.get("faq_bank", [])
             if self._normalize_identifier(faq.get("id")) != normalized_id
         ]
-        return self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb()
+        return saved
 
     def find_faq_entry(self, user_message: str, min_score: float = 0.72) -> Optional[Dict[str, Any]]:
         """Best-effort FAQ match for deterministic admin-provided Q/A answers."""
@@ -2771,7 +3550,9 @@ class ConfigService:
         if "nlu_policy" in updates and isinstance(updates["nlu_policy"], dict):
             knowledge.setdefault("nlu_policy", {}).update(updates["nlu_policy"])
 
-        self.save_config(config)
+        saved = self.save_config(config)
+        if saved:
+            self._maybe_auto_compile_service_kb()
         return knowledge
 
     @staticmethod
@@ -3154,9 +3935,58 @@ class ConfigService:
         Converts JSON config to the format expected by chat_service.
         """
         config = self.load_config()
+        runtime_cfg = config.get("runtime", {})
+        if not isinstance(runtime_cfg, dict):
+            runtime_cfg = {}
+        if bool(runtime_cfg.get("service_kb_auto_compile", True)):
+            try:
+                self.compile_service_kb_records(
+                    force=False,
+                    preserve_manual=True,
+                    published_by="system",
+                )
+                config = self.load_config()
+            except Exception:
+                # Capability summary should never fail because of background compilation.
+                pass
         business = config.get("business", {})
         capabilities = config.get("capabilities", {})
         services = self.get_services()
+        service_kb_records = self.get_service_kb_records(active_only=True)
+        service_kb_summary: list[dict[str, Any]] = []
+        for record in service_kb_records[:120]:
+            if not isinstance(record, dict):
+                continue
+            approved_facts: list[dict[str, Any]] = []
+            for fact in (record.get("facts") or []):
+                if not isinstance(fact, dict):
+                    continue
+                status = str(fact.get("status") or "").strip().lower()
+                if status != "approved":
+                    continue
+                approved_facts.append(
+                    {
+                        "id": str(fact.get("id") or "").strip(),
+                        "text": str(fact.get("text") or "").strip(),
+                        "source": str(fact.get("source") or "").strip(),
+                        "origin": str(fact.get("origin") or "").strip(),
+                        "tags": fact.get("tags", []) if isinstance(fact.get("tags"), list) else [],
+                        "confidence": float(fact.get("confidence") or 0.0),
+                    }
+                )
+            service_kb_summary.append(
+                {
+                    "id": str(record.get("id") or "").strip(),
+                    "service_id": str(record.get("service_id") or "").strip(),
+                    "plugin_id": str(record.get("plugin_id") or "").strip(),
+                    "strict_mode": bool(record.get("strict_mode", True)),
+                    "version": int(record.get("version") or 0),
+                    "published_at": str(record.get("published_at") or "").strip(),
+                    "published_by": str(record.get("published_by") or "").strip(),
+                    "completeness": record.get("completeness", {}) if isinstance(record.get("completeness"), dict) else {},
+                    "facts": approved_facts,
+                }
+            )
 
         # Build normalized service catalog from services.
         service_catalog = []
@@ -3235,6 +4065,7 @@ class ConfigService:
             "tools": self.get_tools(),
             "workflows": self.get_tools(),
             "intents": self.get_intents(),
+            "service_kb_records": service_kb_summary,
             "prompts": config.get("prompts", {}),
             "knowledge_sources": config.get("knowledge_base", {}).get("sources", []),
             "knowledge_notes": config.get("knowledge_base", {}).get("notes", ""),

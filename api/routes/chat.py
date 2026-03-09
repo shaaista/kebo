@@ -157,11 +157,17 @@ async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
     """
     Get session details and conversation history.
     """
-    context = await context_manager.get_context(session_id, db_session=db)
+    db_fallback = False
+    try:
+        context = await context_manager.get_context(session_id, db_session=db)
+    except OperationalError as e:
+        print(f"API DB Error (get_session fallback to local store): {e}")
+        context = await context_manager.get_context(session_id, db_session=None)
+        db_fallback = True
     if context is None:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    return {
+    payload = {
         "session_id": context.session_id,
         "state": context.state.value,
         "hotel_code": context.hotel_code,
@@ -183,6 +189,9 @@ async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
         "created_at": context.created_at.isoformat(),
         "updated_at": context.updated_at.isoformat(),
     }
+    if db_fallback:
+        payload["db_fallback"] = True
+    return payload
 
 
 @router.delete("/session/{session_id}")
@@ -190,10 +199,16 @@ async def delete_session(session_id: str, db: AsyncSession = Depends(get_db)):
     """
     Delete a session and its history.
     """
-    deleted = await context_manager.delete_context(session_id, db_session=db)
+    db_fallback = False
+    try:
+        deleted = await context_manager.delete_context(session_id, db_session=db)
+    except OperationalError as e:
+        print(f"API DB Error (delete_session fallback to local store): {e}")
+        deleted = await context_manager.delete_context(session_id, db_session=None)
+        db_fallback = True
     if not deleted:
         raise HTTPException(status_code=404, detail="Session not found")
-    return {"message": "Session deleted", "session_id": session_id}
+    return {"message": "Session deleted", "session_id": session_id, "db_fallback": db_fallback}
 
 
 @router.get("/sessions")
@@ -201,12 +216,26 @@ async def list_sessions(db: AsyncSession = Depends(get_db)):
     """
     List all active sessions.
     """
-    sessions = await context_manager.list_sessions(db_session=db)
+    db_fallback = False
+    try:
+        sessions = await context_manager.list_sessions(db_session=db)
+    except OperationalError as e:
+        print(f"API DB Error (list_sessions fallback to local store): {e}")
+        sessions = await context_manager.list_sessions(db_session=None)
+        db_fallback = True
+
     summaries = []
     for sid in sessions:
-        summary = await context_manager.get_conversation_summary(sid, db_session=db)
+        summary_db_session = None if db_fallback else db
+        try:
+            summary = await context_manager.get_conversation_summary(
+                sid, db_session=summary_db_session
+            )
+        except OperationalError:
+            summary = await context_manager.get_conversation_summary(sid, db_session=None)
+            db_fallback = True
         summaries.append(summary)
-    return {"sessions": summaries, "count": len(summaries)}
+    return {"sessions": summaries, "count": len(summaries), "db_fallback": db_fallback}
 
 
 @router.post("/session/{session_id}/reset")
@@ -214,14 +243,26 @@ async def reset_session(session_id: str, db: AsyncSession = Depends(get_db)):
     """
     Reset a session's state to IDLE without deleting history.
     """
-    context = await context_manager.get_context(session_id, db_session=db)
-    if context is None:
-        raise HTTPException(status_code=404, detail="Session not found")
-
     from schemas.chat import ConversationState
-    context.state = ConversationState.IDLE
-    context.pending_action = None
-    context.pending_data = {}
-    await context_manager.save_context(context, db_session=db)
+    db_fallback = False
 
-    return {"message": "Session reset", "state": "idle"}
+    try:
+        context = await context_manager.get_context(session_id, db_session=db)
+        if context is None:
+            raise HTTPException(status_code=404, detail="Session not found")
+        context.state = ConversationState.IDLE
+        context.pending_action = None
+        context.pending_data = {}
+        await context_manager.save_context(context, db_session=db)
+    except OperationalError as e:
+        print(f"API DB Error (reset_session fallback to local store): {e}")
+        context = await context_manager.get_context(session_id, db_session=None)
+        if context is None:
+            raise HTTPException(status_code=404, detail="Session not found")
+        context.state = ConversationState.IDLE
+        context.pending_action = None
+        context.pending_data = {}
+        await context_manager.save_context(context, db_session=None)
+        db_fallback = True
+
+    return {"message": "Session reset", "state": "idle", "db_fallback": db_fallback}

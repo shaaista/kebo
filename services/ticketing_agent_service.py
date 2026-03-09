@@ -154,6 +154,8 @@ class TicketingAgentService:
         message: str,
         conversation_excerpt: str = "",
         llm_response_text: str = "",
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
     ) -> str:
         """
         LLM-first configured-case matching with deterministic fallback.
@@ -170,6 +172,8 @@ class TicketingAgentService:
             conversation_excerpt=conversation_excerpt,
             llm_response_text=llm_response_text,
             configured_cases=configured_cases,
+            selected_phase_id=selected_phase_id,
+            selected_phase_name=selected_phase_name,
         )
         if llm_used and llm_match:
             logger.info(
@@ -203,6 +207,8 @@ class TicketingAgentService:
         llm_ticketing_preference: bool | None,
         current_pending_action: str | None,
         pending_action_target: str | None,
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
         conversation_excerpt: str = "",
     ) -> TicketingAgentDecision:
         """
@@ -213,6 +219,8 @@ class TicketingAgentService:
             message=message,
             conversation_excerpt=conversation_excerpt,
             llm_response_text=llm_response_text,
+            selected_phase_id=selected_phase_id,
+            selected_phase_name=selected_phase_name,
         )
         return self.decide(
             intent=intent,
@@ -264,6 +272,17 @@ class TicketingAgentService:
                     )
                 configured_case_gate_active = True
 
+        if bool(getattr(settings, "ticketing_agent_llm_only", True)):
+            return self._decide_llm_only(
+                intent=intent,
+                llm_ticketing_preference=llm_ticketing_preference,
+                current_pending_action=pending_current,
+                pending_action_target=pending_target,
+                configured_case_gate_active=configured_case_gate_active,
+                configured_case_match=configured_case_match,
+                message=msg,
+            )
+
         if self._is_ticketing_pending_action(pending_target) or self._is_ticketing_pending_action(pending_current):
             return TicketingAgentDecision(
                 activate=True,
@@ -284,7 +303,7 @@ class TicketingAgentService:
 
         if configured_case_match and not self._looks_like_information_query(msg):
             if self._configured_case_is_transactional(configured_case_match):
-                if intent == IntentType.HUMAN_REQUEST:
+                if intent == IntentType.HUMAN_REQUEST or self._looks_like_human_handoff_request(msg):
                     return TicketingAgentDecision(
                         activate=True,
                         routed_intent=IntentType.HUMAN_REQUEST,
@@ -293,24 +312,16 @@ class TicketingAgentService:
                         source="service_ticketing_cases",
                         matched_case=configured_case_match,
                     )
-                # If assistant already committed to staff handoff/action on this turn,
-                # create backend ticket now even for transactional configured cases
-                # (for example spa booking forwarded to staff), instead of deferring.
-                in_order_or_booking_collection = (
-                    self._is_order_pending_action(pending_current)
-                    or self._is_order_pending_action(pending_target)
-                    or self._is_booking_pending_action(pending_current)
-                    or self._is_booking_pending_action(pending_target)
-                )
                 if (
-                    not in_order_or_booking_collection
-                    and self._response_implies_staff_action(llm_response_text)
+                    intent == IntentType.COMPLAINT
+                    or self._looks_like_explicit_ticket_command(msg)
+                    or self._looks_like_strong_issue_marker(msg)
                 ):
                     return TicketingAgentDecision(
                         activate=True,
                         routed_intent=IntentType.COMPLAINT,
                         route="complaint_handler",
-                        reason="configured_transaction_case_staff_action",
+                        reason="configured_transaction_case_issue_signal",
                         source="service_ticketing_cases",
                         matched_case=configured_case_match,
                     )
@@ -327,6 +338,24 @@ class TicketingAgentService:
                 if self._configured_case_prefers_human_route(configured_case_match)
                 else IntentType.COMPLAINT
             )
+            has_escalation_signal = (
+                intent in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST}
+                or self._looks_like_explicit_ticket_command(msg)
+                or self._looks_like_strong_issue_marker(msg)
+                or self._looks_like_operational_issue(msg)
+                or llm_ticketing_preference is True
+                or self._response_implies_staff_action(llm_response_text)
+                or (routed_intent == IntentType.HUMAN_REQUEST and self._looks_like_human_handoff_request(msg))
+            )
+            if not has_escalation_signal:
+                return TicketingAgentDecision(
+                    activate=False,
+                    routed_intent=None,
+                    route="none",
+                    reason="configured_case_match_missing_escalation_signal",
+                    source="service_ticketing_cases",
+                    matched_case=configured_case_match,
+                )
             return TicketingAgentDecision(
                 activate=True,
                 routed_intent=routed_intent,
@@ -495,6 +524,188 @@ class TicketingAgentService:
             route="none",
             reason="no_ticketing_trigger",
             source="default",
+        )
+
+    def _decide_llm_only(
+        self,
+        *,
+        intent: IntentType,
+        llm_ticketing_preference: bool | None,
+        current_pending_action: str,
+        pending_action_target: str,
+        configured_case_gate_active: bool,
+        configured_case_match: str,
+        message: str,
+    ) -> TicketingAgentDecision:
+        if self._is_ticketing_pending_action(pending_action_target) or self._is_ticketing_pending_action(
+            current_pending_action
+        ):
+            return TicketingAgentDecision(
+                activate=True,
+                routed_intent=IntentType.COMPLAINT,
+                route="complaint_handler",
+                reason="existing_ticketing_pending_action",
+                source="pending_action",
+            )
+
+        in_order_or_booking_collection = (
+            self._is_order_pending_action(current_pending_action)
+            or self._is_order_pending_action(pending_action_target)
+            or self._is_booking_pending_action(current_pending_action)
+            or self._is_booking_pending_action(pending_action_target)
+        )
+
+        if intent == IntentType.HUMAN_REQUEST:
+            if configured_case_match and self._configured_case_is_transactional(configured_case_match):
+                return TicketingAgentDecision(
+                    activate=True,
+                    routed_intent=IntentType.HUMAN_REQUEST,
+                    route="escalation_handler",
+                    reason="configured_transaction_case_human_request",
+                    source="service_ticketing_cases",
+                    matched_case=configured_case_match,
+                )
+            return TicketingAgentDecision(
+                activate=True,
+                routed_intent=IntentType.HUMAN_REQUEST,
+                route="escalation_handler",
+                reason=(
+                    "human_request_configured_case_match"
+                    if configured_case_match
+                    else "human_request"
+                ),
+                source=(
+                    "service_ticketing_cases"
+                    if configured_case_match
+                    else "intent"
+                ),
+                matched_case=configured_case_match,
+            )
+
+        if configured_case_gate_active and not configured_case_match:
+            if intent in {IntentType.COMPLAINT, IntentType.ROOM_SERVICE} or llm_ticketing_preference is True:
+                return TicketingAgentDecision(
+                    activate=False,
+                    routed_intent=None,
+                    route="none",
+                    reason="no_matching_configured_ticketing_case",
+                    source="service_ticketing_cases",
+                )
+
+        if configured_case_match:
+            prefers_human = self._configured_case_prefers_human_route(configured_case_match)
+            is_transactional = self._configured_case_is_transactional(configured_case_match)
+            if is_transactional and intent not in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST}:
+                return TicketingAgentDecision(
+                    activate=False,
+                    routed_intent=None,
+                    route="none",
+                    reason="configured_transaction_case_deferred_until_confirmation",
+                    source="service_ticketing_cases",
+                    matched_case=configured_case_match,
+                )
+            if llm_ticketing_preference is True or intent in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST}:
+                routed_intent = IntentType.HUMAN_REQUEST if prefers_human else IntentType.COMPLAINT
+                route = "escalation_handler" if routed_intent == IntentType.HUMAN_REQUEST else "complaint_handler"
+                return TicketingAgentDecision(
+                    activate=True,
+                    routed_intent=routed_intent,
+                    route=route,
+                    reason="configured_ticketing_case_match",
+                    source="service_ticketing_cases",
+                    matched_case=configured_case_match,
+                )
+            return TicketingAgentDecision(
+                activate=False,
+                routed_intent=None,
+                route="none",
+                reason="configured_case_match_missing_escalation_signal",
+                source="service_ticketing_cases",
+                matched_case=configured_case_match,
+            )
+
+        if intent == IntentType.COMPLAINT:
+            return TicketingAgentDecision(
+                activate=True,
+                routed_intent=IntentType.COMPLAINT,
+                route="complaint_handler",
+                reason="complaint_intent",
+                source="intent",
+            )
+
+        if in_order_or_booking_collection:
+            return TicketingAgentDecision(
+                activate=False,
+                routed_intent=None,
+                route="none",
+                reason="transaction_slot_collection_in_progress",
+                source="pending_action",
+            )
+
+        if intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING}:
+            return TicketingAgentDecision(
+                activate=False,
+                routed_intent=None,
+                route="none",
+                reason="transaction_flow_deferred_ticket_until_confirmation",
+                source="intent",
+            )
+
+        if intent == IntentType.ROOM_SERVICE:
+            if llm_ticketing_preference is True:
+                return TicketingAgentDecision(
+                    activate=True,
+                    routed_intent=IntentType.COMPLAINT,
+                    route="complaint_handler",
+                    reason="llm_requested_ticket_for_room_service",
+                    source="llm_signal",
+                )
+            if llm_ticketing_preference is False:
+                return TicketingAgentDecision(
+                    activate=False,
+                    routed_intent=None,
+                    route="none",
+                    reason="room_service_information_only",
+                    source="intent+message",
+                )
+            if self._looks_like_actionable_room_service_request(message):
+                return TicketingAgentDecision(
+                    activate=True,
+                    routed_intent=IntentType.COMPLAINT,
+                    route="complaint_handler",
+                    reason="actionable_room_service_request",
+                    source="intent+message",
+                )
+            return TicketingAgentDecision(
+                activate=False,
+                routed_intent=None,
+                route="none",
+                reason="room_service_information_only",
+                source="intent+message",
+            )
+
+        if llm_ticketing_preference is True:
+            return TicketingAgentDecision(
+                activate=True,
+                routed_intent=IntentType.COMPLAINT,
+                route="complaint_handler",
+                reason="llm_requested_ticket",
+                source="llm_signal",
+            )
+        if llm_ticketing_preference is False:
+            return TicketingAgentDecision(
+                activate=False,
+                routed_intent=None,
+                route="none",
+                reason="llm_ticketing_preference_false",
+                source="llm_signal",
+            )
+        return TicketingAgentDecision(
+            activate=False,
+            routed_intent=None,
+            route="none",
+            reason="no_ticketing_trigger_llm_only",
+            source="llm_mode",
         )
 
     @staticmethod
@@ -867,6 +1078,8 @@ class TicketingAgentService:
         conversation_excerpt: str,
         llm_response_text: str,
         configured_cases: list[str],
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
     ) -> tuple[str, bool]:
         """
         Returns (matched_case, llm_used).
@@ -880,6 +1093,16 @@ class TicketingAgentService:
         if not configured_cases:
             return "", False
 
+        phase_label = str(selected_phase_name or "").strip() or (
+            str(selected_phase_id or "").replace("_", " ").title()
+        )
+        phase_id = str(selected_phase_id or "").strip() or "unknown"
+        context_chars = max(1200, int(getattr(settings, "ticketing_case_match_context_chars", 5000) or 5000))
+        latest_user_preview = str(message or "").strip()[:800] or "(none)"
+        assistant_preview = str(llm_response_text or "").strip()[:1200] or "(none)"
+        conversation_preview = str(conversation_excerpt or "").strip()
+        if len(conversation_preview) > context_chars:
+            conversation_preview = conversation_preview[-context_chars:]
         prompt = (
             "You are a ticketing-case matcher.\n"
             "Decide if the latest user request should create a ticket under one of configured ticketing cases.\n\n"
@@ -891,12 +1114,14 @@ class TicketingAgentService:
             "(for example, transport must not map to table booking).\n"
             "5) Do not match only because generic words overlap (book, request, service, support).\n"
             "6) If a case fits, return that exact configured case text.\n"
+            "6.1) Treat explicit ticket/escalation asks and clear operational issue wording as escalation signals.\n"
             "7) Output strict JSON only:\n"
             "{\"should_create_ticket\":true|false, \"matched_case\":\"...\", \"reason\":\"...\"}\n\n"
+            f"Selected user journey phase: {phase_label} ({phase_id})\n"
             f"Configured cases: {configured_cases}\n"
-            f"Latest user message: {str(message or '').strip()[:500] or '(none)'}\n"
-            f"Assistant response draft: {str(llm_response_text or '').strip()[:500] or '(none)'}\n"
-            f"Conversation excerpt: {str(conversation_excerpt or '').strip()[:1400] or '(none)'}"
+            f"Latest user message: {latest_user_preview}\n"
+            f"Assistant response draft: {assistant_preview}\n"
+            f"Conversation excerpt: {conversation_preview or '(none)'}"
         )
         messages = [
             {"role": "system", "content": "You return strict JSON for ticketing-case matching."},
@@ -994,6 +1219,23 @@ class TicketingAgentService:
         if not text:
             return False
 
+        # Guard: stay-booking language should not be treated as room-service ticketing.
+        stay_booking_markers = (
+            "book a room",
+            "book room",
+            "room booking",
+            "need a room",
+            "want a room",
+            "room for",
+            "check in",
+            "check-in",
+            "check out",
+            "check-out",
+            "stay",
+        )
+        if any(marker in text for marker in stay_booking_markers):
+            return False
+
         if TicketingAgentService._looks_like_information_query(text):
             # For explicit "request verbs", still consider actionable.
             action_verbs = ("need", "send", "bring", "arrange", "require", "please")
@@ -1043,8 +1285,37 @@ class TicketingAgentService:
             "refund",
             "wrong charge",
             "billing issue",
+            "technical issue",
+            "technical error",
+            "booking failed",
+            "payment failed",
+            "otp",
+            "login issue",
+            "unable to book",
+            "can't book",
+            "cannot book",
             "manager",
             "escalate",
+        )
+        return any(marker in text for marker in markers)
+
+    @staticmethod
+    def _looks_like_human_handoff_request(msg_lower: str) -> bool:
+        text = str(msg_lower or "").strip().lower()
+        if not text:
+            return False
+        markers = (
+            "human",
+            "live agent",
+            "agent",
+            "representative",
+            "support team",
+            "talk to",
+            "speak to",
+            "connect me",
+            "manager",
+            "callback",
+            "call me",
         )
         return any(marker in text for marker in markers)
 

@@ -8,9 +8,12 @@ Uses in-memory storage plus optional DB persistence.
 from __future__ import annotations
 
 import json
+import logging
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any, Dict, Optional
 
+from config.settings import settings
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,16 +26,38 @@ from schemas.chat import (
     MessageRole,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class ContextManager:
     """Manages conversation contexts across sessions."""
 
-    def __init__(self, ttl_hours: int = 24):
+    def __init__(
+        self,
+        ttl_hours: int = 24,
+        local_store_enabled: Optional[bool] = None,
+        local_store_file: Optional[str] = None,
+    ):
         self.ttl_hours = ttl_hours
         # In-memory storage for development
         # Replace with Redis in production
         self._storage: Dict[str, dict] = {}
         self._expiry: Dict[str, datetime] = {}
+        configured_local_enabled = bool(
+            getattr(settings, "conversation_local_store_enabled", True)
+        )
+        self._local_store_enabled = (
+            configured_local_enabled
+            if local_store_enabled is None
+            else bool(local_store_enabled)
+        )
+        configured_local_file = str(
+            getattr(settings, "conversation_local_store_file", "") or ""
+        ).strip()
+        effective_local_file = str(local_store_file or "").strip() or configured_local_file
+        if not effective_local_file:
+            effective_local_file = "./data/runtime/local_contexts.json"
+        self._local_store_path = Path(effective_local_file)
 
     async def get_context(
         self,
@@ -46,7 +71,10 @@ class ContextManager:
             return ConversationContext(**self._storage[session_id])
 
         if db_session is None:
-            return None
+            local_context = self._load_context_from_local_store(session_id)
+            if local_context is not None:
+                self._save_to_memory(local_context, persist_local=False)
+            return local_context
 
         context = await self._get_context_from_db(session_id, db_session)
         if context:
@@ -165,7 +193,9 @@ class ContextManager:
                 await db_session.commit()
                 deleted_db = True
 
-        return deleted_memory or deleted_db
+        deleted_local = self._remove_local_contexts([session_id])
+
+        return deleted_memory or deleted_db or deleted_local
 
     async def list_sessions(self, db_session: Optional[AsyncSession] = None) -> list[str]:
         """List all active session IDs."""
@@ -175,6 +205,8 @@ class ContextManager:
         if db_session is not None:
             result = await db_session.execute(select(DBConversation.session_id))
             session_ids.update(result.scalars().all())
+        else:
+            session_ids.update(self._list_local_store_session_ids())
 
         return sorted(session_ids)
 
@@ -188,6 +220,8 @@ class ContextManager:
         for sid in expired:
             self._storage.pop(sid, None)
             self._expiry.pop(sid, None)
+        if expired:
+            self._remove_local_contexts(expired)
 
     async def get_conversation_summary(
         self,
@@ -225,11 +259,116 @@ class ContextManager:
             return "whatsapp"
         return normalized[:20]
 
-    def _save_to_memory(self, context: ConversationContext) -> None:
+    def _save_to_memory(
+        self,
+        context: ConversationContext,
+        *,
+        persist_local: bool = True,
+    ) -> None:
         """Write current context snapshot to in-memory store."""
         context.updated_at = datetime.now(UTC)
         self._storage[context.session_id] = context.model_dump(mode="json")
         self._expiry[context.session_id] = datetime.now(UTC) + timedelta(hours=self.ttl_hours)
+        if persist_local:
+            self._upsert_local_context(context)
+
+    def _is_local_store_enabled(self) -> bool:
+        return bool(self._local_store_enabled)
+
+    def _read_local_store_map(self) -> dict[str, dict[str, Any]]:
+        if not self._is_local_store_enabled():
+            return {}
+
+        path = self._local_store_path
+        if not path.exists():
+            return {}
+
+        try:
+            raw_text = path.read_text(encoding="utf-8")
+            if not str(raw_text).strip():
+                return {}
+            parsed = json.loads(raw_text)
+        except Exception as exc:
+            logger.warning("Failed to read local conversation store at %s: %s", path, exc)
+            return {}
+
+        if not isinstance(parsed, dict):
+            return {}
+
+        contexts = parsed.get("contexts") if isinstance(parsed.get("contexts"), dict) else parsed
+        if not isinstance(contexts, dict):
+            return {}
+
+        normalized: dict[str, dict[str, Any]] = {}
+        for session_id, payload in contexts.items():
+            if not isinstance(session_id, str) or not isinstance(payload, dict):
+                continue
+            normalized[session_id] = payload
+        return normalized
+
+    def _write_local_store_map(self, contexts: dict[str, dict[str, Any]]) -> bool:
+        if not self._is_local_store_enabled():
+            return False
+
+        path = self._local_store_path
+        payload = {
+            "version": 1,
+            "saved_at": datetime.now(UTC).isoformat(),
+            "contexts": contexts,
+        }
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = path.with_name(f"{path.name}.tmp")
+            tmp_path.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            tmp_path.replace(path)
+            return True
+        except Exception as exc:
+            logger.warning("Failed to write local conversation store at %s: %s", path, exc)
+            return False
+
+    def _upsert_local_context(self, context: ConversationContext) -> None:
+        if not self._is_local_store_enabled():
+            return
+        contexts = self._read_local_store_map()
+        contexts[context.session_id] = context.model_dump(mode="json")
+        self._write_local_store_map(contexts)
+
+    def _remove_local_contexts(self, session_ids: list[str]) -> bool:
+        if not self._is_local_store_enabled() or not session_ids:
+            return False
+
+        contexts = self._read_local_store_map()
+        changed = False
+        for session_id in session_ids:
+            if session_id in contexts:
+                contexts.pop(session_id, None)
+                changed = True
+        if not changed:
+            return False
+        return self._write_local_store_map(contexts)
+
+    def _load_context_from_local_store(self, session_id: str) -> Optional[ConversationContext]:
+        contexts = self._read_local_store_map()
+        payload = contexts.get(session_id)
+        if not isinstance(payload, dict):
+            return None
+        try:
+            return ConversationContext(**payload)
+        except Exception as exc:
+            logger.warning(
+                "Invalid local context payload for session %s at %s: %s",
+                session_id,
+                self._local_store_path,
+                exc,
+            )
+            return None
+
+    def _list_local_store_session_ids(self) -> list[str]:
+        contexts = self._read_local_store_map()
+        return sorted(contexts.keys())
 
     async def _resolve_hotel(self, db_session: AsyncSession, hotel_code: str) -> Hotel:
         """Resolve hotel by code, creating a minimal row when missing."""

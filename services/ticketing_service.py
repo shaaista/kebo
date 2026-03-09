@@ -12,9 +12,11 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from difflib import SequenceMatcher
 import json
 import logging
 from pathlib import Path
+import re
 from typing import Any, Iterable
 
 import httpx
@@ -152,6 +154,20 @@ class TicketingService:
 
     async def create_ticket(self, payload: dict[str, Any]) -> TicketingResult:
         """Create a ticket using Lumira-compatible payload contract."""
+        gate = self.detect_service_ticketing_disabled(payload)
+        if gate is not None:
+            response_payload = {
+                "skip_reason": "phase_service_ticketing_disabled",
+                **gate,
+            }
+            return TicketingResult(
+                success=False,
+                status_code=409,
+                error="phase_service_ticketing_disabled",
+                payload=dict(payload or {}),
+                response=response_payload,
+            )
+
         if self._use_local_mode():
             result = await self._create_ticket_local(payload)
             logger.info(
@@ -489,6 +505,163 @@ class TicketingService:
     @staticmethod
     def _normalize_identifier(value: Any) -> str:
         return str(value or "").strip().lower().replace(" ", "_")
+
+    @classmethod
+    def _normalize_phase_identifier(cls, value: Any) -> str:
+        normalized = cls._normalize_identifier(value).replace("-", "_")
+        aliases = {
+            "prebooking": "pre_booking",
+            "booking": "pre_checkin",
+            "precheckin": "pre_checkin",
+            "duringstay": "during_stay",
+            "instay": "during_stay",
+            "in_stay": "during_stay",
+            "postcheckout": "post_checkout",
+        }
+        return aliases.get(normalized, normalized)
+
+    @staticmethod
+    def _service_aliases_for_matching(service: dict[str, Any]) -> list[str]:
+        aliases: list[str] = []
+        if not isinstance(service, dict):
+            return aliases
+        for field in ("id", "name", "type", "description", "cuisine"):
+            value = str(service.get(field) or "").strip()
+            if value and value not in aliases:
+                aliases.append(value)
+        return aliases
+
+    @staticmethod
+    def _service_alias_match_score(message_text: str, message_tokens: list[str], alias: str) -> float:
+        alias_text = str(alias or "").strip().lower()
+        if not alias_text:
+            return 0.0
+        if alias_text in message_text:
+            return 0.98
+
+        alias_tokens = [token for token in re.findall(r"[a-z0-9]+", alias_text) if len(token) >= 3]
+        if not alias_tokens:
+            return 0.0
+        if not message_tokens:
+            return 0.0
+
+        hits = 0
+        for token in alias_tokens:
+            token_hit = False
+            for msg_token in message_tokens:
+                if msg_token == token:
+                    token_hit = True
+                    break
+                if len(token) >= 5 and len(msg_token) >= 4 and (
+                    msg_token.startswith(token[:4]) or token.startswith(msg_token[:4])
+                ):
+                    token_hit = True
+                    break
+                if len(token) >= 5 and len(msg_token) >= 4 and SequenceMatcher(a=token, b=msg_token).ratio() >= 0.86:
+                    token_hit = True
+                    break
+            if token_hit:
+                hits += 1
+        if hits <= 0:
+            return 0.0
+        return hits / max(1, len(alias_tokens))
+
+    def _match_service_for_ticket_payload(self, payload: dict[str, Any]) -> dict[str, Any] | None:
+        if not isinstance(payload, dict):
+            return None
+
+        try:
+            services = config_service.get_services()
+        except Exception:
+            services = []
+        if not isinstance(services, list):
+            return None
+
+        payload_phase = self._normalize_phase_identifier(payload.get("phase"))
+        explicit_service_id = self._normalize_identifier(payload.get("service_id") or payload.get("service"))
+        explicit_service_name = str(payload.get("service_name") or "").strip().lower()
+        message_blob = " ".join(
+            str(payload.get(field) or "").strip().lower()
+            for field in (
+                "service_name",
+                "service",
+                "service_id",
+                "issue",
+                "message",
+                "sub_category",
+                "categorization",
+                "category",
+                "ticket_sub_category",
+            )
+            if str(payload.get(field) or "").strip()
+        ).strip()
+        if not message_blob and not explicit_service_id and not explicit_service_name:
+            return None
+
+        message_tokens = re.findall(r"[a-z0-9]+", message_blob)
+        best_service: dict[str, Any] | None = None
+        best_score = 0.0
+
+        for service in services:
+            if not isinstance(service, dict):
+                continue
+            if not bool(service.get("is_active", True)):
+                continue
+
+            service_phase = self._normalize_phase_identifier(service.get("phase_id"))
+            if payload_phase and service_phase and service_phase != payload_phase:
+                continue
+
+            service_id = self._normalize_identifier(service.get("id"))
+            service_name = str(service.get("name") or "").strip().lower()
+
+            score = 0.0
+            if explicit_service_id and service_id and explicit_service_id == service_id:
+                score = 1.0
+            elif explicit_service_name and service_name and (
+                explicit_service_name == service_name
+                or explicit_service_name in service_name
+                or service_name in explicit_service_name
+            ):
+                score = 0.98
+            else:
+                for alias in self._service_aliases_for_matching(service):
+                    score = max(
+                        score,
+                        self._service_alias_match_score(message_blob, message_tokens, alias),
+                    )
+
+            if score > best_score:
+                best_score = score
+                best_service = service
+
+        if best_service is None:
+            return None
+        if best_score < 0.72:
+            return None
+
+        return {
+            "service_id": str(best_service.get("id") or "").strip(),
+            "service_name": str(best_service.get("name") or best_service.get("id") or "").strip(),
+            "service_phase_id": self._normalize_phase_identifier(best_service.get("phase_id")),
+            "ticketing_enabled": bool(best_service.get("ticketing_enabled", True)),
+            "match_score": best_score,
+            "payload_phase_id": payload_phase,
+        }
+
+    def detect_service_ticketing_disabled(self, payload: dict[str, Any]) -> dict[str, Any] | None:
+        matched = self._match_service_for_ticket_payload(payload)
+        if not isinstance(matched, dict):
+            return None
+        if bool(matched.get("ticketing_enabled", True)):
+            return None
+        return {
+            "service_id": str(matched.get("service_id") or ""),
+            "service_name": str(matched.get("service_name") or ""),
+            "service_phase_id": str(matched.get("service_phase_id") or ""),
+            "payload_phase_id": str(matched.get("payload_phase_id") or ""),
+            "match_score": float(matched.get("match_score") or 0.0),
+        }
 
     @staticmethod
     def _normalize_priority(value: Any) -> str:

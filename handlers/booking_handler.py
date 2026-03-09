@@ -860,10 +860,16 @@ class BookingHandler(BaseHandler):
         *,
         context: ConversationContext,
         latest_issue: str,
-        max_messages: int = 10,
+        max_messages: int = 0,
+        max_chars: int = 6000,
     ) -> str:
         lines: list[str] = []
-        for msg in context.get_recent_messages(max_messages):
+        history_messages = (
+            context.messages
+            if max_messages <= 0
+            else context.get_recent_messages(max_messages)
+        )
+        for msg in history_messages:
             role = "User" if msg.role == MessageRole.USER else "Assistant"
             content = str(msg.content or "").strip()
             if not content:
@@ -872,9 +878,10 @@ class BookingHandler(BaseHandler):
         if latest_issue:
             lines.append(f"Ticket Issue Draft: {latest_issue}")
         joined = "\n".join(lines).strip()
-        if len(joined) <= 1500:
+        limit = max(1200, int(max_chars or 6000))
+        if len(joined) <= limit:
             return joined
-        return joined[-1500:]
+        return joined[-limit:]
 
     @staticmethod
     def _has_service_catalog(capabilities: dict[str, Any]) -> bool:

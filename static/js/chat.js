@@ -15,6 +15,7 @@ const elements = {
     sendBtn: document.getElementById('send-btn'),
     sessionId: document.getElementById('session-id'),
     sessionState: document.getElementById('session-state'),
+    ticketStatus: document.getElementById('ticket-status'),
     messageCount: document.getElementById('message-count'),
     lastIntent: document.getElementById('last-intent'),
     confidence: document.getElementById('confidence'),
@@ -213,6 +214,9 @@ function showLoading() {
 function updateSessionInfoFromResponse(data) {
     elements.sessionState.textContent = data.state;
     elements.sessionState.className = `value state-badge ${data.state}`;
+    const ticketStatus = resolveTicketStatus(data);
+    elements.ticketStatus.textContent = ticketStatus.label;
+    elements.ticketStatus.className = `value ticket-badge ${ticketStatus.badge}`;
     elements.messageCount.textContent = data.metadata?.message_count || state.messages.length;
     elements.lastIntent.textContent = resolveDisplayIntent(data) || '-';
 
@@ -238,11 +242,67 @@ function resolveDisplayIntent(data) {
     return apiIntent || 'unknown';
 }
 
+function resolveTicketStatus(data) {
+    const metadata = data?.metadata || {};
+    const ticketId = String(metadata.ticket_id || '').trim();
+    const ticketState = String(metadata.ticket_status || '').trim().toLowerCase();
+    const ticketError = String(metadata.ticket_create_error || '').trim();
+    const skipReason = String(
+        metadata.ticket_create_skip_reason
+        || metadata.ticket_skip_reason
+        || ''
+    ).trim();
+
+    if (metadata.ticket_created === true || ticketId) {
+        const stateSuffix = ticketState ? ` (${ticketState})` : '';
+        const idLabel = ticketId || 'unknown-id';
+        return {
+            label: `Created: ${idLabel}${stateSuffix}`,
+            badge: 'created',
+        };
+    }
+
+    if (ticketError) {
+        return {
+            label: `Not created: ${ticketError}`,
+            badge: 'failed',
+        };
+    }
+
+    if (metadata.ticket_created === false || skipReason) {
+        return {
+            label: skipReason ? `Not created: ${skipReason}` : 'Not created',
+            badge: 'not-created',
+        };
+    }
+
+    if (metadata.ticketing_required === true && metadata.ticketing_create_allowed === false) {
+        return {
+            label: 'Not created: gated',
+            badge: 'not-created',
+        };
+    }
+
+    if (metadata.ticketing_required === true) {
+        return {
+            label: 'Ticket required',
+            badge: 'pending',
+        };
+    }
+
+    return {
+        label: 'No ticket action',
+        badge: 'idle',
+    };
+}
+
 // Update session info display
 function updateSessionInfo() {
     elements.sessionId.textContent = state.sessionId.substring(0, 15) + '...';
     elements.sessionState.textContent = 'idle';
     elements.sessionState.className = 'value state-badge idle';
+    elements.ticketStatus.textContent = 'No ticket action';
+    elements.ticketStatus.className = 'value ticket-badge idle';
     elements.messageCount.textContent = '0';
     elements.lastIntent.textContent = '-';
     elements.confidence.textContent = '-';
@@ -288,6 +348,8 @@ async function resetSession() {
         if (response.ok) {
             elements.sessionState.textContent = 'idle';
             elements.sessionState.className = 'value state-badge idle';
+            elements.ticketStatus.textContent = 'No ticket action';
+            elements.ticketStatus.className = 'value ticket-badge idle';
             addMessageToUI('assistant', '🔄 Session state has been reset. How can I help you?');
         }
     } catch (error) {

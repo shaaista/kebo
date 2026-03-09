@@ -1052,6 +1052,50 @@
                     <pre id="rag-jobs-list" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 260px; overflow: auto;">No jobs yet.</pre>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span>Service Knowledge Packs</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-outline btn-small" onclick="compileServiceKnowledgePacks()">Compile All</button>
+                        <button class="btn btn-outline btn-small" onclick="compileServiceKnowledgePacks(true)">Compile Selected</button>
+                        <button class="btn btn-outline btn-small" onclick="loadServiceKnowledgeWorkspace()">Refresh</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        Service packs are auto-generated from Knowledge Sources + Admin Config. You can add manual override facts below.
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label>Service</label>
+                            <select class="form-control" id="service-kb-service-select" onchange="loadServiceKnowledgeRecord()">
+                                <option value="">Select service</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <div id="service-kb-status" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #f8fafc; font-size: 0.85rem;">
+                                No service selected.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label>Auto Facts (Read-only)</label>
+                            <textarea class="form-control" id="service-kb-auto-facts" rows="10" readonly></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Manual Override Facts (Editable, one fact per line)</label>
+                            <textarea class="form-control" id="service-kb-manual-facts" rows="10" placeholder="Add manual override facts here..."></textarea>
+                            <div style="margin-top: 8px;">
+                                <button class="btn btn-primary btn-small" onclick="saveServiceKnowledgeManualFacts()">Save Manual Overrides</button>
+                            </div>
+                        </div>
+                    </div>
+                    <pre id="service-kb-meta" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 220px; overflow: auto;">No record loaded.</pre>
+                </div>
+            </div>
         </div>
 
         <!-- Evaluation Tab -->
@@ -1454,6 +1498,7 @@
         let currentBusinessId = 'default';
         let currentRagJobId = null;
         let ragJobPollingTimer = null;
+        let serviceKbRecordsCache = [];
         let currentToolEditId = null;
         let toolTicketingCasesDraft = [];
         let currentServiceEditId = null;
@@ -2568,6 +2613,162 @@
                 setBadge(handledEl, 'handled: error', 'danger');
                 answerEl.value = 'Error running query';
                 sourcesEl.value = '';
+            }
+        }
+
+        function selectedServiceKbId() {
+            return (document.getElementById('service-kb-service-select')?.value || '').trim();
+        }
+
+        async function loadServiceKnowledgeWorkspace() {
+            const selectEl = document.getElementById('service-kb-service-select');
+            if (!selectEl) return;
+
+            const previouslySelected = selectedServiceKbId();
+            selectEl.innerHTML = '<option value="">Select service</option>';
+            try {
+                const [servicesRes, recordsRes] = await Promise.all([
+                    fetch(`${API_BASE}/config/services`),
+                    fetch(`${API_BASE}/config/service-kb?active_only=true`),
+                ]);
+                const services = servicesRes.ok ? await servicesRes.json() : [];
+                const records = recordsRes.ok ? await recordsRes.json() : [];
+                serviceKbRecordsCache = Array.isArray(records) ? records : [];
+
+                (Array.isArray(services) ? services : []).forEach((svc) => {
+                    const id = (svc?.id || '').toString().trim();
+                    if (!id) return;
+                    const name = (svc?.name || id).toString().trim();
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = `${name} (${id})`;
+                    selectEl.appendChild(option);
+                });
+                if (previouslySelected) {
+                    selectEl.value = previouslySelected;
+                }
+                await loadServiceKnowledgeRecord();
+            } catch (error) {
+                showToast('Error loading service knowledge workspace', 'error');
+            }
+        }
+
+        async function compileServiceKnowledgePacks(selectedOnly = false) {
+            const serviceId = selectedOnly ? selectedServiceKbId() : '';
+            if (selectedOnly && !serviceId) {
+                showToast('Select a service first', 'error');
+                return;
+            }
+            const statusEl = document.getElementById('service-kb-status');
+            if (statusEl) statusEl.textContent = 'Compiling service knowledge packs...';
+            try {
+                const res = await fetch(`${API_BASE}/config/service-kb/compile`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        service_id: serviceId || null,
+                        force: true,
+                        preserve_manual: true,
+                        published_by: 'admin_ui',
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data?.detail || 'Failed to compile service knowledge packs', 'error');
+                    if (statusEl) statusEl.textContent = data?.detail || 'Compile failed';
+                    return;
+                }
+                const compiled = data?.compiled_count || 0;
+                const skipped = data?.skipped_count || 0;
+                if (statusEl) statusEl.textContent = `Compiled: ${compiled}, Skipped: ${skipped}`;
+                showToast(`Service packs compiled (${compiled} updated)`);
+                await loadServiceKnowledgeWorkspace();
+            } catch (error) {
+                showToast('Error compiling service knowledge packs', 'error');
+                if (statusEl) statusEl.textContent = 'Compile failed';
+            }
+        }
+
+        async function loadServiceKnowledgeRecord() {
+            const serviceId = selectedServiceKbId();
+            const statusEl = document.getElementById('service-kb-status');
+            const autoFactsEl = document.getElementById('service-kb-auto-facts');
+            const manualFactsEl = document.getElementById('service-kb-manual-facts');
+            const metaEl = document.getElementById('service-kb-meta');
+            if (!serviceId) {
+                if (statusEl) statusEl.textContent = 'No service selected.';
+                if (autoFactsEl) autoFactsEl.value = '';
+                if (manualFactsEl) manualFactsEl.value = '';
+                if (metaEl) metaEl.textContent = 'No record loaded.';
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE}/config/service-kb/record?service_id=${encodeURIComponent(serviceId)}&active_only=true`);
+                if (!res.ok) {
+                    if (statusEl) statusEl.textContent = 'No pack found for this service. Run compile.';
+                    if (autoFactsEl) autoFactsEl.value = '';
+                    if (manualFactsEl) manualFactsEl.value = '';
+                    if (metaEl) metaEl.textContent = 'No record loaded.';
+                    return;
+                }
+                const record = await res.json();
+                const facts = Array.isArray(record?.facts) ? record.facts : [];
+                const autoFacts = [];
+                const manualFacts = [];
+                facts.forEach((fact) => {
+                    if (!fact || typeof fact !== 'object') return;
+                    const text = (fact.text || '').toString().trim();
+                    if (!text) return;
+                    const origin = (fact.origin || '').toString().trim().toLowerCase();
+                    const source = (fact.source || '').toString().trim().toLowerCase();
+                    const tags = Array.isArray(fact.tags) ? fact.tags.map(tag => `${tag}`.toLowerCase()) : [];
+                    const isManual = origin === 'manual' || source.startsWith('manual') || tags.includes('manual_override');
+                    if (isManual) {
+                        manualFacts.push(text);
+                    } else {
+                        autoFacts.push(text);
+                    }
+                });
+                if (autoFactsEl) autoFactsEl.value = autoFacts.join('\n');
+                if (manualFactsEl) manualFactsEl.value = manualFacts.join('\n');
+                const completeness = record?.completeness || {};
+                if (statusEl) {
+                    statusEl.textContent = `Version ${record?.version || 0} | Manual ${completeness.manual_fact_count || manualFacts.length} | Auto ${completeness.auto_fact_count || autoFacts.length}`;
+                }
+                if (metaEl) metaEl.textContent = JSON.stringify(record, null, 2);
+            } catch (error) {
+                if (statusEl) statusEl.textContent = 'Failed to load service pack.';
+                if (metaEl) metaEl.textContent = 'Failed to load service pack.';
+            }
+        }
+
+        async function saveServiceKnowledgeManualFacts() {
+            const serviceId = selectedServiceKbId();
+            if (!serviceId) {
+                showToast('Select a service first', 'error');
+                return;
+            }
+            const manualFactsValue = (document.getElementById('service-kb-manual-facts')?.value || '');
+            const facts = splitLines(manualFactsValue);
+            try {
+                const res = await fetch(`${API_BASE}/config/service-kb/manual-facts`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        service_id: serviceId,
+                        facts,
+                        published_by: 'admin_ui',
+                    }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data?.detail || 'Failed to save manual overrides', 'error');
+                    return;
+                }
+                showToast('Manual service facts saved');
+                await loadServiceKnowledgeRecord();
+            } catch (error) {
+                showToast('Error saving manual service facts', 'error');
             }
         }
 
@@ -4254,6 +4455,7 @@
             loadEscalationConfig();
             loadRagStatus();
             loadRagJobs();
+            loadServiceKnowledgeWorkspace();
             loadEvaluationSummary();
             loadEvaluationEvents();
             loadObservabilityStatus();

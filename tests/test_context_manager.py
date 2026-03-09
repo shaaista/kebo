@@ -98,3 +98,50 @@ async def test_update_state_allows_clearing_pending_data(async_session):
 
     assert cleared is not None
     assert cleared.pending_data == {}
+
+
+@pytest.mark.asyncio
+async def test_local_store_fallback_without_db(tmp_path):
+    store_file = tmp_path / "local_contexts.json"
+    manager = ContextManager(
+        local_store_enabled=True,
+        local_store_file=str(store_file),
+    )
+
+    context = await manager.create_context(
+        session_id="session_local_1",
+        hotel_code="DEFAULT",
+        guest_phone="+15551230000",
+        channel="web_widget",
+        db_session=None,
+    )
+    context.state = ConversationState.AWAITING_INFO
+    context.pending_action = "collect_room_number"
+    context.pending_data = {"room_required": True}
+    context.add_message(
+        MessageRole.USER,
+        "I need help with my room.",
+        metadata={"channel": "web"},
+    )
+    await manager.save_context(context, db_session=None)
+
+    fresh_manager = ContextManager(
+        local_store_enabled=True,
+        local_store_file=str(store_file),
+    )
+    loaded = await fresh_manager.get_context("session_local_1", db_session=None)
+
+    assert loaded is not None
+    assert loaded.channel == "web"
+    assert loaded.state == ConversationState.AWAITING_INFO
+    assert loaded.pending_action == "collect_room_number"
+    assert loaded.pending_data == {"room_required": True}
+    assert len(loaded.messages) == 1
+    assert loaded.messages[0].content == "I need help with my room."
+
+    listed_sessions = await fresh_manager.list_sessions(db_session=None)
+    assert "session_local_1" in listed_sessions
+
+    deleted = await fresh_manager.delete_context("session_local_1", db_session=None)
+    assert deleted is True
+    assert await fresh_manager.get_context("session_local_1", db_session=None) is None

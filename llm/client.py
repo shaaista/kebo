@@ -46,6 +46,38 @@ class LLMClient:
             return f"- {fallback}"
         return "\n".join(f"- {item}" for item in cleaned)
 
+    @staticmethod
+    def _history_limits() -> tuple[int, int]:
+        """
+        Return (max_messages, max_chars) for prompt history rendering.
+        max_messages <= 0 means use all provided history messages.
+        """
+        max_messages = int(getattr(settings, "llm_history_max_messages", 0) or 0)
+        max_chars = max(800, int(getattr(settings, "llm_history_max_chars", 12000) or 12000))
+        return max_messages, max_chars
+
+    @classmethod
+    def _build_history_string(cls, conversation_history: list[dict]) -> str:
+        max_messages, max_chars = cls._history_limits()
+        items = list(conversation_history or [])
+        if max_messages > 0:
+            items = items[-max_messages:]
+
+        lines: list[str] = []
+        for msg in items:
+            role = str(msg.get("role") or "").strip().upper() or "UNKNOWN"
+            content = str(msg.get("content") or "").strip()
+            if not content:
+                continue
+            lines.append(f"{role}: {content}")
+
+        history = "\n".join(lines).strip()
+        if not history:
+            return "No previous messages"
+        if len(history) <= max_chars:
+            return history
+        return history[-max_chars:]
+
     async def chat(
         self,
         messages: list[dict],
@@ -139,6 +171,18 @@ class LLMClient:
         memory_recent_changes = context.get("memory_recent_changes", [])
         if not isinstance(memory_recent_changes, list):
             memory_recent_changes = []
+        selected_phase_id = str(
+            context.get("selected_phase_id")
+            or context.get("phase_id")
+            or ""
+        ).strip().lower().replace(" ", "_")
+        selected_phase_name = str(
+            context.get("selected_phase_name")
+            or context.get("phase_name")
+            or ""
+        ).strip()
+        if not selected_phase_name and selected_phase_id:
+            selected_phase_name = selected_phase_id.replace("_", " ").title()
 
         intent_lines = []
         for intent_cfg in intent_catalog:
@@ -222,6 +266,7 @@ CONTEXT:
 - Guest: {guest_name}
 - Current State: {state}
 - Pending Action: {pending_action}
+- Selected Phase: {selected_phase_name} ({selected_phase_id})
 - Enabled Intents: {enabled_intents}
 
 LONG-TERM MEMORY SUMMARY:
@@ -257,6 +302,8 @@ NLU POLICY DONTS:
 CONVERSATION HISTORY:
 {history}
 
+Use the full conversation history above for context continuity. Do not ignore prior collected details.
+
 Respond in JSON format:
 {{
     "intent": "intent_name",
@@ -279,11 +326,8 @@ IMPORTANT INTENT ENABLEMENT RULE:
 - If a custom/admin intent matches better, include it in entities.custom_intent and map to nearest core intent.
 - If a user message strongly matches an enabled FAQ bank question, prefer "faq"."""
 
-        # Build history string
-        history_str = "\n".join([
-            f"{msg['role'].upper()}: {msg['content']}"
-            for msg in conversation_history[-5:]
-        ]) or "No previous messages"
+        # Build history string (full available history by default).
+        history_str = self._build_history_string(conversation_history)
 
         formatted_prompt = system_prompt.format(
             hotel_name=context.get("hotel_name", context.get("hotel_code", "Hotel")),
@@ -291,6 +335,8 @@ IMPORTANT INTENT ENABLEMENT RULE:
             guest_name=context.get("guest_name", "Guest"),
             state=context.get("state", "idle"),
             pending_action=context.get("pending_action", "None"),
+            selected_phase_name=selected_phase_name or "Unknown",
+            selected_phase_id=selected_phase_id or "unknown",
             enabled_intents=", ".join(context.get("enabled_intents", [])) or "not provided",
             conversation_summary=memory_summary or "No long-term summary yet.",
             memory_facts=json.dumps(memory_facts, ensure_ascii=False),
@@ -438,6 +484,18 @@ IMPORTANT INTENT ENABLEMENT RULE:
         memory_recent_changes = context.get("memory_recent_changes", [])
         if not isinstance(memory_recent_changes, list):
             memory_recent_changes = []
+        selected_phase_id = str(
+            context.get("selected_phase_id")
+            or context.get("phase_id")
+            or ""
+        ).strip().lower().replace(" ", "_")
+        selected_phase_name = str(
+            context.get("selected_phase_name")
+            or context.get("phase_name")
+            or ""
+        ).strip()
+        if not selected_phase_name and selected_phase_id:
+            selected_phase_name = selected_phase_id.replace("_", " ").title()
 
         system_prompt = """You are a friendly AI assistant named {bot_name} for {hotel_name} in {city}.
 Business type: {business_type}
@@ -474,6 +532,7 @@ CURRENT CONTEXT:
 - Room: {room_number}
 - Conversation State: {state}
 - Pending Action: {pending_action}
+- Selected Phase: {selected_phase_name} ({selected_phase_id})
 
 LONG-TERM MEMORY SUMMARY:
 {conversation_summary}
@@ -490,6 +549,8 @@ EXTRACTED ENTITIES: {entities}
 CONVERSATION HISTORY:
 {history}
 
+Use the full conversation history above for context continuity. Do not ignore prior collected details.
+
 RESPONSE GUIDELINES:
 1. Be helpful, friendly, and concise
 2. If confirming an action, list details clearly and ask for confirmation
@@ -501,11 +562,8 @@ RESPONSE GUIDELINES:
 
 Respond naturally to the user's message."""
 
-        # Build history string
-        history_str = "\n".join([
-            f"{msg['role'].upper()}: {msg['content']}"
-            for msg in conversation_history[-6:]
-        ]) or "No previous messages"
+        # Build history string (full available history by default).
+        history_str = self._build_history_string(conversation_history)
 
         # Get bot_name from capabilities (synced from admin portal config)
         bot_name = capabilities.get("bot_name", "Assistant")
@@ -526,6 +584,8 @@ Respond naturally to the user's message."""
             room_number=context.get("room_number", "Not specified"),
             state=context.get("state", "idle"),
             pending_action=context.get("pending_action", "None"),
+            selected_phase_name=selected_phase_name or "Unknown",
+            selected_phase_id=selected_phase_id or "unknown",
             conversation_summary=memory_summary or "No long-term summary yet.",
             memory_facts=json.dumps(memory_facts, ensure_ascii=False),
             memory_recent_changes=json.dumps(memory_recent_changes[-5:], ensure_ascii=False),

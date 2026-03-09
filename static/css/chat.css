@@ -109,6 +109,20 @@ body {
 .state-badge.escalated { background: var(--danger); }
 .state-badge.completed { background: var(--success); }
 
+.ticket-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    background: var(--secondary);
+    color: white;
+}
+
+.ticket-badge.idle { background: var(--secondary); }
+.ticket-badge.created { background: var(--success); }
+.ticket-badge.not-created { background: #334155; }
+.ticket-badge.pending { background: var(--warning); color: black; }
+.ticket-badge.failed { background: var(--danger); }
+
 /* Buttons */
 .actions {
     display: flex;

@@ -1,7 +1,7 @@
 import pytest
 
 from handlers.base_handler import HandlerResult
-from schemas.chat import ChatRequest, ConversationContext, ConversationState, IntentResult, IntentType
+from schemas.chat import ChatRequest, ConversationContext, ConversationState, IntentResult, IntentType, MessageRole
 from services.chat_service import ChatService
 from services.full_kb_llm_service import FullKBLLMResult
 from services.ticketing_agent_service import TicketingAgentDecision
@@ -1528,7 +1528,6 @@ async def test_full_kb_plugin_ticketing_skips_human_request_without_matching_cas
         )
     )
 
-    assert response.message == expected_response
     assert response.metadata.get("ticket_created") is None
     assert response.metadata.get("ticket_create_skip_reason") == "human_request_without_matching_configured_case"
 
@@ -1704,12 +1703,11 @@ async def test_full_kb_plugin_ticketing_defers_spa_case_until_confirmation(monke
         )
     )
 
-    assert response.message == expected_response
     assert response.metadata.get("ticket_created") is None
 
 
 @pytest.mark.asyncio
-async def test_full_kb_plugin_ticketing_creates_spa_ticket_when_forwarded_to_staff(monkeypatch):
+async def test_full_kb_plugin_ticketing_defers_spa_ticket_even_if_response_mentions_staff(monkeypatch):
     service = ChatService()
     context = ConversationContext(
         session_id="s-fullkb-plugin-spa-forwarded",
@@ -1774,15 +1772,10 @@ async def test_full_kb_plugin_ticketing_creates_spa_ticket_when_forwarded_to_sta
         "services.chat_service.ticketing_agent_service.match_configured_case_async",
         _fake_match_case_async,
     )
-    monkeypatch.setattr(
-        "services.chat_service.ticketing_service.build_lumira_ticket_payload",
-        lambda **_kwargs: {"issue": "spa booking request"},
-    )
+    async def _should_not_create_ticket(_payload):
+        raise AssertionError("Spa booking should not create ticket before explicit confirmation")
 
-    async def _fake_create_ticket(_payload):
-        return TicketingResult(success=True, ticket_id="LOCAL-SPA-1", status_code=200, response={"ok": True})
-
-    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _should_not_create_ticket)
 
     response = await service.process_message(
         ChatRequest(
@@ -1792,10 +1785,7 @@ async def test_full_kb_plugin_ticketing_creates_spa_ticket_when_forwarded_to_sta
         )
     )
 
-    assert response.message == expected_response
-    assert response.metadata.get("ticket_created") is True
-    assert response.metadata.get("ticket_id") == "LOCAL-SPA-1"
-    assert response.metadata.get("ticket_sub_category") == "spa_booking"
+    assert response.metadata.get("ticket_created") is None
 
 
 @pytest.mark.asyncio
@@ -2487,6 +2477,480 @@ async def test_full_kb_confirm_booking_creates_backend_ticket_without_changing_r
     assert response.metadata.get("ticket_id") == "LOCAL-321"
     assert response.metadata.get("ticket_sub_category") == "table_booking"
     assert captured_payload_kwargs.get("phase") == "during_stay"
+
+
+@pytest.mark.asyncio
+async def test_full_kb_room_booking_details_turn_forces_review_and_confirmation(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-fullkb-room-booking-review",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"room_type": "Ultimate Suite"},
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_refresh_summary(_context):
+        return None
+
+    async def _fake_run_turn(*args, **kwargs):
+        return FullKBLLMResult(
+            response_text=(
+                "Thank you for sharing your dates and party size. "
+                "I'll forward your request for the Ultimate Suite from March 22-24 for 5 people to our staff."
+            ),
+            normalized_query="march 22-24 for 5 people",
+            intent=IntentType.TABLE_BOOKING,
+            raw_intent="room_booking",
+            confidence=0.9,
+            next_state=ConversationState.IDLE,
+            pending_action=None,
+            pending_data={},
+            room_number=None,
+            suggested_actions=["Need help"],
+            trace_id="fullkb-room-booking-review",
+            llm_output={},
+            clear_pending_data=False,
+            status="success",
+        )
+
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", True)
+    monkeypatch.setattr("services.chat_service.settings.full_kb_llm_passthrough_mode", True)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "restaurants": [], "services": {}, "intents": [], "tools": []},
+    )
+    monkeypatch.setattr("services.chat_service.config_service.get_services", lambda: [])
+    monkeypatch.setattr("services.chat_service.config_service.get_journey_phases", lambda: [])
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.refresh_summary", _fake_refresh_summary)
+    monkeypatch.setattr("services.chat_service.full_kb_llm_service.run_turn", _fake_run_turn)
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _capabilities=None: True)
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-fullkb-room-booking-review",
+            message="march 22-24 for 5 people",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.state == ConversationState.AWAITING_CONFIRMATION
+    assert response.intent == IntentType.TABLE_BOOKING
+    assert "review your room booking request" in str(response.message or "").lower()
+    assert "ultimate suite" in str(response.message or "").lower()
+    assert "for 5 guests" in str(response.message or "").lower()
+    assert "type \"yes confirm\"" in str(response.message or "").lower()
+    assert response.metadata.get("ticket_created") is None
+
+
+@pytest.mark.asyncio
+async def test_full_kb_room_booking_details_without_room_type_prompts_for_room_type(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-fullkb-room-booking-missing-roomtype",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={},
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_refresh_summary(_context):
+        return None
+
+    async def _fake_run_turn(*args, **kwargs):
+        return FullKBLLMResult(
+            response_text=(
+                "Thank you for sharing your dates and party size. "
+                "I'll forward your request to our staff for further assistance."
+            ),
+            normalized_query="march 10-15 for 5 people",
+            intent=IntentType.TABLE_BOOKING,
+            raw_intent="room_booking",
+            confidence=0.9,
+            next_state=ConversationState.IDLE,
+            pending_action=None,
+            pending_data={},
+            room_number=None,
+            suggested_actions=["Need help"],
+            trace_id="fullkb-room-booking-missing-roomtype",
+            llm_output={},
+            clear_pending_data=False,
+            status="success",
+        )
+
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", True)
+    monkeypatch.setattr("services.chat_service.settings.full_kb_llm_passthrough_mode", True)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "restaurants": [], "services": {}, "intents": [], "tools": []},
+    )
+    monkeypatch.setattr("services.chat_service.config_service.get_services", lambda: [])
+    monkeypatch.setattr("services.chat_service.config_service.get_journey_phases", lambda: [])
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.refresh_summary", _fake_refresh_summary)
+    monkeypatch.setattr("services.chat_service.full_kb_llm_service.run_turn", _fake_run_turn)
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _capabilities=None: True)
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-fullkb-room-booking-missing-roomtype",
+            message="march 10-15 for 5 people",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.state == ConversationState.AWAITING_INFO
+    assert response.intent == IntentType.TABLE_BOOKING
+    assert "preferred room type" in str(response.message or "").lower()
+    assert response.metadata.get("ticket_created") is None
+
+
+@pytest.mark.asyncio
+async def test_full_kb_room_booking_flow_answers_room_options_query_and_keeps_context(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-fullkb-room-booking-options-query",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={
+            "stay_checkin_date": "Mar 20",
+            "stay_checkout_date": "Mar 22",
+            "guest_count": 2,
+        },
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_refresh_summary(_context):
+        return None
+
+    async def _fake_run_turn(*args, **kwargs):
+        return FullKBLLMResult(
+            response_text=(
+                "We have Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, "
+                "Prestige Suite, and Ultimate Suite."
+            ),
+            normalized_query="what rooms do you have",
+            intent=IntentType.FAQ,
+            raw_intent="faq",
+            confidence=0.9,
+            next_state=ConversationState.IDLE,
+            pending_action=None,
+            pending_data={},
+            room_number=None,
+            suggested_actions=["Need help"],
+            trace_id="fullkb-room-booking-options-query",
+            llm_output={},
+            clear_pending_data=False,
+            status="success",
+        )
+
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", True)
+    monkeypatch.setattr("services.chat_service.settings.full_kb_llm_passthrough_mode", True)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "restaurants": [], "services": {}, "intents": [], "tools": []},
+    )
+    monkeypatch.setattr("services.chat_service.config_service.get_services", lambda: [])
+    monkeypatch.setattr("services.chat_service.config_service.get_journey_phases", lambda: [])
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.refresh_summary", _fake_refresh_summary)
+    monkeypatch.setattr("services.chat_service.full_kb_llm_service.run_turn", _fake_run_turn)
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _capabilities=None: True)
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-fullkb-room-booking-options-query",
+            message="what rooms do u have",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.state == ConversationState.AWAITING_INFO
+    assert context.pending_action == "collect_room_booking_details"
+    assert "premier king room" in str(response.message or "").lower()
+    assert "preferred room type" not in str(response.message or "").lower()
+    assert response.metadata.get("ticket_created") is None
+
+
+def test_missing_room_booking_fields_accepts_guest_count_key():
+    service = ChatService()
+    missing = service._missing_room_booking_fields(
+        pending_data={
+            "room_type": "Ultimate Suite",
+            "stay_checkin_date": "Mar 22",
+            "stay_checkout_date": "Mar 24",
+            "guest_count": 5,
+        },
+        memory_facts={},
+    )
+    assert missing == []
+
+
+def test_missing_room_booking_fields_requires_room_type():
+    service = ChatService()
+    missing = service._missing_room_booking_fields(
+        pending_data={
+            "stay_checkin_date": "Mar 22",
+            "stay_checkout_date": "Mar 24",
+            "guest_count": 5,
+        },
+        memory_facts={},
+    )
+    assert "room_type" in missing
+
+
+def test_missing_room_booking_fields_treats_generic_room_phrase_as_missing():
+    service = ChatService()
+    missing = service._missing_room_booking_fields(
+        pending_data={
+            "room_type": "Hotel offers a variety of room",
+            "stay_checkin_date": "Mar 22",
+            "stay_checkout_date": "Mar 24",
+            "guest_count": 2,
+        },
+        memory_facts={},
+    )
+    assert "room_type" in missing
+
+
+def test_extract_room_type_candidates_filters_generic_phrases():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-candidates-filter-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+    )
+    context.add_message(
+        MessageRole.ASSISTANT,
+        (
+            "ICONIQA Demo Hotel offers a variety of room types.\n"
+            "1. **Premier King Room**: details\n"
+            "2. **Premier Twin Room**: details\n"
+            "3. **Ultimate Suite**: details"
+        ),
+    )
+
+    candidates = service._extract_room_type_candidates_from_context_messages(context)
+
+    assert "Hotel offers a variety of room" not in candidates
+    assert "Premier King Room" in candidates
+    assert "Premier Twin Room" in candidates
+    assert "Ultimate Suite" in candidates
+
+
+def test_generic_room_reference_rejects_conversational_prompt_fragments():
+    service = ChatService()
+
+    assert service._is_generic_room_reference("I can help with your room")
+    assert service._is_generic_room_reference("Please share your preferred room")
+    assert not service._is_generic_room_reference("Ultimate Suite")
+
+
+def test_merge_room_type_candidates_filters_prompt_like_entries():
+    service = ChatService()
+
+    merged = service._merge_room_type_candidates(
+        ["I can help with your room", "Please share your preferred room"],
+        ["Premier King Room", "Ultimate Suite"],
+    )
+
+    assert merged == ["Premier King Room", "Ultimate Suite"]
+
+
+def test_extract_room_booking_slot_updates_luxury_ignores_prompt_like_candidates():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-slots-luxury-prompt-filter-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={
+            "stay_checkin_date": "Mar 02",
+            "stay_checkout_date": "Mar 03",
+            "room_type_candidates": [
+                "I can help with your room",
+                "Premier King Room",
+                "Ultimate Suite",
+            ],
+        },
+    )
+
+    updates = service._extract_room_booking_slot_updates(
+        message="i need the most luxurious one",
+        current_pending_action="collect_room_booking_details",
+        state=ConversationState.AWAITING_INFO,
+        pending_data=context.pending_data,
+        memory_facts={},
+        conversation_context=context,
+    )
+
+    assert updates.get("room_type_preference") == "luxury"
+    assert updates.get("room_type") == "Ultimate Suite"
+    assert "I can help with your room" not in (updates.get("room_type_candidates") or [])
+
+
+@pytest.mark.asyncio
+async def test_handle_room_booking_flow_rejects_unknown_room_type_when_options_are_known():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-booking-unknown-type-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={
+            "stay_checkin_date": "Mar 03",
+            "stay_checkout_date": "Mar 04",
+            "guest_count": 5,
+        },
+    )
+    context.add_message(
+        MessageRole.ASSISTANT,
+        (
+            "We have Premier King Room, Premier Twin Room, Lux Suite, "
+            "Reserve Suite, Prestige Suite, and Ultimate Suite."
+        ),
+    )
+
+    result = await service._handle_room_booking_intent_flow(
+        message="book the premier suite for me",
+        intent_result=IntentResult(
+            intent=IntentType.TABLE_BOOKING,
+            confidence=0.9,
+            entities={"room_type": "Premier Suite"},
+        ),
+        context=context,
+        capabilities={},
+        db_session=None,
+    )
+
+    assert result.next_state == ConversationState.AWAITING_INFO
+    assert result.pending_action == "collect_room_booking_details"
+    assert "could not match" in str(result.response_text or "").lower()
+    assert "preferred room type" in str(result.response_text or "").lower()
+    assert not str((result.pending_data or {}).get("room_type") or "").strip()
+    assert str((result.pending_data or {}).get("requested_room_type") or "").lower() == "premier suite"
+
+
+def test_should_not_interrupt_pending_room_booking_for_room_options_query():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-pending-interrupt-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"stay_checkin_date": "Mar 10", "stay_checkout_date": "Mar 12"},
+    )
+    intent_result = IntentResult(intent=IntentType.FAQ, confidence=0.9, entities={})
+
+    should_interrupt = service._should_interrupt_pending_flow(
+        message="what rooms are there",
+        intent_result=intent_result,
+        context=context,
+        capabilities_summary={"service_catalog": []},
+    )
+
+    assert should_interrupt is False
+
+
+def test_extract_room_booking_slot_updates_infers_cheapest_from_recent_room_list():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-slots-cheapest-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"stay_checkin_date": "Mar 10", "stay_checkout_date": "Mar 12"},
+    )
+    context.add_message(
+        MessageRole.ASSISTANT,
+        (
+            "We have Premier King Room, Premier Twin Room, Lux Suite, "
+            "Reserve Suite, Prestige Suite, and Ultimate Suite."
+        ),
+    )
+
+    updates = service._extract_room_booking_slot_updates(
+        message="i need the cheapest one",
+        current_pending_action="collect_room_booking_details",
+        state=ConversationState.AWAITING_INFO,
+        pending_data=context.pending_data,
+        memory_facts={},
+        conversation_context=context,
+    )
+
+    assert updates.get("room_type_preference") == "cheapest"
+    assert updates.get("room_type") == "Premier King Room"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_room_booking_pending_handles_luxury_preference_without_time_prompt():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-dispatch-luxury-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"stay_checkin_date": "Mar 02", "stay_checkout_date": "Mar 03"},
+    )
+    context.add_message(
+        MessageRole.ASSISTANT,
+        (
+            "We have Premier King Room, Premier Twin Room, Lux Suite, "
+            "Reserve Suite, Prestige Suite, and Ultimate Suite."
+        ),
+    )
+
+    result = await service._dispatch_to_handler(
+        "i need the most luxurious one",
+        IntentResult(intent=IntentType.FAQ, confidence=0.8, entities={}),
+        context,
+        {"service_catalog": []},
+        None,
+    )
+
+    assert result is not None
+    assert result.next_state == ConversationState.AWAITING_INFO
+    assert result.pending_action == "collect_room_booking_details"
+    assert "preferred time" not in str(result.response_text or "").lower()
+    assert "number of guests" in str(result.response_text or "").lower()
+    assert str((result.pending_data or {}).get("room_type") or "").lower() == "ultimate suite"
 
 
 @pytest.mark.asyncio

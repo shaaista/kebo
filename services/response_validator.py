@@ -629,6 +629,14 @@ class ResponseValidator:
         }:
             # Keep booking slot-filling prompts deterministic from handler flow.
             return None
+        if intent_result.intent == IntentType.TABLE_BOOKING and self._is_room_booking_context(
+            latest_user_message=latest_user_message,
+            context=context,
+            intent_result=intent_result,
+        ):
+            # Room-booking flow collects room type + stay dates + guest count;
+            # generic time/count policy replacement breaks this flow.
+            return None
 
         missing = self._missing_request_details(latest_user_message, context, intent_result)
         if not missing:
@@ -674,6 +682,49 @@ class ResponseValidator:
         )
 
         if intent_result.intent == IntentType.TABLE_BOOKING:
+            if self._is_room_booking_context(
+                latest_user_message=latest_user_message,
+                context=context,
+                intent_result=intent_result,
+            ):
+                has_room_type = any(
+                    marker in latest_user_message
+                    for marker in ("room type", "king", "twin", "suite", "premier", "ultimate", "reserve", "prestige")
+                ) or bool(
+                    self._first_non_empty(
+                        context.pending_data.get("room_type") if isinstance(context.pending_data, dict) else "",
+                        context.pending_data.get("room_name") if isinstance(context.pending_data, dict) else "",
+                    )
+                )
+                has_stay_dates = (
+                    "check in" in latest_user_message
+                    or "check-out" in latest_user_message
+                    or "check out" in latest_user_message
+                    or bool(re.search(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b", latest_user_message))
+                    or bool(re.search(r"\b\d{1,2}\s*[-/]\s*\d{1,2}\b", latest_user_message))
+                    or bool(
+                        self._first_non_empty(
+                            context.pending_data.get("stay_checkin_date") if isinstance(context.pending_data, dict) else "",
+                            context.pending_data.get("stay_checkout_date") if isinstance(context.pending_data, dict) else "",
+                            context.pending_data.get("check_in") if isinstance(context.pending_data, dict) else "",
+                            context.pending_data.get("check_out") if isinstance(context.pending_data, dict) else "",
+                            context.pending_data.get("stay_date_range") if isinstance(context.pending_data, dict) else "",
+                        )
+                    )
+                )
+                has_guest_count = has_count or bool(
+                    self._first_non_empty(
+                        context.pending_data.get("guest_count") if isinstance(context.pending_data, dict) else "",
+                        context.pending_data.get("party_size") if isinstance(context.pending_data, dict) else "",
+                    )
+                )
+                if not has_room_type:
+                    missing.append("your preferred room type")
+                if not has_stay_dates:
+                    missing.append("your check-in and check-out dates")
+                if not has_guest_count:
+                    missing.append("the number of guests")
+                return missing
             if not has_time:
                 missing.append("your preferred time")
             if not has_count:
@@ -695,6 +746,66 @@ class ResponseValidator:
         if not has_count:
             missing.append("the number of people/items")
         return missing
+
+    @staticmethod
+    def _first_non_empty(*values: object) -> str:
+        for value in values:
+            text = str(value or "").strip()
+            if text:
+                return text
+        return ""
+
+    def _is_room_booking_context(
+        self,
+        *,
+        latest_user_message: str,
+        context: ConversationContext,
+        intent_result: IntentResult,
+    ) -> bool:
+        entities = intent_result.entities if isinstance(intent_result.entities, dict) else {}
+        entity_blob = " ".join(
+            [
+                str(entities.get("booking_sub_category") or ""),
+                str(entities.get("booking_type") or ""),
+                str(entities.get("custom_intent") or ""),
+                str(entities.get("resolved_intent") or ""),
+                str(entities.get("service_name") or ""),
+            ]
+        ).lower()
+        if any(marker in entity_blob for marker in ("room_booking", "room", "suite", "stay")):
+            return True
+
+        pending_action = str(getattr(context, "pending_action", "") or "").strip().lower()
+        if pending_action in {
+            "collect_room_booking_details",
+            "select_room_type",
+            "confirm_room_booking",
+            "confirm_room_availability_check",
+        }:
+            return True
+
+        pending_data = context.pending_data if isinstance(context.pending_data, dict) else {}
+        if any(
+            key in pending_data
+            for key in (
+                "room_type",
+                "room_name",
+                "stay_checkin_date",
+                "stay_checkout_date",
+                "check_in",
+                "check_out",
+                "stay_date_range",
+                "guest_count",
+            )
+        ):
+            return True
+
+        text = str(latest_user_message or "").strip().lower()
+        if not text:
+            return False
+        has_room_marker = any(marker in text for marker in ("room", "suite", "stay", "check in", "check-out", "check out", "checkin", "checkout"))
+        has_booking_marker = any(marker in text for marker in ("book", "booking", "reserve", "need", "want"))
+        return has_room_marker and has_booking_marker
 
     def _service_aliases_for_validation(self, service: dict) -> list[str]:
         aliases: list[str] = []

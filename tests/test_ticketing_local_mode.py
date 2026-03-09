@@ -252,3 +252,40 @@ async def test_local_mode_recovers_corrupt_json_store_from_csv(tmp_path, monkeyp
     assert len(data_after_create["tickets"]) == 2
     assert data_after_create["tickets"][0]["ticket_id"] == "LOCAL-5"
     assert data_after_create["tickets"][1]["ticket_id"] == "LOCAL-6"
+
+
+@pytest.mark.asyncio
+async def test_create_ticket_blocks_when_service_ticketing_toggle_is_disabled(tmp_path, monkeypatch):
+    store_file = tmp_path / "local_tickets.json"
+    csv_file = tmp_path / "local_tickets.csv"
+    monkeypatch.setattr(settings, "ticketing_local_mode", True)
+    monkeypatch.setattr(settings, "ticketing_local_store_file", str(store_file))
+    monkeypatch.setattr(settings, "ticketing_local_csv_file", str(csv_file))
+    monkeypatch.setattr(
+        "services.ticketing_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "booking_modification",
+                "name": "Booking Modification",
+                "type": "service",
+                "description": "Modify confirmed bookings",
+                "phase_id": "pre_checkin",
+                "ticketing_enabled": False,
+                "is_active": True,
+            }
+        ],
+    )
+
+    result = await ticketing_service.create_ticket(
+        {
+            "phase": "Pre Checkin",
+            "issue": "Booking Modification request from guest",
+            "message": "Please modify booking dates",
+            "sub_category": "booking_modification",
+        }
+    )
+
+    assert result.success is False
+    assert result.error == "phase_service_ticketing_disabled"
+    assert result.response.get("skip_reason") == "phase_service_ticketing_disabled"
+    assert result.response.get("service_id") == "booking_modification"

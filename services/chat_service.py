@@ -197,10 +197,17 @@ _PHASE_INTENT_SERVICE_MARKERS = {
         "appointment",
         "checkin",
         "checkout",
+        "check in",
+        "check out",
         "status",
         "modification",
         "cancellation",
         "transfer",
+        "transport",
+        "cab",
+        "taxi",
+        "pickup",
+        "drop",
         "table",
         "restaurant",
         "spa",
@@ -227,6 +234,12 @@ _PHASE_INTENT_SERVICE_MARKERS_STRICT = {
         "restaurant",
         "recreation",
         "appointment",
+        "transport",
+        "cab",
+        "taxi",
+        "pickup",
+        "drop",
+        "airport transfer",
     ),
     IntentType.ROOM_SERVICE: _PHASE_INTENT_SERVICE_MARKERS[IntentType.ROOM_SERVICE],
 }
@@ -258,20 +271,40 @@ class ChatService:
         if request_channel:
             context.channel = request_channel
         self._ingest_request_metadata(context, request)
+        selected_phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        raw_user_message = str(request.message or "")
+        preprocessed_user_message = await self._preprocess_user_message_with_llm(
+            raw_user_message,
+            selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+            selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
+        )
+        effective_user_message = preprocessed_user_message or raw_user_message
+        request_for_processing = (
+            request.model_copy(update={"message": effective_user_message})
+            if effective_user_message != raw_user_message
+            else request
+        )
 
         # 2. Add user message to history
+        user_metadata = {"channel": context.channel}
+        if effective_user_message != raw_user_message:
+            user_metadata["preprocessed_message"] = effective_user_message
         context.add_message(
             MessageRole.USER,
-            request.message,
-            metadata={"channel": context.channel},
+            raw_user_message,
+            metadata=user_metadata,
         )
-        conversation_memory_service.capture_user_message(context, request.message)
+        conversation_memory_service.capture_user_message(context, raw_user_message)
         await conversation_memory_service.maybe_refresh_summary(context)
         memory_snapshot = conversation_memory_service.get_snapshot(context)
 
         # 2a. Route complexity (initial hybrid architecture implementation)
-        routing_decision = complexity_router.route(request.message, context)
-        history_window = 10 if routing_decision.path == ProcessingPath.COMPLEX else 6
+        routing_decision = complexity_router.route(effective_user_message, context)
+        history_window = self._resolve_history_window(context)
 
         # 3. Get hotel capabilities from config_service (synced with Admin Portal)
         capabilities_summary = config_service.get_capability_summary(context.hotel_code)
@@ -280,13 +313,25 @@ class ChatService:
             db_session,
         )
 
+        # Ticketing status evaluation runs for every turn (required or not).
+        # This does not create tickets; it only computes status metadata.
+        turn_ticketing_status = await self._evaluate_ticketing_status_for_turn(
+            message=effective_user_message,
+            context=context,
+            intent=IntentType.FAQ,
+            response_text="",
+            current_pending_action=context.pending_action,
+            pending_action_target=None,
+            capabilities_summary=capabilities_summary,
+        )
+
         # 3.5 Service-agent plugin runtime (deterministic, low latency).
         plugin_runtime_enabled = bool(getattr(settings, "agent_plugin_runtime_enabled", False))
         if plugin_runtime_enabled:
             plugin_settings = config_service.get_agent_plugin_settings()
             if bool(plugin_settings.get("enabled", False)):
                 plugin_result = agent_plugin_service.handle_message(
-                    message=request.message,
+                    message=effective_user_message,
                     context=context,
                     channel=context.channel,
                 )
@@ -346,10 +391,22 @@ class ChatService:
                         },
                     )
 
+        # Optional pure-LLM mode: full KB + full context with no deterministic
+        # post-processing overrides in runtime.
+        if bool(getattr(settings, "chat_pure_llm_mode", False)):
+            return await self._process_pure_llm_message(
+                request=request_for_processing,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                routing_decision=routing_decision,
+                memory_snapshot=memory_snapshot,
+                db_session=db_session,
+            )
+
         # Optional full-file mode: LLM sees complete KB text and handles flow end-to-end.
         if bool(getattr(settings, "chat_full_kb_llm_mode", False)):
             return await self._process_full_kb_llm_message(
-                request=request,
+                request=request_for_processing,
                 context=context,
                 capabilities_summary=capabilities_summary,
                 routing_decision=routing_decision,
@@ -360,7 +417,7 @@ class ChatService:
         # Optional strict mode: answer only via KB-grounded FAQ retrieval path.
         if bool(getattr(settings, "chat_kb_only_mode", False)):
             return await self._process_kb_only_message(
-                request=request,
+                request=request_for_processing,
                 context=context,
                 capabilities_summary=capabilities_summary,
                 routing_decision=routing_decision,
@@ -368,8 +425,20 @@ class ChatService:
                 db_session=db_session,
             )
 
+        multi_ask_response = await self._maybe_handle_multi_ask_message(
+            request=request_for_processing,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            routing_decision=routing_decision,
+            memory_snapshot=memory_snapshot,
+            history_window=history_window,
+            db_session=db_session,
+        )
+        if multi_ask_response is not None:
+            return multi_ask_response
+
         # 3a. Deterministic de-escalation from human handoff back to bot flow.
-        if context.state == ConversationState.ESCALATED and self._is_return_to_bot_request(request.message):
+        if context.state == ConversationState.ESCALATED and self._is_return_to_bot_request(effective_user_message):
             internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
             context.pending_action = None
             context.pending_data = conversation_memory_service.merge_with_internal({}, internal_pending_entries)
@@ -416,7 +485,7 @@ class ChatService:
 
         # 3aa. Deterministic generic service detail collection flow.
         if context.pending_action == "collect_service_details":
-            msg_lower = str(request.message or "").strip().lower()
+            msg_lower = str(effective_user_message or "").strip().lower()
             should_consume_service_followup = (
                 msg_lower in {"cancel", "stop", "no", "nope", "never mind", "nevermind"}
                 or self._looks_like_service_detail_reply(msg_lower)
@@ -424,7 +493,7 @@ class ChatService:
             # Only consume detail-like/cancel replies here. Otherwise let normal
             # routing classify and interrupt pending flow when user switches topics.
             if should_consume_service_followup:
-                followup_result = self._handle_service_detail_followup(request.message, context, capabilities_summary)
+                followup_result = self._handle_service_detail_followup(effective_user_message, context, capabilities_summary)
                 if followup_result is not None:
                     context.state = followup_result.next_state
                     context.pending_action = followup_result.pending_action
@@ -477,7 +546,7 @@ class ChatService:
 
         # 3b. Deterministic personal-memory shortcut (latest reservation/order/departure facts).
         memory_match = self._match_memory_information_response(
-            request.message,
+            effective_user_message,
             context,
             memory_snapshot,
         )
@@ -537,7 +606,7 @@ class ChatService:
             )
 
         # 3c. Deterministic identity/profile shortcut.
-        identity_match = self._match_identity_response(request.message, capabilities_summary, context)
+        identity_match = self._match_identity_response(effective_user_message, capabilities_summary, context)
         if identity_match is not None:
             intent_result = IntentResult(
                 intent=IntentType.FAQ,
@@ -592,7 +661,7 @@ class ChatService:
             )
 
         # 3d. Deterministic service-overview shortcut.
-        services_overview = self._match_service_overview_response(request.message, capabilities_summary, context)
+        services_overview = self._match_service_overview_response(effective_user_message, capabilities_summary, context)
         if services_overview is not None:
             intent_result = IntentResult(
                 intent=IntentType.FAQ,
@@ -645,7 +714,7 @@ class ChatService:
             )
 
         # 3e. Deterministic profile update shortcut for room number capture.
-        room_update = self._match_room_number_update_response(request.message, context)
+        room_update = self._match_room_number_update_response(effective_user_message, context)
         if room_update is not None:
             context.room_number = room_update["room_number"]
             intent_result = IntentResult(
@@ -703,7 +772,7 @@ class ChatService:
             )
 
         # 3f. Deterministic room-number recall shortcut.
-        room_lookup = self._match_room_number_lookup_response(request.message, context, memory_snapshot)
+        room_lookup = self._match_room_number_lookup_response(effective_user_message, context, memory_snapshot)
         if room_lookup is not None:
             intent_result = IntentResult(
                 intent=IntentType.FAQ,
@@ -756,7 +825,7 @@ class ChatService:
             )
 
         # 3d. Deterministic FAQ-bank shortcut (admin-defined Q/A pairs).
-        faq_match = self._match_faq_bank_answer(request.message, context)
+        faq_match = self._match_faq_bank_answer(effective_user_message, context)
         if faq_match is not None:
             intent_result = IntentResult(
                 intent=IntentType.FAQ,
@@ -819,7 +888,7 @@ class ChatService:
 
         # 3g. Deterministic menu recommendation shortcut.
         menu_recommendation = await self._match_menu_recommendation_response(
-            message=request.message,
+            message=effective_user_message,
             context=context,
             capabilities_summary=capabilities_summary,
             db_session=db_session,
@@ -882,12 +951,12 @@ class ChatService:
             )
 
         # 3d. Deterministic service-aware shortcut (status/hours/description from admin services).
-        service_match = self._match_service_information_response(request.message, context, capabilities_summary)
+        service_match = self._match_service_information_response(effective_user_message, context, capabilities_summary)
         if service_match is not None:
             service_match_type = str(service_match.get("match_type") or "")
             if service_match_type == "service_catalog_unavailable_handoff":
                 handoff_response = await self._handle_service_catalog_unavailable_handoff(
-                    request=request,
+                    request=request_for_processing,
                     context=context,
                     capabilities_summary=capabilities_summary,
                     service_match=service_match,
@@ -994,6 +1063,8 @@ class ChatService:
             "hotel_name": capabilities_summary.get("hotel_name", context.hotel_code),
             "bot_name": capabilities_summary.get("bot_name", "Assistant"),
             "business_type": capabilities_summary.get("business_type", "hotel"),
+            "selected_phase_id": selected_phase_context.get("selected_phase_id", ""),
+            "selected_phase_name": selected_phase_context.get("selected_phase_name", ""),
             "enabled_intents": [
                 intent.get("id")
                 for intent in capabilities_summary.get("intents", [])
@@ -1020,14 +1091,14 @@ class ChatService:
 
         # 5. Classify intent using LLM
         intent_result = await self._classify_intent(
-            request.message,
+            effective_user_message,
             context.to_llm_messages(count=history_window),
             llm_context,
         )
 
         pending_interrupted = False
         if context.pending_action and self._should_interrupt_pending_flow(
-            message=request.message,
+            message=effective_user_message,
             intent_result=intent_result,
             context=context,
             capabilities_summary=capabilities_summary,
@@ -1042,7 +1113,7 @@ class ChatService:
             pending_interrupted = True
 
         if pending_interrupted:
-            identity_match = self._match_identity_response(request.message, capabilities_summary, context)
+            identity_match = self._match_identity_response(effective_user_message, capabilities_summary, context)
             if identity_match is not None:
                 response_text = identity_match["response_text"]
                 context.add_message(
@@ -1093,7 +1164,7 @@ class ChatService:
                 )
 
             service_match = self._match_service_information_response(
-                request.message,
+                effective_user_message,
                 context,
                 capabilities_summary,
             )
@@ -1101,7 +1172,7 @@ class ChatService:
                 service_match_type = str(service_match.get("match_type") or "")
                 if service_match_type == "service_catalog_unavailable_handoff":
                     handoff_response = await self._handle_service_catalog_unavailable_handoff(
-                        request=request,
+                        request=request_for_processing,
                         context=context,
                         capabilities_summary=capabilities_summary,
                         service_match=service_match,
@@ -1230,7 +1301,7 @@ class ChatService:
             capability_check = self._check_capability_for_intent(
                 context.hotel_code,
                 intent_result,
-                request.message,
+                effective_user_message,
             )
         else:
             capability_check = intent_enabled_check
@@ -1241,14 +1312,14 @@ class ChatService:
         )
 
         phase_gate = self._detect_ticketing_phase_service_mismatch(
-            message=request.message,
+            message=effective_user_message,
             context=context,
             pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
             entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
         )
         if phase_gate is None:
             phase_gate = self._detect_phase_service_unavailable_for_intent(
-                message=request.message,
+                message=effective_user_message,
                 intent=intent_result.intent,
                 context=context,
                 pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
@@ -1279,7 +1350,7 @@ class ChatService:
         else:
             # Try handler-based response
             handler_result = await self._dispatch_to_handler(
-                request.message, intent_result, context, capabilities_summary, db_session
+                effective_user_message, intent_result, context, capabilities_summary, db_session
             )
 
             if handler_result is not None:
@@ -1289,7 +1360,7 @@ class ChatService:
                 # No handler -> for COMPLEX route run agent team before generic LLM fallback
                 if routing_decision.path == ProcessingPath.COMPLEX:
                     agent_orchestrator_result = await complex_query_orchestrator.handle(
-                        message=request.message,
+                        message=effective_user_message,
                         intent_result=intent_result,
                         context=context,
                         capabilities_summary=capabilities_summary,
@@ -1301,7 +1372,7 @@ class ChatService:
                         response_source = "agent_orchestrator"
                     else:
                         response_text = await self._generate_response(
-                            request.message,
+                            effective_user_message,
                             intent_result,
                             context.to_llm_messages(count=history_window),
                             llm_context,
@@ -1311,7 +1382,7 @@ class ChatService:
                 else:
                     # SIMPLE route fallback
                     response_text = await self._generate_response(
-                        request.message,
+                        effective_user_message,
                         intent_result,
                         context.to_llm_messages(count=history_window),
                         llm_context,
@@ -1332,6 +1403,7 @@ class ChatService:
         if not validation.valid and validation.action == "replace" and validation.replacement_response:
             response_text = validation.replacement_response
             validator_replaced = True
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
 
         # 9. Determine next state
         internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
@@ -1360,6 +1432,16 @@ class ChatService:
                 context.room_number = str(handler_result.metadata["room_number"])
         else:
             next_state = self._determine_next_state(context, intent_result, response_text)
+
+        turn_ticketing_status = await self._evaluate_ticketing_status_for_turn(
+            message=effective_user_message,
+            context=context,
+            intent=intent_result.intent,
+            response_text=response_text,
+            current_pending_action=context.pending_action,
+            pending_action_target=context.pending_action,
+            capabilities_summary=capabilities_summary,
+        )
 
         # 10. Update context
         context.state = next_state
@@ -1430,6 +1512,7 @@ class ChatService:
             metadata.update(agent_orchestrator_result.metadata)
         if handler_result is not None and handler_result.metadata:
             metadata.update(handler_result.metadata)
+        metadata.update(turn_ticketing_status)
 
         # 13. Build response
         return ChatResponse(
@@ -1455,6 +1538,7 @@ class ChatService:
         Force all requests through FAQ retrieval so answers stay KB-grounded.
         This bypasses deterministic shortcuts and transactional handlers.
         """
+        effective_user_message = str(request.message or "").strip()
         internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
         context.pending_action = None
         context.pending_data = conversation_memory_service.merge_with_internal(
@@ -1474,7 +1558,7 @@ class ChatService:
 
         handler_result = await handler_registry.dispatch(
             forced_intent,
-            request.message,
+            effective_user_message,
             context,
             capabilities_summary,
             db_session,
@@ -1615,6 +1699,506 @@ class ChatService:
             metadata=metadata,
         )
 
+    @staticmethod
+    def _normalize_service_identifier(value: Any) -> str:
+        text = str(value or "").strip().lower()
+        if not text:
+            return ""
+        text = re.sub(r"[^a-z0-9]+", "_", text)
+        text = re.sub(r"_+", "_", text).strip("_")
+        return text
+
+    def _resolve_service_from_phase_signals(
+        self,
+        *,
+        services: list[dict[str, Any]],
+        entities: dict[str, Any] | None = None,
+        pending_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(services, list) or not services:
+            return None
+
+        id_index: dict[str, dict[str, Any]] = {}
+        name_index: dict[str, dict[str, Any]] = {}
+        for service in services:
+            if not isinstance(service, dict):
+                continue
+            if not bool(service.get("is_active", True)):
+                continue
+            sid = self._normalize_service_identifier(service.get("id"))
+            if sid and sid not in id_index:
+                id_index[sid] = service
+            sname = self._normalize_service_identifier(service.get("name"))
+            if sname and sname not in name_index:
+                name_index[sname] = service
+
+        signal_map: dict[str, Any] = {}
+        if isinstance(pending_data, dict):
+            signal_map.update(pending_data)
+        if isinstance(entities, dict):
+            signal_map.update(entities)
+
+        id_candidates = (
+            signal_map.get("service_id"),
+            signal_map.get("target_service_id"),
+            signal_map.get("resolved_service_id"),
+            signal_map.get("workflow_id"),
+            signal_map.get("booking_sub_category"),
+            signal_map.get("sub_category"),
+            signal_map.get("ticket_sub_category"),
+        )
+        for candidate in id_candidates:
+            key = self._normalize_service_identifier(candidate)
+            if key and key in id_index:
+                service = id_index[key]
+                result = {
+                    "service_id": str(service.get("id") or "").strip(),
+                    "service_name": str(service.get("name") or service.get("id") or "This service").strip(),
+                    "phase_id": self._normalize_phase_identifier(service.get("phase_id")),
+                    "score": 1.0,
+                    "matched_by_signal": True,
+                }
+                if "ticketing_enabled" in service:
+                    result["ticketing_enabled"] = service.get("ticketing_enabled")
+                return result
+
+        name_candidates = (
+            signal_map.get("service_name"),
+            signal_map.get("target_service"),
+            signal_map.get("resolved_service_name"),
+        )
+        for candidate in name_candidates:
+            key = self._normalize_service_identifier(candidate)
+            if key and key in name_index:
+                service = name_index[key]
+                result = {
+                    "service_id": str(service.get("id") or "").strip(),
+                    "service_name": str(service.get("name") or service.get("id") or "This service").strip(),
+                    "phase_id": self._normalize_phase_identifier(service.get("phase_id")),
+                    "score": 0.95,
+                    "matched_by_signal": True,
+                }
+                if "ticketing_enabled" in service:
+                    result["ticketing_enabled"] = service.get("ticketing_enabled")
+                return result
+        return None
+
+    def _resolve_pure_llm_ticket_service(
+        self,
+        *,
+        capabilities_summary: dict[str, Any],
+        llm_result: Any,
+    ) -> dict[str, Any] | None:
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            return None
+
+        id_index: dict[str, dict[str, Any]] = {}
+        name_index: dict[str, dict[str, Any]] = {}
+        for service in service_catalog:
+            if not isinstance(service, dict):
+                continue
+            service_id = self._normalize_service_identifier(service.get("id"))
+            if service_id:
+                id_index[service_id] = service
+            service_name = self._normalize_service_identifier(service.get("name"))
+            if service_name and service_name not in name_index:
+                name_index[service_name] = service
+
+        llm_output = llm_result.llm_output if isinstance(getattr(llm_result, "llm_output", None), dict) else {}
+        pending_data = llm_result.pending_data if isinstance(getattr(llm_result, "pending_data", None), dict) else {}
+        entities = self._extract_full_kb_entities_for_handler(llm_result)
+
+        service_id_candidates = (
+            llm_output.get("service_id"),
+            llm_output.get("target_service_id"),
+            llm_output.get("resolved_service_id"),
+            llm_output.get("workflow_id"),
+            pending_data.get("service_id"),
+            pending_data.get("target_service_id"),
+            pending_data.get("resolved_service_id"),
+            pending_data.get("workflow_id"),
+            entities.get("service_id"),
+            entities.get("target_service_id"),
+            entities.get("resolved_service_id"),
+            entities.get("workflow_id"),
+            entities.get("booking_sub_category"),
+            pending_data.get("booking_sub_category"),
+            pending_data.get("sub_category"),
+            llm_output.get("ticket_sub_category"),
+        )
+        for candidate in service_id_candidates:
+            key = self._normalize_service_identifier(candidate)
+            if key and key in id_index:
+                return id_index[key]
+
+        service_name_candidates = (
+            llm_output.get("service_name"),
+            llm_output.get("target_service"),
+            pending_data.get("service_name"),
+            pending_data.get("target_service"),
+            entities.get("service_name"),
+            entities.get("target_service"),
+        )
+        for candidate in service_name_candidates:
+            key = self._normalize_service_identifier(candidate)
+            if key and key in name_index:
+                return name_index[key]
+        return None
+
+    async def _maybe_create_pure_llm_ticket(
+        self,
+        *,
+        request: ChatRequest,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        llm_result: Any,
+        effective_intent: IntentType,
+    ) -> dict[str, Any]:
+        ticket_source = "pure_llm"
+        if not self._is_ticketing_plugin_enabled():
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "ticketing_plugin_disabled",
+                "ticket_source": ticket_source,
+            }
+        if not ticketing_service.is_ticketing_enabled(capabilities_summary):
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "ticketing_service_disabled",
+                "ticket_source": ticket_source,
+            }
+
+        pending = llm_result.pending_data if isinstance(getattr(llm_result, "pending_data", None), dict) else {}
+        if str(pending.get("ticket_id") or "").strip():
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "ticket_already_present_in_pending_data",
+                "ticket_source": ticket_source,
+            }
+
+        llm_ticketing_preference = self._extract_full_kb_ticketing_preference(llm_result)
+        if llm_ticketing_preference is not True:
+            return {}
+
+        service = self._resolve_pure_llm_ticket_service(
+            capabilities_summary=capabilities_summary,
+            llm_result=llm_result,
+        )
+        if not isinstance(service, dict):
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "service_unresolved_for_ticketing",
+                "ticket_source": ticket_source,
+            }
+
+        selected_phase = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities=self._extract_full_kb_entities_for_handler(llm_result),
+        )
+        current_phase_id = self._normalize_phase_identifier(selected_phase.get("selected_phase_id"))
+        service_phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+        if current_phase_id and service_phase_id and current_phase_id != service_phase_id:
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "phase_service_mismatch",
+                "ticket_source": ticket_source,
+                "phase_gate_service_id": str(service.get("id") or "").strip(),
+                "phase_gate_service_name": str(service.get("name") or "").strip(),
+                "phase_gate_current_phase_id": current_phase_id,
+                "phase_gate_current_phase_name": str(selected_phase.get("selected_phase_name") or "").strip(),
+                "phase_gate_service_phase_id": service_phase_id,
+                "phase_gate_service_phase_name": str(service.get("phase_name") or self._phase_label(service_phase_id)).strip(),
+            }
+
+        if "ticketing_enabled" in service and not bool(service.get("ticketing_enabled")):
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "phase_service_ticketing_disabled",
+                "ticket_source": ticket_source,
+                "phase_gate_service_id": str(service.get("id") or "").strip(),
+                "phase_gate_service_name": str(service.get("name") or "").strip(),
+                "phase_gate_current_phase_id": current_phase_id,
+                "phase_gate_current_phase_name": str(selected_phase.get("selected_phase_name") or "").strip(),
+                "phase_gate_service_phase_id": service_phase_id,
+                "phase_gate_service_phase_name": str(service.get("phase_name") or self._phase_label(service_phase_id)).strip(),
+            }
+
+        llm_output = llm_result.llm_output if isinstance(getattr(llm_result, "llm_output", None), dict) else {}
+        entities = self._extract_full_kb_entities_for_handler(llm_result)
+        issue = self._first_non_empty(
+            llm_output.get("ticket_issue"),
+            pending.get("ticket_issue"),
+            entities.get("ticket_issue"),
+            llm_output.get("ticket_summary"),
+            pending.get("ticket_summary"),
+            entities.get("ticket_summary"),
+            self._extract_full_kb_ticketing_reason(llm_result),
+            llm_result.normalized_query,
+            request.message,
+        )
+        if not issue:
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "empty_issue",
+                "ticket_source": ticket_source,
+            }
+
+        category = self._first_non_empty(
+            llm_output.get("ticket_category"),
+            pending.get("ticket_category"),
+            entities.get("ticket_category"),
+        ).lower()
+        if category not in {"complaint", "request", "query"}:
+            category = "complaint" if effective_intent in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST} else "request"
+
+        sub_category = self._first_non_empty(
+            llm_output.get("ticket_sub_category"),
+            pending.get("ticket_sub_category"),
+            entities.get("ticket_sub_category"),
+            pending.get("sub_category"),
+            entities.get("sub_category"),
+            str(service.get("id") or "").strip(),
+        ) or "general_request"
+
+        priority = self._first_non_empty(
+            llm_output.get("ticket_priority"),
+            pending.get("ticket_priority"),
+            entities.get("ticket_priority"),
+        ).upper()
+        if priority not in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}:
+            priority = "MEDIUM"
+
+        phase_name = self._first_non_empty(
+            selected_phase.get("selected_phase_name"),
+            str(service.get("phase_name") or ""),
+            self._phase_label(current_phase_id),
+            "During Stay",
+        )
+        room_number = self._first_non_empty(
+            llm_result.room_number,
+            context.room_number,
+            pending.get("room_number"),
+            entities.get("room_number"),
+        )
+
+        try:
+            payload = ticketing_service.build_lumira_ticket_payload(
+                context=context,
+                issue=issue,
+                message=issue,
+                category=category,
+                sub_category=sub_category,
+                priority=priority,
+                phase=phase_name,
+                source="manual",
+            )
+            if room_number:
+                payload["room_number"] = room_number
+            create_result = await ticketing_service.create_ticket(payload)
+        except Exception as exc:
+            logger.exception("pure_llm_ticket_create_failed")
+            return {
+                "ticket_create_failed": True,
+                "ticket_error": str(exc),
+                "ticket_source": ticket_source,
+            }
+
+        if not create_result.success:
+            return {
+                "ticket_create_failed": True,
+                "ticket_error": str(create_result.error or "ticket_create_failed"),
+                "ticket_source": ticket_source,
+                "ticket_api_status_code": create_result.status_code,
+                "ticket_api_response": create_result.response,
+            }
+
+        return {
+            "ticket_created": True,
+            "ticket_id": str(create_result.ticket_id or "").strip(),
+            "ticket_status": "open",
+            "ticket_category": category,
+            "ticket_sub_category": sub_category,
+            "ticket_priority": priority,
+            "ticket_summary": issue[:180],
+            "ticket_source": ticket_source,
+            "room_number": room_number,
+            "ticket_api_status_code": create_result.status_code,
+            "ticket_api_response": create_result.response,
+            "ticket_service_id": str(service.get("id") or "").strip(),
+            "ticket_service_name": str(service.get("name") or service.get("id") or "").strip(),
+        }
+
+    async def _process_pure_llm_message(
+        self,
+        request: ChatRequest,
+        context: ConversationContext,
+        capabilities_summary: dict,
+        routing_decision: Any,
+        memory_snapshot: dict[str, Any],
+        db_session=None,
+    ) -> ChatResponse:
+        """
+        Pure LLM runtime:
+        - Uses full-KB LLM output directly for state/intent/pending response.
+        - Avoids deterministic post-processing overrides.
+        - Creates ticket only when LLM explicitly requests it and service toggles permit.
+        """
+        effective_user_message = str(request.message or "").strip()
+        if bool(getattr(settings, "full_kb_llm_force_summary_refresh", True)):
+            await conversation_memory_service.refresh_summary(context)
+            memory_snapshot = conversation_memory_service.get_snapshot(context)
+
+        current_pending_action = context.pending_action
+        internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        existing_public_pending = {
+            key: value
+            for key, value in (context.pending_data or {}).items()
+            if isinstance(key, str) and not key.startswith("_")
+        }
+
+        llm_result = await full_kb_llm_service.run_turn(
+            user_message=effective_user_message,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            memory_snapshot=memory_snapshot,
+        )
+
+        next_state = llm_result.next_state
+        response_text = str(llm_result.response_text or "").strip() or (
+            "I could not find this in the current knowledge base for this property."
+        )
+        effective_intent = llm_result.intent
+        effective_confidence = llm_result.confidence
+        pending_action_target = str(llm_result.pending_action).strip() if llm_result.pending_action else None
+        pending_data_target = dict(llm_result.pending_data or {})
+        clear_pending_data = bool(llm_result.clear_pending_data)
+
+        context.pending_action = pending_action_target
+        if clear_pending_data:
+            merged_public_pending: dict[str, Any] = {}
+        elif pending_data_target:
+            merged_public_pending = dict(pending_data_target)
+        else:
+            merged_public_pending = dict(existing_public_pending)
+        context.pending_data = conversation_memory_service.merge_with_internal(
+            merged_public_pending,
+            internal_pending_entries,
+        )
+
+        if context.pending_action is None and next_state not in (
+            ConversationState.AWAITING_CONFIRMATION,
+            ConversationState.AWAITING_INFO,
+            ConversationState.AWAITING_SELECTION,
+            ConversationState.PROCESSING_ORDER,
+        ):
+            context.pending_data = conversation_memory_service.merge_with_internal(
+                {},
+                internal_pending_entries,
+            )
+            context.pending_data.pop("_clarification_attempts", None)
+
+        if next_state == ConversationState.ESCALATED:
+            context.pending_action = None
+            context.pending_data = conversation_memory_service.merge_with_internal(
+                {},
+                internal_pending_entries,
+            )
+
+        if llm_result.room_number:
+            context.room_number = str(llm_result.room_number)
+        context.state = next_state
+
+        pure_ticket_meta = await self._maybe_create_pure_llm_ticket(
+            request=request,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            llm_result=llm_result,
+            effective_intent=effective_intent,
+        )
+
+        assistant_metadata = {
+            "intent": effective_intent.value,
+            "confidence": effective_confidence,
+            "channel": context.channel,
+            "kb_only_mode": True,
+            "full_kb_llm_mode": True,
+            "pure_llm_mode": True,
+            "full_kb_trace_id": llm_result.trace_id,
+            "full_kb_raw_intent": llm_result.raw_intent,
+            "full_kb_normalized_query": llm_result.normalized_query,
+            "response_source": "pure_llm",
+        }
+        if pure_ticket_meta:
+            assistant_metadata.update(pure_ticket_meta)
+
+        context.add_message(
+            MessageRole.ASSISTANT,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        conversation_memory_service.capture_assistant_message(
+            context,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        await conversation_memory_service.maybe_refresh_summary(context)
+        await context_manager.save_context(context, db_session=db_session)
+        memory_snapshot = conversation_memory_service.get_snapshot(context)
+
+        if llm_result.suggested_actions:
+            suggested_actions = llm_result.suggested_actions
+        else:
+            suggested_actions = self._get_suggested_actions(
+                next_state,
+                effective_intent,
+                capabilities_summary,
+            )
+
+        routing_path = getattr(
+            getattr(routing_decision, "path", ProcessingPath.SIMPLE),
+            "value",
+            ProcessingPath.SIMPLE.value,
+        )
+        routing_score = float(getattr(routing_decision, "score", 1.0))
+        routing_signals = list(getattr(routing_decision, "signals", []))
+
+        metadata = {
+            "message_count": len(context.messages),
+            "entities": {
+                "normalized_query": llm_result.normalized_query,
+                "raw_intent": llm_result.raw_intent,
+                "pending_action": context.pending_action,
+            },
+            "classified_intent": effective_intent.value,
+            "classified_confidence": effective_confidence,
+            "routing_path": routing_path,
+            "routing_score": routing_score,
+            "routing_signals": routing_signals,
+            "response_source": "pure_llm",
+            "kb_only_mode": True,
+            "full_kb_llm_mode": True,
+            "pure_llm_mode": True,
+            "full_kb_trace_id": llm_result.trace_id,
+            "full_kb_status": llm_result.status,
+            "memory_summary": memory_snapshot.get("summary", ""),
+            "memory_facts": memory_snapshot.get("facts", {}),
+            "memory_recent_changes": memory_snapshot.get("recent_changes", []),
+        }
+        if pure_ticket_meta:
+            metadata.update(pure_ticket_meta)
+
+        return ChatResponse(
+            session_id=request.session_id,
+            message=response_text,
+            intent=effective_intent,
+            confidence=effective_confidence,
+            state=next_state,
+            suggested_actions=suggested_actions,
+            metadata=metadata,
+        )
+
     async def _process_full_kb_llm_message(
         self,
         request: ChatRequest,
@@ -1630,12 +2214,13 @@ class ChatService:
         - full KB text is passed to LLM each turn
         - LLM returns state/intent/action JSON that drives the conversation.
         """
+        effective_user_message = str(request.message or "").strip()
         pre_shortcuts_enabled = bool(
             getattr(settings, "full_kb_llm_pre_shortcuts_enabled", False)
         )
         greeting_match = (
             self._match_greeting_response(
-                request.message,
+                effective_user_message,
                 capabilities_summary,
                 context,
             )
@@ -1703,7 +2288,7 @@ class ChatService:
 
         identity_match = (
             self._match_identity_response(
-                request.message,
+                effective_user_message,
                 capabilities_summary,
                 context,
             )
@@ -1777,14 +2362,14 @@ class ChatService:
 
         current_pending_action = context.pending_action
         llm_passthrough_mode = bool(getattr(settings, "full_kb_llm_passthrough_mode", False))
-        rewritten_user_message = request.message
+        rewritten_user_message = effective_user_message
         rewrite_applied = False
         more_options_rewrite_applied = False
         if not llm_passthrough_mode:
-            rewritten_user_message = self._rewrite_affirmative_selection_reply(context, request.message)
+            rewritten_user_message = self._rewrite_affirmative_selection_reply(context, effective_user_message)
             rewritten_user_message = self._rewrite_more_options_reply(context, rewritten_user_message)
-            rewrite_applied = rewritten_user_message != request.message
-            more_options_rewrite_applied = rewrite_applied and self._looks_like_more_options_followup(request.message)
+            rewrite_applied = rewritten_user_message != effective_user_message
+            more_options_rewrite_applied = rewrite_applied and self._looks_like_more_options_followup(effective_user_message)
         internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
         existing_public_pending = {
             key: value
@@ -1846,9 +2431,67 @@ class ChatService:
             merged_for_logic = dict(existing_public_pending)
             merged_for_logic.update(pending_data_target or {})
 
+            room_booking_flow = self._is_room_booking_flow(
+                raw_intent=llm_result.raw_intent,
+                current_pending_action=current_pending_action,
+                pending_action_target=pending_action_target,
+                pending_data=merged_for_logic,
+                response_text=response_text,
+            )
+            if room_booking_flow:
+                deterministic_room_updates = self._extract_room_booking_slot_updates(
+                    message=effective_user_message,
+                    current_pending_action=current_pending_action,
+                    state=context.state,
+                    pending_data=merged_for_logic,
+                    memory_facts=memory_snapshot.get("facts", {}) if isinstance(memory_snapshot, dict) else {},
+                    conversation_context=context,
+                )
+                if deterministic_room_updates:
+                    merged_for_logic.update(deterministic_room_updates)
+                    pending_data_target = dict(merged_for_logic)
+
+                room_missing_fields = self._missing_room_booking_fields(
+                    pending_data=merged_for_logic,
+                    memory_facts=memory_snapshot.get("facts", {}) if isinstance(memory_snapshot, dict) else {},
+                )
+                room_pending_action = str(pending_action_target or current_pending_action or "").strip().lower()
+                if room_missing_fields:
+                    effective_intent = IntentType.TABLE_BOOKING
+                    effective_confidence = max(effective_confidence, 0.9)
+                    next_state = ConversationState.AWAITING_INFO
+                    pending_action_target = "collect_room_booking_details"
+                    pending_data_target = dict(merged_for_logic)
+                    clear_pending_data = False
+                    if not self._looks_like_room_options_information_query(effective_user_message):
+                        response_text = self._build_room_booking_missing_details_prompt(
+                            missing_fields=room_missing_fields,
+                            pending_data=pending_data_target,
+                        )
+                elif (
+                    next_state != ConversationState.AWAITING_CONFIRMATION
+                    and not room_pending_action.startswith("confirm_")
+                    and effective_intent != IntentType.CONFIRMATION_YES
+                ):
+                    effective_intent = IntentType.TABLE_BOOKING
+                    effective_confidence = max(effective_confidence, 0.9)
+                    next_state = ConversationState.AWAITING_CONFIRMATION
+                    pending_action_target = "confirm_room_booking"
+                    pending_data_target = dict(merged_for_logic)
+                    clear_pending_data = False
+                    response_text = self._build_room_booking_review_prompt(pending_data_target)
+                    confirmation_phrase = str(
+                        getattr(settings, "chat_confirmation_phrase", "yes confirm")
+                    ).strip() or "yes confirm"
+                    if bool(getattr(settings, "chat_require_strict_confirmation_phrase", True)):
+                        response_text = self._ensure_explicit_confirmation_instruction(
+                            response_text=response_text,
+                            confirmation_phrase=confirmation_phrase,
+                        )
+
             if self._is_order_pending_action(current_pending_action) or self._is_order_pending_action(pending_action_target):
                 deterministic_order_updates = self._extract_order_slot_updates(
-                    message=request.message,
+                    message=effective_user_message,
                     response_text=response_text,
                     current_pending_action=current_pending_action,
                     pending_data=merged_for_logic,
@@ -1860,7 +2503,7 @@ class ChatService:
                 pending_lower = str(pending_action_target or current_pending_action or "").strip().lower()
                 item_name = self._extract_order_item_name(merged_for_logic)
                 quantity = self._extract_order_quantity_value(merged_for_logic)
-                user_msg_lower = str(request.message or "").strip().lower()
+                user_msg_lower = str(effective_user_message or "").strip().lower()
                 explicit_issue_switch = (
                     self._looks_like_ticketing_request(user_msg_lower)
                     or self._looks_like_strong_ticket_issue_marker(user_msg_lower)
@@ -1880,6 +2523,21 @@ class ChatService:
                         pending_action_target = "collect_order_addons"
                         response_text = self._build_order_addons_prompt(item_name, quantity)
 
+            if next_state == ConversationState.AWAITING_CONFIRMATION:
+                pending_action_target = self._normalize_confirm_pending_action(
+                    pending_action_target=pending_action_target,
+                    intent=effective_intent,
+                    room_booking_flow=room_booking_flow,
+                )
+                confirmation_phrase = str(
+                    getattr(settings, "chat_confirmation_phrase", "yes confirm")
+                ).strip() or "yes confirm"
+                if bool(getattr(settings, "chat_require_strict_confirmation_phrase", True)):
+                    response_text = self._ensure_explicit_confirmation_instruction(
+                        response_text=response_text,
+                        confirmation_phrase=confirmation_phrase,
+                    )
+
             (
                 response_text,
                 full_kb_validator_replaced,
@@ -1891,7 +2549,7 @@ class ChatService:
                 effective_confidence=effective_confidence,
                 context=context,
                 capabilities_summary=capabilities_summary,
-                request_message=request.message,
+                request_message=effective_user_message,
             )
 
             transaction_ticket_meta = await self._maybe_create_full_kb_transaction_ticket(
@@ -1903,17 +2561,19 @@ class ChatService:
                 pending_data_snapshot=merged_for_logic,
                 response_text=response_text,
             )
-            plugin_ticket_meta = await self._maybe_create_full_kb_plugin_ticket(
-                request=request,
-                context=context,
-                capabilities_summary=capabilities_summary,
-                llm_result=llm_result,
-                effective_intent=effective_intent,
-                next_state=next_state,
-                current_pending_action=current_pending_action,
-                pending_data_snapshot=merged_for_logic,
-                response_text=response_text,
-            )
+            plugin_ticket_meta: dict[str, Any] = {}
+            if not bool(transaction_ticket_meta.get("ticket_created")):
+                plugin_ticket_meta = await self._maybe_create_full_kb_plugin_ticket(
+                    request=request,
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    llm_result=llm_result,
+                    effective_intent=effective_intent,
+                    next_state=next_state,
+                    current_pending_action=current_pending_action,
+                    pending_data_snapshot=merged_for_logic,
+                    response_text=response_text,
+                )
             combined_ticket_meta: dict[str, Any] = {}
             if transaction_ticket_meta:
                 combined_ticket_meta.update(transaction_ticket_meta)
@@ -2076,7 +2736,7 @@ class ChatService:
         strict_confirmation_enabled = bool(
             getattr(settings, "chat_require_strict_confirmation_phrase", True)
         )
-        user_compact = re.sub(r"\s+", " ", str(request.message or "").strip().lower())
+        user_compact = re.sub(r"\s+", " ", str(effective_user_message or "").strip().lower())
         required_compact = re.sub(r"\s+", " ", required_confirmation_phrase.lower())
         strict_confirmation_required = self._requires_strict_confirmation(
             context=context,
@@ -2122,18 +2782,19 @@ class ChatService:
         merged_for_logic = dict(existing_public_pending)
         merged_for_logic.update(pending_data_target or {})
         deterministic_room_updates = self._extract_room_booking_slot_updates(
-            message=request.message,
+            message=effective_user_message,
             current_pending_action=current_pending_action,
             state=context.state,
             pending_data=merged_for_logic,
             memory_facts=memory_facts_before,
+            conversation_context=context,
         )
         if deterministic_room_updates:
             merged_for_logic.update(deterministic_room_updates)
             pending_data_target = dict(merged_for_logic)
 
         deterministic_order_updates = self._extract_order_slot_updates(
-            message=request.message,
+            message=effective_user_message,
             response_text=response_text,
             current_pending_action=current_pending_action,
             pending_data=merged_for_logic,
@@ -2149,7 +2810,7 @@ class ChatService:
             pending_data=merged_for_logic,
             response_text=response_text,
         )
-        user_binary_reply = self._detect_simple_binary_reply(request.message)
+        user_binary_reply = self._detect_simple_binary_reply(effective_user_message)
 
         # Correct obvious polarity mismatches in selection flow (e.g., user says "yes"
         # but model emits confirmation_no).
@@ -2174,13 +2835,14 @@ class ChatService:
             )
             clear_pending_data = False
 
+        room_missing_fields = self._missing_room_booking_fields(
+            pending_data=merged_for_logic,
+            memory_facts=memory_facts_before,
+        )
+
         # Prevent premature booking confirmation when essential stay details are missing.
         if room_booking_flow and self._is_confirmation_prompt_text(response_text):
-            missing_fields = self._missing_room_booking_fields(
-                pending_data=merged_for_logic,
-                memory_facts=memory_facts_before,
-            )
-            if missing_fields:
+            if room_missing_fields:
                 effective_intent = IntentType.TABLE_BOOKING
                 effective_confidence = max(effective_confidence, 0.9)
                 next_state = ConversationState.AWAITING_INFO
@@ -2188,7 +2850,7 @@ class ChatService:
                 pending_data_target = dict(merged_for_logic)
                 clear_pending_data = False
                 response_text = self._build_room_booking_missing_details_prompt(
-                    missing_fields=missing_fields,
+                    missing_fields=room_missing_fields,
                     pending_data=pending_data_target,
                 )
 
@@ -2196,7 +2858,7 @@ class ChatService:
         # "view room types or check availability" choice again.
         if (
             room_booking_flow
-            and self._looks_like_availability_request(request.message)
+            and self._looks_like_availability_request(effective_user_message)
             and self._is_room_choice_loop_response(response_text)
         ):
             effective_intent = IntentType.TABLE_BOOKING
@@ -2206,6 +2868,36 @@ class ChatService:
             pending_data_target = dict(merged_for_logic)
             clear_pending_data = False
             response_text = self._build_room_availability_forward_prompt(pending_data_target)
+
+        # Room-booking flow must always end in explicit confirmation before any
+        # backend ticket creation. If stay details are complete and model
+        # attempts to end/forward early, convert to review+confirm step.
+        room_pending_action = str(pending_action_target or current_pending_action or "").strip().lower()
+        if room_booking_flow:
+            if room_missing_fields:
+                effective_intent = IntentType.TABLE_BOOKING
+                effective_confidence = max(effective_confidence, 0.9)
+                next_state = ConversationState.AWAITING_INFO
+                pending_action_target = "collect_room_booking_details"
+                pending_data_target = dict(merged_for_logic)
+                clear_pending_data = False
+                if not self._looks_like_room_options_information_query(effective_user_message):
+                    response_text = self._build_room_booking_missing_details_prompt(
+                        missing_fields=room_missing_fields,
+                        pending_data=pending_data_target,
+                    )
+            elif (
+                next_state != ConversationState.AWAITING_CONFIRMATION
+                and not room_pending_action.startswith("confirm_")
+                and effective_intent != IntentType.CONFIRMATION_YES
+            ):
+                effective_intent = IntentType.TABLE_BOOKING
+                effective_confidence = max(effective_confidence, 0.9)
+                next_state = ConversationState.AWAITING_CONFIRMATION
+                pending_action_target = "confirm_room_booking"
+                pending_data_target = dict(merged_for_logic)
+                clear_pending_data = False
+                response_text = self._build_room_booking_review_prompt(pending_data_target)
 
         order_flow = self._is_order_flow(
             raw_intent=llm_result.raw_intent,
@@ -2221,11 +2913,11 @@ class ChatService:
             quantity = self._extract_order_quantity_value(merged_for_logic)
             addons_choice = self._extract_order_addons_choice(merged_for_logic)
             pending_lower = str(pending_action_target or current_pending_action or "").strip().lower()
-            user_binary = self._detect_simple_binary_reply(request.message)
-            user_msg = str(request.message or "").strip()
-            order_category_hint = self._derive_order_category_hint(request.message, item_name)
+            user_binary = self._detect_simple_binary_reply(effective_user_message)
+            user_msg = str(effective_user_message or "").strip()
+            order_category_hint = self._derive_order_category_hint(effective_user_message, item_name)
             order_options_followup = self._is_order_options_followup(
-                message=request.message,
+                message=effective_user_message,
                 item_name=item_name,
                 current_pending_action=pending_lower,
             )
@@ -2236,6 +2928,8 @@ class ChatService:
                     capabilities_summary=capabilities_summary,
                     db_session=db_session,
                     hotel_code=context.hotel_code,
+                    selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+                    selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
                 )
                 if options_response:
                     effective_intent = IntentType.ORDER_FOOD
@@ -2254,6 +2948,8 @@ class ChatService:
                         capabilities_summary=capabilities_summary,
                         db_session=db_session,
                         hotel_code=context.hotel_code,
+                        selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+                        selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
                     )
                     effective_intent = IntentType.ORDER_FOOD
                     effective_confidence = max(effective_confidence, 0.9)
@@ -2388,7 +3084,7 @@ class ChatService:
             effective_confidence=effective_confidence,
             context=context,
             capabilities_summary=capabilities_summary,
-            request_message=request.message,
+            request_message=effective_user_message,
         )
 
         transaction_ticket_meta = await self._maybe_create_full_kb_transaction_ticket(
@@ -2400,22 +3096,26 @@ class ChatService:
             pending_data_snapshot=merged_for_logic,
             response_text=response_text,
         )
-        plugin_ticket_meta = await self._maybe_create_full_kb_plugin_ticket(
-            request=request,
-            context=context,
-            capabilities_summary=capabilities_summary,
-            llm_result=llm_result,
-            effective_intent=effective_intent,
-            next_state=next_state,
-            current_pending_action=current_pending_action,
-            pending_data_snapshot=merged_for_logic,
-            response_text=response_text,
-        )
+        plugin_ticket_meta: dict[str, Any] = {}
+        if not bool(transaction_ticket_meta.get("ticket_created")):
+            plugin_ticket_meta = await self._maybe_create_full_kb_plugin_ticket(
+                request=request,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                llm_result=llm_result,
+                effective_intent=effective_intent,
+                next_state=next_state,
+                current_pending_action=current_pending_action,
+                pending_data_snapshot=merged_for_logic,
+                response_text=response_text,
+            )
         combined_ticket_meta: dict[str, Any] = {}
         if transaction_ticket_meta:
             combined_ticket_meta.update(transaction_ticket_meta)
         if plugin_ticket_meta:
             combined_ticket_meta.update(plugin_ticket_meta)
+
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
 
         context.pending_action = pending_action_target
         if clear_pending_data:
@@ -2584,16 +3284,49 @@ class ChatService:
         db_session=None,
     ) -> ChatResponse | None:
         current_pending = pending_data if isinstance(pending_data, dict) else {}
-        entity_map = entities if isinstance(entities, dict) else self._extract_full_kb_entities_for_handler(llm_result)
-        phase_gate = self._detect_ticketing_phase_service_mismatch(
-            message=request.message,
-            context=context,
-            pending_data=current_pending,
-            entities=entity_map,
+        effective_user_message = str(request.message or "").strip()
+        phase_gate_message = effective_user_message
+        if context.messages:
+            latest_msg = context.messages[-1]
+            if getattr(latest_msg, "role", None) == MessageRole.USER:
+                latest_text = str(getattr(latest_msg, "content", "") or "").strip()
+                if latest_text:
+                    phase_gate_message = latest_text
+        message_lower = str(phase_gate_message or "").strip().lower()
+        # Avoid over-gating informational/profile-style FAQ turns in full-KB mode.
+        profile_memory_query = bool(
+            re.search(
+                r"\b(remember|call me|my room(?:\s*number)?\s*is|what room did i|which room did i|what is my room)\b",
+                message_lower,
+            )
         )
+        should_run_phase_gate = True
+        if profile_memory_query:
+            should_run_phase_gate = False
+        elif effective_intent == IntentType.FAQ and "?" in message_lower:
+            should_run_phase_gate = False
+        elif effective_intent == IntentType.HUMAN_REQUEST and not self._is_action_request_text(
+            phase_gate_message
+        ):
+            should_run_phase_gate = False
+        if not should_run_phase_gate:
+            return None
+
+        entity_map = entities if isinstance(entities, dict) else self._extract_full_kb_entities_for_handler(llm_result)
+        # For human-request turns, rely on phase-intent availability checks
+        # instead of lexical mismatch gating to avoid false out-of-phase blocks.
+        use_mismatch_gate = effective_intent != IntentType.HUMAN_REQUEST
+        phase_gate = None
+        if use_mismatch_gate:
+            phase_gate = self._detect_ticketing_phase_service_mismatch(
+                message=phase_gate_message,
+                context=context,
+                pending_data=current_pending,
+                entities=entity_map,
+            )
         if phase_gate is None:
             phase_gate = self._detect_phase_service_unavailable_for_intent(
-                message=request.message,
+                message=phase_gate_message,
                 intent=effective_intent,
                 context=context,
                 pending_data=current_pending,
@@ -2605,8 +3338,12 @@ class ChatService:
         response_text = str(phase_gate.get("response_text") or "").strip()
         if not response_text:
             return None
+        if effective_intent == IntentType.HUMAN_REQUEST:
+            handoff_line = "If you'd like, I can connect you with our staff for further help."
+            if handoff_line.lower() not in response_text.lower():
+                response_text = f"{response_text} {handoff_line}".strip()
         identity_match = self._match_identity_response(
-            request.message,
+            effective_user_message,
             capabilities_summary,
             context,
         )
@@ -2614,6 +3351,7 @@ class ChatService:
             identity_text = str(identity_match.get("response_text") or "").strip()
             if identity_text and identity_text.lower() not in response_text.lower():
                 response_text = f"{identity_text} {response_text}".strip()
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
 
         if context.pending_action:
             internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
@@ -2662,7 +3400,7 @@ class ChatService:
         if isinstance(gate_actions, list):
             phase_suggestions = [str(item).strip() for item in gate_actions if str(item).strip()]
         else:
-            phase_suggestions = ["Show available services", "Talk to human", "Ask another question"]
+            phase_suggestions = ["Show available services", "Ask another question"]
         suggested_actions = self._finalize_user_query_suggestions(
             phase_suggestions,
             state=context.state,
@@ -2756,16 +3494,24 @@ class ChatService:
         if phase_gate_response is not None:
             return phase_gate_response
 
+        effective_user_message = str(request.message or "").strip()
+        phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=current_pending,
+            entities=entities,
+        )
         ticketing_agent_decision = await ticketing_agent_service.decide_async(
             intent=effective_intent,
-            message=request.message,
+            message=effective_user_message,
             llm_response_text=getattr(llm_result, "response_text", ""),
             llm_ticketing_preference=llm_ticketing_preference,
             current_pending_action=current_pending_action,
             pending_action_target=pending_action_target,
+            selected_phase_id=phase_context.get("selected_phase_id", ""),
+            selected_phase_name=phase_context.get("selected_phase_name", ""),
             conversation_excerpt=self._build_ticketing_case_context_text(
                 context=context,
-                latest_user_message=request.message,
+                latest_user_message=effective_user_message,
                 llm_response_text=getattr(llm_result, "response_text", ""),
             ),
         )
@@ -2787,7 +3533,7 @@ class ChatService:
             requires_confirmation=routed_intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING},
         )
         handler_result = await self._dispatch_to_handler(
-            request.message,
+            effective_user_message,
             intent_result,
             context,
             capabilities_summary,
@@ -3295,6 +4041,11 @@ class ChatService:
                 "ticket_create_skip_reason": "no_configured_ticket_cases",
                 "ticket_source": ticket_source,
             }
+        phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=pending,
+            entities={},
+        )
         matched_case = await ticketing_agent_service.match_configured_case_async(
             message=issue,
             conversation_excerpt=self._build_ticketing_case_context_text(
@@ -3303,6 +4054,8 @@ class ChatService:
                 llm_response_text=response_text,
             ),
             llm_response_text=response_text,
+            selected_phase_id=phase_context.get("selected_phase_id", ""),
+            selected_phase_name=phase_context.get("selected_phase_name", ""),
         )
         if not matched_case:
             self._log_full_kb_ticket_event(
@@ -3527,6 +4280,11 @@ class ChatService:
             )
             return {}
         llm_ticketing_preference = self._extract_full_kb_ticketing_preference(llm_result)
+        phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
         ticketing_agent_decision = await ticketing_agent_service.decide_async(
             intent=effective_intent,
             message=msg,
@@ -3534,6 +4292,8 @@ class ChatService:
             llm_ticketing_preference=llm_ticketing_preference,
             current_pending_action=current_pending_action,
             pending_action_target=str(getattr(llm_result, "pending_action", "") or ""),
+            selected_phase_id=phase_context.get("selected_phase_id", ""),
+            selected_phase_name=phase_context.get("selected_phase_name", ""),
             conversation_excerpt=self._build_ticketing_case_context_text(
                 context=context,
                 latest_user_message=msg,
@@ -3562,22 +4322,25 @@ class ChatService:
                 matched_case=matched_case,
             )
             return {}
-        if (
-            effective_intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING}
-            and not ticketing_agent_decision.activate
-        ):
-            # Transactional order/booking tickets are created only on confirm path.
-            self._log_full_kb_ticket_event(
-                event="not_applicable",
-                ticket_source=ticket_source,
-                context=context,
-                effective_intent=effective_intent,
-                next_state=next_state,
-                pending_action=current_pending_action,
-                reason="transactional_intent_deferred_to_confirmation_path",
-                matched_case=matched_case,
+        if effective_intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING}:
+            # For booking/order intents, create ticket only on explicit complaint/escalation
+            # asks. Normal transactional flow must wait for confirmation path.
+            transactional_escalation_signal = (
+                self._looks_like_ticketing_request(msg_lower)
+                or self._looks_like_strong_ticket_issue_marker(msg_lower)
             )
-            return {}
+            if not transactional_escalation_signal:
+                self._log_full_kb_ticket_event(
+                    event="not_applicable",
+                    ticket_source=ticket_source,
+                    context=context,
+                    effective_intent=effective_intent,
+                    next_state=next_state,
+                    pending_action=current_pending_action,
+                    reason="transactional_intent_deferred_to_confirmation_path",
+                    matched_case=matched_case,
+                )
+                return {}
         if self._looks_like_room_number_reply(msg_lower):
             # Slot-detail only message; do not create a new ticket.
             self._log_full_kb_ticket_event(
@@ -3708,9 +4471,10 @@ class ChatService:
             entities=entities,
         )
         if phase_gate is None:
+            phase_gate_intent = ticketing_agent_decision.routed_intent or effective_intent
             phase_gate = self._detect_phase_service_unavailable_for_intent(
                 message=msg or issue,
-                intent=effective_intent,
+                intent=phase_gate_intent,
                 context=context,
                 pending_data=pending,
                 entities=entities,
@@ -4491,6 +5255,29 @@ class ChatService:
         if isinstance(nested_entities, dict):
             entities.update(nested_entities)
 
+        top_level_entity_keys = (
+            "service_id",
+            "service_name",
+            "target_service_id",
+            "target_service",
+            "resolved_service_id",
+            "resolved_service_name",
+            "workflow_id",
+            "booking_sub_category",
+            "sub_category",
+            "ticket_category",
+            "ticket_sub_category",
+            "ticket_priority",
+            "ticket_issue",
+            "ticket_reason",
+            "requires_ticket",
+        )
+        for key in top_level_entity_keys:
+            value = llm_output.get(key)
+            if value in (None, ""):
+                continue
+            entities.setdefault(key, value)
+
         pending_updates = llm_output.get("pending_data_updates")
         if isinstance(pending_updates, dict):
             for key, value in pending_updates.items():
@@ -4558,10 +5345,16 @@ class ChatService:
         context: ConversationContext,
         latest_user_message: str,
         llm_response_text: str = "",
-        max_messages: int = 10,
+        max_messages: int = 14,
+        max_chars: int = 6000,
     ) -> str:
         lines: list[str] = []
-        for msg in context.get_recent_messages(max_messages):
+        history_messages = (
+            context.messages
+            if max_messages <= 0
+            else context.get_recent_messages(max_messages)
+        )
+        for msg in history_messages:
             role = "User" if msg.role == MessageRole.USER else "Assistant"
             content = str(msg.content or "").strip()
             if not content:
@@ -4576,9 +5369,818 @@ class ChatService:
             lines.append(f"Assistant Draft: {assistant_text}")
 
         joined = "\n".join(lines).strip()
-        if len(joined) <= 1800:
+        limit = max(1200, int(max_chars or 6000))
+        if len(joined) <= limit:
             return joined
-        return joined[-1800:]
+        return joined[-limit:]
+
+    @staticmethod
+    def _resolve_history_window(context: ConversationContext) -> int:
+        """
+        Use full available session history for agent calls, bounded by the
+        configured maximum conversation history.
+        """
+        configured_max = max(6, int(getattr(settings, "max_conversation_history", 20) or 20))
+        available = len(context.messages or [])
+        if available <= 0:
+            return configured_max
+        return min(available, configured_max)
+
+    @staticmethod
+    def _normalize_multi_ask_query_text(value: Any) -> str:
+        return re.sub(r"\s+", " ", str(value or "").strip())
+
+    @staticmethod
+    def _response_sentence_key(value: str) -> str:
+        text = re.sub(r"\s+", " ", str(value or "").strip().lower())
+        return text.strip(" .,!?:;\"'")
+
+    @classmethod
+    def _dedupe_response_sentences(cls, response_text: str) -> str:
+        text = str(response_text or "").strip()
+        if not text:
+            return ""
+
+        normalized = re.sub(r"\r\n?", "\n", text).strip()
+        if not normalized:
+            return ""
+
+        lines = [line.strip() for line in normalized.split("\n") if line.strip()]
+        if not lines:
+            return ""
+
+        seen: set[str] = set()
+        compact_lines: list[str] = []
+        for line in lines:
+            if re.match(r"^\d+\.\s+", line) or line.startswith("- "):
+                key = cls._response_sentence_key(line)
+                if key and key in seen:
+                    continue
+                if key:
+                    seen.add(key)
+                compact_lines.append(line)
+                continue
+
+            fragments = re.split(r"(?<=[.!?])\s+", line)
+            kept: list[str] = []
+            for fragment in fragments:
+                sentence = cls._normalize_multi_ask_query_text(fragment)
+                if len(sentence) < 2:
+                    continue
+                key = cls._response_sentence_key(sentence)
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                kept.append(sentence)
+            if kept:
+                compact_lines.append(" ".join(kept))
+
+        cleaned = "\n".join(compact_lines).strip()
+        if cleaned:
+            return cleaned
+        return cls._normalize_multi_ask_query_text(normalized)
+
+    @classmethod
+    def _split_stacked_multi_ask_part(cls, part: str) -> list[str]:
+        text = cls._normalize_multi_ask_query_text(part)
+        if not text:
+            return []
+
+        markers = list(
+            re.finditer(r"\b(?:what|when|where|which|who|how|is|are|do|can|will)\b", text, flags=re.IGNORECASE)
+        )
+        if len(markers) <= 1:
+            return [text]
+
+        stop_prev_tokens = {
+            "i",
+            "you",
+            "u",
+            "me",
+            "to",
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "if",
+            "please",
+            "tell",
+            "show",
+            "explain",
+            "know",
+            "need",
+            "want",
+            "can",
+            "do",
+            "is",
+            "are",
+            "will",
+        }
+        split_points = [0]
+        for marker in markers[1:]:
+            prefix_tokens = re.findall(r"[a-z0-9']+", text[: marker.start()].lower())
+            if len(prefix_tokens) < 4:
+                continue
+            prev_token = prefix_tokens[-1]
+            if len(prev_token) < 3 or prev_token in stop_prev_tokens:
+                continue
+            split_points.append(marker.start())
+
+        if len(split_points) == 1:
+            return [text]
+
+        split_points.append(len(text))
+        chunks: list[str] = []
+        for idx in range(len(split_points) - 1):
+            chunk = cls._normalize_multi_ask_query_text(text[split_points[idx] : split_points[idx + 1]])
+            if chunk:
+                chunks.append(chunk)
+        return chunks or [text]
+
+    @classmethod
+    def _fallback_split_multi_ask_queries(cls, message: str, max_items: int) -> list[str]:
+        text = cls._normalize_multi_ask_query_text(message)
+        if not text:
+            return []
+
+        parts = re.split(
+            r"[?.!]+\s+|[;]+\s+|,\s+(?=(?:what|when|where|which|who|how|is|are|do|can|will|please|also)\b)|\s+(?:and|also|plus|then)\s+",
+            text,
+            flags=re.IGNORECASE,
+        )
+        expanded_parts: list[str] = []
+        for part in parts:
+            expanded_parts.extend(cls._split_stacked_multi_ask_part(part))
+
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for part in expanded_parts:
+            query = cls._normalize_multi_ask_query_text(part)
+            if len(query) < 3:
+                continue
+            if len(re.findall(r"[a-z0-9]+", query.lower())) < 2:
+                continue
+            key = query.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            cleaned.append(query)
+            if len(cleaned) >= max_items:
+                break
+        return cleaned
+
+    async def _decompose_multi_ask_queries(
+        self,
+        message: str,
+        *,
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
+    ) -> list[str]:
+        normalized_message = self._normalize_multi_ask_query_text(message)
+        if not normalized_message:
+            return []
+
+        min_items = max(2, int(getattr(settings, "chat_multi_ask_min_items", 2) or 2))
+        max_items = max(min_items, int(getattr(settings, "chat_multi_ask_max_items", 6) or 6))
+        max_items = min(max_items, 12)
+
+        if str(getattr(settings, "openai_api_key", "") or "").strip():
+            decompose_model = str(getattr(settings, "chat_multi_ask_decompose_model", "") or "").strip() or None
+            phase_label = str(selected_phase_name or "").strip() or (
+                str(selected_phase_id or "").replace("_", " ").title()
+            )
+            phase_id = str(selected_phase_id or "").strip() or "unknown"
+            prompt = (
+                "You are a query decomposition assistant.\n"
+                "Task: decide if the user message contains multiple independent asks.\n"
+                f"Selected user journey phase: {phase_label} ({phase_id}).\n"
+                "Return strict JSON with keys:\n"
+                "is_multi_ask: boolean\n"
+                "sub_requests: array of rewritten standalone asks preserving original meaning.\n"
+                "Rules:\n"
+                "- Keep wording concise and faithful.\n"
+                "- Do not add/remove asks.\n"
+                "- If single ask, return is_multi_ask=false and sub_requests as empty array.\n"
+                f"- Output at most {max_items} sub_requests."
+            )
+            try:
+                parsed = await llm_client.chat_with_json(
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": normalized_message},
+                    ],
+                    model=decompose_model,
+                    temperature=0.0,
+                )
+            except Exception:
+                parsed = {}
+
+            llm_multi = self._coerce_optional_bool(
+                parsed.get("is_multi_ask") if isinstance(parsed, dict) else None
+            )
+            raw_items = []
+            if isinstance(parsed, dict):
+                raw_items = parsed.get("sub_requests", [])
+            if not isinstance(raw_items, list):
+                raw_items = []
+
+            llm_queries: list[str] = []
+            seen_queries: set[str] = set()
+            for item in raw_items:
+                query = self._normalize_multi_ask_query_text(item)
+                if len(query) < 3:
+                    continue
+                key = query.lower()
+                if key in seen_queries:
+                    continue
+                seen_queries.add(key)
+                llm_queries.append(query)
+                if len(llm_queries) >= max_items:
+                    break
+
+            if llm_multi is True and len(llm_queries) >= min_items:
+                return llm_queries
+            if len(llm_queries) >= min_items:
+                return llm_queries
+
+        fallback = self._fallback_split_multi_ask_queries(normalized_message, max_items)
+        if len(fallback) >= min_items:
+            return fallback
+        return []
+
+    @staticmethod
+    def _build_multi_ask_fallback_response(sub_results: list[dict[str, Any]]) -> str:
+        lines: list[str] = []
+        for index, row in enumerate(sub_results, start=1):
+            response_text = str(row.get("response_text") or "").strip()
+            if not response_text:
+                continue
+            lines.append(f"{index}. {response_text}")
+        if not lines:
+            return (
+                "I could not find this in the current knowledge base for this property. "
+                "If you want, I can connect you with our team."
+            )
+        return "\n".join(lines)
+
+    async def _compose_multi_ask_response_with_llm(
+        self,
+        *,
+        original_message: str,
+        sub_results: list[dict[str, Any]],
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
+    ) -> str:
+        fallback = self._build_multi_ask_fallback_response(sub_results)
+        if not str(getattr(settings, "openai_api_key", "") or "").strip():
+            return fallback
+
+        compose_model = str(getattr(settings, "chat_multi_ask_compose_model", "") or "").strip() or None
+        evidence_lines: list[str] = []
+        for index, row in enumerate(sub_results, start=1):
+            question = str(row.get("query") or "").strip()
+            answer = str(row.get("response_text") or "").strip()
+            if not question and not answer:
+                continue
+            evidence_lines.append(f"Q{index}: {question}")
+            evidence_lines.append(f"A{index}: {answer}")
+        evidence_blob = "\n".join(evidence_lines).strip()
+        if not evidence_blob:
+            return fallback
+
+        phase_label = str(selected_phase_name or "").strip() or (
+            str(selected_phase_id or "").replace("_", " ").title()
+        )
+        phase_id = str(selected_phase_id or "").strip() or "unknown"
+        prompt = (
+            "You are a response composer.\n"
+            "Compose one final assistant reply from the provided sub-answer evidence.\n"
+            f"Selected user journey phase: {phase_label} ({phase_id}).\n"
+            "Rules:\n"
+            "- Use only provided evidence; do not add new facts.\n"
+            "- Cover each answered sub-question.\n"
+            "- Keep tone concise and service-assistant friendly.\n"
+            "- If evidence conflicts, prefer safer and more restrictive statements.\n"
+            "- Return plain text only."
+        )
+        try:
+            rendered = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Original user message:\n{original_message}\n\n"
+                            f"Sub-answer evidence:\n{evidence_blob}"
+                        ),
+                    },
+                ],
+                model=compose_model,
+                temperature=0.1,
+                max_tokens=380,
+            )
+        except Exception:
+            rendered = ""
+
+        candidate = self._normalize_multi_ask_query_text(rendered).strip()
+        if not candidate:
+            return fallback
+        if len(candidate) < 12:
+            return fallback
+        return candidate
+
+    async def _run_multi_ask_kb_answer(
+        self,
+        *,
+        message: str,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        db_session=None,
+    ) -> str:
+        forced_intent = IntentResult(
+            intent=IntentType.FAQ,
+            confidence=1.0,
+            entities={"forced_mode": "multi_ask_subquery"},
+        )
+        sub_context = context.model_copy(deep=True)
+        internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        sub_context.state = ConversationState.IDLE
+        sub_context.pending_action = None
+        sub_context.pending_data = conversation_memory_service.merge_with_internal(
+            {},
+            internal_pending_entries,
+        )
+        sub_context.pending_data.pop("_clarification_attempts", None)
+
+        try:
+            handler_result = await handler_registry.dispatch(
+                forced_intent,
+                message,
+                sub_context,
+                capabilities_summary,
+                db_session,
+            )
+        except Exception:
+            handler_result = None
+        if handler_result is None:
+            return ""
+        return str(handler_result.response_text or "").strip()
+
+    async def _run_multi_ask_subquery_agent(
+        self,
+        *,
+        query: str,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        llm_context: dict[str, Any],
+        history_window: int,
+        db_session=None,
+    ) -> dict[str, Any]:
+        normalized_query = self._normalize_multi_ask_query_text(query)
+        if not normalized_query:
+            return {
+                "query": "",
+                "response_text": "",
+                "response_source": "multi_ask_empty_query",
+                "intent": IntentType.UNCLEAR.value,
+                "confidence": 0.0,
+                "entities": {},
+                "ticketing": {},
+            }
+
+        sub_llm_context = dict(llm_context)
+        sub_llm_context["state"] = ConversationState.IDLE.value
+        sub_llm_context["pending_action"] = None
+        sub_llm_context["pending_data"] = {}
+        intent_result = await self._classify_intent(
+            normalized_query,
+            context.to_llm_messages(count=history_window),
+            sub_llm_context,
+        )
+
+        phase_gate = self._detect_ticketing_phase_service_mismatch(
+            message=normalized_query,
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
+        )
+        if phase_gate is None:
+            phase_gate = self._detect_phase_service_unavailable_for_intent(
+                message=normalized_query,
+                intent=intent_result.intent,
+                context=context,
+                pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
+            )
+
+        if phase_gate is not None:
+            response_text = str(phase_gate.get("response_text") or "").strip() or (
+                "This service is not available in the current phase."
+            )
+            response_source = "multi_ask_phase_gate"
+        else:
+            intent_enabled_check = self._check_intent_enabled(intent_result.intent)
+            capability_check = (
+                intent_enabled_check
+                if not intent_enabled_check.allowed
+                else self._check_capability_for_intent(
+                    context.hotel_code,
+                    intent_result,
+                    normalized_query,
+                )
+            )
+            if not capability_check.allowed:
+                response_text = self._build_capability_denial_response(capability_check)
+                response_source = "multi_ask_capability_denial"
+            else:
+                sub_context = context.model_copy(deep=True)
+                internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+                sub_context.state = ConversationState.IDLE
+                sub_context.pending_action = None
+                sub_context.pending_data = conversation_memory_service.merge_with_internal(
+                    {},
+                    internal_pending_entries,
+                )
+                sub_context.pending_data.pop("_clarification_attempts", None)
+
+                identity_match = self._match_identity_response(
+                    normalized_query,
+                    capabilities_summary,
+                    sub_context,
+                )
+                if identity_match is not None:
+                    response_text = str(identity_match.get("response_text") or "").strip()
+                    response_source = "multi_ask_identity_shortcut"
+                else:
+                    service_overview = self._match_service_overview_response(
+                        normalized_query,
+                        capabilities_summary,
+                        sub_context,
+                    )
+                    if service_overview is not None:
+                        response_text = str(service_overview.get("response_text") or "").strip()
+                        response_source = "multi_ask_service_overview_shortcut"
+                    else:
+                        faq_match = self._match_faq_bank_answer(normalized_query, sub_context)
+                        if faq_match is not None:
+                            response_text = str(faq_match.get("answer") or "").strip()
+                            description = str(faq_match.get("description") or "").strip()
+                            if description:
+                                response_text = f"{response_text}\n\n{description}"
+                            response_source = "multi_ask_faq_bank_shortcut"
+                        else:
+                            service_match = self._match_service_information_response(
+                                normalized_query,
+                                sub_context,
+                                capabilities_summary,
+                            )
+                            if service_match is not None:
+                                response_text = str(service_match.get("response_text") or "").strip()
+                                response_source = "multi_ask_service_catalog_shortcut"
+                            else:
+                                kb_answer = await self._run_multi_ask_kb_answer(
+                                    message=normalized_query,
+                                    context=sub_context,
+                                    capabilities_summary=capabilities_summary,
+                                    db_session=db_session,
+                                )
+                                if kb_answer:
+                                    response_text = kb_answer
+                                    response_source = "multi_ask_kb_handler"
+                                else:
+                                    response_text = (
+                                        "I could not find this in the current knowledge base for this property. "
+                                        "If you want, I can connect you with our team."
+                                    )
+                                    response_source = "multi_ask_kb_miss"
+
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
+
+        ticketing_status = await self._evaluate_ticketing_status_for_turn(
+            message=normalized_query,
+            context=context,
+            intent=intent_result.intent,
+            response_text=response_text,
+            current_pending_action=context.pending_action,
+            pending_action_target=None,
+            capabilities_summary=capabilities_summary,
+        )
+
+        return {
+            "query": normalized_query,
+            "response_text": response_text,
+            "response_source": response_source,
+            "intent": intent_result.intent.value,
+            "confidence": float(intent_result.confidence),
+            "entities": intent_result.entities if isinstance(intent_result.entities, dict) else {},
+            "ticketing": ticketing_status,
+        }
+
+    async def _maybe_handle_multi_ask_message(
+        self,
+        *,
+        request: ChatRequest,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        routing_decision: Any,
+        memory_snapshot: dict[str, Any],
+        history_window: int,
+        db_session=None,
+    ) -> ChatResponse | None:
+        if not bool(getattr(settings, "chat_multi_ask_orchestration_enabled", True)):
+            return None
+        if context.pending_action:
+            return None
+        if context.state not in {ConversationState.IDLE, ConversationState.COMPLETED, ConversationState.ESCALATED}:
+            return None
+
+        effective_user_message = self._normalize_multi_ask_query_text(request.message)
+        if not effective_user_message:
+            return None
+        if context.state == ConversationState.ESCALATED and self._is_return_to_bot_request(effective_user_message):
+            return None
+
+        msg_lower = effective_user_message.lower()
+        if len(re.findall(r"[a-z0-9]+", msg_lower)) < 8:
+            return None
+        if not any(marker in msg_lower for marker in (" and ", ",", " also ", " plus ", " then ", "?", " & ")):
+            return None
+
+        selected_phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+
+        sub_queries = await self._decompose_multi_ask_queries(
+            effective_user_message,
+            selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+            selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
+        )
+        min_items = max(2, int(getattr(settings, "chat_multi_ask_min_items", 2) or 2))
+        if len(sub_queries) < min_items:
+            return None
+
+        llm_context = {
+            "hotel_code": context.hotel_code,
+            "hotel_name": capabilities_summary.get("hotel_name", context.hotel_code),
+            "bot_name": capabilities_summary.get("bot_name", "Assistant"),
+            "business_type": capabilities_summary.get("business_type", "hotel"),
+            "selected_phase_id": selected_phase_context.get("selected_phase_id", ""),
+            "selected_phase_name": selected_phase_context.get("selected_phase_name", ""),
+            "enabled_intents": [
+                intent.get("id")
+                for intent in capabilities_summary.get("intents", [])
+                if intent.get("enabled", False)
+            ],
+            "city": capabilities_summary.get("city", ""),
+            "guest_name": context.guest_name or "Guest",
+            "room_number": context.room_number,
+            "state": context.state.value,
+            "pending_action": context.pending_action,
+            "pending_data": context.pending_data,
+            "channel": context.channel,
+            "capabilities": capabilities_summary,
+            "intent_catalog": capabilities_summary.get("intents", []),
+            "service_catalog": capabilities_summary.get("service_catalog", []),
+            "faq_bank": capabilities_summary.get("faq_bank", []),
+            "tools": capabilities_summary.get("tools", []),
+            "nlu_policy": capabilities_summary.get("nlu_policy", {}),
+            "prompts": capabilities_summary.get("prompts", {}),
+            "conversation_summary": memory_snapshot.get("summary", ""),
+            "memory_facts": memory_snapshot.get("facts", {}),
+            "memory_recent_changes": memory_snapshot.get("recent_changes", []),
+        }
+
+        sub_results: list[dict[str, Any]] = []
+        for query in sub_queries:
+            sub_result = await self._run_multi_ask_subquery_agent(
+                query=query,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                llm_context=llm_context,
+                history_window=history_window,
+                db_session=db_session,
+            )
+            sub_results.append(sub_result)
+
+        if not sub_results:
+            return None
+
+        response_text = await self._compose_multi_ask_response_with_llm(
+            original_message=effective_user_message,
+            sub_results=sub_results,
+            selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+            selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
+        )
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
+
+        internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        context.pending_action = None
+        context.pending_data = conversation_memory_service.merge_with_internal(
+            {},
+            internal_pending_entries,
+        )
+        context.pending_data.pop("_clarification_attempts", None)
+        context.state = ConversationState.IDLE
+
+        ticketing_statuses = [
+            item.get("ticketing")
+            for item in sub_results
+            if isinstance(item.get("ticketing"), dict)
+        ]
+        ticketing_required = any(
+            bool(status.get("ticketing_required"))
+            for status in ticketing_statuses
+        )
+        ticketing_create_allowed = any(
+            bool(status.get("ticketing_create_allowed"))
+            for status in ticketing_statuses
+        )
+
+        assistant_metadata = {
+            "intent": IntentType.FAQ.value,
+            "confidence": 0.9,
+            "channel": context.channel,
+            "response_source": "multi_ask_orchestrator",
+            "multi_ask_orchestrated": True,
+            "multi_ask_sub_count": len(sub_results),
+            "ticketing_required": ticketing_required,
+            "ticketing_create_allowed": ticketing_create_allowed,
+        }
+        context.add_message(
+            MessageRole.ASSISTANT,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        conversation_memory_service.capture_assistant_message(
+            context,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        await conversation_memory_service.maybe_refresh_summary(context)
+        await context_manager.save_context(context, db_session=db_session)
+        memory_snapshot = conversation_memory_service.get_snapshot(context)
+
+        suggested_actions = self._finalize_user_query_suggestions(
+            self._get_suggested_actions(
+                ConversationState.IDLE,
+                IntentType.FAQ,
+                capabilities_summary,
+            ),
+            state=ConversationState.IDLE,
+            intent=IntentType.FAQ,
+            pending_action=context.pending_action,
+            pending_data=context.pending_data,
+            capabilities_summary=capabilities_summary,
+        )
+
+        metadata = {
+            "message_count": len(context.messages),
+            "entities": {"multi_ask_queries": [item.get("query") for item in sub_results]},
+            "classified_intent": IntentType.FAQ.value,
+            "classified_confidence": 0.9,
+            "routing_path": getattr(getattr(routing_decision, "path", ProcessingPath.COMPLEX), "value", "complex"),
+            "routing_score": float(getattr(routing_decision, "score", 0.0)),
+            "routing_signals": list(getattr(routing_decision, "signals", [])),
+            "response_source": "multi_ask_orchestrator",
+            "multi_ask_orchestrated": True,
+            "multi_ask_sub_count": len(sub_results),
+            "multi_ask_sub_results": sub_results,
+            "ticketing_status_checked": True,
+            "ticketing_required": ticketing_required,
+            "ticketing_create_allowed": ticketing_create_allowed,
+            "ticketing_statuses": ticketing_statuses,
+            "memory_summary": memory_snapshot.get("summary", ""),
+            "memory_facts": memory_snapshot.get("facts", {}),
+            "memory_recent_changes": memory_snapshot.get("recent_changes", []),
+        }
+        return ChatResponse(
+            session_id=request.session_id,
+            message=response_text,
+            intent=IntentType.FAQ,
+            confidence=0.9,
+            state=ConversationState.IDLE,
+            suggested_actions=suggested_actions,
+            metadata=metadata,
+        )
+
+    async def _evaluate_ticketing_status_for_turn(
+        self,
+        *,
+        message: str,
+        context: ConversationContext,
+        intent: IntentType,
+        response_text: str = "",
+        current_pending_action: str | None = None,
+        pending_action_target: str | None = None,
+        capabilities_summary: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        normalized_message = self._normalize_multi_ask_query_text(message)
+        ticketing_plugin_enabled = bool(self._is_ticketing_plugin_enabled())
+        ticketing_service_enabled = bool(ticketing_service.is_ticketing_enabled(capabilities_summary))
+
+        base_status = {
+            "ticketing_status_checked": bool(normalized_message),
+            "ticketing_plugin_enabled": ticketing_plugin_enabled,
+            "ticketing_service_enabled": ticketing_service_enabled,
+            "ticketing_required": False,
+            "ticketing_create_allowed": False,
+            "ticketing_route": "none",
+            "ticketing_reason": "",
+            "ticketing_source": "",
+            "ticketing_matched_case": "",
+            "ticketing_skip_reason": "",
+        }
+        if not normalized_message:
+            return base_status
+
+        try:
+            phase_context = self._get_selected_phase_context(
+                context=context,
+                pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                entities={},
+            )
+            decision = await ticketing_agent_service.decide_async(
+                intent=intent,
+                message=normalized_message,
+                llm_response_text=str(response_text or ""),
+                llm_ticketing_preference=None,
+                current_pending_action=current_pending_action,
+                pending_action_target=pending_action_target,
+                selected_phase_id=phase_context.get("selected_phase_id", ""),
+                selected_phase_name=phase_context.get("selected_phase_name", ""),
+                conversation_excerpt=self._build_ticketing_case_context_text(
+                    context=context,
+                    latest_user_message=normalized_message,
+                    llm_response_text=response_text,
+                ),
+            )
+        except Exception as exc:
+            status = dict(base_status)
+            status["ticketing_status_checked"] = False
+            status["ticketing_skip_reason"] = f"ticketing_decision_error:{exc}"
+            return status
+
+        status = dict(base_status)
+        status["ticketing_required"] = bool(getattr(decision, "activate", False))
+        status["ticketing_route"] = str(getattr(decision, "route", "") or "none")
+        status["ticketing_reason"] = str(getattr(decision, "reason", "") or "")
+        status["ticketing_source"] = str(getattr(decision, "source", "") or "")
+        status["ticketing_matched_case"] = str(getattr(decision, "matched_case", "") or "")
+
+        if not status["ticketing_required"]:
+            return status
+        if not ticketing_plugin_enabled:
+            status["ticketing_skip_reason"] = "ticketing_plugin_disabled"
+            return status
+        if not ticketing_service_enabled:
+            status["ticketing_skip_reason"] = "ticketing_service_disabled"
+            return status
+
+        phase_gate = self._detect_ticketing_phase_service_mismatch(
+            message=normalized_message,
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        if phase_gate is None:
+            phase_gate = self._detect_phase_service_unavailable_for_intent(
+                message=normalized_message,
+                intent=intent,
+                context=context,
+                pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                entities={},
+            )
+        if phase_gate is not None:
+            status["ticketing_skip_reason"] = (
+                "phase_service_unavailable"
+                if bool(phase_gate.get("phase_service_unavailable"))
+                else "phase_service_mismatch"
+            )
+            status["phase_gate_service_id"] = str(phase_gate.get("service_id") or "")
+            status["phase_gate_service_name"] = str(phase_gate.get("service_name") or "")
+            status["phase_gate_current_phase_id"] = str(phase_gate.get("current_phase_id") or "")
+            status["phase_gate_service_phase_id"] = str(phase_gate.get("service_phase_id") or "")
+            return status
+
+        ticketing_toggle_gate = self._detect_ticketing_phase_service_ticketing_disabled(
+            message=normalized_message,
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        if ticketing_toggle_gate is not None:
+            status["ticketing_skip_reason"] = "phase_service_ticketing_disabled"
+            status["phase_gate_service_id"] = str(ticketing_toggle_gate.get("service_id") or "")
+            status["phase_gate_service_name"] = str(ticketing_toggle_gate.get("service_name") or "")
+            status["phase_gate_current_phase_id"] = str(ticketing_toggle_gate.get("current_phase_id") or "")
+            status["phase_gate_service_phase_id"] = str(ticketing_toggle_gate.get("service_phase_id") or "")
+            return status
+
+        status["ticketing_create_allowed"] = True
+        return status
 
     @staticmethod
     def _looks_like_operational_issue_for_ticketing(msg_lower: str) -> bool:
@@ -4607,13 +6209,7 @@ class ChatService:
             "wrong charge",
             "refund",
         )
-        request_markers = (
-            "i need",
-            "need ",
-            "please send",
-            "send ",
-            "bring ",
-            "arrange ",
+        operational_request_nouns = (
             "towel",
             "blanket",
             "pillow",
@@ -4626,9 +6222,23 @@ class ChatService:
             "maintenance",
             "room service",
         )
+        request_verbs = (
+            "i need",
+            "need ",
+            "please send",
+            "send ",
+            "bring ",
+            "arrange ",
+            "require ",
+            "please arrange",
+        )
         if any(marker in text for marker in complaint_markers):
             return True
-        if any(marker in text for marker in request_markers):
+        if "room service" in text:
+            return True
+        if any(noun in text for noun in operational_request_nouns) and any(
+            verb in text for verb in request_verbs
+        ):
             return True
         return False
 
@@ -5123,6 +6733,48 @@ class ChatService:
             summary = f"{quantity_text} x {item_name}"
         return f"Please review your order: {summary}. Would you like to confirm this order?"
 
+    def _build_room_booking_review_prompt(self, pending_data: dict[str, Any]) -> str:
+        pending = pending_data if isinstance(pending_data, dict) else {}
+        room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_name"),
+            pending.get("service_name"),
+            "your selected room",
+        )
+        if room_type and self._is_generic_room_reference(room_type):
+            room_type = "your selected room"
+        check_in = self._first_non_empty(
+            pending.get("check_in"),
+            pending.get("stay_checkin_date"),
+            pending.get("checkin_date"),
+        )
+        check_out = self._first_non_empty(
+            pending.get("check_out"),
+            pending.get("stay_checkout_date"),
+            pending.get("checkout_date"),
+        )
+        guests = self._first_non_empty(
+            pending.get("guest_count"),
+            pending.get("party_size"),
+            pending.get("guests"),
+        )
+
+        parts: list[str] = [room_type]
+        if check_in and check_out:
+            parts.append(f"from {check_in} to {check_out}")
+        elif self._first_non_empty(pending.get("stay_date_range")):
+            parts.append(f"for {self._first_non_empty(pending.get('stay_date_range'))}")
+        if guests:
+            parts.append(f"for {guests} guests")
+
+        summary = " ".join(part for part in parts if str(part or "").strip()).strip()
+        if not summary:
+            summary = "your room booking request"
+        return (
+            f"Please review your room booking request: {summary}. "
+            "Would you like to confirm this booking?"
+        )
+
     @staticmethod
     def _is_order_options_followup(
         message: str,
@@ -5197,6 +6849,8 @@ class ChatService:
         capabilities_summary: dict[str, Any],
         db_session=None,
         hotel_code: str | None = None,
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
     ) -> Optional[str]:
         hint = re.sub(r"\s+", " ", str(category_hint or "").strip().lower())
         hint = re.sub(r"^(?:a|an|the)\s+", "", hint).strip(" .")
@@ -5281,6 +6935,10 @@ class ChatService:
             tenant_id = str(hotel_code or "default").strip() or "default"
             kb_text, _ = full_kb_llm_service._load_full_kb_text(tenant_id=tenant_id)
             if kb_text:
+                phase_label = str(selected_phase_name or "").strip() or (
+                    str(selected_phase_id or "").replace("_", " ").title()
+                )
+                phase_id = str(selected_phase_id or "").strip() or "unknown"
                 llm_json: dict[str, Any] = {}
                 try:
                     llm_json = await llm_client.chat_with_json(
@@ -5289,6 +6947,7 @@ class ChatService:
                                 "role": "system",
                                 "content": (
                                     "Extract menu options strictly from KB content.\n"
+                                    f"Selected user journey phase: {phase_label} ({phase_id}).\n"
                                     "Return complete options for the requested category.\n"
                                     "Include items where category is explicit or clearly implied by item/description/section.\n"
                                     "No invented items. Return only JSON: "
@@ -5383,10 +7042,24 @@ class ChatService:
         pending = pending_data if isinstance(pending_data, dict) else {}
         facts = memory_facts if isinstance(memory_facts, dict) else {}
 
+        room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_name"),
+            pending.get("selected_room_type"),
+            facts.get("room_type"),
+            facts.get("room_name"),
+            facts.get("selected_room_type"),
+        )
+        if room_type and self._is_generic_room_reference(room_type):
+            room_type = ""
+
         party_size = self._first_non_empty(
             pending.get("party_size"),
+            pending.get("guest_count"),
             pending.get("guests"),
             facts.get("party_size"),
+            facts.get("guest_count"),
+            facts.get("guests"),
         )
         checkin_date = self._first_non_empty(
             pending.get("stay_checkin_date"),
@@ -5412,6 +7085,8 @@ class ChatService:
         )
 
         missing: list[str] = []
+        if not room_type:
+            missing.append("room_type")
         if not party_size:
             missing.append("guest_count")
         if not checkin_date and not date_range:
@@ -5429,13 +7104,31 @@ class ChatService:
             pending_data.get("room_type"),
             pending_data.get("room_name"),
         )
+        if room_type and self._is_generic_room_reference(room_type):
+            room_type = ""
         parts: list[str] = []
+        requested_room_type = self._first_non_empty(
+            pending_data.get("requested_room_type"),
+        )
+        room_type_candidates_raw = pending_data.get("room_type_candidates")
+        room_type_candidates = [
+            str(candidate or "").strip()
+            for candidate in (room_type_candidates_raw if isinstance(room_type_candidates_raw, list) else [])
+            if str(candidate or "").strip()
+        ]
+        if "room_type" in missing_fields and requested_room_type and room_type_candidates:
+            options = ", ".join(room_type_candidates[:8])
+            parts.append(
+                f'I could not match "{requested_room_type}" to our available room types ({options}).'
+            )
         if room_type:
             parts.append(f"I can proceed with {room_type}.")
         else:
             parts.append("I can help with your room booking.")
 
         asks: list[str] = []
+        if "room_type" in missing_fields:
+            asks.append("preferred room type")
         if "guest_count" in missing_fields:
             asks.append("number of guests")
         if "checkin_date" in missing_fields:
@@ -5464,6 +7157,38 @@ class ChatService:
             "is it available",
         )
         return any(marker in msg for marker in markers)
+
+    @staticmethod
+    def _looks_like_room_options_information_query(message: str) -> bool:
+        msg = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        if not msg:
+            return False
+        room_markers = (
+            "room",
+            "rooms",
+            "room type",
+            "room types",
+            "suite",
+            "suites",
+            "stay options",
+        )
+        info_markers = (
+            "what",
+            "which",
+            "show",
+            "list",
+            "options",
+            "types",
+            "available",
+            "have",
+            "details",
+            "tell me about",
+        )
+        if not any(marker in msg for marker in room_markers):
+            return False
+        if "?" in msg:
+            return True
+        return any(marker in msg for marker in info_markers)
 
     @staticmethod
     def _is_room_choice_loop_response(response_text: str) -> bool:
@@ -5520,6 +7245,7 @@ class ChatService:
         state: ConversationState,
         pending_data: dict[str, Any],
         memory_facts: dict[str, Any],
+        conversation_context: ConversationContext | None = None,
     ) -> dict[str, Any]:
         """
         Deterministically extract room-booking slot updates from compact user
@@ -5639,7 +7365,416 @@ class ChatService:
                 except (TypeError, ValueError):
                     pass
 
+        persisted_candidates_raw = pending.get("room_type_candidates")
+        persisted_candidates = [
+            str(candidate or "").strip()
+            for candidate in (persisted_candidates_raw if isinstance(persisted_candidates_raw, list) else [])
+            if str(candidate or "").strip()
+        ]
+        room_candidates = self._merge_room_type_candidates(
+            persisted_candidates,
+            self._extract_room_type_candidates_from_context_messages(conversation_context),
+        )
+        if room_candidates:
+            updates["room_type_candidates"] = room_candidates
+        matched_room = self._match_room_type_candidate_from_message(msg_lower, room_candidates)
+        if matched_room:
+            updates["room_type"] = matched_room
+
+        if "room_type" not in updates:
+            compact_msg = re.sub(r"[^a-z0-9 ]+", " ", msg_lower)
+            cheapest_markers = ("cheapest", "lowest", "affordable", "budget", "least expensive")
+            luxury_markers = ("luxury", "luxurious", "premium", "best room", "most luxurious")
+            preference = ""
+            if any(marker in compact_msg for marker in cheapest_markers):
+                preference = "cheapest"
+            elif any(marker in compact_msg for marker in luxury_markers):
+                preference = "luxury"
+            if preference:
+                updates["room_type_preference"] = preference
+                inferred_from_context = self._select_room_type_from_preference(preference, room_candidates)
+                if inferred_from_context:
+                    updates["room_type"] = inferred_from_context
+
         return updates
+
+    @staticmethod
+    def _match_room_type_candidate_from_message(msg_lower: str, candidates: list[str]) -> str:
+        text = str(msg_lower or "").strip().lower()
+        if not text:
+            return ""
+        for candidate in candidates:
+            cand_lower = str(candidate or "").strip().lower()
+            if not cand_lower:
+                continue
+            if cand_lower in text:
+                return candidate
+            ratio = SequenceMatcher(a=text, b=cand_lower).ratio()
+            if ratio >= 0.72:
+                return candidate
+        return ""
+
+    @staticmethod
+    def _normalize_room_type_label(value: str) -> str:
+        text = str(value or "").strip().lower()
+        if not text:
+            return ""
+        text = re.sub(r"[^a-z0-9\s/&'-]+", " ", text)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text
+
+    @classmethod
+    def _room_type_tokens(cls, value: str) -> list[str]:
+        normalized = cls._normalize_room_type_label(value)
+        tokens = re.findall(r"[a-z0-9]+", normalized)
+        ignored = {
+            "room",
+            "rooms",
+            "suite",
+            "suites",
+            "villa",
+            "villas",
+            "residence",
+            "residences",
+            "the",
+            "a",
+            "an",
+        }
+        return [token for token in tokens if token not in ignored]
+
+    @classmethod
+    def _is_generic_room_reference(cls, value: str) -> bool:
+        normalized = cls._normalize_room_type_label(value)
+        if not normalized:
+            return True
+
+        tokens = re.findall(r"[a-z0-9]+", normalized)
+        if not tokens:
+            return True
+
+        accommodation_tokens = {
+            "room",
+            "rooms",
+            "suite",
+            "suites",
+            "villa",
+            "villas",
+            "residence",
+            "residences",
+        }
+        helper_tokens = {
+            "i",
+            "hotel",
+            "hotels",
+            "we",
+            "our",
+            "your",
+            "my",
+            "me",
+            "us",
+            "the",
+            "a",
+            "an",
+            "of",
+            "and",
+            "or",
+            "for",
+            "to",
+            "with",
+            "from",
+            "in",
+            "at",
+            "by",
+            "this",
+            "that",
+            "these",
+            "those",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "being",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "should",
+            "may",
+            "might",
+            "must",
+            "also",
+            "just",
+            "available",
+            "availability",
+            "offer",
+            "offers",
+            "offering",
+            "variety",
+            "type",
+            "types",
+            "option",
+            "options",
+            "booking",
+            "book",
+            "request",
+            "requested",
+            "selected",
+            "select",
+            "details",
+            "detail",
+            "help",
+            "proceed",
+            "share",
+            "provide",
+            "need",
+            "want",
+            "can",
+            "could",
+            "please",
+            "about",
+            "preferred",
+            "specific",
+            "any",
+            "more",
+            "here",
+            "there",
+            "are",
+            "each",
+            "on",
+            "if",
+            "you",
+            "like",
+            "let",
+            "know",
+            "which",
+            "what",
+            "show",
+            "list",
+            "tell",
+            "explore",
+        }
+        phrase_markers = (
+            "room booking",
+            "book a room",
+            "room request",
+            "selected room",
+            "room type",
+            "room types",
+            "room option",
+            "room options",
+            "variety of room",
+            "preferred room",
+            "specific room",
+            "here are the room",
+            "each room",
+        )
+        if any(marker in normalized for marker in phrase_markers):
+            return True
+
+        descriptor_tokens = [token for token in tokens if token not in accommodation_tokens]
+        if not descriptor_tokens:
+            return True
+
+        informative = [token for token in descriptor_tokens if token not in helper_tokens]
+        if not informative:
+            return True
+        if any(token in {"offer", "offers", "available", "availability", "variety", "booking"} for token in descriptor_tokens):
+            return len(informative) < 2
+        return False
+
+    @classmethod
+    def _resolve_room_type_candidate(cls, requested_label: str, candidates: list[str]) -> str:
+        requested_norm = cls._normalize_room_type_label(requested_label)
+        if not requested_norm or not candidates:
+            return ""
+
+        requested_tokens = set(cls._room_type_tokens(requested_norm))
+        best_match = ""
+        best_score = 0.0
+
+        for candidate in candidates:
+            candidate_text = str(candidate or "").strip()
+            if not candidate_text:
+                continue
+            candidate_norm = cls._normalize_room_type_label(candidate_text)
+            if not candidate_norm:
+                continue
+
+            if requested_norm == candidate_norm:
+                return candidate_text
+            if requested_norm in candidate_norm and len(requested_norm) >= max(6, int(len(candidate_norm) * 0.55)):
+                return candidate_text
+            if candidate_norm in requested_norm and len(candidate_norm) >= max(6, int(len(requested_norm) * 0.55)):
+                return candidate_text
+
+            ratio = SequenceMatcher(a=requested_norm, b=candidate_norm).ratio()
+            candidate_tokens = set(cls._room_type_tokens(candidate_norm))
+            if not requested_tokens:
+                requested_tokens = set(re.findall(r"[a-z0-9]+", requested_norm))
+            if not candidate_tokens:
+                candidate_tokens = set(re.findall(r"[a-z0-9]+", candidate_norm))
+            union = requested_tokens | candidate_tokens
+            overlap = (len(requested_tokens & candidate_tokens) / len(union)) if union else 0.0
+
+            score = 0.0
+            if overlap >= 0.8:
+                score = max(score, 0.84 + min(0.1, overlap * 0.1))
+            if overlap >= 0.6 and ratio >= 0.86:
+                score = max(score, ratio)
+            if ratio >= 0.9:
+                score = max(score, ratio)
+
+            if score > best_score:
+                best_score = score
+                best_match = candidate_text
+
+        return best_match if best_score >= 0.86 else ""
+
+    @classmethod
+    def _merge_room_type_candidates(cls, *candidate_groups: list[str]) -> list[str]:
+        merged: list[str] = []
+        seen: set[str] = set()
+        for group in candidate_groups:
+            if not isinstance(group, list):
+                continue
+            for raw in group:
+                candidate = str(raw or "").strip()
+                if not candidate:
+                    continue
+                if cls._is_generic_room_reference(candidate):
+                    continue
+                key = cls._normalize_room_type_label(candidate)
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                merged.append(candidate)
+        return merged
+
+    @classmethod
+    def _select_room_type_from_preference(cls, preference: str, candidates: list[str]) -> str:
+        if not candidates:
+            return ""
+        pref = str(preference or "").strip().lower()
+        valid_candidates = [
+            str(candidate or "").strip()
+            for candidate in candidates
+            if str(candidate or "").strip() and not cls._is_generic_room_reference(candidate)
+        ]
+        if not valid_candidates:
+            return ""
+        if pref == "cheapest":
+            return valid_candidates[0]
+        if pref == "luxury":
+            premium_candidates = [
+                candidate
+                for candidate in valid_candidates
+                if any(marker in cls._normalize_room_type_label(candidate) for marker in ("suite", "villa", "residence"))
+            ]
+            if premium_candidates:
+                return premium_candidates[-1]
+            return valid_candidates[-1]
+        return ""
+
+    def _extract_room_type_candidates_from_context_messages(
+        self,
+        conversation_context: ConversationContext | None,
+    ) -> list[str]:
+        if conversation_context is None:
+            return []
+
+        candidates: list[str] = []
+        seen: set[str] = set()
+        structured_pattern = re.compile(
+            r"\*\*(?P<label>[^*]{2,120}?(?:room|suite|villa|residence))\*\*",
+            re.IGNORECASE,
+        )
+        list_line_pattern = re.compile(
+            r"^\s*(?:[-*]|\d+[.)])\s*(?P<label>[a-z0-9&'/-][^:\n]{1,120}?(?:room|suite|villa|residence))\s*(?::|-|$)",
+            re.IGNORECASE | re.MULTILINE,
+        )
+        pattern = re.compile(
+            r"\b((?:[a-z0-9&'/-]+\s+){0,5}(?:room|suite|villa|residence))\b",
+            re.IGNORECASE,
+        )
+        blocked = {"room", "suite", "villa", "residence", "selected room"}
+
+        def _add_candidate(raw_candidate: str) -> None:
+            clean = re.sub(r"\s+", " ", str(raw_candidate or "").strip())
+            clean = clean.strip(" .,:;!?'\"")
+            clean = re.sub(
+                r"^(?:we\s+have|we\s+offer|we\s+offers|available|our|the|option|options)\s+",
+                "",
+                clean,
+                flags=re.IGNORECASE,
+            ).strip()
+            clean = re.sub(r"^(?:and)\s+", "", clean, flags=re.IGNORECASE).strip()
+            lower = clean.lower()
+            if not clean or lower in blocked:
+                return
+            token_count = len(re.findall(r"[a-z0-9]+", lower))
+            if token_count < 2 or token_count > 8:
+                return
+            if self._is_generic_room_reference(clean):
+                return
+            key = self._normalize_room_type_label(lower)
+            if not key or key in seen:
+                return
+            seen.add(key)
+            candidates.append(clean)
+
+        for msg in reversed(conversation_context.messages):
+            if msg.role != MessageRole.ASSISTANT:
+                continue
+            content = str(msg.content or "")
+            if not content:
+                continue
+            has_structured_candidates = False
+            structured_match_found = False
+            for match in structured_pattern.finditer(content):
+                structured_match_found = True
+                count_before = len(candidates)
+                _add_candidate(str(match.group("label") or ""))
+                if len(candidates) > count_before:
+                    has_structured_candidates = True
+            for match in list_line_pattern.finditer(content):
+                structured_match_found = True
+                count_before = len(candidates)
+                _add_candidate(str(match.group("label") or ""))
+                if len(candidates) > count_before:
+                    has_structured_candidates = True
+            # If a message already contains structured room labels, skip broad regex
+            # extraction for that message to avoid prompt-fragment candidates.
+            if not has_structured_candidates and not structured_match_found:
+                for raw_candidate in pattern.findall(content):
+                    _add_candidate(str(raw_candidate or ""))
+
+        # Keep latest-message ordering but remove overly broad catches.
+        filtered: list[str] = []
+        for candidate in candidates:
+            lower = candidate.lower()
+            if any(
+                marker in lower
+                for marker in (
+                    "room booking",
+                    "book a room",
+                    "room request",
+                    "selected room",
+                    "preferred room",
+                    "specific room",
+                    "each room",
+                    "here are the room",
+                    "help with your room",
+                )
+            ):
+                continue
+            filtered.append(candidate)
+        return filtered
 
     @staticmethod
     def _is_bot_instruction_style_action(action_text: str) -> bool:
@@ -5753,6 +7888,24 @@ class ChatService:
         ]
         if not phase_services:
             return True
+        requested_label = self._extract_requested_service_label_for_phase_gate(action_text)
+        if requested_label:
+            return self._phase_services_include_requested_label(
+                requested_label=requested_label,
+                phase_services=phase_services,
+            )
+        has_spa_marker = self._has_spa_booking_marker(action_text)
+        has_transport_marker = self._has_transport_booking_marker(action_text)
+        room_only_booking = (
+            self._looks_like_room_stay_booking_request(action_text)
+            and not has_spa_marker
+            and not has_transport_marker
+        )
+        if (
+            inferred_intent == IntentType.TABLE_BOOKING
+            and room_only_booking
+        ):
+            return self._phase_has_room_booking_support(phase_services)
         return self._phase_has_intent_compatible_service(
             intent=inferred_intent,
             phase_services=phase_services,
@@ -5917,6 +8070,73 @@ class ChatService:
     ) -> Optional[HandlerResult]:
         """Route to the appropriate handler. Handles confirmation intents contextually."""
         intent = intent_result.intent
+        pending_action = str(context.pending_action or "").strip().lower()
+
+        # Keep room-booking flow context while answering informational room
+        # follow-ups (for example: "what rooms are there?").
+        if (
+            self._is_room_booking_pending_action(pending_action)
+            and intent not in (IntentType.CONFIRMATION_YES, IntentType.CONFIRMATION_NO)
+            and self._looks_like_room_options_information_query(message)
+        ):
+            faq_match = self._match_faq_bank_answer(message, context, allow_pending=True)
+            if faq_match is not None:
+                answer = str(faq_match.get("answer") or "").strip()
+                description = str(faq_match.get("description") or "").strip()
+                if description:
+                    answer = f"{answer}\n\n{description}"
+                if answer:
+                    return HandlerResult(
+                        response_text=answer,
+                        next_state=context.state if context.state in {
+                            ConversationState.AWAITING_INFO,
+                            ConversationState.AWAITING_SELECTION,
+                            ConversationState.AWAITING_CONFIRMATION,
+                        } else ConversationState.AWAITING_INFO,
+                        pending_action=context.pending_action,
+                        pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                        suggested_actions=["Select room type", "Share number of guests", "Talk to human"],
+                        metadata={"room_booking_context_preserved": True, "response_source": "faq_bank_room_followup"},
+                    )
+
+            service_match = self._match_service_information_response(
+                message,
+                context,
+                capabilities,
+                allow_pending=True,
+            )
+            if service_match is not None:
+                return HandlerResult(
+                    response_text=str(service_match.get("response_text") or "").strip(),
+                    next_state=context.state if context.state in {
+                        ConversationState.AWAITING_INFO,
+                        ConversationState.AWAITING_SELECTION,
+                        ConversationState.AWAITING_CONFIRMATION,
+                    } else ConversationState.AWAITING_INFO,
+                    pending_action=context.pending_action,
+                    pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                    suggested_actions=list(service_match.get("suggested_actions") or ["Select room type", "Share number of guests"]),
+                    metadata={
+                        "room_booking_context_preserved": True,
+                        "response_source": "service_catalog_room_followup",
+                        "service_id": str(service_match.get("service_id") or ""),
+                        "service_match_type": str(service_match.get("match_type") or ""),
+                    },
+                )
+
+        room_intent_context = self._is_room_booking_intent_context(
+            message=message,
+            intent_result=intent_result,
+            context=context,
+        )
+        if room_intent_context:
+            return await self._handle_room_booking_intent_flow(
+                message=message,
+                intent_result=intent_result,
+                context=context,
+                capabilities=capabilities,
+                db_session=db_session,
+            )
 
         # For confirmation intents, route to the handler that owns the pending action
         if intent in (IntentType.CONFIRMATION_YES, IntentType.CONFIRMATION_NO):
@@ -6002,6 +8222,276 @@ class ChatService:
             intent_result, message, context, capabilities, db_session
         )
 
+    @staticmethod
+    def _is_room_booking_pending_action(action: str | None) -> bool:
+        pending = str(action or "").strip().lower()
+        return pending in {
+            "room_booking",
+            "collect_room_booking_details",
+            "select_room_type",
+            "confirm_room_booking",
+            "confirm_room_availability_check",
+        }
+
+    @staticmethod
+    def _looks_like_room_type_preference_reply(msg_lower: str) -> bool:
+        text = str(msg_lower or "").strip().lower()
+        if not text or "?" in text:
+            return False
+        preference_markers = (
+            "cheapest",
+            "budget",
+            "affordable",
+            "lowest",
+            "luxury",
+            "luxurious",
+            "premium",
+            "best",
+            "king",
+            "twin",
+            "suite",
+            "ultimate",
+            "premier",
+            "reserve",
+            "prestige",
+            "this one",
+            "that one",
+            "most luxurious",
+        )
+        if any(marker in text for marker in preference_markers):
+            return True
+        tokens = re.findall(r"[a-z0-9]+", text)
+        if 0 < len(tokens) <= 4 and any(token in {"one", "room", "suite", "king", "twin"} for token in tokens):
+            return True
+        return False
+
+    def _is_room_booking_intent_context(
+        self,
+        *,
+        message: str,
+        intent_result: IntentResult,
+        context: ConversationContext,
+    ) -> bool:
+        pending_action = str(context.pending_action or "").strip().lower()
+        if self._is_room_booking_pending_action(pending_action):
+            return True
+
+        entities = intent_result.entities if isinstance(intent_result.entities, dict) else {}
+        entity_markers = (
+            str(entities.get("booking_sub_category") or ""),
+            str(entities.get("booking_type") or ""),
+            str(entities.get("custom_intent") or ""),
+            str(entities.get("resolved_intent") or ""),
+            str(entities.get("service_name") or ""),
+            str(entities.get("room_type") or ""),
+        )
+        entity_blob = " ".join(marker.lower() for marker in entity_markers if str(marker or "").strip())
+        if any(marker in entity_blob for marker in ("room_booking", "room", "suite", "stay", "check in", "check-out")):
+            return True
+
+        pending_data = context.pending_data if isinstance(context.pending_data, dict) else {}
+        if any(
+            key in pending_data
+            for key in (
+                "room_type",
+                "room_name",
+                "stay_checkin_date",
+                "stay_checkout_date",
+                "check_in",
+                "check_out",
+                "stay_date_range",
+                "guest_count",
+            )
+        ):
+            return True
+
+        return self._looks_like_room_stay_booking_request(message)
+
+    def _extract_room_booking_entity_updates(self, entities: dict[str, Any]) -> dict[str, Any]:
+        updates: dict[str, Any] = {}
+        data = entities if isinstance(entities, dict) else {}
+
+        room_type = self._first_non_empty(
+            data.get("room_type"),
+            data.get("room_name"),
+        )
+        if room_type and not self._is_generic_room_reference(room_type):
+            updates["room_type"] = room_type
+
+        guests_raw = self._first_non_empty(
+            data.get("guest_count"),
+            data.get("party_size"),
+            data.get("guests"),
+        )
+        if guests_raw:
+            try:
+                guests = int(float(str(guests_raw)))
+                if 1 <= guests <= 20:
+                    updates["guest_count"] = guests
+            except (TypeError, ValueError):
+                pass
+
+        check_in = self._first_non_empty(
+            data.get("check_in"),
+            data.get("stay_checkin_date"),
+            data.get("checkin_date"),
+        )
+        check_out = self._first_non_empty(
+            data.get("check_out"),
+            data.get("stay_checkout_date"),
+            data.get("checkout_date"),
+        )
+        date_range = self._first_non_empty(
+            data.get("stay_date_range"),
+            data.get("date_range"),
+            data.get("date"),
+        )
+        if check_in:
+            updates["stay_checkin_date"] = check_in
+        if check_out:
+            updates["stay_checkout_date"] = check_out
+        if date_range and "to" in str(date_range).lower():
+            updates["stay_date_range"] = date_range
+        return updates
+
+    async def _handle_room_booking_intent_flow(
+        self,
+        *,
+        message: str,
+        intent_result: IntentResult,
+        context: ConversationContext,
+        capabilities: dict[str, Any],
+        db_session=None,
+    ) -> HandlerResult:
+        msg_lower = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        pending = dict(context.pending_data) if isinstance(context.pending_data, dict) else {}
+
+        if intent_result.intent == IntentType.CONFIRMATION_NO or msg_lower in {"cancel", "stop", "no", "nope"}:
+            return HandlerResult(
+                response_text="No problem, I have cancelled this room booking request.",
+                next_state=ConversationState.IDLE,
+                pending_action=None,
+                pending_data={},
+                suggested_actions=["Show available room types", "Ask another question"],
+            )
+
+        entity_updates = self._extract_room_booking_entity_updates(
+            intent_result.entities if isinstance(intent_result.entities, dict) else {}
+        )
+        if entity_updates:
+            pending.update(entity_updates)
+
+        slot_updates = self._extract_room_booking_slot_updates(
+            message=message,
+            current_pending_action=context.pending_action,
+            state=context.state,
+            pending_data=pending,
+            memory_facts={},
+            conversation_context=context,
+        )
+        if slot_updates:
+            pending.update(slot_updates)
+
+        persisted_candidates_raw = pending.get("room_type_candidates")
+        persisted_candidates = [
+            str(candidate or "").strip()
+            for candidate in (persisted_candidates_raw if isinstance(persisted_candidates_raw, list) else [])
+            if str(candidate or "").strip()
+        ]
+        room_candidates = self._merge_room_type_candidates(
+            persisted_candidates,
+            self._extract_room_type_candidates_from_context_messages(context),
+        )
+        if room_candidates:
+            pending["room_type_candidates"] = room_candidates
+
+        current_room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_name"),
+            pending.get("selected_room_type"),
+        )
+        if current_room_type:
+            if self._is_generic_room_reference(current_room_type):
+                pending.pop("room_type", None)
+                pending.pop("room_name", None)
+                pending.pop("selected_room_type", None)
+            elif room_candidates:
+                resolved_room = self._resolve_room_type_candidate(current_room_type, room_candidates)
+                if resolved_room:
+                    pending["room_type"] = resolved_room
+                    pending.pop("room_name", None)
+                    pending.pop("selected_room_type", None)
+                    pending.pop("requested_room_type", None)
+                else:
+                    pending["requested_room_type"] = current_room_type
+                    pending.pop("room_type", None)
+                    pending.pop("room_name", None)
+                    pending.pop("selected_room_type", None)
+
+        pending.setdefault("service_name", "Room Booking")
+        pending.setdefault("booking_sub_category", "room_booking")
+        pending.setdefault("booking_type", "room_booking")
+        if "guest_count" in pending and not str(pending.get("party_size") or "").strip():
+            pending["party_size"] = str(pending.get("guest_count"))
+        if str(pending.get("stay_checkin_date") or "").strip() and not str(pending.get("check_in") or "").strip():
+            pending["check_in"] = str(pending.get("stay_checkin_date") or "").strip()
+        if str(pending.get("stay_checkout_date") or "").strip() and not str(pending.get("check_out") or "").strip():
+            pending["check_out"] = str(pending.get("stay_checkout_date") or "").strip()
+
+        missing = self._missing_room_booking_fields(
+            pending_data=pending,
+            memory_facts={},
+        )
+        pending_action = str(context.pending_action or "").strip().lower()
+        if (
+            intent_result.intent == IntentType.CONFIRMATION_YES
+            and pending_action in {"confirm_booking", "confirm_room_booking", "confirm_room_availability_check"}
+            and not missing
+        ):
+            booking_handler = handler_registry.get_handler(IntentType.TABLE_BOOKING)
+            if booking_handler is not None:
+                context.pending_action = "confirm_booking"
+                context.pending_data = pending
+                return await booking_handler.handle(
+                    message,
+                    intent_result,
+                    context,
+                    capabilities,
+                    db_session,
+                )
+
+        if missing:
+            response_text = self._build_room_booking_missing_details_prompt(
+                missing_fields=missing,
+                pending_data=pending,
+            )
+            return HandlerResult(
+                response_text=response_text,
+                next_state=ConversationState.AWAITING_INFO,
+                pending_action="collect_room_booking_details",
+                pending_data=pending,
+                suggested_actions=["Show available room types", "Share number of guests", "Share check-in and check-out dates"],
+                metadata={"room_booking_flow": True},
+            )
+
+        pending.pop("requested_room_type", None)
+        pending.pop("room_type_candidates", None)
+        response_text = self._build_room_booking_review_prompt(pending)
+        confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm")).strip() or "yes confirm"
+        if bool(getattr(settings, "chat_require_strict_confirmation_phrase", True)):
+            response_text = self._ensure_explicit_confirmation_instruction(
+                response_text=response_text,
+                confirmation_phrase=confirmation_phrase,
+            )
+        return HandlerResult(
+            response_text=response_text,
+            next_state=ConversationState.AWAITING_CONFIRMATION,
+            pending_action="confirm_booking",
+            pending_data=pending,
+            suggested_actions=[confirmation_phrase, "cancel"],
+            metadata={"room_booking_flow": True},
+        )
+
     def _should_interrupt_pending_flow(
         self,
         message: str,
@@ -6025,6 +8515,18 @@ class ChatService:
             return False
         if msg_lower in {"cancel", "stop", "never mind", "nevermind"}:
             return False
+
+        if self._is_room_booking_pending_action(pending_action):
+            # Keep room-booking slot context active for room-detail/room-option
+            # follow-ups so the user doesn't lose collected booking data.
+            if self._looks_like_room_booking_detail_followup(msg_lower):
+                return False
+            if self._looks_like_room_options_information_query(msg_lower):
+                return False
+            if self._looks_like_room_type_preference_reply(msg_lower):
+                return False
+            if self._looks_like_room_stay_booking_request(msg_lower):
+                return False
 
         if pending_action in {"select_service", "select_restaurant"}:
             if self._looks_like_service_selection(msg_lower, capabilities_summary):
@@ -6188,6 +8690,79 @@ class ChatService:
         return len(msg_lower.split()) >= 3
 
     @staticmethod
+    def _looks_like_room_booking_detail_followup(message: str) -> bool:
+        msg_lower = str(message or "").strip().lower()
+        if not msg_lower:
+            return False
+
+        has_guest_detail = bool(
+            re.search(r"\b\d{1,2}\s*(?:guests?|people|persons|pax)\b", msg_lower)
+        ) or bool(re.search(r"\b(?:for|foe|fpr|fr)\s+\d{1,2}\b", msg_lower))
+        has_date_detail = bool(
+            re.search(
+                r"\b(?:from\s+[^.?!,]{1,30}\s+to\s+[^.?!,]{1,30}|"
+                r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*\d{1,2}\s*(?:-|to)\s*\d{1,2}|"
+                r"\d{1,2}(?:st|nd|rd|th)?\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|"
+                r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*\d{1,2}(?:st|nd|rd|th)?|"
+                r"\d{1,2}\s*[-/]\s*\d{1,2})\b",
+                msg_lower,
+            )
+        ) or any(marker in msg_lower for marker in ("check in", "check-in", "check out", "check-out", "checkin", "checkout"))
+        has_structured_detail = ChatService._looks_like_service_detail_reply(msg_lower) and bool(
+            re.search(r"\b\d{1,2}\b", msg_lower)
+        )
+        return has_guest_detail or has_date_detail or has_structured_detail
+
+    def _recent_user_turn_mentions_room_booking(self, context: ConversationContext, current_message: str) -> bool:
+        current_norm = re.sub(r"\s+", " ", str(current_message or "").strip().lower())
+        skipped_current = False
+        for msg in reversed(context.messages):
+            text = str(msg.content or "").strip()
+            if not text:
+                continue
+            norm = re.sub(r"\s+", " ", text.lower())
+            if msg.role == MessageRole.USER:
+                if not skipped_current and norm == current_norm:
+                    skipped_current = True
+                    continue
+                if self._looks_like_room_stay_booking_request(text):
+                    return True
+                if any(
+                    marker in norm
+                    for marker in (
+                        "room available",
+                        "room type",
+                        "cheapest room",
+                        "stay",
+                        "check in",
+                        "check-out",
+                        "check out",
+                        "book room",
+                    )
+                ):
+                    return True
+            elif msg.role == MessageRole.ASSISTANT:
+                asks_stay_dates = (
+                    ("check-in" in norm or "check in" in norm)
+                    and ("check-out" in norm or "check out" in norm)
+                )
+                asks_guest_count = "guest" in norm or "guests" in norm
+                mentions_room_flow = any(
+                    marker in norm
+                    for marker in (
+                        "room booking",
+                        "room type",
+                        "for your stay",
+                        "cheapest room",
+                    )
+                )
+                if asks_stay_dates and asks_guest_count:
+                    return True
+                if mentions_room_flow and asks_guest_count:
+                    return True
+        return False
+
+    @staticmethod
     def _looks_like_room_stay_booking_request(message: str) -> bool:
         """
         Detect hotel-stay booking language so it is not misrouted into
@@ -6347,8 +8922,9 @@ class ChatService:
                 "handoff_reason": "service_not_configured",
             },
         )
+        effective_user_message = str(request.message or "").strip()
         handler_result = await self._dispatch_to_handler(
-            request.message,
+            effective_user_message,
             escalation_intent,
             context,
             capabilities_summary,
@@ -6381,11 +8957,18 @@ class ChatService:
         context.state = next_state
 
         fallback_prefix = str(service_match.get("response_text") or "").strip()
+        selected_phase_context = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities=escalation_intent.entities if isinstance(escalation_intent.entities, dict) else {},
+        )
         prefix = await self._compose_service_catalog_unavailable_preface(
             requested_service=service_name,
-            user_message=request.message,
+            user_message=effective_user_message,
             capabilities_summary=capabilities_summary,
             fallback_text=fallback_prefix,
+            selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
+            selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
         )
         if prefix:
             response_text = f"{prefix}\n\n{handler_result.response_text}"
@@ -6464,6 +9047,8 @@ class ChatService:
         user_message: str,
         capabilities_summary: dict[str, Any],
         fallback_text: str,
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
     ) -> str:
         """
         Build a natural handoff preface for unconfigured requests.
@@ -6488,6 +9073,10 @@ class ChatService:
             if len(available_services) >= 8:
                 break
         available_text = ", ".join(available_services) if available_services else "configured hotel services"
+        phase_label = str(selected_phase_name or "").strip() or (
+            str(selected_phase_id or "").replace("_", " ").title()
+        )
+        phase_id = str(selected_phase_id or "").strip() or "unknown"
 
         prompt = (
             "Write one short guest-facing preface before human handoff.\n"
@@ -6495,6 +9084,7 @@ class ChatService:
             f"- Requested service: {service_label}\n"
             f"- User message: {str(user_message or '').strip()[:280] or '(none)'}\n"
             f"- Available services: {available_text}\n\n"
+            f"- Selected phase: {phase_label} ({phase_id})\n\n"
             "Rules:\n"
             "1) Do not promise booking/order completion.\n"
             "2) Clearly say staff will assist manually.\n"
@@ -6595,15 +9185,6 @@ class ChatService:
             return CapabilityCheck(allowed=True, reason="Food ordering available")
 
         if intent == IntentType.TABLE_BOOKING:
-            if self._looks_like_room_stay_booking_request(message):
-                return CapabilityCheck(
-                    allowed=False,
-                    reason=(
-                        "Room-stay booking is not available for instant confirmation in this bot right now. "
-                        "I can connect you with our team to complete this request."
-                    ),
-                    alternatives=["Talk to human", "Check-in/check-out timings", "View services"],
-                )
             if not self._is_any_capability_enabled("table_booking", "appointment_booking"):
                 return CapabilityCheck(
                     allowed=False,
@@ -7240,7 +9821,12 @@ class ChatService:
             ),
         }
 
-    def _match_faq_bank_answer(self, message: str, context: ConversationContext) -> Optional[dict]:
+    def _match_faq_bank_answer(
+        self,
+        message: str,
+        context: ConversationContext,
+        allow_pending: bool = False,
+    ) -> Optional[dict]:
         """
         Match message against admin-defined FAQ bank.
         Keeps deterministic answers for common policy questions.
@@ -7250,9 +9836,9 @@ class ChatService:
             return None
 
         # Do not interrupt active transactional follow-ups.
-        if context.state not in {ConversationState.IDLE, ConversationState.COMPLETED}:
+        if not allow_pending and context.state not in {ConversationState.IDLE, ConversationState.COMPLETED}:
             return None
-        if context.pending_action:
+        if not allow_pending and context.pending_action:
             return None
 
         match = config_service.find_faq_entry(message)
@@ -7267,20 +9853,21 @@ class ChatService:
         message: str,
         context: ConversationContext,
         capabilities_summary: dict,
+        allow_pending: bool = False,
     ) -> Optional[dict]:
         """
         Match user queries against configured services so service metadata is always considered.
         """
-        if context.pending_action:
+        if not allow_pending and context.pending_action:
             return None
-        if context.state not in {ConversationState.IDLE, ConversationState.COMPLETED}:
+        if not allow_pending and context.state not in {ConversationState.IDLE, ConversationState.COMPLETED}:
             return None
 
         service_catalog = capabilities_summary.get("service_catalog", [])
         if not isinstance(service_catalog, list) or not service_catalog:
             return None
 
-        msg_lower = str(message or "").strip().lower()
+        msg_lower = self._normalize_message_for_routing(message)
         if not msg_lower:
             return None
         if self._is_personal_reservation_query(msg_lower):
@@ -7497,13 +10084,14 @@ class ChatService:
         compact_tokens = [token for token in compact_source_tokens if token not in removable_tokens]
         if compact_tokens:
             aliases.append(" ".join(compact_tokens[:3]))
-            first_token = compact_tokens[0]
-            if (
-                len(first_token) >= 3
-                and first_token not in _GENERIC_SERVICE_ALIASES
-                and first_token not in _BROAD_FIRST_ALIAS_TOKENS
-            ):
-                aliases.append(first_token)
+            for token in compact_tokens[:3]:
+                if (
+                    len(token) >= 3
+                    and token not in _GENERIC_SERVICE_ALIASES
+                    and token not in _BROAD_FIRST_ALIAS_TOKENS
+                    and token not in _SERVICE_DESCRIPTION_STOPWORDS
+                ):
+                    aliases.append(token)
 
         seen: set[str] = set()
         deduped: list[str] = []
@@ -7859,9 +10447,28 @@ class ChatService:
             return integration_phase
         return self._normalize_phase_identifier(pending.get("phase"))
 
-    @staticmethod
-    def _is_action_request_text(message: str) -> bool:
-        text = str(message or "").strip().lower()
+    def _get_selected_phase_context(
+        self,
+        *,
+        context: ConversationContext,
+        pending_data: dict[str, Any] | None = None,
+        entities: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        phase_id = self._resolve_current_ticketing_phase(
+            context=context,
+            pending_data=pending_data,
+            entities=entities,
+        )
+        if not phase_id:
+            return {"selected_phase_id": "", "selected_phase_name": ""}
+        return {
+            "selected_phase_id": phase_id,
+            "selected_phase_name": self._phase_label(phase_id),
+        }
+
+    @classmethod
+    def _is_action_request_text(cls, message: str) -> bool:
+        text = cls._normalize_message_for_routing(message)
         if not text:
             return False
         action_markers = (
@@ -7888,7 +10495,7 @@ class ChatService:
         services: list[dict[str, Any]],
         min_score: float = 0.72,
     ) -> dict[str, Any] | None:
-        text = str(message or "").strip().lower()
+        text = self._normalize_message_for_routing(message)
         if not text or not isinstance(services, list):
             return None
         tokens = re.findall(r"[a-z0-9]+", text)
@@ -7985,6 +10592,32 @@ class ChatService:
         return mapping.get(intent, "This service")
 
     @staticmethod
+    def _has_spa_booking_marker(message: str) -> bool:
+        text = str(message or "").strip().lower()
+        if not text:
+            return False
+        markers = ("spa", "massage", "wellness", "therapy", "treatment", "recreation", "pool")
+        return any(re.search(rf"\b{re.escape(marker)}\b", text) for marker in markers)
+
+    @staticmethod
+    def _has_transport_booking_marker(message: str) -> bool:
+        text = str(message or "").strip().lower()
+        if not text:
+            return False
+        markers = (
+            "transport",
+            "cab",
+            "taxi",
+            "pickup",
+            "pick up",
+            "drop",
+            "airport transfer",
+            "ride",
+            "shuttle",
+        )
+        return any(re.search(rf"\b{re.escape(marker)}\b", text) for marker in markers)
+
+    @staticmethod
     def _infer_phase_gate_transactional_intent(message: str) -> IntentType | None:
         text = str(message or "").strip().lower()
         if not text:
@@ -7997,6 +10630,9 @@ class ChatService:
                     return True
             return False
 
+        if ChatService._looks_like_room_stay_booking_request(text):
+            return IntentType.TABLE_BOOKING
+
         room_markers = ("room service", "housekeeping", "maintenance", "laundry", "amenity")
         if _has_marker(room_markers):
             return IntentType.ROOM_SERVICE
@@ -8005,7 +10641,30 @@ class ChatService:
         if _has_marker(food_markers):
             return IntentType.ORDER_FOOD
 
-        booking_markers = ("spa", "treatment", "table", "reservation", "restaurant", "recreation")
+        booking_markers = (
+            "new booking",
+            "pre booking",
+            "pre-booking",
+            "spa",
+            "treatment",
+            "table",
+            "reservation",
+            "restaurant",
+            "recreation",
+            "room booking",
+            "room discovery",
+            "stay booking",
+            "book a room",
+            "book room",
+            "transport",
+            "cab",
+            "taxi",
+            "pickup",
+            "drop",
+            "airport transfer",
+            "ride",
+            "shuttle",
+        )
         if _has_marker(booking_markers):
             return IntentType.TABLE_BOOKING
         return None
@@ -8024,9 +10683,34 @@ class ChatService:
             return False
 
         intents: list[IntentType] = []
+        if ChatService._looks_like_room_stay_booking_request(text):
+            intents.append(IntentType.TABLE_BOOKING)
         room_markers = ("room service", "housekeeping", "maintenance", "laundry", "amenity")
         food_markers = ("hungry", "food", "dining", "menu", "meal", "eat", "in-room dining")
-        booking_markers = ("spa", "treatment", "table", "reservation", "restaurant", "recreation")
+        booking_markers = (
+            "new booking",
+            "pre booking",
+            "pre-booking",
+            "spa",
+            "treatment",
+            "table",
+            "reservation",
+            "restaurant",
+            "recreation",
+            "room booking",
+            "room discovery",
+            "stay booking",
+            "book a room",
+            "book room",
+            "transport",
+            "cab",
+            "taxi",
+            "pickup",
+            "drop",
+            "airport transfer",
+            "ride",
+            "shuttle",
+        )
 
         if _has_marker(booking_markers):
             intents.append(IntentType.TABLE_BOOKING)
@@ -8035,6 +10719,21 @@ class ChatService:
         if _has_marker(room_markers):
             intents.append(IntentType.ROOM_SERVICE)
         return intents
+
+    def _infer_phase_gate_ticketing_intent(
+        self,
+        *,
+        message: str,
+        intent: IntentType,
+    ) -> IntentType | None:
+        if intent not in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST}:
+            return None
+        inferred = self._infer_phase_gate_transactional_intent(message)
+        if inferred is not None:
+            return inferred
+        if self._looks_like_operational_issue_for_ticketing(message):
+            return IntentType.ROOM_SERVICE
+        return None
 
     @staticmethod
     def _service_phase_gate_text_blob(service: dict[str, Any]) -> str:
@@ -8058,6 +10757,61 @@ class ChatService:
     ) -> bool:
         marker_map = _PHASE_INTENT_SERVICE_MARKERS_STRICT if strict else _PHASE_INTENT_SERVICE_MARKERS
         markers = marker_map.get(intent, ())
+        if not markers:
+            return False
+        for service in phase_services:
+            text = self._service_phase_gate_text_blob(service)
+            if not text:
+                continue
+            for marker in markers:
+                if re.search(rf"\b{re.escape(marker)}\b", text):
+                    return True
+        return False
+
+    def _phase_has_room_booking_support(self, phase_services: list[dict[str, Any]]) -> bool:
+        room_markers = (
+            "room booking",
+            "room discovery",
+            "stay booking",
+            "room",
+            "suite",
+            "check in",
+            "check-out",
+            "check out",
+            "checkin",
+            "checkout",
+        )
+        for service in phase_services:
+            text = self._service_phase_gate_text_blob(service)
+            if not text:
+                continue
+            for marker in room_markers:
+                if re.search(rf"\b{re.escape(marker)}\b", text):
+                    return True
+        return False
+
+    def _phase_has_booking_subtype_support(
+        self,
+        *,
+        phase_services: list[dict[str, Any]],
+        subtype: str,
+    ) -> bool:
+        subtype_key = str(subtype or "").strip().lower()
+        marker_map = {
+            "spa": ("spa", "massage", "wellness", "therapy", "treatment", "recreation", "pool"),
+            "transport": (
+                "transport",
+                "cab",
+                "taxi",
+                "pickup",
+                "pick up",
+                "drop",
+                "airport transfer",
+                "ride",
+                "shuttle",
+            ),
+        }
+        markers = marker_map.get(subtype_key, ())
         if not markers:
             return False
         for service in phase_services:
@@ -8141,10 +10895,38 @@ class ChatService:
 
         current_phase_name = self._phase_label(current_phase_id)
         primary_norm = str(primary_service_name or "").strip().lower()
+        has_spa_marker = self._has_spa_booking_marker(message)
+        has_transport_marker = self._has_transport_booking_marker(message)
+        room_only_booking = (
+            self._looks_like_room_stay_booking_request(message)
+            and not has_spa_marker
+            and not has_transport_marker
+        )
         lines: list[str] = []
         seen_keys: set[str] = set()
         for inferred_intent in inferred_intents:
-            if self._phase_has_intent_compatible_service(
+            if inferred_intent == IntentType.TABLE_BOOKING:
+                if has_spa_marker:
+                    if self._phase_has_booking_subtype_support(
+                        phase_services=phase_services,
+                        subtype="spa",
+                    ):
+                        continue
+                elif has_transport_marker:
+                    if self._phase_has_booking_subtype_support(
+                        phase_services=phase_services,
+                        subtype="transport",
+                    ):
+                        continue
+                elif room_only_booking:
+                    if self._phase_has_room_booking_support(phase_services):
+                        continue
+                elif self._phase_has_intent_compatible_service(
+                    intent=inferred_intent,
+                    phase_services=phase_services,
+                ):
+                    continue
+            elif self._phase_has_intent_compatible_service(
                 intent=inferred_intent,
                 phase_services=phase_services,
             ):
@@ -8172,6 +10954,10 @@ class ChatService:
                 current_phase_id=current_phase_id,
                 service_phase_id=service_phase_id,
             )
+            unavailable_key = f"{service_name.lower()}::not_available::{current_phase_id}"
+            if unavailable_key not in seen_keys:
+                seen_keys.add(unavailable_key)
+                lines.append(f"{service_name} is not available for {current_phase_name} phase.")
             key = f"{service_name.lower()}::{service_phase_id}"
             if key in seen_keys:
                 continue
@@ -8185,7 +10971,7 @@ class ChatService:
         return lines
 
     def _match_phase_managed_service_request(self, message: str) -> dict[str, Any] | None:
-        text = str(message or "").strip().lower()
+        text = self._normalize_message_for_routing(message)
         if not text:
             return None
 
@@ -8196,6 +10982,8 @@ class ChatService:
             "arrange",
             "need",
             "request",
+            "want",
+            "wanna",
             "cancel",
             "modify",
             "status",
@@ -8241,7 +11029,29 @@ class ChatService:
         pending_data: dict[str, Any] | None = None,
         entities: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-        matched_service = self._match_phase_managed_service_request(message)
+        try:
+            services = config_service.get_services()
+        except Exception:
+            services = []
+        if not isinstance(services, list):
+            services = []
+
+        matched_service = self._resolve_service_from_phase_signals(
+            services=services,
+            entities=entities if isinstance(entities, dict) else {},
+            pending_data=pending_data if isinstance(pending_data, dict) else {},
+        )
+        llm_only_phase_gate = bool(getattr(settings, "chat_phase_gate_llm_only", True))
+        if matched_service is None:
+            if llm_only_phase_gate:
+                # LLM-first mode still needs a semantic safety-net when service_id is omitted.
+                matched_service = self._match_phase_service_from_rows(
+                    message=message,
+                    services=services,
+                    min_score=0.72,
+                )
+            else:
+                matched_service = self._match_phase_managed_service_request(message)
         if matched_service is None:
             return None
 
@@ -8257,12 +11067,6 @@ class ChatService:
         service_name = str(matched_service.get("service_name") or "This service").strip()
         current_phase_name = self._phase_label(current_phase_id)
         service_phase_name = self._phase_label(service_phase_id)
-        try:
-            services = config_service.get_services()
-        except Exception:
-            services = []
-        if not isinstance(services, list):
-            services = []
         current_phase_services = [
             service
             for service in services
@@ -8298,6 +11102,7 @@ class ChatService:
         )
         if additional_lines:
             response_text = f"{response_text} {' '.join(additional_lines)}".strip()
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
         return {
             "service_id": str(matched_service.get("service_id") or "").strip(),
             "service_name": service_name,
@@ -8328,19 +11133,30 @@ class ChatService:
         }
         is_transactional = intent in transactional_intents
         is_action_request = self._is_action_request_text(message)
-        if not is_transactional and not (
-            intent in {IntentType.FAQ, IntentType.MENU_REQUEST} and is_action_request
+        is_faq_action = intent in {IntentType.FAQ, IntentType.MENU_REQUEST} and is_action_request
+        is_ticketing_like = intent in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST}
+        ticketing_intent_hint = self._infer_phase_gate_ticketing_intent(
+            message=message,
+            intent=intent,
+        )
+        if not is_transactional and not is_faq_action and not (
+            is_ticketing_like and ticketing_intent_hint is not None
         ):
             return None
 
         if context.pending_action in {
             "confirm_order",
             "confirm_booking",
+            "confirm_room_booking",
+            "confirm_room_availability_check",
             "confirm_service_request",
             "select_service",
             "select_restaurant",
             "collect_booking_party_size",
             "collect_booking_time",
+            "collect_room_booking_details",
+            "select_room_type",
+            "collect_transport_details",
         }:
             return None
 
@@ -8374,12 +11190,155 @@ class ChatService:
             for service in all_phase_services
             if self._normalize_phase_identifier(service.get("phase_id")) == current_phase_id
         ]
-        matched_current_phase_service = self._match_phase_service_from_rows(
-            message=message,
-            services=phase_services,
-            min_score=0.70,
+
+        resolved_signal_service = self._resolve_service_from_phase_signals(
+            services=all_phase_services,
+            entities=entities if isinstance(entities, dict) else {},
+            pending_data=pending_data if isinstance(pending_data, dict) else {},
         )
+        llm_only_phase_gate = bool(getattr(settings, "chat_phase_gate_llm_only", True))
+        if llm_only_phase_gate and resolved_signal_service is not None:
+            signal_service_phase = self._normalize_phase_identifier(resolved_signal_service.get("phase_id"))
+            if not signal_service_phase:
+                return None
+            if signal_service_phase == current_phase_id:
+                additional_lines = self._phase_gate_additional_unavailable_lines(
+                    message=message,
+                    current_phase_id=current_phase_id,
+                    all_phase_services=all_phase_services,
+                    phase_services=phase_services,
+                    primary_service_name=str(resolved_signal_service.get("service_name") or ""),
+                )
+                if not additional_lines:
+                    return None
+                current_phase_name = self._phase_label(current_phase_id)
+                available_names = [
+                    str(service.get("name") or "").strip()
+                    for service in phase_services
+                    if isinstance(service, dict) and str(service.get("name") or "").strip()
+                ]
+                response_parts = list(additional_lines)
+                curated_names = [name for name in available_names if name][:4]
+                if curated_names:
+                    response_parts.append(f"Right now, I can help you with {', '.join(curated_names)}.")
+                response_text = self._dedupe_response_sentences(
+                    " ".join(part for part in response_parts if str(part or "").strip()).strip()
+                )
+                return {
+                    "service_id": str(resolved_signal_service.get("service_id") or "").strip(),
+                    "service_name": str(resolved_signal_service.get("service_name") or "").strip(),
+                    "current_phase_id": current_phase_id,
+                    "current_phase_name": current_phase_name,
+                    "service_phase_id": current_phase_id,
+                    "service_phase_name": current_phase_name,
+                    "response_text": response_text,
+                    "suggested_actions": list(curated_names[:3]) + ["Show available services", "Ask another question"],
+                    "phase_service_unavailable": True,
+                }
+            service_name = str(resolved_signal_service.get("service_name") or "This service").strip()
+            current_phase_name = self._phase_label(current_phase_id)
+            service_phase_name = self._phase_label(signal_service_phase)
+            available_names = [
+                str(service.get("name") or "").strip()
+                for service in phase_services
+                if isinstance(service, dict) and str(service.get("name") or "").strip()
+            ]
+            return {
+                "service_id": str(resolved_signal_service.get("service_id") or "").strip(),
+                "service_name": service_name,
+                "current_phase_id": current_phase_id,
+                "current_phase_name": current_phase_name,
+                "service_phase_id": signal_service_phase,
+                "service_phase_name": service_phase_name,
+                "response_text": self._build_phase_gate_sales_response(
+                    service_name=service_name,
+                    current_phase_id=current_phase_id,
+                    current_phase_name=current_phase_name,
+                    service_phase_id=signal_service_phase,
+                    service_phase_name=service_phase_name,
+                    available_names=available_names,
+                ),
+                "suggested_actions": available_names[:3] + ["Show available services", "Ask another question"],
+                "phase_service_unavailable": True,
+            }
+        if resolved_signal_service is not None:
+            signal_service_phase = self._normalize_phase_identifier(resolved_signal_service.get("phase_id"))
+            if signal_service_phase == current_phase_id:
+                return None
+            service_name = str(resolved_signal_service.get("service_name") or "This service").strip()
+            current_phase_name = self._phase_label(current_phase_id)
+            service_phase_name = self._phase_label(signal_service_phase)
+            available_names = [
+                str(service.get("name") or "").strip()
+                for service in phase_services
+                if isinstance(service, dict) and str(service.get("name") or "").strip()
+            ]
+            result = {
+                "service_id": str(resolved_signal_service.get("service_id") or "").strip(),
+                "service_name": service_name,
+                "current_phase_id": current_phase_id,
+                "current_phase_name": current_phase_name,
+                "service_phase_id": signal_service_phase,
+                "service_phase_name": service_phase_name,
+                "response_text": self._build_phase_gate_sales_response(
+                    service_name=service_name,
+                    current_phase_id=current_phase_id,
+                    current_phase_name=current_phase_name,
+                    service_phase_id=signal_service_phase,
+                    service_phase_name=service_phase_name,
+                    available_names=available_names,
+                ),
+                "suggested_actions": available_names[:3] + ["Show available services", "Ask another question"],
+            }
+            return result
+
+        if (
+            intent == IntentType.TABLE_BOOKING
+            and self._looks_like_room_booking_detail_followup(message)
+            and self._recent_user_turn_mentions_room_booking(context, message)
+            and self._phase_has_room_booking_support(phase_services)
+        ):
+            return None
+
+        matched_current_phase_service = None
+        if not (is_ticketing_like and ticketing_intent_hint is not None):
+            matched_current_phase_service = self._match_phase_service_from_rows(
+                message=message,
+                services=phase_services,
+                min_score=0.70,
+            )
         if matched_current_phase_service is not None:
+            additional_lines = self._phase_gate_additional_unavailable_lines(
+                message=message,
+                current_phase_id=current_phase_id,
+                all_phase_services=all_phase_services,
+                phase_services=phase_services,
+                primary_service_name=str(matched_current_phase_service.get("service_name") or ""),
+            )
+            if additional_lines:
+                current_phase_name = self._phase_label(current_phase_id)
+                available_names = [
+                    str(service.get("name") or "").strip()
+                    for service in phase_services
+                    if isinstance(service, dict) and str(service.get("name") or "").strip()
+                ]
+                response_parts = list(additional_lines)
+                curated_names = [name for name in available_names if name][:4]
+                if curated_names:
+                    response_parts.append(f"Right now, I can help you with {', '.join(curated_names)}.")
+                return {
+                    "service_id": str(matched_current_phase_service.get("service_id") or "").strip(),
+                    "service_name": str(matched_current_phase_service.get("service_name") or "").strip(),
+                    "current_phase_id": current_phase_id,
+                    "current_phase_name": current_phase_name,
+                    "service_phase_id": current_phase_id,
+                    "service_phase_name": current_phase_name,
+                    "response_text": self._dedupe_response_sentences(
+                        " ".join(part for part in response_parts if str(part or "").strip()).strip()
+                    ),
+                    "suggested_actions": list(curated_names[:3]) + ["Show available services", "Ask another question"],
+                    "phase_service_unavailable": True,
+                }
             return None
 
         matched_any_phase_service = self._match_phase_service_from_rows(
@@ -8400,7 +11359,7 @@ class ChatService:
                 for service in phase_services
                 if isinstance(service, dict) and str(service.get("name") or "").strip()
             ]
-            return {
+            result = {
                 "service_id": str(matched_any_phase_service.get("service_id") or "").strip(),
                 "service_name": service_name,
                 "current_phase_id": current_phase_id,
@@ -8419,7 +11378,7 @@ class ChatService:
                     str(service.get("name") or "").strip()
                     for service in phase_services
                     if isinstance(service, dict) and str(service.get("name") or "").strip()
-                ][:3] + ["Ask another question", "Talk to human"],
+                ][:3] + ["Show available services", "Ask another question"],
             }
             additional_lines = self._phase_gate_additional_unavailable_lines(
                 message=message,
@@ -8432,30 +11391,59 @@ class ChatService:
                 result["response_text"] = (
                     f"{str(result.get('response_text') or '').strip()} {' '.join(additional_lines)}"
                 ).strip()
+            result["response_text"] = self._dedupe_response_sentences(
+                str(result.get("response_text") or "").strip()
+            )
             return result
 
-        inferred_transactional_intent = intent
+        inferred_transactional_intent = ticketing_intent_hint or intent
+        requested_label = self._extract_requested_service_label_for_phase_gate(message)
+        is_room_booking_request = self._looks_like_room_stay_booking_request(message)
+        has_spa_marker = self._has_spa_booking_marker(message)
+        has_transport_marker = self._has_transport_booking_marker(message)
+        room_only_booking = (
+            is_room_booking_request
+            and not has_spa_marker
+            and not has_transport_marker
+        )
         if not is_transactional:
-            inferred = self._infer_phase_gate_transactional_intent(message)
+            inferred = ticketing_intent_hint or self._infer_phase_gate_transactional_intent(message)
             if inferred is None:
                 # For FAQ/MENU action-like text, if no known transactional service intent can
                 # be inferred, let normal capability/validator flows handle unsupported requests.
                 return None
             inferred_transactional_intent = inferred
-            if self._phase_has_intent_compatible_service(
+            if (
+                inferred_transactional_intent == IntentType.TABLE_BOOKING
+                and room_only_booking
+                and self._phase_has_room_booking_support(phase_services)
+            ):
+                return None
+            if not requested_label and self._phase_has_intent_compatible_service(
                 intent=inferred_transactional_intent,
                 phase_services=phase_services,
                 strict=True,
             ):
-                return None
+                strict_match = self._match_phase_service_from_rows(
+                    message=message,
+                    services=phase_services,
+                    min_score=0.72,
+                )
+                if strict_match is not None:
+                    return None
 
-        requested_label = self._extract_requested_service_label_for_phase_gate(message)
         if requested_label and self._phase_services_include_requested_label(
             requested_label=requested_label,
             phase_services=phase_services,
         ):
             return None
         if is_transactional:
+            if (
+                intent == IntentType.TABLE_BOOKING
+                and room_only_booking
+                and self._phase_has_room_booking_support(phase_services)
+            ):
+                return None
             has_compatible_service = self._phase_has_intent_compatible_service(
                 intent=intent,
                 phase_services=phase_services,
@@ -8499,9 +11487,10 @@ class ChatService:
         )
         if additional_lines:
             response_text = f"{response_text} {' '.join(additional_lines)}".strip()
+        response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
 
         suggestions = list(available_names[:3])
-        suggestions.extend(["Ask another question", "Talk to human"])
+        suggestions.extend(["Show available services", "Ask another question"])
         return {
             "service_id": "",
             "service_name": service_label,
@@ -8533,7 +11522,28 @@ class ChatService:
         pending_data: dict[str, Any] | None = None,
         entities: dict[str, Any] | None = None,
     ) -> dict[str, Any] | None:
-        matched_service = self._match_phase_managed_service_request(message)
+        try:
+            services = config_service.get_services()
+        except Exception:
+            services = []
+        if not isinstance(services, list):
+            services = []
+
+        matched_service = self._resolve_service_from_phase_signals(
+            services=services,
+            entities=entities if isinstance(entities, dict) else {},
+            pending_data=pending_data if isinstance(pending_data, dict) else {},
+        )
+        llm_only_phase_gate = bool(getattr(settings, "chat_phase_gate_llm_only", True))
+        if matched_service is None:
+            if llm_only_phase_gate:
+                matched_service = self._match_phase_service_from_rows(
+                    message=message,
+                    services=services,
+                    min_score=0.72,
+                )
+            else:
+                matched_service = self._match_phase_managed_service_request(message)
         if matched_service is None:
             return None
 
@@ -8570,12 +11580,13 @@ class ChatService:
         response_text = str(phase_gate.get("response_text") or "").strip()
         if not response_text:
             response_text = "This service is not available in the current phase."
+        response_text = ChatService._dedupe_response_sentences(response_text) or response_text
         raw_actions = phase_gate.get("suggested_actions")
         suggestions: list[str] = []
         if isinstance(raw_actions, list):
             suggestions = [str(item).strip() for item in raw_actions if str(item).strip()]
         if not suggestions:
-            suggestions = ["Show available services", "Talk to human", "Ask another question"]
+            suggestions = ["Show available services", "Ask another question"]
         return HandlerResult(
             response_text=response_text,
             next_state=ConversationState.IDLE,
@@ -8619,8 +11630,8 @@ class ChatService:
             if msg_token == token:
                 return True
             if (
-                len(token) >= 5
-                and len(msg_token) >= 4
+                len(token) >= 6
+                and len(msg_token) >= 6
                 and (msg_token.startswith(token[:4]) or token.startswith(msg_token[:4]))
             ):
                 return True
@@ -8633,13 +11644,6 @@ class ChatService:
         if not alias_clean:
             return 0.0
 
-        if len(alias_clean) <= 4:
-            if re.search(rf"\b{re.escape(alias_clean)}\b", msg_lower):
-                return 1.0
-            return 0.0
-        if alias_clean in msg_lower:
-            return 0.98
-
         alias_tokens = [
             token
             for token in re.findall(r"[a-z0-9]+", alias_clean)
@@ -8647,6 +11651,14 @@ class ChatService:
         ]
         if not alias_tokens:
             return 0.0
+
+        if len(alias_tokens) == 1:
+            if re.search(rf"\b{re.escape(alias_tokens[0])}\b", msg_lower):
+                return 0.95
+        else:
+            alias_phrase = " ".join(alias_tokens)
+            if alias_phrase and re.search(rf"\b{re.escape(alias_phrase)}\b", msg_lower):
+                return 0.98
 
         hits = sum(1 for token in alias_tokens if self._token_matches_message(token, msg_tokens))
         if hits == len(alias_tokens):
@@ -8869,6 +11881,90 @@ class ChatService:
             if SequenceMatcher(a=compact, b=token).ratio() >= 0.84:
                 return IntentType.CONFIRMATION_NO
         return None
+
+    @staticmethod
+    def _is_reasonable_message_preprocess_rewrite(original: str, rewritten: str) -> bool:
+        base = re.sub(r"\s+", " ", str(original or "").strip())
+        candidate = re.sub(r"\s+", " ", str(rewritten or "").strip())
+        if not base or not candidate:
+            return False
+        if candidate == base:
+            return True
+        if len(candidate) > max(2600, len(base) * 3):
+            return False
+
+        base_tokens = set(re.findall(r"[a-z0-9]+", base.lower()))
+        candidate_tokens = set(re.findall(r"[a-z0-9]+", candidate.lower()))
+        if not base_tokens or not candidate_tokens:
+            return False
+
+        if len(base_tokens) == 1 and len(candidate_tokens) == 1:
+            base_token = next(iter(base_tokens))
+            candidate_token = next(iter(candidate_tokens))
+            return SequenceMatcher(a=base_token, b=candidate_token).ratio() >= 0.45
+
+        overlap = len(base_tokens & candidate_tokens) / max(1, len(base_tokens))
+        return overlap >= 0.35
+
+    async def _preprocess_user_message_with_llm(
+        self,
+        message: str,
+        *,
+        selected_phase_id: str = "",
+        selected_phase_name: str = "",
+    ) -> str:
+        """
+        LLM-first user-message preprocessing layer.
+        Correct typos/spelling and minor grammar while preserving intent.
+        """
+        original = re.sub(r"\s+", " ", str(message or "").strip())
+        if not original:
+            return ""
+        if not bool(getattr(settings, "chat_llm_preprocess_enabled", True)):
+            return original
+        if not str(settings.openai_api_key or "").strip():
+            return original
+
+        phase_label = str(selected_phase_name or "").strip() or (
+            str(selected_phase_id or "").replace("_", " ").title()
+        )
+        phase_id = str(selected_phase_id or "").strip() or "unknown"
+
+        prompt = (
+            "You normalize chat user input before intent routing.\n"
+            f"Selected user journey phase: {phase_label} ({phase_id}).\n"
+            "Task: fix spelling/typos and minor grammar only.\n"
+            "Do not add/remove intent, entities, requests, dates, times, quantities, room numbers, names, or polarity.\n"
+            "Keep language and tone as-is.\n"
+            "Return exactly one rewritten user message line and nothing else."
+        )
+        preprocess_model = str(getattr(settings, "chat_llm_preprocess_model", "") or "").strip() or None
+        preprocess_temp = float(getattr(settings, "chat_llm_preprocess_temperature", 0.0))
+        preprocess_tokens = max(24, int(getattr(settings, "chat_llm_preprocess_max_tokens", 80)))
+
+        try:
+            rewritten = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": original},
+                ],
+                model=preprocess_model,
+                temperature=preprocess_temp,
+                max_tokens=preprocess_tokens,
+            )
+        except Exception:
+            return original
+
+        candidate = re.sub(r"\s+", " ", str(rewritten or "").strip().strip('"').strip("'"))
+        if not candidate:
+            return original
+        if self._is_reasonable_message_preprocess_rewrite(original, candidate):
+            return candidate
+        return original
+
+    @staticmethod
+    def _normalize_message_for_routing(message: str) -> str:
+        return re.sub(r"\s+", " ", str(message or "").strip().lower())
 
     @staticmethod
     def _normalize_alias_text(text: str) -> str:
@@ -9230,7 +12326,8 @@ class ChatService:
     ) -> IntentResult:
         """Classify user intent using LLM."""
         try:
-            msg_lower = str(message or "").strip().lower()
+            classification_message = re.sub(r"\s+", " ", str(message or "").strip())
+            msg_lower = classification_message.lower()
 
             # Check for simple confirmation first (state-aware)
             if context.get("state") == "awaiting_confirmation":
@@ -9261,7 +12358,7 @@ class ChatService:
                     },
                 )
 
-            if self._looks_like_room_stay_booking_request(message):
+            if self._looks_like_room_stay_booking_request(classification_message):
                 return IntentResult(
                     intent=IntentType.TABLE_BOOKING,
                     confidence=0.92,
@@ -9309,7 +12406,7 @@ class ChatService:
                 )
 
             # Use LLM for classification
-            result = await llm_client.classify_intent(message, conversation_history, context)
+            result = await llm_client.classify_intent(classification_message, conversation_history, context)
 
             # Parse result
             raw_intent = result.get("intent", "unclear")

@@ -58,7 +58,9 @@ class FullKBLLMService:
         self.step_log_file = Path(getattr(settings, "rag_step_log_file", "./logs/detailedsteps.log"))
         self.step_log_preview_chars = max(100, int(getattr(settings, "rag_step_log_preview_chars", 260)))
         self.max_kb_chars = max(20_000, int(getattr(settings, "full_kb_llm_max_kb_chars", 180_000)))
-        self.max_history_messages = max(4, int(getattr(settings, "full_kb_llm_max_history_messages", 10)))
+        configured_history_messages = int(getattr(settings, "full_kb_llm_max_history_messages", 0) or 0)
+        self.max_history_messages = configured_history_messages if configured_history_messages > 0 else 0
+        self.history_max_chars = max(1000, int(getattr(settings, "full_kb_llm_history_max_chars", 12000) or 12000))
         self.memory_summary_chars = max(800, int(getattr(settings, "full_kb_llm_memory_summary_chars", 2200)))
         self.temperature = float(getattr(settings, "full_kb_llm_temperature", 0.1))
         self._kb_cache: dict[str, tuple[str, list[str], str]] = {}
@@ -66,6 +68,58 @@ class FullKBLLMService:
     @staticmethod
     def _normalize_tenant(value: str) -> str:
         return str(value or "default").strip().lower().replace(" ", "_")
+
+    @staticmethod
+    def _normalize_phase_identifier(value: Any) -> str:
+        return re.sub(r"[^a-z0-9]+", "_", str(value or "").strip().lower()).strip("_")
+
+    def _phase_label(self, phase_id: str, capabilities_summary: dict[str, Any]) -> str:
+        normalized = self._normalize_phase_identifier(phase_id)
+        if not normalized:
+            return ""
+        phase_rows = capabilities_summary.get("journey_phases")
+        if not isinstance(phase_rows, list):
+            phase_rows = capabilities_summary.get("phases")
+        if isinstance(phase_rows, list):
+            for phase in phase_rows:
+                if not isinstance(phase, dict):
+                    continue
+                candidate_id = self._normalize_phase_identifier(phase.get("id"))
+                if candidate_id != normalized:
+                    continue
+                label = str(phase.get("name") or "").strip()
+                if label:
+                    return label
+        return normalized.replace("_", " ").title()
+
+    def _resolve_selected_phase_context(
+        self,
+        *,
+        context: ConversationContext,
+        pending_public: dict[str, Any],
+        capabilities_summary: dict[str, Any],
+    ) -> tuple[str, str]:
+        pending_raw = context.pending_data if isinstance(context.pending_data, dict) else {}
+        integration = pending_raw.get("_integration", {})
+        integration_map = integration if isinstance(integration, dict) else {}
+
+        candidates = (
+            pending_public.get("phase"),
+            pending_raw.get("phase"),
+            integration_map.get("phase"),
+        )
+        for candidate in candidates:
+            normalized = self._normalize_phase_identifier(candidate)
+            if normalized:
+                return normalized, self._phase_label(normalized, capabilities_summary)
+
+        flow = str(
+            integration_map.get("flow")
+            or integration_map.get("bot_mode")
+            or ""
+        ).strip().lower()
+        default_phase_id = "pre_booking" if flow in {"engage", "booking", "booking_bot"} else "during_stay"
+        return default_phase_id, self._phase_label(default_phase_id, capabilities_summary)
 
     def _preview_text(self, value: Any) -> str:
         text = re.sub(r"\s+", " ", str(value or "").strip())
@@ -423,6 +477,11 @@ class FullKBLLMService:
             for key, value in (context.pending_data or {}).items()
             if isinstance(key, str) and not key.startswith("_")
         }
+        selected_phase_id, selected_phase_name = self._resolve_selected_phase_context(
+            context=context,
+            pending_public=pending_public,
+            capabilities_summary=capabilities_summary,
+        )
         if trace is not None:
             trace["state_before"] = context.state.value
             trace["pending_action_before"] = context.pending_action
@@ -473,10 +532,23 @@ class FullKBLLMService:
                 )
                 return self._fallback_result(trace_id, user_message, context.state)
 
-            recent_history = [
-                {"role": msg.role.value, "content": str(msg.content or "")[:500]}
-                for msg in context.get_recent_messages(self.max_history_messages)
-            ]
+            history_messages = (
+                context.messages
+                if self.max_history_messages <= 0
+                else context.get_recent_messages(self.max_history_messages)
+            )
+            recent_history = []
+            total_history_chars = 0
+            for msg in history_messages:
+                content = str(msg.content or "").strip()
+                if not content:
+                    continue
+                max_remaining = self.history_max_chars - total_history_chars
+                if max_remaining <= 0:
+                    break
+                clipped = content[: min(1200, max_remaining)]
+                recent_history.append({"role": msg.role.value, "content": clipped})
+                total_history_chars += len(clipped)
 
             memory_facts = memory_snapshot.get("facts", {})
             if not isinstance(memory_facts, dict):
@@ -565,13 +637,64 @@ class FullKBLLMService:
             service_rows = capabilities_summary.get("service_catalog", [])
             if not isinstance(service_rows, list):
                 service_rows = []
+            service_kb_rows = capabilities_summary.get("service_kb_records", [])
+            if not isinstance(service_kb_rows, list):
+                service_kb_rows = []
+            service_kb_by_service: dict[str, dict[str, Any]] = {}
+            for row in service_kb_rows[:200]:
+                if not isinstance(row, dict):
+                    continue
+                kb_service_id = str(row.get("service_id") or "").strip()
+                if not kb_service_id:
+                    continue
+                facts_value = row.get("facts", [])
+                approved_facts: list[str] = []
+                if isinstance(facts_value, list):
+                    for fact in facts_value:
+                        if not isinstance(fact, dict):
+                            continue
+                        status = str(fact.get("status") or "approved").strip().lower()
+                        if status not in {"approved", ""}:
+                            continue
+                        text = str(fact.get("text") or "").strip()
+                        if not text:
+                            continue
+                        approved_facts.append(text[:420])
+                service_kb_by_service[kb_service_id] = {
+                    "service_id": kb_service_id,
+                    "plugin_id": str(row.get("plugin_id") or "").strip(),
+                    "strict_mode": bool(row.get("strict_mode", True)),
+                    "version": int(row.get("version") or 0),
+                    "published_at": str(row.get("published_at") or "").strip(),
+                    "published_by": str(row.get("published_by") or "").strip(),
+                    "facts": approved_facts[:40],
+                    "completeness": self._sanitize_json_value(row.get("completeness", {})),
+                }
             admin_services: list[dict[str, Any]] = []
+            service_agent_prompts: list[dict[str, Any]] = []
+            service_knowledge_packs: list[dict[str, Any]] = []
+            included_service_kb_ids: set[str] = set()
             for item in service_rows[:80]:
                 if not isinstance(item, dict):
                     continue
                 service_id = str(item.get("id") or "").strip()
                 if not service_id:
                     continue
+                service_phase_id = self._normalize_phase_identifier(item.get("phase_id"))
+                service_phase_name = (
+                    self._phase_label(service_phase_id, capabilities_summary)
+                    if service_phase_id
+                    else ""
+                )
+                ticketing_enabled = bool(item.get("ticketing_enabled", True))
+                ticketing_policy = str(item.get("ticketing_policy") or "").strip()
+                kb_pack = service_kb_by_service.get(service_id, {})
+                kb_facts = kb_pack.get("facts", []) if isinstance(kb_pack, dict) else []
+                if not isinstance(kb_facts, list):
+                    kb_facts = []
+                if kb_pack:
+                    service_knowledge_packs.append(kb_pack)
+                    included_service_kb_ids.add(service_id)
                 admin_services.append(
                     {
                         "id": service_id,
@@ -579,10 +702,56 @@ class FullKBLLMService:
                         "type": str(item.get("type") or "service").strip(),
                         "description": str(item.get("description") or "").strip(),
                         "is_active": bool(item.get("is_active", True)),
+                        "phase_id": service_phase_id,
+                        "phase_name": service_phase_name,
+                        "ticketing_enabled": ticketing_enabled,
+                        "ticketing_policy": ticketing_policy,
                         "hours": self._sanitize_json_value(item.get("hours", {})),
                         "delivery_zones": self._sanitize_json_value(item.get("delivery_zones", [])),
+                        "knowledge_facts": kb_facts[:20],
                     }
                 )
+                agent_instruction_parts = [
+                    f"Service agent: {str(item.get('name') or service_id).strip()} ({service_id}).",
+                    "Use only KB/admin-config facts.",
+                ]
+                if service_phase_name:
+                    agent_instruction_parts.append(
+                        f"Action scope phase: {service_phase_name} ({service_phase_id})."
+                    )
+                if ticketing_enabled:
+                    agent_instruction_parts.append(
+                        "Ticketing can be created only when this service truly needs staff action."
+                    )
+                else:
+                    agent_instruction_parts.append(
+                        "Ticketing is disabled for this service: never request ticket creation for it."
+                    )
+                if ticketing_policy:
+                    agent_instruction_parts.append(f"Ticketing policy: {ticketing_policy}")
+                if kb_facts:
+                    agent_instruction_parts.append(
+                        f"Service knowledge pack has {len(kb_facts)} approved facts. "
+                        "Use these facts first for service-specific replies."
+                    )
+                else:
+                    agent_instruction_parts.append(
+                        "No approved service knowledge-pack facts are available yet; "
+                        "if service-specific detail is missing, state it is unavailable."
+                    )
+                service_agent_prompts.append(
+                    {
+                        "service_id": service_id,
+                        "service_name": str(item.get("name") or service_id).strip(),
+                        "instruction": " ".join(agent_instruction_parts).strip(),
+                        "knowledge_facts": kb_facts[:20],
+                        "strict_mode": bool((kb_pack or {}).get("strict_mode", True)),
+                    }
+                )
+            for kb_service_id, kb_pack in service_kb_by_service.items():
+                if kb_service_id in included_service_kb_ids:
+                    continue
+                service_knowledge_packs.append(kb_pack)
 
             faq_rows = capabilities_summary.get("faq_bank", [])
             if not isinstance(faq_rows, list):
@@ -664,9 +833,15 @@ class FullKBLLMService:
                 "nlu_dont_rules": nlu_donts,
                 "enabled_intents": enabled_intents,
                 "services": admin_services,
+                "service_agent_prompts": service_agent_prompts,
+                "service_knowledge_packs": service_knowledge_packs,
                 "faq_bank": admin_faq_bank,
                 "tools": admin_tools,
                 "workflows": admin_workflows,
+                "selected_phase": {
+                    "id": selected_phase_id,
+                    "name": selected_phase_name,
+                },
             }
 
             llm_input = {
@@ -674,6 +849,8 @@ class FullKBLLMService:
                 "current_state": context.state.value,
                 "pending_action": context.pending_action,
                 "pending_data": self._sanitize_json_value(pending_public),
+                "selected_phase_id": selected_phase_id,
+                "selected_phase_name": selected_phase_name,
                 "room_number": context.room_number,
                 "recent_history": recent_history,
                 "memory_summary": str(memory_snapshot.get("summary") or "")[: self.memory_summary_chars],
@@ -721,13 +898,23 @@ class FullKBLLMService:
                 "A) KB CONTENT below for business/property facts.\n"
                 "B) ADMIN CONFIG from the user JSON for business identity, enabled workflows, prompts, and policy rules.\n"
                 "C) conversation memory (memory_summary, memory_facts, memory_recent_changes) for user/session facts.\n"
-                "Never invent facts outside these sources.\n\n"
+                "Never invent facts outside these sources.\n"
+                "Do not use your own pretrained/world knowledge when answering.\n"
+                "If a fact is not present in these sources, explicitly say it is unavailable in the current knowledge base for this property.\n\n"
                 f"Business identity to use in replies: assistant='{bot_name}', business='{business_name}', city='{city}'.\n"
+                f"Current selected user journey phase: '{selected_phase_name}' ({selected_phase_id}).\n"
                 "Treat ADMIN CONFIG as source-of-truth for what is enabled/allowed.\n"
                 "If KB text conflicts with ADMIN CONFIG operational settings, prefer ADMIN CONFIG and communicate uncertainty politely.\n\n"
                 "Conversation behavior requirements:\n"
+                "0) Enforce selected phase context from selected_phase_id/selected_phase_name for action availability and ticketing behavior.\n"
                 "1) Normalize user typos mentally and output normalized_query.\n"
-                "2) Understand multi-turn context from current_state, pending_action, pending_data, history, and memory.\n"
+                "2) Understand multi-turn context from current_state, pending_action, pending_data, complete chat history, and memory.\n"
+                "2.1) Use service-agent reasoning from admin_config.service_agent_prompts: identify which service agent(s) own each ask, answer each ask with the relevant agent instruction, then return one combined user response.\n"
+                "2.2) When an actionable request maps to a configured service, set service_id to that exact admin service id and keep pending_data.service_id aligned.\n"
+                "2.2.1) service_id must be an exact value from admin_config.services[].id (never a generic word).\n"
+                "2.2.2) For any request that needs service action/routing (including out-of-phase asks), set service_id explicitly. Leave service_id empty only for pure information asks.\n"
+                "2.3) For service-specific facts (timings, amenities, inclusions, pricing, policies), use admin_config.service_knowledge_packs facts for that service first. "
+                "If pack facts are missing for that detail, clearly state unavailable instead of guessing.\n"
                 "3) Handle flows naturally (ordering, bookings, support, FAQs).\n"
                 "4) For non-integrated actions, never fabricate a final system confirmation; mark as forwarded to staff.\n"
                 "4.1) If requested info/action is not explicitly available in KB or ADMIN CONFIG, do not ask exploratory follow-up questions.\n"
@@ -736,7 +923,7 @@ class FullKBLLMService:
                 "6) For change/modification requests on an existing reservation/order/profile detail, route to staff (human_request).\n"
                 "7) Ask explicit confirmation before any final confirmation action.\n"
                 f"8) Treat confirmation_yes as valid only for final confirmation steps, and only when user explicitly types the exact phrase: '{confirmation_phrase}'.\n"
-                "9) For stay/room bookings, do not ask final confirmation until required details are collected (guest count + check-in + check-out).\n"
+                "9) For stay/room bookings, do not ask final confirmation until required details are collected (room type + guest count + check-in + check-out).\n"
                 "10) If user intent is broad (e.g., asks for food/room/table without specifics), proactively offer relevant options from KB.\n"
                 "10.1) Never recommend, offer, or list any service/item/workflow unless it is explicitly present in KB CONTENT or ADMIN CONFIG (services/tools/workflows/faq).\n"
                 "10.2) Do not suggest generic examples (for example table booking, room service, food ordering, transport) unless those capabilities are explicitly present in KB CONTENT or ADMIN CONFIG.\n"
@@ -746,6 +933,7 @@ class FullKBLLMService:
                 "10.6) If a user asks multiple questions in one message, answer each ask in one combined response (do not ignore any part).\n"
                 "10.7) For out-of-phase services, keep tone sales-friendly: confirm the hotel offers the service and clearly state when it becomes available (for example, after check-in).\n"
                 "11) If user chooses one branch of a prior question, advance that branch; do not repeat the same choice question.\n"
+                "11.1) During an active booking flow, if the user asks an informational follow-up (for example room options/types/details), answer it from KB first and keep booking pending_action context.\n"
                 "12) suggested_actions must be user-askable prompts, not bot instructions (avoid 'Provide/Specify/Enter').\n"
                 "13) Provide 3-5 short, context-relevant suggested_actions for UI chips.\n"
                 "14) If user asks to show/list/recommend/options (including follow-ups like 'show more'), return the complete matching option set from KB, not a sample subset.\n"
@@ -754,6 +942,8 @@ class FullKBLLMService:
                 "17) Keep responses clear. Be concise for normal Q&A, but be exhaustive when user explicitly asks for options/lists/recommendations.\n\n"
                 "17.1) If user asks for treatments/packages/options/details, answer directly with concrete details from KB first. Do not respond with another clarifying question unless required data is missing in KB.\n"
                 "17.2) Avoid repetitive generic phrasing across turns. If user repeats/clarifies, progress the answer with new specifics.\n\n"
+                "17.3) Memory/profile updates or recall asks (for example 'remember my room', 'call me Sam') are FAQ context updates, not service actions.\n"
+                "17.4) Informational policy/privacy/security asks (for example card data retention) stay FAQ unless user explicitly asks for staff action.\n\n"
                 "18) For order_food, behave like a real concierge and collect required order details before final confirmation.\n"
                 "19) Mandatory order slots before final confirm: item_name + quantity (portions). If quantity is missing, ask naturally (for example: 'How many portions would you like?').\n"
                 "20) For table_booking, collect required booking details before final confirmation: service/restaurant name + party size + booking time (and date when user provides or asks for a specific day).\n"
@@ -772,10 +962,15 @@ class FullKBLLMService:
                 "29) Before any final order confirmation, provide a full order summary in natural language.\n"
                 "30) Order summary must include: each item name, quantity for each item, add-ons/special requests (if any), and total price if available in KB or context.\n"
                 "31) After summary, ask for explicit final confirmation; do not skip directly to confirmed state.\n\n"
+                "31.1) Differentiate room_booking vs room_service carefully:\n"
+                "    - room_booking: stay/reservation/check-in/check-out/room type/pricing/availability intent.\n"
+                "    - room_service: in-stay operational needs (housekeeping, towels, maintenance, amenities, issues).\n\n"
                 "32) Decide ticketing per turn:\n"
                 "    - Set requires_ticket=true only when staff follow-up/action is required (complaints, maintenance/service requests, manual booking/order fulfillment, escalations).\n"
                 "    - Set requires_ticket=false for pure informational replies or when you still need follow-up details before creating a staff task.\n"
                 "    - You may set requires_ticket=true for complaints, room service, order_food, table_booking, room_booking, or faq if human/staff action is required.\n"
+                "    - Never set requires_ticket=true for a service where admin_config.services[].ticketing_enabled is false.\n"
+                "    - If assistant_response says a ticket was created/raised/escalated/forwarded, requires_ticket must be true with a non-empty ticket_reason.\n"
                 "    - Provide a short ticket_reason when requires_ticket=true.\n\n"
                 "33) Ticketing conversation style:\n"
                 "    - Keep chat human and service-first; do not ask users technical ticketing questions.\n"
@@ -785,6 +980,7 @@ class FullKBLLMService:
                 "Evidence policy:\n"
                 "- If the user asks about their own previously shared details, use memory facts.\n"
                 "- If business fact is missing from KB, say it is unavailable in current knowledge base.\n"
+                "- Never answer from external/common knowledge; only use KB CONTENT, ADMIN CONFIG, and memory.\n"
                 "- Do not infer or advertise services from industry defaults; only use services/tools explicitly present in KB CONTENT or ADMIN CONFIG.\n"
                 "- If asked about other hotels/competitors, politely decline and refocus on this business.\n"
                 "- When business fact is missing, prefer offering staff handoff over asking extra qualifying questions.\n"
@@ -803,8 +999,13 @@ class FullKBLLMService:
                 '  "pending_data_updates": {},\n'
                 '  "clear_pending_data": false,\n'
                 '  "room_number": null,\n'
+                '  "service_id": "",\n'
                 '  "requires_ticket": false,\n'
                 '  "ticket_reason": "",\n'
+                '  "ticket_category": "",\n'
+                '  "ticket_sub_category": "",\n'
+                '  "ticket_priority": "",\n'
+                '  "ticket_issue": "",\n'
                 '  "suggested_actions": ["..."],\n'
                 '  "assistant_response": "..."\n'
                 "}\n\n"

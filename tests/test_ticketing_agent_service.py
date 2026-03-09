@@ -50,6 +50,19 @@ def test_room_service_information_query_does_not_activate_ticketing_agent():
     assert decision.route == "none"
 
 
+def test_room_service_intent_with_stay_booking_text_does_not_activate_ticketing_agent():
+    decision = ticketing_agent_service.decide(
+        intent=IntentType.ROOM_SERVICE,
+        message="i need a room from march 20 to march 22",
+        llm_response_text="Sure, I can help with room booking details.",
+        llm_ticketing_preference=None,
+        current_pending_action=None,
+        pending_action_target=None,
+    )
+    assert decision.activate is False
+    assert decision.route == "none"
+
+
 def test_complaint_intent_always_activates_ticketing_agent():
     decision = ticketing_agent_service.decide(
         intent=IntentType.COMPLAINT,
@@ -286,7 +299,7 @@ def test_configured_cases_match_spa_booking_case(monkeypatch):
     assert decision.matched_case == "spa booking"
 
 
-def test_configured_spa_case_creates_ticket_when_response_commits_staff_action(monkeypatch):
+def test_configured_spa_case_still_defers_until_confirmation_even_if_response_mentions_staff(monkeypatch):
     monkeypatch.setattr("services.ticketing_agent_service.config_service.get_tools", lambda: [])
     monkeypatch.setattr(
         "services.ticketing_agent_service.config_service.get_services",
@@ -311,10 +324,73 @@ def test_configured_spa_case_creates_ticket_when_response_commits_staff_action(m
         current_pending_action=None,
         pending_action_target=None,
     )
-    assert decision.activate is True
-    assert decision.routed_intent == IntentType.COMPLAINT
-    assert decision.reason == "configured_transaction_case_staff_action"
+    assert decision.activate is False
+    assert decision.routed_intent is None
+    assert decision.reason == "configured_transaction_case_deferred_until_confirmation"
     assert decision.matched_case == "spa booking"
+
+
+def test_non_transactional_configured_case_requires_escalation_signal(monkeypatch):
+    monkeypatch.setattr("services.ticketing_agent_service.config_service.get_tools", lambda: [])
+    monkeypatch.setattr(
+        "services.ticketing_agent_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "ticketing_agent",
+                "name": "Ticketing Agent",
+                "type": "plugin",
+                "is_active": True,
+                "ticketing_plugin_enabled": True,
+                "ticketing_cases": [
+                    "Pre-booking website booking issue remains unresolved (OTP/login/form/technical error).",
+                ],
+            }
+        ],
+    )
+    decision = ticketing_agent_service.decide(
+        intent=IntentType.FAQ,
+        message="hi, i need a room",
+        llm_response_text="Sure, please share your check-in and check-out dates.",
+        llm_ticketing_preference=None,
+        current_pending_action=None,
+        pending_action_target=None,
+        configured_case_match_override="Pre-booking website booking issue remains unresolved (OTP/login/form/technical error).",
+    )
+    assert decision.activate is False
+    assert decision.reason == "configured_case_match_missing_escalation_signal"
+    assert decision.matched_case.startswith("Pre-booking website booking issue")
+
+
+def test_non_transactional_configured_case_respects_llm_ticketing_preference_signal(monkeypatch):
+    monkeypatch.setattr("services.ticketing_agent_service.config_service.get_tools", lambda: [])
+    monkeypatch.setattr(
+        "services.ticketing_agent_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "ticketing_agent",
+                "name": "Ticketing Agent",
+                "type": "plugin",
+                "is_active": True,
+                "ticketing_plugin_enabled": True,
+                "ticketing_cases": [
+                    "During-stay maintenance issue (AC/electrical/plumbing/device) requires engineering intervention.",
+                ],
+            }
+        ],
+    )
+    decision = ticketing_agent_service.decide(
+        intent=IntentType.ROOM_SERVICE,
+        message="ac leaking badly, create urgent maintenance ticket",
+        llm_response_text="I've created an urgent maintenance ticket for the leaking AC.",
+        llm_ticketing_preference=True,
+        current_pending_action=None,
+        pending_action_target=None,
+        configured_case_match_override="During-stay maintenance issue (AC/electrical/plumbing/device) requires engineering intervention.",
+    )
+
+    assert decision.activate is True
+    assert decision.route == "complaint_handler"
+    assert decision.reason == "configured_ticketing_case_match"
 
 
 def test_match_configured_case_supports_transport_shorthand(monkeypatch):
@@ -634,3 +710,37 @@ async def test_llm_case_match_allows_excerpt_for_generic_confirmation(monkeypatc
 
     assert llm_used is True
     assert matched_case == "table booking"
+
+
+@pytest.mark.asyncio
+async def test_llm_case_match_prompt_includes_selected_phase(monkeypatch):
+    monkeypatch.setattr("services.ticketing_agent_service.settings.ticketing_case_match_use_llm", True)
+    monkeypatch.setattr("services.ticketing_agent_service.settings.openai_api_key", "test-key")
+    captured: dict[str, str] = {}
+
+    async def _fake_chat_with_json(messages, model=None, temperature=0.0):
+        _ = model, temperature
+        if isinstance(messages, list) and len(messages) >= 2:
+            captured["user_prompt"] = str(messages[1].get("content") or "")
+        return {
+            "should_create_ticket": False,
+            "matched_case": "",
+            "reason": "phase not eligible",
+        }
+
+    monkeypatch.setattr("services.ticketing_agent_service.llm_client.chat_with_json", _fake_chat_with_json)
+
+    matched_case, llm_used = await ticketing_agent_service._llm_match_configured_ticketing_case(
+        message="there is a cockroach in my room",
+        conversation_excerpt="Guest is in pre-booking phase and reported room hygiene issue.",
+        llm_response_text="I understand your concern.",
+        configured_cases=["room complaint", "spa booking"],
+        selected_phase_id="pre_booking",
+        selected_phase_name="Pre Booking",
+    )
+
+    assert llm_used is True
+    assert matched_case == ""
+    assert "Selected user journey phase: Pre Booking (pre_booking)" in str(
+        captured.get("user_prompt") or ""
+    )

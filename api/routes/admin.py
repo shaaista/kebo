@@ -300,6 +300,21 @@ class UpdateUISettings(BaseModel):
     industry_features: Optional[List[str]] = None
 
 
+class CompileServiceKBRequest(BaseModel):
+    service_id: Optional[str] = None
+    force: Optional[bool] = False
+    max_facts_per_service: Optional[int] = None
+    preserve_manual: Optional[bool] = True
+    published_by: Optional[str] = "admin"
+
+
+class UpdateServiceKBManualFactsRequest(BaseModel):
+    service_id: str
+    plugin_id: Optional[str] = None
+    facts: Optional[List[str]] = None
+    published_by: Optional[str] = "admin"
+
+
 class RAGReindexRequest(BaseModel):
     tenant_id: Optional[str] = None
     business_type: Optional[str] = None
@@ -1152,6 +1167,36 @@ async def get_service_kb_record(
     if not payload:
         raise HTTPException(status_code=404, detail="Service KB record not found")
     return payload
+
+
+@router.post("/api/config/service-kb/compile")
+async def compile_service_kb_records(payload: CompileServiceKBRequest):
+    """Compile service knowledge packs from KB + admin config for one/all services."""
+    result = config_service.compile_service_kb_records(
+        service_id=payload.service_id,
+        force=bool(payload.force),
+        max_facts_per_service=payload.max_facts_per_service,
+        preserve_manual=bool(payload.preserve_manual),
+        published_by=str(payload.published_by or "admin"),
+    )
+    return result
+
+
+@router.put("/api/config/service-kb/manual-facts")
+async def update_service_kb_manual_facts(payload: UpdateServiceKBManualFactsRequest):
+    """
+    Replace manual override facts for one service knowledge pack.
+    Auto-extracted facts are preserved; manual rows are replaced by provided list.
+    """
+    record = config_service.set_service_kb_manual_facts(
+        service_id=payload.service_id,
+        plugin_id=payload.plugin_id,
+        facts=list(payload.facts or []),
+        published_by=str(payload.published_by or "admin"),
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Failed to update service KB manual facts")
+    return {"message": "Service KB manual facts updated", "record": record}
 
 
 @router.get("/api/agent-builder/menu-ocr/status")

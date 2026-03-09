@@ -1,12 +1,12 @@
 {
   "business": {
-    "id": "hotel_1771350722785",
-    "name": "ICONIQA Demo Hotel",
+    "id": "3",
+    "name": "ICONIQA Relaxed QA Hotel",
     "city": "Mumbai",
     "timezone": "Asia/Kolkata",
     "type": "hotel",
-    "bot_name": "kebo",
-    "welcome_message": "Welcome to iconiqa Demo Hotel. How may I assist you today?",
+    "bot_name": "Kai",
+    "welcome_message": "",
     "currency": "INR",
     "language": "en",
     "location": "Mumbai, India",
@@ -21,41 +21,60 @@
     }
   },
   "capabilities": {
-    "food_ordering": {
-      "enabled": true,
-      "description": "Place food or product orders"
-    },
-    "room_service": {
-      "enabled": true,
-      "description": "In-room assistance service"
-    },
     "table_booking": {
       "enabled": true,
-      "description": "Reservation workflow support"
+      "description": "Restaurant table reservations",
+      "hours": null
     },
-    "spa_booking": {
+    "delivery_tracking": {
       "enabled": true,
-      "description": "Book spa treatments"
+      "description": "Track delivery status",
+      "hours": null
     },
-    "transport": {
+    "feedback": {
       "enabled": true,
-      "description": "Cab and transport booking"
-    },
-    "housekeeping": {
-      "enabled": true,
-      "description": "Housekeeping requests"
-    },
-    "concierge": {
-      "enabled": true,
-      "description": "General assistance"
-    },
-    "checkout": {
-      "enabled": true,
-      "description": "Express checkout"
+      "description": "Submit feedback",
+      "hours": null
     },
     "human_escalation": {
       "enabled": true,
-      "description": "Connect to staff"
+      "description": "Connect to staff",
+      "hours": null
+    },
+    "food_ordering": {
+      "enabled": true,
+      "description": "Order food from restaurants",
+      "hours": "24/7"
+    },
+    "room_service": {
+      "enabled": true,
+      "description": "In-room dining service",
+      "hours": "24/7"
+    },
+    "spa_booking": {
+      "enabled": true,
+      "description": "Book spa treatments",
+      "hours": "10:00 AM - 8:00 PM"
+    },
+    "transport": {
+      "enabled": true,
+      "description": "Cab and transport booking",
+      "hours": null
+    },
+    "housekeeping": {
+      "enabled": true,
+      "description": "Housekeeping requests",
+      "hours": "7:00 AM - 10:00 PM"
+    },
+    "concierge": {
+      "enabled": true,
+      "description": "General assistance",
+      "hours": null
+    },
+    "checkout": {
+      "enabled": true,
+      "description": "Express checkout",
+      "hours": null
     }
   },
   "services": [
@@ -63,7 +82,7 @@
       "id": "hotel_enquiry_sales",
       "name": "Hotel Enquiry & Sales",
       "type": "service",
-      "description": "Answer hotel questions and guide guests toward booking decisions.",
+      "description": "Answer hotel questions and guide guests before booking.",
       "cuisine": null,
       "hours": {},
       "delivery_zones": [],
@@ -78,7 +97,7 @@
       "id": "room_discovery",
       "name": "Room Discovery",
       "type": "service",
-      "description": "Help guests compare room types, amenities, and suitability.",
+      "description": "Compare room types and suitability.",
       "cuisine": null,
       "hours": {},
       "delivery_zones": [],
@@ -91,9 +110,9 @@
     },
     {
       "id": "sightseeing_around_hotel",
-      "name": "sightseeing around hotel",
+      "name": "Sightseeing Around Hotel",
       "type": "service",
-      "description": "Explore nearby attractions with our pre-booking sightseeing recommendations for an unforgettable stay.",
+      "description": "Nearby attractions guidance.",
       "cuisine": null,
       "hours": {},
       "delivery_zones": [],
@@ -103,74 +122,239 @@
       "ticketing_enabled": false,
       "phase_id": "pre_booking",
       "is_builtin": false
+    },
+    {
+      "id": "airport_transfer_assist",
+      "name": "Airport Transfer Assist",
+      "type": "service",
+      "description": "Pre-arrival transfer help.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_checkin",
+      "is_builtin": false
+    },
+    {
+      "id": "early_checkin_support",
+      "name": "Early Check-in Support",
+      "type": "service",
+      "description": "Early check-in handling.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_checkin",
+      "is_builtin": false
+    },
+    {
+      "id": "booking_modification_help",
+      "name": "Booking Modification Help",
+      "type": "service",
+      "description": "Booking modification support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_checkin",
+      "is_builtin": false
+    },
+    {
+      "id": "housekeeping_request",
+      "name": "Housekeeping Request",
+      "type": "service",
+      "description": "Cleaning and linen support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "during_stay",
+      "is_builtin": false
+    },
+    {
+      "id": "maintenance_support",
+      "name": "Maintenance Support",
+      "type": "service",
+      "description": "Engineering and maintenance support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "during_stay",
+      "is_builtin": false
+    },
+    {
+      "id": "in_room_dining",
+      "name": "In Room Dining",
+      "type": "service",
+      "description": "In-room dining support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "during_stay",
+      "is_builtin": false
+    },
+    {
+      "id": "spa_booking_assist",
+      "name": "Spa Booking Assist",
+      "type": "service",
+      "description": "Spa booking support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "during_stay",
+      "is_builtin": false
+    },
+    {
+      "id": "lost_found_desk",
+      "name": "Lost And Found Desk",
+      "type": "service",
+      "description": "Lost and found support.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "post_checkout",
+      "is_builtin": false
+    },
+    {
+      "id": "invoice_billing_support",
+      "name": "Invoice & Billing Support",
+      "type": "service",
+      "description": "Billing and invoice clarifications.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "post_checkout",
+      "is_builtin": false
+    },
+    {
+      "id": "refund_followup",
+      "name": "Refund Follow-up",
+      "type": "service",
+      "description": "Refund and charge dispute follow-up.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "post_checkout",
+      "is_builtin": false
+    },
+    {
+      "id": "restaurant_reservation",
+      "name": "Restaurant Reservation",
+      "type": "service",
+      "description": "Handle in-house table booking requests for hotel restaurants.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "during_stay",
+      "is_builtin": true
     }
   ],
   "intents": [
     {
       "id": "greeting",
       "label": "Greeting",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "menu_request",
-      "label": "Knowledge Query",
-      "enabled": false
+      "label": "View Menu",
+      "enabled": true
     },
     {
       "id": "order_food",
       "label": "Order Food",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "table_booking",
       "label": "Book Table",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "room_service",
       "label": "Room Service",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "spa_booking",
       "label": "Spa Booking",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "transport",
       "label": "Transport Request",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "complaint",
       "label": "Complaint",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "faq",
       "label": "General Question",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "human_request",
       "label": "Talk to Human",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "feedback",
       "label": "Feedback",
-      "enabled": false
+      "enabled": true
     },
     {
       "id": "health_support",
       "label": "health support",
-      "enabled": false,
+      "enabled": true,
       "maps_to": "human_request"
     },
     {
       "id": "room_booking",
       "label": "room_booking",
-      "enabled": false
+      "enabled": true
     }
   ],
   "escalation": {
@@ -316,7 +500,8 @@
     }
   ],
   "runtime": {
-    "menu_runtime_enabled": false
+    "menu_runtime_enabled": false,
+    "service_kb_auto_compile": true
   },
   "journey_phases": [
     {
@@ -356,7 +541,1899 @@
     "plugins": []
   },
   "service_kb": {
-    "records": []
+    "records": [
+      {
+        "id": "hotel_enquiry_sales_kb",
+        "service_id": "hotel_enquiry_sales",
+        "plugin_id": "hotel_enquiry_sales_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_8f7a426e04",
+            "text": "Hotel Enquiry & Sales is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "hotel_enquiry_sales",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.628736+00:00",
+            "created_at": "2026-03-08T23:17:41.628736+00:00",
+            "updated_at": "2026-03-08T23:17:41.628736+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_0840929965",
+            "text": "Hotel Enquiry & Sales: Answer hotel questions and guide guests before booking.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "hotel_enquiry_sales",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.628786+00:00",
+            "created_at": "2026-03-08T23:17:41.628786+00:00",
+            "updated_at": "2026-03-08T23:17:41.628786+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_63765ea856",
+            "text": "Ticketing is enabled for Hotel Enquiry & Sales in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "hotel_enquiry_sales",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.628813+00:00",
+            "created_at": "2026-03-08T23:17:41.628813+00:00",
+            "updated_at": "2026-03-08T23:17:41.628813+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_9ca932958a",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "hotel_enquiry_sales",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.691719+00:00",
+            "created_at": "2026-03-08T23:17:41.691719+00:00",
+            "updated_at": "2026-03-08T23:17:41.691719+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_a7b2e988da",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "hotel_enquiry_sales",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.691780+00:00",
+            "created_at": "2026-03-08T23:17:41.691780+00:00",
+            "updated_at": "2026-03-08T23:17:41.691780+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 2,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "36baa12a6fe2966d6ff4ee18bc11e685f002053a",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "room_discovery_kb",
+        "service_id": "room_discovery",
+        "plugin_id": "room_discovery_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_6d65fbf400",
+            "text": "Room Discovery is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.694087+00:00",
+            "created_at": "2026-03-08T23:17:41.694087+00:00",
+            "updated_at": "2026-03-08T23:17:41.694087+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_9a6ff0b339",
+            "text": "Room Discovery: Compare room types and suitability.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.694122+00:00",
+            "created_at": "2026-03-08T23:17:41.694122+00:00",
+            "updated_at": "2026-03-08T23:17:41.694122+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_549e2a70e4",
+            "text": "Ticketing is enabled for Room Discovery in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.694145+00:00",
+            "created_at": "2026-03-08T23:17:41.694145+00:00",
+            "updated_at": "2026-03-08T23:17:41.694145+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_9ad75e704e",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.756641+00:00",
+            "created_at": "2026-03-08T23:17:41.756641+00:00",
+            "updated_at": "2026-03-08T23:17:41.756641+00:00",
+            "confidence": 0.61,
+            "evidence": null
+          },
+          {
+            "id": "fact_c42dcd2b1f",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.756699+00:00",
+            "created_at": "2026-03-08T23:17:41.756699+00:00",
+            "updated_at": "2026-03-08T23:17:41.756699+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_64bd649d8d",
+            "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.756724+00:00",
+            "created_at": "2026-03-08T23:17:41.756724+00:00",
+            "updated_at": "2026-03-08T23:17:41.756724+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_29eb1c09bc",
+            "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.756745+00:00",
+            "created_at": "2026-03-08T23:17:41.756745+00:00",
+            "updated_at": "2026-03-08T23:17:41.756745+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_a6a8d29fa4",
+            "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_discovery",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.756765+00:00",
+            "created_at": "2026-03-08T23:17:41.756765+00:00",
+            "updated_at": "2026-03-08T23:17:41.756765+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 2,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "69b05780cc76a810fe8604403e972391fd2381bb",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 8,
+          "total_fact_count": 8
+        }
+      },
+      {
+        "id": "sightseeing_around_hotel_kb",
+        "service_id": "sightseeing_around_hotel",
+        "plugin_id": "sightseeing_around_hotel_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_545b96ec02",
+            "text": "Sightseeing Around Hotel is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.759264+00:00",
+            "created_at": "2026-03-08T23:17:41.759264+00:00",
+            "updated_at": "2026-03-08T23:17:41.759264+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_03a3d32a2f",
+            "text": "Sightseeing Around Hotel: Nearby attractions guidance.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.759299+00:00",
+            "created_at": "2026-03-08T23:17:41.759299+00:00",
+            "updated_at": "2026-03-08T23:17:41.759299+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_3210cae904",
+            "text": "Ticketing is disabled for Sightseeing Around Hotel in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.759321+00:00",
+            "created_at": "2026-03-08T23:17:41.759321+00:00",
+            "updated_at": "2026-03-08T23:17:41.759321+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_5928566e7c",
+            "text": "Multiple spaces are available around the hotel to work, print sheets, have a quick meeting or get some real work done.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.822005+00:00",
+            "created_at": "2026-03-08T23:17:41.822005+00:00",
+            "updated_at": "2026-03-08T23:17:41.822005+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_9f6fb6440a",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.822078+00:00",
+            "created_at": "2026-03-08T23:17:41.822078+00:00",
+            "updated_at": "2026-03-08T23:17:41.822078+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_e7da254445",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.822103+00:00",
+            "created_at": "2026-03-08T23:17:41.822103+00:00",
+            "updated_at": "2026-03-08T23:17:41.822103+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_156d5162b9",
+            "text": "\", \"nearby_hospitals\": \"SevenHills, Mukund, Holy Spirit\\n\", \"business_center\": \"While we do not have a formal business center, ICONIQA blurs the lines between Business and Leisure.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "sightseeing_around_hotel",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.822127+00:00",
+            "created_at": "2026-03-08T23:17:41.822127+00:00",
+            "updated_at": "2026-03-08T23:17:41.822127+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 2,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "ed4fd74576af836dd6484789e03fc2999f711130",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 7,
+          "total_fact_count": 7
+        }
+      },
+      {
+        "id": "airport_transfer_assist_kb",
+        "service_id": "airport_transfer_assist",
+        "plugin_id": "airport_transfer_assist_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_dbadbd2564",
+            "text": "Airport Transfer Assist is configured as an active service for Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "airport_transfer_assist",
+              "pre_checkin",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.824507+00:00",
+            "created_at": "2026-03-08T23:17:41.824507+00:00",
+            "updated_at": "2026-03-08T23:17:41.824507+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_d0c2170bbc",
+            "text": "Airport Transfer Assist: Pre-arrival transfer help.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "airport_transfer_assist",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.824556+00:00",
+            "created_at": "2026-03-08T23:17:41.824556+00:00",
+            "updated_at": "2026-03-08T23:17:41.824556+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_7f6bbe0daf",
+            "text": "Ticketing is enabled for Airport Transfer Assist in Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "airport_transfer_assist",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.824578+00:00",
+            "created_at": "2026-03-08T23:17:41.824578+00:00",
+            "updated_at": "2026-03-08T23:17:41.824578+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_c97c52beaf",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "airport_transfer_assist",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.889684+00:00",
+            "created_at": "2026-03-08T23:17:41.889684+00:00",
+            "updated_at": "2026-03-08T23:17:41.889684+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_1a08c0f412",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "airport_transfer_assist",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.889743+00:00",
+            "created_at": "2026-03-08T23:17:41.889743+00:00",
+            "updated_at": "2026-03-08T23:17:41.889743+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "b3aae3af4586ebac04336bf063f0c509a779f15e",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "early_checkin_support_kb",
+        "service_id": "early_checkin_support",
+        "plugin_id": "early_checkin_support_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_d476c8f284",
+            "text": "Early Check-in Support is configured as an active service for Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.892110+00:00",
+            "created_at": "2026-03-08T23:17:41.892110+00:00",
+            "updated_at": "2026-03-08T23:17:41.892110+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_e4998133aa",
+            "text": "Early Check-in Support: Early check-in handling.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.892150+00:00",
+            "created_at": "2026-03-08T23:17:41.892150+00:00",
+            "updated_at": "2026-03-08T23:17:41.892150+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_173bec3382",
+            "text": "Ticketing is enabled for Early Check-in Support in Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.892174+00:00",
+            "created_at": "2026-03-08T23:17:41.892174+00:00",
+            "updated_at": "2026-03-08T23:17:41.892174+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_518803658a",
+            "text": "Global menu.\\nMulti-sensory experience – interactive art, ICONIQA playlist on Spotify.\\nSo where do we check in… That’s to the right.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.958783+00:00",
+            "created_at": "2026-03-08T23:17:41.958783+00:00",
+            "updated_at": "2026-03-08T23:17:41.958783+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_6e1d351fd3",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.958844+00:00",
+            "created_at": "2026-03-08T23:17:41.958844+00:00",
+            "updated_at": "2026-03-08T23:17:41.958844+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_1f30cce38c",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.958870+00:00",
+            "created_at": "2026-03-08T23:17:41.958870+00:00",
+            "updated_at": "2026-03-08T23:17:41.958870+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_b89429c119",
+            "text": "You don’t have to check in using the desk!",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "early_checkin_support",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.958896+00:00",
+            "created_at": "2026-03-08T23:17:41.958896+00:00",
+            "updated_at": "2026-03-08T23:17:41.958896+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "d26ae4e3d43732ccb5a1a72931663453573ad022",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 7,
+          "total_fact_count": 7
+        }
+      },
+      {
+        "id": "booking_modification_help_kb",
+        "service_id": "booking_modification_help",
+        "plugin_id": "booking_modification_help_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_6ac76c3ad6",
+            "text": "Booking Modification Help is configured as an active service for Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "booking_modification_help",
+              "pre_checkin",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.961645+00:00",
+            "created_at": "2026-03-08T23:17:41.961645+00:00",
+            "updated_at": "2026-03-08T23:17:41.961645+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_05b9f7a051",
+            "text": "Booking Modification Help: Booking modification support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "booking_modification_help",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.961685+00:00",
+            "created_at": "2026-03-08T23:17:41.961685+00:00",
+            "updated_at": "2026-03-08T23:17:41.961685+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_62c668df42",
+            "text": "Ticketing is enabled for Booking Modification Help in Pre Checkin phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "booking_modification_help",
+              "pre_checkin",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:41.961708+00:00",
+            "created_at": "2026-03-08T23:17:41.961708+00:00",
+            "updated_at": "2026-03-08T23:17:41.961708+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_0f4a37b792",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "booking_modification_help",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.028793+00:00",
+            "created_at": "2026-03-08T23:17:42.028793+00:00",
+            "updated_at": "2026-03-08T23:17:42.028793+00:00",
+            "confidence": 0.67,
+            "evidence": null
+          },
+          {
+            "id": "fact_23edb78340",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "booking_modification_help",
+              "pre_checkin",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.028849+00:00",
+            "created_at": "2026-03-08T23:17:42.028849+00:00",
+            "updated_at": "2026-03-08T23:17:42.028849+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "80827b9e154dd0420b93359d53757fe172b3bba9",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "housekeeping_request_kb",
+        "service_id": "housekeeping_request",
+        "plugin_id": "housekeeping_request_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_ee961d4ce8",
+            "text": "Housekeeping Request is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping_request",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.031645+00:00",
+            "created_at": "2026-03-08T23:17:42.031645+00:00",
+            "updated_at": "2026-03-08T23:17:42.031645+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_6f2348393e",
+            "text": "Housekeeping Request: Cleaning and linen support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping_request",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.031685+00:00",
+            "created_at": "2026-03-08T23:17:42.031685+00:00",
+            "updated_at": "2026-03-08T23:17:42.031685+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_c75459fba2",
+            "text": "Ticketing is enabled for Housekeeping Request in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping_request",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.031707+00:00",
+            "created_at": "2026-03-08T23:17:42.031707+00:00",
+            "updated_at": "2026-03-08T23:17:42.031707+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_b981deffa4",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping_request",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.098752+00:00",
+            "created_at": "2026-03-08T23:17:42.098752+00:00",
+            "updated_at": "2026-03-08T23:17:42.098752+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_557c73edcf",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping_request",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.098808+00:00",
+            "created_at": "2026-03-08T23:17:42.098808+00:00",
+            "updated_at": "2026-03-08T23:17:42.098808+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "be17525a4862060ae756592f4313201d1695e2e5",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "maintenance_support_kb",
+        "service_id": "maintenance_support",
+        "plugin_id": "maintenance_support_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_21908a77d4",
+            "text": "Maintenance Support is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "maintenance_support",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.101822+00:00",
+            "created_at": "2026-03-08T23:17:42.101822+00:00",
+            "updated_at": "2026-03-08T23:17:42.101822+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_847101dd52",
+            "text": "Maintenance Support: Engineering and maintenance support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "maintenance_support",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.101873+00:00",
+            "created_at": "2026-03-08T23:17:42.101873+00:00",
+            "updated_at": "2026-03-08T23:17:42.101873+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_0e537fd298",
+            "text": "Ticketing is enabled for Maintenance Support in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "maintenance_support",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.101897+00:00",
+            "created_at": "2026-03-08T23:17:42.101897+00:00",
+            "updated_at": "2026-03-08T23:17:42.101897+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_361e70e80c",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "maintenance_support",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.168498+00:00",
+            "created_at": "2026-03-08T23:17:42.168498+00:00",
+            "updated_at": "2026-03-08T23:17:42.168498+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "0b0e6419f5cbd104971d5c35a2a2cfd3a82a43fa",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 4,
+          "total_fact_count": 4
+        }
+      },
+      {
+        "id": "in_room_dining_kb",
+        "service_id": "in_room_dining",
+        "plugin_id": "in_room_dining_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_771da03a1e",
+            "text": "In Room Dining is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.171619+00:00",
+            "created_at": "2026-03-08T23:17:42.171619+00:00",
+            "updated_at": "2026-03-08T23:17:42.171619+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_2c6e304a3c",
+            "text": "In Room Dining: In-room dining support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.171662+00:00",
+            "created_at": "2026-03-08T23:17:42.171662+00:00",
+            "updated_at": "2026-03-08T23:17:42.171662+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_75131febac",
+            "text": "Ticketing is enabled for In Room Dining in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.171684+00:00",
+            "created_at": "2026-03-08T23:17:42.171684+00:00",
+            "updated_at": "2026-03-08T23:17:42.171684+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_c5a0279a36",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.239915+00:00",
+            "created_at": "2026-03-08T23:17:42.239915+00:00",
+            "updated_at": "2026-03-08T23:17:42.239915+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_e31b331f9d",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.239978+00:00",
+            "created_at": "2026-03-08T23:17:42.239978+00:00",
+            "updated_at": "2026-03-08T23:17:42.239978+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_855294c3b0",
+            "text": "Featuring a king-size bed, a separate living and dining area, Bedroom and floor-ceiling windows, this suite is thoughtfully designed for longer stays and entertaining.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.240006+00:00",
+            "created_at": "2026-03-08T23:17:42.240006+00:00",
+            "updated_at": "2026-03-08T23:17:42.240006+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_389972af75",
+            "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.240031+00:00",
+            "created_at": "2026-03-08T23:17:42.240031+00:00",
+            "updated_at": "2026-03-08T23:17:42.240031+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_b9cfa4ea68",
+            "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.240055+00:00",
+            "created_at": "2026-03-08T23:17:42.240055+00:00",
+            "updated_at": "2026-03-08T23:17:42.240055+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_ac271eb46e",
+            "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.240077+00:00",
+            "created_at": "2026-03-08T23:17:42.240077+00:00",
+            "updated_at": "2026-03-08T23:17:42.240077+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_e9522cef4a",
+            "text": "This isn’t your typical Indian dining space.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "in_room_dining",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.240096+00:00",
+            "created_at": "2026-03-08T23:17:42.240096+00:00",
+            "updated_at": "2026-03-08T23:17:42.240096+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "faaf31d2d4782dd77acabd4384ec03aeb76a7259",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 10,
+          "total_fact_count": 10
+        }
+      },
+      {
+        "id": "spa_booking_assist_kb",
+        "service_id": "spa_booking_assist",
+        "plugin_id": "spa_booking_assist_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_7f0ae4d96e",
+            "text": "Spa Booking Assist is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "spa_booking_assist",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.243564+00:00",
+            "created_at": "2026-03-08T23:17:42.243564+00:00",
+            "updated_at": "2026-03-08T23:17:42.243564+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_e78adadac9",
+            "text": "Spa Booking Assist: Spa booking support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "spa_booking_assist",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.243605+00:00",
+            "created_at": "2026-03-08T23:17:42.243605+00:00",
+            "updated_at": "2026-03-08T23:17:42.243605+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_426ea52f03",
+            "text": "Ticketing is enabled for Spa Booking Assist in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "spa_booking_assist",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.243629+00:00",
+            "created_at": "2026-03-08T23:17:42.243629+00:00",
+            "updated_at": "2026-03-08T23:17:42.243629+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_65e03996fa",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "spa_booking_assist",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.310960+00:00",
+            "created_at": "2026-03-08T23:17:42.310960+00:00",
+            "updated_at": "2026-03-08T23:17:42.310960+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_2ce1d323ed",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "spa_booking_assist",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.311021+00:00",
+            "created_at": "2026-03-08T23:17:42.311021+00:00",
+            "updated_at": "2026-03-08T23:17:42.311021+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "efce9f880384a61326e38e156ea9c1d141c03792",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "lost_found_desk_kb",
+        "service_id": "lost_found_desk",
+        "plugin_id": "lost_found_desk_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_cade3dc85b",
+            "text": "Lost And Found Desk is configured as an active service for Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_found_desk",
+              "post_checkout",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.314551+00:00",
+            "created_at": "2026-03-08T23:17:42.314551+00:00",
+            "updated_at": "2026-03-08T23:17:42.314551+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_bb7e486df8",
+            "text": "Lost And Found Desk: Lost and found support.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_found_desk",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.314590+00:00",
+            "created_at": "2026-03-08T23:17:42.314590+00:00",
+            "updated_at": "2026-03-08T23:17:42.314590+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_193fa5455e",
+            "text": "Ticketing is enabled for Lost And Found Desk in Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_found_desk",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.314614+00:00",
+            "created_at": "2026-03-08T23:17:42.314614+00:00",
+            "updated_at": "2026-03-08T23:17:42.314614+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_6e8efd9258",
+            "text": "Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_found_desk",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.378947+00:00",
+            "created_at": "2026-03-08T23:17:42.378947+00:00",
+            "updated_at": "2026-03-08T23:17:42.378947+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_2637d7cf96",
+            "text": "You don’t have to check in using the desk!",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_found_desk",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.379001+00:00",
+            "created_at": "2026-03-08T23:17:42.379001+00:00",
+            "updated_at": "2026-03-08T23:17:42.379001+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "13859423b291bae90e2945784b8af4d1a7488d97",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 5,
+          "total_fact_count": 5
+        }
+      },
+      {
+        "id": "invoice_billing_support_kb",
+        "service_id": "invoice_billing_support",
+        "plugin_id": "invoice_billing_support_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_634bfa9a11",
+            "text": "Invoice & Billing Support is configured as an active service for Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "invoice_billing_support",
+              "post_checkout",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.382481+00:00",
+            "created_at": "2026-03-08T23:17:42.382481+00:00",
+            "updated_at": "2026-03-08T23:17:42.382481+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_4f82059134",
+            "text": "Invoice & Billing Support: Billing and invoice clarifications.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "invoice_billing_support",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.382539+00:00",
+            "created_at": "2026-03-08T23:17:42.382539+00:00",
+            "updated_at": "2026-03-08T23:17:42.382539+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_45c8da836b",
+            "text": "Ticketing is enabled for Invoice & Billing Support in Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "invoice_billing_support",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.382561+00:00",
+            "created_at": "2026-03-08T23:17:42.382561+00:00",
+            "updated_at": "2026-03-08T23:17:42.382561+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_d178593b79",
+            "text": "Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "invoice_billing_support",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.447689+00:00",
+            "created_at": "2026-03-08T23:17:42.447689+00:00",
+            "updated_at": "2026-03-08T23:17:42.447689+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "2b10724f3223a493990957e4350c943788b5b82b",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 4,
+          "total_fact_count": 4
+        }
+      },
+      {
+        "id": "refund_followup_kb",
+        "service_id": "refund_followup",
+        "plugin_id": "refund_followup_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_62148dbeda",
+            "text": "Refund Follow-up is configured as an active service for Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "refund_followup",
+              "post_checkout",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.455632+00:00",
+            "created_at": "2026-03-08T23:17:42.455632+00:00",
+            "updated_at": "2026-03-08T23:17:42.455632+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_f21dbebc5c",
+            "text": "Refund Follow-up: Refund and charge dispute follow-up.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "refund_followup",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.455681+00:00",
+            "created_at": "2026-03-08T23:17:42.455681+00:00",
+            "updated_at": "2026-03-08T23:17:42.455681+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_8ae7e29437",
+            "text": "Ticketing is enabled for Refund Follow-up in Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "refund_followup",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.455704+00:00",
+            "created_at": "2026-03-08T23:17:42.455704+00:00",
+            "updated_at": "2026-03-08T23:17:42.455704+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_9a7a62452a",
+            "text": "Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "refund_followup",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-08T23:17:42.520855+00:00",
+            "created_at": "2026-03-08T23:17:42.520855+00:00",
+            "updated_at": "2026-03-08T23:17:42.520855+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-08T23:17:41.628565+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-08T23:17:41.628565+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-08T23:17:41.628565+00:00",
+          "compiler_version": "v1",
+          "service_signature": "125f0b96258613537adde7437ab51928c1cc188c",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 4,
+          "total_fact_count": 4
+        }
+      },
+      {
+        "id": "restaurant_reservation_kb",
+        "service_id": "restaurant_reservation",
+        "plugin_id": "restaurant_reservation_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_42a3a9b24b",
+            "text": "Restaurant Reservation is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.369836+00:00",
+            "created_at": "2026-03-09T06:11:05.369836+00:00",
+            "updated_at": "2026-03-09T06:11:05.369836+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_88f92b58bf",
+            "text": "Restaurant Reservation: Handle in-house table booking requests for hotel restaurants.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.369916+00:00",
+            "created_at": "2026-03-09T06:11:05.369916+00:00",
+            "updated_at": "2026-03-09T06:11:05.369916+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_6570db3960",
+            "text": "Ticketing is enabled for Restaurant Reservation in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.369963+00:00",
+            "created_at": "2026-03-09T06:11:05.369963+00:00",
+            "updated_at": "2026-03-09T06:11:05.369963+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_f4bd85a2ad",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.490898+00:00",
+            "created_at": "2026-03-09T06:11:05.490898+00:00",
+            "updated_at": "2026-03-09T06:11:05.490898+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_9b2859e7a8",
+            "text": "\\nWelcome to Kadak Lab: our indoor-outdoor modern bazaar inspired Pan-Indian restaurant that is multi-sensory and multi-functional\\nAgain,we’ve done things differently.\\nThe first bit is the Sweet Lab that’s open 24x7.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.491004+00:00",
+            "created_at": "2026-03-09T06:11:05.491004+00:00",
+            "updated_at": "2026-03-09T06:11:05.491004+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_ef735a7774",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "restaurant_reservation",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-09T06:11:05.491060+00:00",
+            "created_at": "2026-03-09T06:11:05.491060+00:00",
+            "updated_at": "2026-03-09T06:11:05.491060+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-09T06:11:05.368218+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-09T06:11:05.368218+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-09T06:11:05.368218+00:00",
+          "compiler_version": "v1",
+          "service_signature": "eee49f4dff3718bf961d356ac3a754a555e7354d",
+          "source_signature": "1443bdd6046be60ddbdbce4bab71cc286d943846",
+          "source_count": 8,
+          "manual_fact_count": 0,
+          "auto_fact_count": 6,
+          "total_fact_count": 6
+        }
+      }
+    ],
+    "compiler": {
+      "enabled": true,
+      "max_facts_per_service": 60,
+      "max_source_chars": 220000,
+      "max_sources": 25,
+      "version": "v1"
+    }
   },
   "service_agent_releases": []
 }

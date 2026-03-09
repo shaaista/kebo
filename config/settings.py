@@ -1,3 +1,4 @@
+import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
@@ -54,6 +55,8 @@ class Settings(BaseSettings):
     llm_max_tokens: int = 2000
     llm_temperature: float = 0.7
     llm_timeout: int = 30
+    llm_history_max_messages: int = 0
+    llm_history_max_chars: int = 12000
 
     # RAG Settings
     rag_backend: str = "local"  # local | qdrant
@@ -81,18 +84,30 @@ class Settings(BaseSettings):
     kb_direct_lookup_llm_rewrite_max_tokens: int = 64
     kb_direct_disable_rag_fallback: bool = True
     agent_plugin_runtime_enabled: bool = False
+    chat_pure_llm_mode: bool = False
     chat_full_kb_llm_mode: bool = False
     full_kb_llm_max_kb_chars: int = 180000
-    full_kb_llm_max_history_messages: int = 10
+    full_kb_llm_max_history_messages: int = 0
+    full_kb_llm_history_max_chars: int = 12000
     full_kb_llm_memory_summary_chars: int = 2200
     full_kb_llm_force_summary_refresh: bool = True
     full_kb_llm_step_logs_enabled: bool = True
     full_kb_llm_temperature: float = 0.1
     full_kb_llm_passthrough_mode: bool = False
     full_kb_llm_pre_shortcuts_enabled: bool = False
+    chat_llm_preprocess_enabled: bool = True
+    chat_llm_preprocess_model: str = ""
+    chat_llm_preprocess_temperature: float = 0.0
+    chat_llm_preprocess_max_tokens: int = 80
+    chat_multi_ask_orchestration_enabled: bool = True
+    chat_multi_ask_min_items: int = 2
+    chat_multi_ask_max_items: int = 6
+    chat_multi_ask_decompose_model: str = ""
+    chat_multi_ask_compose_model: str = ""
     chat_require_strict_confirmation_phrase: bool = True
     chat_confirmation_phrase: str = "yes confirm"
     chat_kb_only_mode: bool = False
+    chat_phase_gate_llm_only: bool = True
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_collection: str = "kepsla_kb_chunks"
@@ -102,6 +117,14 @@ class Settings(BaseSettings):
     max_conversation_history: int = 20
     context_window_tokens: int = 8000
     session_ttl_hours: int = 24
+    conversation_local_store_enabled: bool = True
+    conversation_local_store_file: str = Field(
+        default_factory=lambda: (
+            "/tmp/kepsla_local_contexts.json"
+            if os.name != "nt"
+            else "./data/runtime/local_contexts.json"
+        )
+    )
 
     # Confidence Thresholds
     intent_confidence_threshold: float = 0.7
@@ -119,7 +142,13 @@ class Settings(BaseSettings):
     ticketing_update_path_template: str = "/insert/ticket/{ticket_id}.htm"
     ticketing_timeout_seconds: float = 10.0
     ticketing_local_mode: bool = False
-    ticketing_local_store_file: str = "./data/ticketing/local_tickets.json"
+    ticketing_local_store_file: str = Field(
+        default_factory=lambda: (
+            "/tmp/local_tickets.json"
+            if os.name != "nt"
+            else "./data/ticketing/local_tickets.json"
+        )
+    )
     ticketing_local_csv_file: str = ""
     agent_handoff_api_url: str = ""
     ticketing_smart_routing_enabled: bool = True
@@ -131,9 +160,11 @@ class Settings(BaseSettings):
     ticketing_auto_create_on_actionable: bool = True
     ticketing_plugin_enabled: bool = True
     ticketing_plugin_takeover_mode: bool = False
+    ticketing_agent_llm_only: bool = True
     ticketing_case_match_use_llm: bool = True
     ticketing_case_match_model: str = "gpt-4o-mini"
-    ticketing_case_match_fallback_enabled: bool = True
+    ticketing_case_match_fallback_enabled: bool = False
+    ticketing_case_match_context_chars: int = 5000
     ticketing_subcategory_llm_enabled: bool = False
     ticketing_subcategory_model: str = "gpt-4o-mini"
     ticketing_stale_reconfirm_enabled: bool = False

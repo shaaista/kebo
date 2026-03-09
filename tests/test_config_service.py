@@ -400,3 +400,92 @@ def test_service_kb_upsert_and_fetch_latest(tmp_path, monkeypatch):
     latest = service.get_service_kb_record(service_id="airport_transfer", plugin_id="airport_transfer_agent")
     assert latest is not None
     assert int(latest.get("version") or 0) == 2
+
+
+def test_compile_service_kb_records_extracts_and_preserves_manual_overrides(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    assert service.add_service(
+        {
+            "id": "spa_booking",
+            "name": "Spa Booking",
+            "type": "service",
+            "description": "Book spa therapies and wellness sessions.",
+            "phase_id": "during_stay",
+            "ticketing_enabled": False,
+            "is_active": True,
+        }
+    )
+    kb_file = tmp_path / "spa_kb.txt"
+    kb_file.write_text(
+        (
+            "Spa Booking is available for in-house guests. "
+            "Spa timings are 9 AM to 11 PM daily. "
+            "Advance booking is recommended for premium therapies."
+        ),
+        encoding="utf-8",
+    )
+    service.update_knowledge_config({"sources": [str(kb_file)]})
+
+    compile_result = service.compile_service_kb_records(
+        service_id="spa_booking",
+        force=True,
+        preserve_manual=True,
+        published_by="test-suite",
+    )
+    assert compile_result.get("compiled_count") == 1
+    record = service.get_service_kb_record(service_id="spa_booking")
+    assert record is not None
+    assert any("spa timings" in str(fact.get("text") or "").lower() for fact in (record.get("facts") or []))
+
+    updated = service.set_service_kb_manual_facts(
+        service_id="spa_booking",
+        facts=["Manual override: Spa bookings for groups need staff confirmation."],
+        published_by="qa",
+    )
+    assert updated is not None
+    assert any(
+        str(fact.get("origin") or "") == "manual"
+        for fact in (updated.get("facts") or [])
+    )
+
+    service.compile_service_kb_records(
+        service_id="spa_booking",
+        force=True,
+        preserve_manual=True,
+        published_by="test-suite",
+    )
+    compiled_again = service.get_service_kb_record(service_id="spa_booking")
+    assert compiled_again is not None
+    assert any(
+        "groups need staff confirmation" in str(fact.get("text") or "").lower()
+        and str(fact.get("origin") or "") == "manual"
+        for fact in (compiled_again.get("facts") or [])
+    )
+
+
+def test_capability_summary_includes_service_kb_records(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    assert service.add_service(
+        {
+            "id": "room_discovery",
+            "name": "Room Discovery",
+            "type": "service",
+            "description": "Share room options and amenities.",
+            "phase_id": "pre_booking",
+            "ticketing_enabled": True,
+            "is_active": True,
+        }
+    )
+    compile_result = service.compile_service_kb_records(
+        service_id="room_discovery",
+        force=True,
+        preserve_manual=True,
+        published_by="test-suite",
+    )
+    assert compile_result.get("compiled_count") == 1
+
+    summary = service.get_capability_summary()
+    kb_records = summary.get("service_kb_records") or []
+    assert any(str(item.get("service_id") or "") == "room_discovery" for item in kb_records)
