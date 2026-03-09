@@ -30,6 +30,7 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 DEFAULT_KB_DIR = Path(__file__).parent.parent / "config" / "knowledge_base"
+DEFAULT_BUNDLED_KB_FILE = Path(__file__).parent.parent / "ROHL_Test_property.txt"
 _QUERY_STOPWORDS = {
     "a",
     "an",
@@ -756,8 +757,18 @@ class RAGService:
         files: list[Path] = []
         for ext in ("*.md", "*.txt", "*.markdown", "*.rst", "*.json"):
             files.extend(self.kb_dir.glob(ext))
-        files.sort()
-        return files
+        if DEFAULT_BUNDLED_KB_FILE.exists() and DEFAULT_BUNDLED_KB_FILE.is_file():
+            files.append(DEFAULT_BUNDLED_KB_FILE)
+        deduped: list[Path] = []
+        seen: set[str] = set()
+        for path in files:
+            marker = str(path.resolve()) if path.exists() else str(path)
+            if marker in seen:
+                continue
+            seen.add(marker)
+            deduped.append(path)
+        deduped.sort()
+        return deduped
 
     def _read_document(self, path: Path) -> Optional[str]:
         try:

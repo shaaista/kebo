@@ -22,6 +22,7 @@ CONFIG_DIR = Path(__file__).parent.parent / "config"
 TEMPLATES_DIR = CONFIG_DIR / "templates"
 PROMPT_TEMPLATES_DIR = CONFIG_DIR / "prompt_templates"
 BUSINESS_CONFIG_FILE = CONFIG_DIR / "business_config.json"
+DEFAULT_BUNDLED_KB_FILE = CONFIG_DIR.parent / "ROHL_Test_property.txt"
 
 _KB_CONFLICT_AVAILABLE_MARKERS = (
     "available",
@@ -3599,6 +3600,13 @@ class ConfigService:
             path = Path(source)
             if path.exists() and path.is_file():
                 resolved.append(path.resolve())
+
+        if (
+            len(resolved) < max_sources
+            and DEFAULT_BUNDLED_KB_FILE.exists()
+            and DEFAULT_BUNDLED_KB_FILE.is_file()
+        ):
+            resolved.append(DEFAULT_BUNDLED_KB_FILE.resolve())
 
         deduped: list[Path] = []
         seen: set[str] = set()

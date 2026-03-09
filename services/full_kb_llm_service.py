@@ -23,6 +23,7 @@ from schemas.chat import ConversationContext, ConversationState, IntentType
 
 
 DEFAULT_KB_DIR = Path(__file__).parent.parent / "config" / "knowledge_base"
+DEFAULT_BUNDLED_KB_FILE = Path(__file__).parent.parent / "ROHL_Test_property.txt"
 _FALLBACK_NOT_FOUND = (
     "I could not find that in the current knowledge base for this property. "
     "If you want, I can connect you with our team right away."
@@ -271,6 +272,9 @@ class FullKBLLMService:
             for candidate in self.kb_dir.iterdir():
                 if candidate.is_file():
                     candidates.append(candidate)
+
+        if DEFAULT_BUNDLED_KB_FILE.exists() and DEFAULT_BUNDLED_KB_FILE.is_file():
+            candidates.append(DEFAULT_BUNDLED_KB_FILE)
 
         filtered = [
             p

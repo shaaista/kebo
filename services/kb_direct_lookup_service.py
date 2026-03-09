@@ -22,6 +22,7 @@ from services.config_service import config_service
 
 
 DEFAULT_KB_DIR = Path(__file__).parent.parent / "config" / "knowledge_base"
+DEFAULT_BUNDLED_KB_FILE = Path(__file__).parent.parent / "ROHL_Test_property.txt"
 _KB_EXTENSIONS = (".txt", ".json", ".md", ".markdown", ".rst")
 
 
@@ -309,6 +310,13 @@ class KBDirectLookupService:
             for candidate in self.kb_dir.iterdir():
                 if candidate.is_file() and candidate.suffix.lower() in _KB_EXTENSIONS:
                     resolved.append(candidate.resolve())
+
+        if (
+            DEFAULT_BUNDLED_KB_FILE.exists()
+            and DEFAULT_BUNDLED_KB_FILE.is_file()
+            and DEFAULT_BUNDLED_KB_FILE.suffix.lower() in _KB_EXTENSIONS
+        ):
+            resolved.append(DEFAULT_BUNDLED_KB_FILE.resolve())
 
         deduped: list[Path] = []
         seen: set[str] = set()
