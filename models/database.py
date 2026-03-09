@@ -12,7 +12,7 @@ This makes debugging easier and matches recreate_tables.py structure.
 
 from __future__ import annotations
 
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from sqlalchemy import (
     Boolean,
@@ -31,6 +31,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.mysql import DECIMAL
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -39,6 +40,28 @@ from config.settings import settings
 # Legacy fallback for local development; primary source should be settings.database_url.
 LEGACY_FALLBACK_DATABASE_URL = "mysql+aiomysql://root:zapcom123@172.16.5.32:3306/GHN_PROD_BAK"
 ACTIVE_DATABASE_URL = str(getattr(settings, "database_url", "") or "").strip() or LEGACY_FALLBACK_DATABASE_URL
+
+
+def _build_connect_args(database_url: str) -> dict[str, Any]:
+    """
+    Build driver-safe connect args.
+
+    - MySQL + aiomysql: supports `connect_timeout`
+    - PostgreSQL + asyncpg: supports `timeout`
+    - SQLite + aiosqlite: should not receive `connect_timeout`
+    """
+    try:
+        parsed = make_url(database_url)
+        backend = str(parsed.get_backend_name() or "").lower()
+        driver = str(parsed.get_driver_name() or "").lower()
+    except Exception:
+        return {}
+
+    if backend == "mysql" and "aiomysql" in driver:
+        return {"connect_timeout": 30}
+    if backend in {"postgresql", "postgres"} and "asyncpg" in driver:
+        return {"timeout": 30}
+    return {}
 
 
 Base = declarative_base()
@@ -367,15 +390,18 @@ class Intent(Base, TimestampMixin):
     hotel = relationship("Hotel", back_populates="intents")
 
 
-# Async engine + session factory (MySQL)
-# Note: connect_args with connect_timeout for high-latency VPN connections
+# Async engine + session factory
+_engine_connect_args = _build_connect_args(ACTIVE_DATABASE_URL)
+_engine_kwargs: dict[str, Any] = {
+    "echo": settings.database_echo,
+    "pool_pre_ping": True,
+}
+if _engine_connect_args:
+    _engine_kwargs["connect_args"] = _engine_connect_args
+
 engine = create_async_engine(
     ACTIVE_DATABASE_URL,
-    echo=settings.database_echo,
-    pool_pre_ping=True,
-    connect_args={
-        "connect_timeout": 30,  # 30 seconds timeout for VPN latency
-    },
+    **_engine_kwargs,
 )
 
 AsyncSessionLocal = async_sessionmaker(
