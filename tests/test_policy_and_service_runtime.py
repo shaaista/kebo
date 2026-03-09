@@ -3160,6 +3160,65 @@ def test_phase_service_unavailable_allows_room_detail_followup_with_typo_history
     assert unavailable is None
 
 
+def test_phase_service_unavailable_ignores_out_of_phase_room_type_signal_when_room_flow_is_supported(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="phase-room-followup-4",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+        pending_action=None,
+        pending_data={"_integration": {"phase": "pre_booking"}},
+    )
+
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "room_discovery",
+                "name": "Room Discovery",
+                "type": "service",
+                "description": "Help guests compare room types and amenities.",
+                "phase_id": "pre_booking",
+                "is_active": True,
+            },
+            {
+                "id": "lux_suite",
+                "name": "Lux Suite",
+                "type": "service",
+                "description": "Luxury suite inventory service.",
+                "phase_id": "during_stay",
+                "is_active": True,
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [
+            {"id": "pre_booking", "name": "Pre Booking"},
+            {"id": "during_stay", "name": "During Stay"},
+        ],
+    )
+    monkeypatch.setattr(
+        service,
+        "_resolve_service_from_phase_signals",
+        lambda **_kwargs: {
+            "service_id": "lux_suite",
+            "service_name": "Lux Suite",
+            "phase_id": "during_stay",
+        },
+    )
+
+    unavailable = service._detect_phase_service_unavailable_for_intent(
+        message="book lux suite for 2 guests from march 10 to march 12",
+        intent=IntentType.TABLE_BOOKING,
+        context=context,
+        pending_data=context.pending_data,
+        entities={},
+    )
+
+    assert unavailable is None
+
+
 @pytest.mark.asyncio
 async def test_decompose_multi_ask_uses_fallback_when_llm_returns_single(monkeypatch):
     service = ChatService()

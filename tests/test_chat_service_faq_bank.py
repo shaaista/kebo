@@ -3052,6 +3052,85 @@ async def test_full_kb_confirm_room_booking_creates_room_booking_ticket(monkeypa
 
 
 @pytest.mark.asyncio
+async def test_full_kb_confirm_room_booking_overrides_phase_denial_wording(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-fullkb-confirm-room-booking-phase-denial",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_CONFIRMATION,
+        pending_action="confirm_room_booking",
+        pending_data={
+            "room_type": "Lux Suite",
+            "stay_checkin_date": "Mar 02",
+            "stay_checkout_date": "Mar 03",
+            "guest_count": 5,
+            "_integration": {"phase": "pre_booking"},
+        },
+    )
+    denial_text = (
+        "Lux Suite is not available for Pre Booking phase. "
+        "It is available in During Stay phase."
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_refresh_summary(_context):
+        return None
+
+    async def _fake_run_turn(*args, **kwargs):
+        return FullKBLLMResult(
+            response_text=denial_text,
+            normalized_query="yes confirm",
+            intent=IntentType.CONFIRMATION_YES,
+            raw_intent="confirmation_yes",
+            confidence=0.95,
+            next_state=ConversationState.COMPLETED,
+            pending_action=None,
+            pending_data={},
+            room_number=None,
+            suggested_actions=["Need help"],
+            trace_id="fullkb-confirm-room-booking-phase-denial",
+            llm_output={},
+            clear_pending_data=True,
+            status="success",
+        )
+
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", True)
+    monkeypatch.setattr("services.chat_service.settings.full_kb_llm_passthrough_mode", True)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "restaurants": [], "services": {}, "intents": [], "tools": []},
+    )
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.refresh_summary", _fake_refresh_summary)
+    monkeypatch.setattr("services.chat_service.full_kb_llm_service.run_turn", _fake_run_turn)
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _capabilities=None: False)
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-fullkb-confirm-room-booking-phase-denial",
+            message="yes confirm",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    text = str(response.message or "").lower()
+    assert "room booking has been confirmed" in text
+    assert "not available for pre booking phase" not in text
+    assert response.state == ConversationState.COMPLETED
+
+
+@pytest.mark.asyncio
 async def test_full_kb_booking_confirmation_text_still_creates_spa_ticket(monkeypatch):
     service = ChatService()
     context = ConversationContext(

@@ -2488,6 +2488,19 @@ class ChatService:
                             response_text=response_text,
                             confirmation_phrase=confirmation_phrase,
                         )
+                elif (
+                    effective_intent == IntentType.CONFIRMATION_YES
+                    and room_pending_action in {"confirm_booking", "confirm_room_booking", "confirm_room_availability_check"}
+                    and self._looks_like_phase_unavailable_response(response_text)
+                ):
+                    # Guardrail: when room details are already complete and user confirms,
+                    # do not let phase-wording drift in LLM output block the finalized booking.
+                    effective_confidence = max(effective_confidence, 0.95)
+                    next_state = ConversationState.COMPLETED
+                    pending_action_target = None
+                    pending_data_target = {}
+                    clear_pending_data = True
+                    response_text = self._build_room_booking_confirmation_success_response(merged_for_logic)
 
             if self._is_order_pending_action(current_pending_action) or self._is_order_pending_action(pending_action_target):
                 deterministic_order_updates = self._extract_order_slot_updates(
@@ -2898,6 +2911,18 @@ class ChatService:
                 pending_data_target = dict(merged_for_logic)
                 clear_pending_data = False
                 response_text = self._build_room_booking_review_prompt(pending_data_target)
+            elif (
+                effective_intent == IntentType.CONFIRMATION_YES
+                and room_pending_action in {"confirm_booking", "confirm_room_booking", "confirm_room_availability_check"}
+                and self._looks_like_phase_unavailable_response(response_text)
+            ):
+                # Keep confirmation deterministic for completed room-booking flows.
+                effective_confidence = max(effective_confidence, 0.95)
+                next_state = ConversationState.COMPLETED
+                pending_action_target = None
+                pending_data_target = {}
+                clear_pending_data = True
+                response_text = self._build_room_booking_confirmation_success_response(merged_for_logic)
 
         order_flow = self._is_order_flow(
             raw_intent=llm_result.raw_intent,
@@ -3945,20 +3970,26 @@ class ChatService:
             )
             return {}
 
-        phase_gate = self._detect_ticketing_phase_service_mismatch(
-            message=issue,
-            context=context,
-            pending_data=pending,
-            entities={},
+        skip_phase_gate_for_room_booking_confirmation = (
+            is_booking_confirmation
+            and str(sub_category or "").strip().lower() == "room_booking"
         )
-        if phase_gate is None:
-            phase_gate = self._detect_phase_service_unavailable_for_intent(
+        phase_gate = None
+        if not skip_phase_gate_for_room_booking_confirmation:
+            phase_gate = self._detect_ticketing_phase_service_mismatch(
                 message=issue,
-                intent=effective_intent,
                 context=context,
                 pending_data=pending,
                 entities={},
             )
+            if phase_gate is None:
+                phase_gate = self._detect_phase_service_unavailable_for_intent(
+                    message=issue,
+                    intent=effective_intent,
+                    context=context,
+                    pending_data=pending,
+                    entities={},
+                )
         if phase_gate is not None:
             skip_reason = (
                 "phase_service_unavailable"
@@ -6775,6 +6806,67 @@ class ChatService:
             "Would you like to confirm this booking?"
         )
 
+    def _build_room_booking_confirmation_success_response(self, pending_data: dict[str, Any]) -> str:
+        pending = pending_data if isinstance(pending_data, dict) else {}
+        room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_name"),
+            pending.get("service_name"),
+            "your selected room",
+        )
+        if room_type and self._is_generic_room_reference(room_type):
+            room_type = "your selected room"
+        check_in = self._first_non_empty(
+            pending.get("check_in"),
+            pending.get("stay_checkin_date"),
+            pending.get("checkin_date"),
+        )
+        check_out = self._first_non_empty(
+            pending.get("check_out"),
+            pending.get("stay_checkout_date"),
+            pending.get("checkout_date"),
+        )
+        guests = self._first_non_empty(
+            pending.get("guest_count"),
+            pending.get("party_size"),
+            pending.get("guests"),
+        )
+
+        details: list[str] = [room_type]
+        if check_in and check_out:
+            details.append(f"from {check_in} to {check_out}")
+        elif self._first_non_empty(pending.get("stay_date_range")):
+            details.append(f"for {self._first_non_empty(pending.get('stay_date_range'))}")
+        if guests:
+            details.append(f"for {guests} guests")
+
+        details_text = " ".join(part for part in details if str(part or "").strip()).strip()
+        if not details_text:
+            details_text = "your requested stay"
+        return (
+            f"Your room booking has been confirmed: {details_text}. "
+            "You'll receive a confirmation shortly. Is there anything else I can help you with?"
+        )
+
+    @staticmethod
+    def _looks_like_phase_unavailable_response(response_text: str) -> bool:
+        text = re.sub(r"\s+", " ", str(response_text or "").strip().lower())
+        if not text:
+            return False
+        markers = (
+            "not available for",
+            "available in during stay phase",
+            "available in pre checkin phase",
+            "available in post checkout phase",
+            "available after check-in",
+            "available after check in",
+            "cannot be pre-booked",
+            "can't be pre-booked",
+            "can only be requested after check-in",
+            "action requests are available only for",
+        )
+        return any(marker in text for marker in markers)
+
     @staticmethod
     def _is_order_options_followup(
         message: str,
@@ -8788,6 +8880,10 @@ class ChatService:
             term in msg_lower
             for term in (
                 "room",
+                "suite",
+                "suites",
+                "villa",
+                "residence",
                 "check in",
                 "check-in",
                 "check out",
@@ -11190,6 +11286,15 @@ class ChatService:
             for service in all_phase_services
             if self._normalize_phase_identifier(service.get("phase_id")) == current_phase_id
         ]
+        is_room_booking_request = self._looks_like_room_stay_booking_request(message)
+        has_spa_marker = self._has_spa_booking_marker(message)
+        has_transport_marker = self._has_transport_booking_marker(message)
+        room_only_booking = (
+            is_room_booking_request
+            and not has_spa_marker
+            and not has_transport_marker
+        )
+        phase_supports_room_booking = self._phase_has_room_booking_support(phase_services)
 
         resolved_signal_service = self._resolve_service_from_phase_signals(
             services=all_phase_services,
@@ -11235,6 +11340,8 @@ class ChatService:
                     "suggested_actions": list(curated_names[:3]) + ["Show available services", "Ask another question"],
                     "phase_service_unavailable": True,
                 }
+            if intent == IntentType.TABLE_BOOKING and room_only_booking and phase_supports_room_booking:
+                return None
             service_name = str(resolved_signal_service.get("service_name") or "This service").strip()
             current_phase_name = self._phase_label(current_phase_id)
             service_phase_name = self._phase_label(signal_service_phase)
@@ -11264,6 +11371,8 @@ class ChatService:
         if resolved_signal_service is not None:
             signal_service_phase = self._normalize_phase_identifier(resolved_signal_service.get("phase_id"))
             if signal_service_phase == current_phase_id:
+                return None
+            if intent == IntentType.TABLE_BOOKING and room_only_booking and phase_supports_room_booking:
                 return None
             service_name = str(resolved_signal_service.get("service_name") or "This service").strip()
             current_phase_name = self._phase_label(current_phase_id)
@@ -11350,6 +11459,8 @@ class ChatService:
             matched_any_phase_service is not None
             and self._normalize_phase_identifier(matched_any_phase_service.get("phase_id")) != current_phase_id
         ):
+            if intent == IntentType.TABLE_BOOKING and room_only_booking and phase_supports_room_booking:
+                return None
             service_name = str(matched_any_phase_service.get("service_name") or "This service").strip()
             current_phase_name = self._phase_label(current_phase_id)
             service_phase_id = self._normalize_phase_identifier(matched_any_phase_service.get("phase_id"))
@@ -11398,14 +11509,6 @@ class ChatService:
 
         inferred_transactional_intent = ticketing_intent_hint or intent
         requested_label = self._extract_requested_service_label_for_phase_gate(message)
-        is_room_booking_request = self._looks_like_room_stay_booking_request(message)
-        has_spa_marker = self._has_spa_booking_marker(message)
-        has_transport_marker = self._has_transport_booking_marker(message)
-        room_only_booking = (
-            is_room_booking_request
-            and not has_spa_marker
-            and not has_transport_marker
-        )
         if not is_transactional:
             inferred = ticketing_intent_hint or self._infer_phase_gate_transactional_intent(message)
             if inferred is None:
@@ -11416,7 +11519,7 @@ class ChatService:
             if (
                 inferred_transactional_intent == IntentType.TABLE_BOOKING
                 and room_only_booking
-                and self._phase_has_room_booking_support(phase_services)
+                and phase_supports_room_booking
             ):
                 return None
             if not requested_label and self._phase_has_intent_compatible_service(
@@ -11441,7 +11544,7 @@ class ChatService:
             if (
                 intent == IntentType.TABLE_BOOKING
                 and room_only_booking
-                and self._phase_has_room_booking_support(phase_services)
+                and phase_supports_room_booking
             ):
                 return None
             has_compatible_service = self._phase_has_intent_compatible_service(
