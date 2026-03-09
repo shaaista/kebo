@@ -9,7 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 import uvicorn
 
 from config.settings import settings
@@ -172,6 +172,12 @@ app.include_router(admin_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+    """Open admin first for setup."""
+    return RedirectResponse(url="/admin", status_code=307)
+
+
+@app.get("/chat", response_class=HTMLResponse)
+async def chat_ui(request: Request):
     """Serve the test chat interface."""
     if not _CHAT_TEMPLATE_FILE.exists():
         return HTMLResponse(
