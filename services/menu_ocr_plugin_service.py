@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import traceback
 from datetime import datetime, timezone
@@ -53,9 +54,31 @@ class MenuOCRPluginService:
         self.repo_root = repo_root
         self.plugin_root = repo_root / "ocrbadfinalfr" / "ocrbad"
         self.pipeline_file = self.plugin_root / "unified_menu_pipeline.py"
-        self.output_root = self.plugin_root / "output"
-        self.log_root = repo_root / "logs" / "menu_ocr"
-        self.log_root.mkdir(parents=True, exist_ok=True)
+        log_root_env = str(os.getenv("MENU_OCR_LOG_ROOT", "")).strip()
+        output_root_env = str(os.getenv("MENU_OCR_OUTPUT_ROOT", "")).strip()
+        self.log_root = (
+            Path(log_root_env).expanduser()
+            if log_root_env
+            else (Path("/tmp/menu_ocr_logs") if os.name != "nt" else (repo_root / "logs" / "menu_ocr"))
+        )
+        self.output_root = (
+            Path(output_root_env).expanduser()
+            if output_root_env
+            else (Path("/tmp/menu_ocr_output") if os.name != "nt" else (self.plugin_root / "output"))
+        )
+        self.log_root = self._ensure_writable_dir(self.log_root, "menu_ocr_logs")
+        self.output_root = self._ensure_writable_dir(self.output_root, "menu_ocr_output")
+
+    @staticmethod
+    def _ensure_writable_dir(path: Path, fallback_name: str) -> Path:
+        candidate = Path(path).expanduser()
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+            return candidate
+        except Exception:
+            fallback = Path(tempfile.gettempdir()) / fallback_name
+            fallback.mkdir(parents=True, exist_ok=True)
+            return fallback
 
     @staticmethod
     def _now_iso() -> str:

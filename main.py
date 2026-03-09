@@ -4,6 +4,7 @@ KePSLA Bot v2 - Main Application Entry Point
 
 from time import perf_counter
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -152,8 +153,17 @@ app.add_middleware(
 )
 
 # Mount static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+_BASE_DIR = Path(__file__).resolve().parent
+_STATIC_DIR = _BASE_DIR / "static"
+_TEMPLATES_DIR = _BASE_DIR / "templates"
+_CHAT_TEMPLATE_FILE = _TEMPLATES_DIR / "chat.html"
+
+if _STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
+else:
+    print(f"Warning: static directory not found: {_STATIC_DIR}")
+
+templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # Include routers
 app.include_router(chat_router)
@@ -163,6 +173,10 @@ app.include_router(admin_router)
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Serve the test chat interface."""
+    if not _CHAT_TEMPLATE_FILE.exists():
+        return HTMLResponse(
+            "<h3>KePSLA Bot API is running.</h3><p>Chat UI template is unavailable in this deployment bundle.</p>"
+        )
     return templates.TemplateResponse(
         "chat.html",
         {"request": request, "app_name": settings.app_name},
