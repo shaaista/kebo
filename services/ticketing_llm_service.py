@@ -46,6 +46,95 @@ class TicketingLLMService:
         normalized = re.sub(r"\s+", " ", normalized).strip()
         return normalized.replace(" ", "_")
 
+    @staticmethod
+    def _normalize_priority(value: Any) -> str:
+        raw = str(value or "").strip().lower()
+        if raw in {"low", "medium", "high", "critical"}:
+            return raw
+        return "medium"
+
+    @classmethod
+    def _heuristic_expired_update_decision(cls, note: str) -> dict[str, Any]:
+        text = str(note or "").strip().lower()
+        if not text:
+            return {
+                "create_new_ticket": False,
+                "priority": "medium",
+                "reason": "empty_note",
+                "source": "heuristic",
+            }
+        return {
+            "create_new_ticket": False,
+            "priority": "medium",
+            "reason": "llm_unavailable_or_disabled",
+            "source": "heuristic",
+        }
+
+    async def assess_expired_ticket_update_followup(
+        self,
+        *,
+        note: str,
+        conversation: str,
+        ticket_id: str = "",
+    ) -> dict[str, Any]:
+        """
+        Decide whether an expired ticket-update request should become a new
+        human-followup ticket.
+
+        Returns:
+            {
+              "create_new_ticket": bool,
+              "priority": "low|medium|high|critical",
+              "reason": str,
+              "source": "llm|heuristic"
+            }
+        """
+        fallback = self._heuristic_expired_update_decision(note)
+        if not bool(getattr(settings, "ticketing_update_window_llm_assessment_enabled", True)):
+            return fallback
+        if not str(settings.openai_api_key or "").strip():
+            return fallback
+
+        note_text = str(note or "").strip()
+        if not note_text:
+            return fallback
+
+        prompt = (
+            "You are deciding if a late follow-up should open a new human-support ticket.\n"
+            "Context: guest tried to update an old ticket after the update window.\n"
+            "Decide create_new_ticket=true only when the follow-up indicates a genuinely important change,\n"
+            "urgent unresolved impact, safety/security/health risk, or explicit need for human escalation.\n"
+            "If it is minor/noise/non-urgent repetition, set false.\n"
+            "Return strict JSON only:\n"
+            "{\"create_new_ticket\": true|false, \"priority\": \"low|medium|high|critical\", \"reason\": \"...\"}\n\n"
+            f"Existing ticket id: {str(ticket_id or '').strip() or '(unknown)'}\n"
+            f"Follow-up note: {note_text}\n"
+            f"Conversation excerpt: {str(conversation or '').strip()[:1200] or '(none)'}"
+        )
+        messages = [
+            {"role": "system", "content": "You are a strict JSON decision engine for support triage."},
+            {"role": "user", "content": prompt},
+        ]
+        model = str(getattr(settings, "ticketing_subcategory_model", "") or "").strip() or None
+        try:
+            parsed = await llm_client.chat_with_json(messages, model=model, temperature=0.0)
+        except Exception:
+            logger.exception("ticketing_expired_update_assessment_llm_failed")
+            return fallback
+
+        if not isinstance(parsed, dict):
+            return fallback
+
+        decision = bool(parsed.get("create_new_ticket"))
+        priority = self._normalize_priority(parsed.get("priority"))
+        reason = str(parsed.get("reason") or "").strip() or "llm_assessment"
+        return {
+            "create_new_ticket": decision,
+            "priority": priority,
+            "reason": reason,
+            "source": "llm",
+        }
+
     async def classify_sub_category(
         self,
         *,
@@ -230,4 +319,3 @@ class TicketingLLMService:
 
 
 ticketing_llm_service = TicketingLLMService()
-

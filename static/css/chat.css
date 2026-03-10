@@ -123,6 +123,33 @@ body {
 .ticket-badge.pending { background: var(--warning); color: black; }
 .ticket-badge.failed { background: var(--danger); }
 
+.hidden {
+    display: none !important;
+}
+
+.ticket-details h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--secondary);
+    margin-bottom: 10px;
+}
+
+.ticket-details pre {
+    margin: 0;
+    max-height: 260px;
+    overflow: auto;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(15, 23, 42, 0.55);
+    color: #dbeafe;
+    font-size: 0.72rem;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
 /* Buttons */
 .actions {
     display: flex;

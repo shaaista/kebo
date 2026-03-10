@@ -16,6 +16,8 @@ const elements = {
     sessionId: document.getElementById('session-id'),
     sessionState: document.getElementById('session-state'),
     ticketStatus: document.getElementById('ticket-status'),
+    ticketDetailsWrap: document.getElementById('ticket-details-wrap'),
+    ticketDetailsContent: document.getElementById('ticket-details-content'),
     messageCount: document.getElementById('message-count'),
     lastIntent: document.getElementById('last-intent'),
     confidence: document.getElementById('confidence'),
@@ -115,6 +117,7 @@ async function sendMessage(message) {
 
     state.isLoading = true;
     elements.sendBtn.disabled = true;
+    clearTicketDetails();
 
     // Add user message to UI
     addMessageToUI('user', message);
@@ -217,6 +220,7 @@ function updateSessionInfoFromResponse(data) {
     const ticketStatus = resolveTicketStatus(data);
     elements.ticketStatus.textContent = ticketStatus.label;
     elements.ticketStatus.className = `value ticket-badge ${ticketStatus.badge}`;
+    renderCreatedTicketDetails(data);
     elements.messageCount.textContent = data.metadata?.message_count || state.messages.length;
     elements.lastIntent.textContent = resolveDisplayIntent(data) || '-';
 
@@ -303,9 +307,66 @@ function updateSessionInfo() {
     elements.sessionState.className = 'value state-badge idle';
     elements.ticketStatus.textContent = 'No ticket action';
     elements.ticketStatus.className = 'value ticket-badge idle';
+    clearTicketDetails();
     elements.messageCount.textContent = '0';
     elements.lastIntent.textContent = '-';
     elements.confidence.textContent = '-';
+}
+
+function clearTicketDetails() {
+    if (!elements.ticketDetailsWrap || !elements.ticketDetailsContent) return;
+    elements.ticketDetailsWrap.classList.add('hidden');
+    elements.ticketDetailsContent.textContent = 'No ticket created in this turn.';
+}
+
+function renderCreatedTicketDetails(data) {
+    if (!elements.ticketDetailsWrap || !elements.ticketDetailsContent) return;
+    const details = resolveCreatedTicketDetails(data);
+    if (!details) return;
+    elements.ticketDetailsContent.textContent = JSON.stringify(details, null, 2);
+    elements.ticketDetailsWrap.classList.remove('hidden');
+}
+
+function resolveCreatedTicketDetails(data) {
+    const metadata = data?.metadata || {};
+    const ticketId = String(metadata.ticket_id || '').trim();
+    const ticketCreated = metadata.ticket_created === true || !!ticketId;
+    if (!ticketCreated) return null;
+
+    const apiResponse = metadata.ticket_api_response;
+    if (apiResponse && typeof apiResponse === 'object') {
+        const rawRecord = apiResponse.ticket_record || apiResponse.record || apiResponse.ticket;
+        if (rawRecord && typeof rawRecord === 'object') {
+            return rawRecord;
+        }
+    }
+
+    if (metadata.ticket_record && typeof metadata.ticket_record === 'object') {
+        return metadata.ticket_record;
+    }
+
+    const fallback = {};
+    const keys = [
+        'ticket_id',
+        'ticket_status',
+        'ticket_category',
+        'ticket_sub_category',
+        'ticket_priority',
+        'ticket_summary',
+        'ticket_source',
+        'room_number',
+        'ticket_service_id',
+        'ticket_service_name',
+    ];
+    keys.forEach((key) => {
+        if (metadata[key] !== undefined && metadata[key] !== null && String(metadata[key]).trim() !== '') {
+            fallback[key] = metadata[key];
+        }
+    });
+    if (apiResponse && typeof apiResponse === 'object') {
+        fallback.ticket_api_response = apiResponse;
+    }
+    return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
 // Show suggested actions
@@ -335,6 +396,7 @@ function clearChat() {
     `;
     state.messages = [];
     elements.suggestedActions.innerHTML = '';
+    clearTicketDetails();
     updateSessionInfo();
 }
 
@@ -350,6 +412,7 @@ async function resetSession() {
             elements.sessionState.className = 'value state-badge idle';
             elements.ticketStatus.textContent = 'No ticket action';
             elements.ticketStatus.className = 'value ticket-badge idle';
+            clearTicketDetails();
             addMessageToUI('assistant', '🔄 Session state has been reset. How can I help you?');
         }
     } catch (error) {

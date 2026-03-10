@@ -15,6 +15,7 @@ import uvicorn
 from config.settings import settings
 from api.routes.chat import router as chat_router
 from api.routes.admin import router as admin_router
+from api.routes.lumira_compat import router as lumira_compat_router
 from models.database import init_db
 from services.gateway_service import gateway_service
 from services.observability_service import observability_service
@@ -168,6 +169,7 @@ templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 # Include routers
 app.include_router(chat_router)
 app.include_router(admin_router)
+app.include_router(lumira_compat_router)
 
 
 @app.get("/", response_class=HTMLResponse)

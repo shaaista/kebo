@@ -3219,6 +3219,88 @@ def test_phase_service_unavailable_ignores_out_of_phase_room_type_signal_when_ro
     assert unavailable is None
 
 
+def test_room_options_information_query_detects_ordinal_followup_without_room_keyword():
+    service = ChatService()
+    assert service._looks_like_room_options_information_query("tell me more about the 3rd one") is True
+
+
+@pytest.mark.asyncio
+async def test_dispatch_room_followup_with_ordinal_returns_selected_room_details():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="room-option-ordinal-followup-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={},
+    )
+    context.add_message(
+        MessageRole.ASSISTANT,
+        (
+            "Here are the room options:\n"
+            "1. **Premier King Room**: 229-340 sq. ft., with a king-size bed.\n"
+            "2. **Premier Twin Room**: 230-380 sq. ft., with twin beds.\n"
+            "3. **Lux Suite**: 381-485 sq. ft., with city views.\n"
+            "4. **Reserve Suite**: 375-415 sq. ft., with a separate lounge area.\n"
+        ),
+    )
+
+    result = await service._dispatch_to_handler(
+        message="tell me more about the 3rd one",
+        intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.92, entities={}),
+        context=context,
+        capabilities={"service_catalog": [], "services": {}, "restaurants": []},
+        db_session=None,
+    )
+
+    assert result is not None
+    assert "Lux Suite" in str(result.response_text or "")
+    assert "381-485 sq. ft." in str(result.response_text or "")
+    assert result.metadata.get("response_source") == "room_option_reference_followup"
+
+
+@pytest.mark.asyncio
+async def test_dispatch_routes_operational_faq_to_complaint_handler(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="dispatch-operational-faq-complaint-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+    )
+    captured: dict[str, object] = {}
+
+    class _FakeComplaintHandler:
+        async def handle(self, message, intent_result, _context, _capabilities, _db_session=None):
+            captured["message"] = message
+            captured["intent"] = intent_result.intent
+            captured["entities"] = dict(intent_result.entities or {})
+            return HandlerResult(
+                response_text="Please share your room number.",
+                next_state=ConversationState.AWAITING_INFO,
+                pending_action="collect_ticket_room_number",
+                pending_data={"issue": "ac not working"},
+            )
+
+    fake_handler = _FakeComplaintHandler()
+    monkeypatch.setattr(
+        "services.chat_service.handler_registry.get_handler",
+        lambda intent: fake_handler if intent == IntentType.COMPLAINT else None,
+    )
+
+    result = await service._dispatch_to_handler(
+        message="the ac is not working in my room",
+        intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.93, entities={}),
+        context=context,
+        capabilities={"service_catalog": [], "services": {}, "restaurants": []},
+        db_session=None,
+    )
+
+    assert result is not None
+    assert captured.get("intent") == IntentType.COMPLAINT
+    assert bool((captured.get("entities") or {}).get("ticketing_flow")) is True
+    assert result.pending_action == "collect_ticket_room_number"
+
+
 @pytest.mark.asyncio
 async def test_decompose_multi_ask_uses_fallback_when_llm_returns_single(monkeypatch):
     service = ChatService()
@@ -3269,3 +3351,499 @@ def test_dedupe_response_sentences_removes_repeated_unavailable_phrase():
 
     lowered = text.lower()
     assert lowered.count("food ordering is not available for pre booking phase") == 1
+
+
+def test_contextual_sanity_blocks_action_date_outside_stay_window():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="sanity-date-window-1",
+        hotel_code="DEFAULT",
+        pending_data={
+            "_integration": {"phase": "pre_checkin"},
+            "stay_checkin_date": "Mar 10",
+            "stay_checkout_date": "Mar 12",
+        },
+    )
+
+    issue = service._detect_contextual_sanity_issue(
+        message="Please arrange airport pickup on Mar 13 at 8 pm",
+        intent=IntentType.TABLE_BOOKING,
+        context=context,
+        pending_data=context.pending_data,
+        entities={},
+    )
+
+    assert issue is not None
+    assert issue.get("code") == "request_date_outside_stay_window"
+    assert "outside your current stay window" in str(issue.get("response_text") or "").lower()
+
+
+def test_contextual_sanity_blocks_operational_issue_before_stay_phase():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="sanity-operational-phase-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "pre_booking"}},
+    )
+
+    issue = service._detect_contextual_sanity_issue(
+        message="the ac is not working in my room",
+        intent=IntentType.FAQ,
+        context=context,
+        pending_data=context.pending_data,
+        entities={},
+    )
+
+    assert issue is not None
+    assert issue.get("code") == "operational_issue_outside_stay_context"
+    assert "in-stay room support issue" in str(issue.get("response_text") or "").lower()
+
+
+def test_contextual_sanity_asks_change_target_when_booking_change_is_ambiguous(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="sanity-booking-change-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "pre_checkin"}},
+    )
+
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "booking_modification",
+                "name": "Booking Modification",
+                "phase_id": "pre_checkin",
+                "is_active": True,
+            },
+            {
+                "id": "airport_transfer",
+                "name": "Airport Transfer",
+                "phase_id": "pre_checkin",
+                "is_active": True,
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [{"id": "pre_checkin", "name": "Pre Checkin"}],
+    )
+
+    issue = service._detect_contextual_sanity_issue(
+        message="please cancel my booking",
+        intent=IntentType.FAQ,
+        context=context,
+        pending_data=context.pending_data,
+        entities={},
+    )
+
+    assert issue is not None
+    assert issue.get("code") == "booking_change_target_ambiguous"
+    text = str(issue.get("response_text") or "").lower()
+    assert "what you want to change" in text
+    assert "airport transfer" in text
+
+
+@pytest.mark.asyncio
+async def test_full_kb_plugin_ticket_fallback_creates_ticket_when_agent_not_activated(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="plugin-ticket-fallback-1",
+        hotel_code="DEFAULT",
+        room_number="504",
+        pending_data={"_integration": {"phase": "during_stay"}},
+    )
+    request = ChatRequest(
+        session_id="plugin-ticket-fallback-1",
+        message="i lost my earrings in the room",
+        hotel_code="DEFAULT",
+    )
+    llm_result = SimpleNamespace(
+        normalized_query="i lost my earrings in the room",
+        pending_action=None,
+        pending_data={},
+        room_number="",
+        response_text="",
+        llm_output={},
+    )
+
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _caps: True)
+
+    async def _fake_decide_async(**_kwargs):
+        return SimpleNamespace(
+            activate=False,
+            routed_intent=None,
+            route="none",
+            reason="no_matching_configured_ticketing_case",
+            source="service_ticketing_cases",
+            matched_case="",
+        )
+
+    async def _fake_create_ticket(_payload):
+        return SimpleNamespace(
+            success=True,
+            ticket_id="T-FALLBACK-1",
+            status_code=200,
+            response={"ok": True},
+            error="",
+        )
+
+    monkeypatch.setattr("services.chat_service.ticketing_agent_service.decide_async", _fake_decide_async)
+    monkeypatch.setattr(service, "_extract_full_kb_entities_for_handler", lambda _llm: {})
+    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "guest_support",
+                "name": "Guest Support",
+                "type": "service",
+                "description": "Handle in-stay support requests",
+                "phase_id": "during_stay",
+                "is_active": True,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [{"id": "during_stay", "name": "During Stay"}],
+    )
+
+    meta = await service._maybe_create_full_kb_plugin_ticket(
+        request=request,
+        context=context,
+        capabilities_summary={},
+        llm_result=llm_result,
+        effective_intent=IntentType.FAQ,
+        next_state=ConversationState.IDLE,
+        current_pending_action=None,
+        pending_data_snapshot={},
+        response_text="Let me help with that.",
+    )
+
+    assert meta.get("ticket_created") is True
+    assert meta.get("ticket_id") == "T-FALLBACK-1"
+    assert meta.get("full_kb_ticketing_agent_decision_reason") == "generalized_operational_ticket_fallback"
+
+
+@pytest.mark.asyncio
+async def test_full_kb_plugin_ticket_requires_room_number_for_during_stay(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="plugin-ticket-room-required-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "during_stay"}},
+    )
+    request = ChatRequest(
+        session_id="plugin-ticket-room-required-1",
+        message="no towel in my room",
+        hotel_code="DEFAULT",
+    )
+    llm_result = SimpleNamespace(
+        normalized_query="no towel in my room",
+        pending_action=None,
+        pending_data={},
+        room_number="",
+        response_text="",
+        llm_output={},
+    )
+
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _caps: True)
+
+    async def _fake_decide_async(**_kwargs):
+        return SimpleNamespace(
+            activate=True,
+            routed_intent=IntentType.COMPLAINT,
+            route="complaint_handler",
+            reason="configured_ticketing_case_match",
+            source="service_ticketing_cases",
+            matched_case="Housekeeping operational issue",
+        )
+
+    async def _should_not_create_ticket(_payload):
+        raise AssertionError("Ticket should not be created without room number during in-stay phase")
+
+    monkeypatch.setattr("services.chat_service.ticketing_agent_service.decide_async", _fake_decide_async)
+    monkeypatch.setattr(service, "_extract_full_kb_entities_for_handler", lambda _llm: {})
+    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _should_not_create_ticket)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "housekeeping",
+                "name": "Housekeeping",
+                "type": "service",
+                "description": "Housekeeping support during stay",
+                "phase_id": "during_stay",
+                "is_active": True,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [{"id": "during_stay", "name": "During Stay"}],
+    )
+
+    meta = await service._maybe_create_full_kb_plugin_ticket(
+        request=request,
+        context=context,
+        capabilities_summary={},
+        llm_result=llm_result,
+        effective_intent=IntentType.ROOM_SERVICE,
+        next_state=ConversationState.IDLE,
+        current_pending_action=None,
+        pending_data_snapshot={},
+        response_text="I can help with that.",
+    )
+
+    assert meta.get("ticket_create_skipped") is True
+    assert meta.get("ticket_create_skip_reason") == "missing_required_details"
+
+
+@pytest.mark.asyncio
+async def test_full_kb_plugin_ticket_resumes_pending_draft_on_room_number_reply(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="plugin-ticket-room-followup-1",
+        hotel_code="DEFAULT",
+        pending_action="collect_ticket_room_number",
+        pending_data={
+            "_integration": {"phase": "during_stay"},
+            "_pending_ticket_draft": {
+                "issue": "cockroach in room",
+                "category": "complaint",
+                "sub_category": "maintenance",
+                "priority": "high",
+                "phase": "during_stay",
+                "matched_case": "Housekeeping operational issue",
+                "routed_intent": "complaint",
+            },
+        },
+    )
+    request = ChatRequest(
+        session_id="plugin-ticket-room-followup-1",
+        message="101",
+        hotel_code="DEFAULT",
+    )
+    llm_result = SimpleNamespace(
+        normalized_query="101",
+        pending_action=None,
+        pending_data={},
+        room_number="",
+        response_text="",
+        llm_output={},
+    )
+
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _caps: True)
+
+    async def _fake_decide_async(**_kwargs):
+        return SimpleNamespace(
+            activate=False,
+            routed_intent=None,
+            route="none",
+            reason="no_ticketing_trigger",
+            source="service_ticketing_cases",
+            matched_case="",
+        )
+
+    captured_payload: dict[str, object] = {}
+
+    def _fake_build_payload(**kwargs):
+        captured_payload.update(kwargs)
+        return {"issue": kwargs.get("issue"), "room_number": kwargs.get("room_number")}
+
+    async def _fake_create_ticket(_payload):
+        return SimpleNamespace(
+            success=True,
+            ticket_id="T-RESUME-1",
+            status_code=200,
+            response={"ok": True},
+            error="",
+        )
+
+    monkeypatch.setattr("services.chat_service.ticketing_agent_service.decide_async", _fake_decide_async)
+    monkeypatch.setattr(service, "_extract_full_kb_entities_for_handler", lambda _llm: {})
+    monkeypatch.setattr("services.chat_service.ticketing_service.build_lumira_ticket_payload", _fake_build_payload)
+    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "housekeeping",
+                "name": "Housekeeping",
+                "type": "service",
+                "description": "Housekeeping support during stay",
+                "phase_id": "during_stay",
+                "is_active": True,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [{"id": "during_stay", "name": "During Stay"}],
+    )
+
+    meta = await service._maybe_create_full_kb_plugin_ticket(
+        request=request,
+        context=context,
+        capabilities_summary={},
+        llm_result=llm_result,
+        effective_intent=IntentType.FAQ,
+        next_state=ConversationState.ESCALATED,
+        current_pending_action="collect_ticket_room_number",
+        pending_data_snapshot={},
+        response_text="Thanks for sharing the room number.",
+    )
+
+    assert meta.get("ticket_created") is True
+    assert meta.get("ticket_id") == "T-RESUME-1"
+    assert meta.get("room_number") == "101"
+    assert meta.get("ticket_resumed_from_pending_draft") is True
+    assert captured_payload.get("issue") == "cockroach in room"
+
+
+def test_apply_full_kb_plugin_ticket_followup_state_sets_room_collection():
+    service = ChatService()
+    internal_entries: dict[str, object] = {}
+
+    (
+        pending_action_target,
+        _pending_data_target,
+        next_state,
+        clear_pending_data,
+    ) = service._apply_full_kb_plugin_ticket_followup_state(
+        combined_ticket_meta={
+            "ticket_create_skip_reason": "missing_required_details",
+            "ticket_missing_fields": ["room_number"],
+            "pending_ticket_draft": {"issue": "cockroach in room"},
+            "ticket_pending_action": "collect_ticket_room_number",
+        },
+        current_pending_action=None,
+        pending_action_target=None,
+        pending_data_target={},
+        internal_pending_entries=internal_entries,
+        next_state=ConversationState.ESCALATED,
+        clear_pending_data=True,
+    )
+
+    assert pending_action_target == "collect_ticket_room_number"
+    assert next_state == ConversationState.AWAITING_INFO
+    assert clear_pending_data is False
+    assert isinstance(internal_entries.get("_pending_ticket_draft"), dict)
+
+
+@pytest.mark.asyncio
+async def test_full_kb_transaction_ticket_creates_with_unconfigured_case_fallback(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="transaction-unconfigured-fallback-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"phase": "pre_checkin"}},
+    )
+
+    monkeypatch.setattr("services.chat_service.ticketing_service.is_ticketing_enabled", lambda _caps: True)
+    monkeypatch.setattr("services.chat_service.ticketing_agent_service.get_configured_cases", lambda: [])
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_services",
+        lambda: [
+            {
+                "id": "booking_modification",
+                "name": "Booking Modification",
+                "type": "service",
+                "description": "Modify confirmed bookings",
+                "phase_id": "pre_checkin",
+                "is_active": True,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_journey_phases",
+        lambda: [{"id": "pre_checkin", "name": "Pre Checkin"}],
+    )
+
+    async def _fake_create_ticket(_payload):
+        return SimpleNamespace(
+            success=True,
+            ticket_id="T-TXN-1",
+            status_code=200,
+            response={"ok": True},
+            error="",
+        )
+
+    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+
+    meta = await service._maybe_create_full_kb_transaction_ticket(
+        context=context,
+        capabilities_summary={},
+        current_pending_action="confirm_booking",
+        effective_intent=IntentType.CONFIRMATION_YES,
+        next_state=ConversationState.COMPLETED,
+        pending_data_snapshot={
+            "room_type": "Premier King Room",
+            "stay_checkin_date": "Mar 10",
+            "stay_checkout_date": "Mar 12",
+            "guest_count": 2,
+        },
+        response_text="Your booking update is confirmed.",
+    )
+
+    assert meta.get("ticket_created") is True
+    assert meta.get("ticket_id") == "T-TXN-1"
+
+
+@pytest.mark.asyncio
+async def test_maybe_handle_multi_ask_accepts_compact_dual_query(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="multi-ask-compact-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+    )
+
+    async def _fake_decompose(_msg, **_kwargs):
+        return ["spa timing", "gym timing"]
+
+    async def _fake_subquery_agent(**kwargs):
+        query = str(kwargs.get("query") or "")
+        return {
+            "query": query,
+            "response_text": f"{query} is available.",
+            "response_source": "multi_ask_kb_handler",
+            "intent": IntentType.FAQ.value,
+            "confidence": 0.9,
+            "entities": {},
+            "ticketing": {"ticketing_required": False, "ticketing_create_allowed": False},
+        }
+
+    async def _fake_compose(**_kwargs):
+        return "Spa timing is available. Gym timing is available."
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    monkeypatch.setattr("services.chat_service.settings.chat_multi_ask_orchestration_enabled", True)
+    monkeypatch.setattr(service, "_decompose_multi_ask_queries", _fake_decompose)
+    monkeypatch.setattr(service, "_run_multi_ask_subquery_agent", _fake_subquery_agent)
+    monkeypatch.setattr(service, "_compose_multi_ask_response_with_llm", _fake_compose)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+
+    response = await service._maybe_handle_multi_ask_message(
+        request=ChatRequest(
+            session_id="multi-ask-compact-1",
+            message="spa timing and gym timing?",
+            hotel_code="DEFAULT",
+        ),
+        context=context,
+        capabilities_summary={"service_catalog": [], "intents": []},
+        routing_decision=SimpleNamespace(path=SimpleNamespace(value="simple"), score=0.6, signals=[]),
+        memory_snapshot={"summary": "", "facts": {}, "recent_changes": []},
+        history_window=6,
+        db_session=None,
+    )
+
+    assert response is not None
+    assert response.metadata.get("multi_ask_orchestrated") is True

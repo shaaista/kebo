@@ -172,6 +172,12 @@ class ConversationMemoryService:
         msg = str(message or "").strip()
         if not msg:
             return
+        self._capture_context_profile_facts(
+            context=context,
+            facts=facts,
+            fact_history=fact_history,
+            source_message=msg[:300],
+        )
         msg_lower = msg.lower()
         is_correction = self._looks_like_correction(msg_lower)
 
@@ -214,6 +220,12 @@ class ConversationMemoryService:
         meta = metadata if isinstance(metadata, dict) else {}
         msg = str(message or "").strip()
         now_iso = datetime.now(UTC).isoformat()
+        self._capture_context_profile_facts(
+            context=context,
+            facts=facts,
+            fact_history=fact_history,
+            source_message=msg[:300] if msg else "[assistant_metadata]",
+        )
 
         booking_ref = str(meta.get("booking_ref") or "").strip()
         if booking_ref:
@@ -402,6 +414,67 @@ class ConversationMemoryService:
 
         memory["last_assistant_message"] = msg[:400]
         memory["updated_at"] = now_iso
+
+    def _capture_context_profile_facts(
+        self,
+        *,
+        context: ConversationContext,
+        facts: dict[str, Any],
+        fact_history: list[dict[str, Any]],
+        source_message: str,
+    ) -> None:
+        pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        integration = pending.get("_integration", {})
+        if not isinstance(integration, dict):
+            integration = {}
+
+        profile_map = {
+            "guest_name": str(
+                context.guest_name
+                or pending.get("guest_name")
+                or integration.get("guest_name")
+                or ""
+            ).strip(),
+            "guest_phone": str(
+                context.guest_phone
+                or pending.get("guest_phone")
+                or integration.get("guest_phone")
+                or integration.get("wa_number")
+                or ""
+            ).strip(),
+            "room_number": str(
+                context.room_number
+                or pending.get("room_number")
+                or integration.get("room_number")
+                or ""
+            ).strip(),
+            "phase": str(integration.get("phase") or pending.get("phase") or "").strip(),
+            "stay_checkin_date": str(
+                pending.get("stay_checkin_date")
+                or pending.get("check_in")
+                or integration.get("stay_checkin_date")
+                or integration.get("check_in")
+                or ""
+            ).strip(),
+            "stay_checkout_date": str(
+                pending.get("stay_checkout_date")
+                or pending.get("check_out")
+                or integration.get("stay_checkout_date")
+                or integration.get("check_out")
+                or ""
+            ).strip(),
+        }
+
+        for key, value in profile_map.items():
+            if not value:
+                continue
+            self._set_fact(
+                facts=facts,
+                fact_history=fact_history,
+                key=key,
+                value=value,
+                source_message=source_message,
+            )
 
     def contextualize_follow_up_query(
         self,

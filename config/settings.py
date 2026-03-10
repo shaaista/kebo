@@ -176,6 +176,8 @@ class Settings(BaseSettings):
     ticketing_identity_gate_prebooking_only: bool = True
     ticketing_identity_require_name: bool = True
     ticketing_identity_require_phone: bool = True
+    ticketing_update_window_minutes: int = 2
+    ticketing_update_window_llm_assessment_enabled: bool = True
 
     @property
     def is_production(self) -> bool:

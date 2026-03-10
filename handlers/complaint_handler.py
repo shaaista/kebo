@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from config.settings import settings
@@ -122,6 +123,7 @@ class ComplaintHandler(BaseHandler):
         if self._is_ticket_update_request(msg_lower):
             return await self._start_ticket_update_flow(
                 msg,
+                intent_result,
                 context,
                 capabilities,
                 db_session,
@@ -540,6 +542,7 @@ class ComplaintHandler(BaseHandler):
     async def _start_ticket_update_flow(
         self,
         message: str,
+        intent_result: IntentResult,
         context: ConversationContext,
         capabilities: dict[str, Any],
         db_session: Any = None,
@@ -575,7 +578,49 @@ class ComplaintHandler(BaseHandler):
                 suggested_actions=["Create ticket", "Talk to human", "Cancel"],
             )
 
+        window_check = self._check_ticket_update_window(
+            context=context,
+            latest_ticket=latest_ticket,
+            ticket_id=ticket_id,
+        )
         note = self._extract_update_note(message)
+        if not window_check["within_window"]:
+            if note:
+                return await self._handle_expired_ticket_update_note(
+                    ticket_id=ticket_id,
+                    note=note,
+                    context=context,
+                    capabilities=capabilities,
+                    db_session=db_session,
+                    window_check=window_check,
+                )
+            window_minutes = int(window_check.get("window_minutes") or 0)
+            return HandlerResult(
+                response_text=(
+                    f"Ticket {ticket_id} can be updated only within {window_minutes} minutes of creation. "
+                    "If this is now urgent or needs human escalation, share what changed and I will raise "
+                    "a priority follow-up ticket."
+                ),
+                next_state=ConversationState.AWAITING_INFO,
+                pending_action="collect_ticket_update_note",
+                pending_data={
+                    "ticket_id": ticket_id,
+                    "update_window_expired": True,
+                    "ticket_update_window_minutes": window_minutes,
+                    "ticket_created_at": str(window_check.get("created_at_raw") or "").strip(),
+                },
+                suggested_actions=[
+                    "Still unresolved and urgent",
+                    "Safety concern, need human now",
+                    "No urgent update",
+                ],
+                metadata={
+                    "ticket_update_window_enforced": True,
+                    "ticket_update_window_expired": True,
+                    "ticket_id": ticket_id,
+                },
+            )
+
         if not note:
             return HandlerResult(
                 response_text=f"Sure. What update should I add to ticket {ticket_id}?",
@@ -627,6 +672,26 @@ class ComplaintHandler(BaseHandler):
             )
 
         ticket_id = str(pending.get("ticket_id") or "").strip()
+        latest_ticket = ticketing_service.get_latest_ticket(context)
+        window_check = self._check_ticket_update_window(
+            context=context,
+            latest_ticket=latest_ticket,
+            ticket_id=ticket_id,
+        )
+        if bool(pending.get("update_window_expired")) or not bool(window_check.get("within_window")):
+            return await self._handle_expired_ticket_update_note(
+                ticket_id=ticket_id,
+                note=note,
+                context=context,
+                capabilities=capabilities,
+                window_check={
+                    "window_minutes": pending.get("ticket_update_window_minutes")
+                    or window_check.get("window_minutes"),
+                    "created_at_raw": pending.get("ticket_created_at")
+                    or window_check.get("created_at_raw"),
+                    "within_window": False,
+                },
+            )
         return await self._execute_ticket_update(ticket_id, note)
 
     async def _execute_ticket_update(self, ticket_id: str, note: str) -> HandlerResult:
@@ -668,6 +733,288 @@ class ComplaintHandler(BaseHandler):
                 "ticket_error": update_result.error,
             },
         )
+
+    def _check_ticket_update_window(
+        self,
+        *,
+        context: ConversationContext,
+        latest_ticket: dict[str, Any],
+        ticket_id: str,
+    ) -> dict[str, Any]:
+        window_minutes = int(getattr(settings, "ticketing_update_window_minutes", 2) or 0)
+        if window_minutes <= 0:
+            return {
+                "within_window": True,
+                "window_minutes": 0,
+                "created_at_raw": "",
+                "created_at_utc": "",
+            }
+
+        created_at_dt, created_at_raw = self._resolve_ticket_created_at(
+            context=context,
+            latest_ticket=latest_ticket,
+            ticket_id=ticket_id,
+        )
+        if created_at_dt is None:
+            # Unknown creation time should not hard-block updates.
+            return {
+                "within_window": True,
+                "window_minutes": window_minutes,
+                "created_at_raw": str(created_at_raw or "").strip(),
+                "created_at_utc": "",
+            }
+
+        deadline = created_at_dt + timedelta(minutes=window_minutes)
+        within_window = datetime.now(UTC) <= deadline
+        return {
+            "within_window": within_window,
+            "window_minutes": window_minutes,
+            "created_at_raw": str(created_at_raw or "").strip(),
+            "created_at_utc": created_at_dt.isoformat(),
+        }
+
+    def _resolve_ticket_created_at(
+        self,
+        *,
+        context: ConversationContext,
+        latest_ticket: dict[str, Any],
+        ticket_id: str,
+    ) -> tuple[datetime | None, str]:
+        candidates: list[tuple[datetime, str]] = []
+        ticket = latest_ticket if isinstance(latest_ticket, dict) else {}
+        for key in ("created_at", "createdAt", "createdDate", "created_date"):
+            raw = ticket.get(key)
+            parsed = self._parse_ticket_timestamp(raw)
+            if parsed is not None:
+                candidates.append((parsed, str(raw)))
+
+        memory_root = context.pending_data if isinstance(context.pending_data, dict) else {}
+        memory = memory_root.get("_memory", {})
+        facts = memory.get("facts", {}) if isinstance(memory, dict) else {}
+        history = facts.get("ticket_history", []) if isinstance(facts, dict) else []
+        if isinstance(history, list):
+            for entry in history:
+                if not isinstance(entry, dict):
+                    continue
+                entry_id = str(
+                    entry.get("id")
+                    or entry.get("ticket_id")
+                    or entry.get("ticketId")
+                    or ""
+                ).strip()
+                if ticket_id and entry_id and entry_id != ticket_id:
+                    continue
+                for key in ("created_at", "createdAt", "createdDate", "updated_at", "updatedAt"):
+                    raw = entry.get(key)
+                    parsed = self._parse_ticket_timestamp(raw)
+                    if parsed is not None:
+                        candidates.append((parsed, str(raw)))
+
+        if not candidates:
+            return None, ""
+        earliest_dt, earliest_raw = min(candidates, key=lambda item: item[0])
+        return earliest_dt, earliest_raw
+
+    @staticmethod
+    def _parse_ticket_timestamp(value: Any) -> datetime | None:
+        if value in (None, ""):
+            return None
+        if isinstance(value, datetime):
+            dt = value
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=UTC)
+            return dt.astimezone(UTC)
+
+        if isinstance(value, (int, float)):
+            stamp = float(value)
+            if stamp > 1_000_000_000_000:
+                stamp = stamp / 1000.0
+            try:
+                return datetime.fromtimestamp(stamp, tz=UTC)
+            except Exception:
+                return None
+
+        text = str(value).strip()
+        if not text:
+            return None
+        if text.isdigit():
+            try:
+                stamp = float(text)
+                if stamp > 1_000_000_000_000:
+                    stamp = stamp / 1000.0
+                return datetime.fromtimestamp(stamp, tz=UTC)
+            except Exception:
+                return None
+
+        iso_candidate = text.replace("Z", "+00:00")
+        try:
+            dt = datetime.fromisoformat(iso_candidate)
+            if dt.tzinfo is None:
+                return dt.replace(tzinfo=UTC)
+            return dt.astimezone(UTC)
+        except Exception:
+            pass
+
+        for fmt in ("%H:%M:%S %d-%m-%Y", "%Y-%m-%d %H:%M:%S"):
+            try:
+                return datetime.strptime(text, fmt).replace(tzinfo=UTC)
+            except Exception:
+                continue
+        return None
+
+    async def _handle_expired_ticket_update_note(
+        self,
+        *,
+        ticket_id: str,
+        note: str,
+        context: ConversationContext,
+        capabilities: dict[str, Any],
+        db_session: Any = None,
+        window_check: dict[str, Any] | None = None,
+    ) -> HandlerResult:
+        decision = await ticketing_llm_service.assess_expired_ticket_update_followup(
+            note=note,
+            conversation=self._build_conversation_text(context),
+            ticket_id=ticket_id,
+        )
+        should_create_followup = bool(decision.get("create_new_ticket"))
+        if not should_create_followup and str(decision.get("source") or "").strip().lower() == "heuristic":
+            fallback_priority = self._detect_priority(note, {})
+            if fallback_priority in {"high", "critical"}:
+                should_create_followup = True
+                decision = dict(decision or {})
+                decision["create_new_ticket"] = True
+                decision["priority"] = fallback_priority
+                decision["reason"] = "priority_based_fallback"
+
+        if not should_create_followup:
+            window_minutes = int(
+                (window_check or {}).get("window_minutes")
+                or getattr(settings, "ticketing_update_window_minutes", 2)
+                or 2
+            )
+            return HandlerResult(
+                response_text=(
+                    f"I can no longer update ticket {ticket_id} because the {window_minutes}-minute update window has passed. "
+                    "If this has become urgent or needs immediate human support, tell me what changed and I can raise a new priority ticket."
+                ),
+                next_state=ConversationState.IDLE,
+                pending_action=None,
+                pending_data={},
+                suggested_actions=[
+                    "Need urgent human support",
+                    "Create new complaint ticket",
+                    "Ticket status",
+                ],
+                metadata={
+                    "ticket_update_window_enforced": True,
+                    "ticket_update_window_expired": True,
+                    "ticket_update_outside_window": True,
+                    "ticket_followup_created": False,
+                    "ticket_followup_decision_source": str(decision.get("source") or ""),
+                    "ticket_followup_decision_reason": str(decision.get("reason") or ""),
+                },
+            )
+
+        pending = await self._build_expired_update_followup_pending(
+            ticket_id=ticket_id,
+            note=note,
+            decision=decision,
+            context=context,
+            db_session=db_session,
+        )
+
+        if self._should_auto_create_ticket():
+            result = await self._create_ticket_from_pending(
+                context=context,
+                pending=pending,
+                capabilities=capabilities,
+                db_session=db_session,
+                skip_existing_route=True,
+            )
+            result.metadata = dict(result.metadata or {})
+            result.metadata["ticket_update_window_expired"] = True
+            result.metadata["ticket_followup_created_from_expired_update"] = True
+            result.metadata["ticket_followup_decision_source"] = str(decision.get("source") or "")
+            result.metadata["ticket_followup_decision_reason"] = str(decision.get("reason") or "")
+            return result
+
+        result = self._build_create_confirmation_result(pending)
+        result.metadata = dict(result.metadata or {})
+        result.metadata["ticket_update_window_expired"] = True
+        result.metadata["ticket_followup_pending_confirmation"] = True
+        result.metadata["ticket_followup_decision_source"] = str(decision.get("source") or "")
+        result.metadata["ticket_followup_decision_reason"] = str(decision.get("reason") or "")
+        return result
+
+    async def _build_expired_update_followup_pending(
+        self,
+        *,
+        ticket_id: str,
+        note: str,
+        decision: dict[str, Any],
+        context: ConversationContext,
+        db_session: Any = None,
+    ) -> dict[str, Any]:
+        integration = ticketing_service.get_integration_context(context)
+        latest_ticket = ticketing_service.get_latest_ticket(context)
+        issue = f"Urgent follow-up after ticket {ticket_id}: {note}"
+        fallback_sub_category = self._detect_sub_category(note, {})
+        sub_category = await self._resolve_sub_category(
+            issue=issue,
+            message=note,
+            context=context,
+            entities={},
+        )
+        if not sub_category:
+            sub_category = fallback_sub_category
+        priority = str(decision.get("priority") or self._detect_priority(note, {})).strip().lower()
+        if priority not in {"low", "medium", "high", "critical"}:
+            priority = "high"
+        if priority in {"low", "medium"}:
+            priority = "high"
+
+        phase = str(
+            integration.get("phase")
+            or (context.pending_data or {}).get("phase")
+            or "in_stay"
+        ).strip()
+        room_number = str(
+            context.room_number
+            or latest_ticket.get("room_number")
+            or integration.get("room_number")
+            or self._extract_room_number(note)
+            or ""
+        ).strip()
+        pending: dict[str, Any] = {
+            "issue": issue,
+            "message": note,
+            "category": "complaint",
+            "sub_category": sub_category,
+            "priority": priority,
+            "department_id": "",
+            "department_head": "",
+            "phase": phase,
+            "sla_due_time": "",
+            "outlet_id": "",
+            "room_number": room_number,
+            "ticket_source": str(integration.get("ticket_source") or "").strip(),
+            "related_ticket_id": ticket_id,
+        }
+        pending = await self._enrich_ticket_context(
+            context=context,
+            pending_data=pending,
+            db_session=db_session,
+            entities={},
+        )
+        guest_preferences = await self._resolve_guest_preferences(
+            message=note,
+            context=context,
+            pending_data=pending,
+        )
+        if guest_preferences:
+            pending["guest_preferences"] = guest_preferences
+        return pending
 
     async def _handle_ticket_status_query(
         self,

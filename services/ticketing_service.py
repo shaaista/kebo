@@ -1259,6 +1259,7 @@ class TicketingService:
             "ticket_id": ticket_id,
             "id": ticket_id,
             "mode": "local_simulation",
+            "ticket_record": dict(record),
         }
 
         csv_written = True

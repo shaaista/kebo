@@ -1165,7 +1165,8 @@ async def test_full_kb_plugin_ticketing_creates_backend_ticket_without_changing_
         hotel_code="DEFAULT",
         state=ConversationState.IDLE,
     )
-    expected_response = "I am very sorry to hear this. Our team will look into it immediately."
+    expected_response = "Thanks. I have created a complaint ticket for this issue."
+    captured: dict[str, object] = {}
 
     async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
         return context
@@ -1197,8 +1198,17 @@ async def test_full_kb_plugin_ticketing_creates_backend_ticket_without_changing_
             status="success",
         )
 
-    async def _dispatch_should_not_run(*_args, **_kwargs):
-        raise AssertionError("Handler takeover should not run in plugin non-takeover mode")
+    async def _fake_dispatch_to_handler(message, intent_result, _context, _capabilities, _db_session=None):
+        captured["message"] = message
+        captured["intent"] = intent_result.intent
+        return HandlerResult(
+            response_text=expected_response,
+            next_state=ConversationState.IDLE,
+            pending_action=None,
+            pending_data={},
+            suggested_actions=["Need help"],
+            metadata={"ticket_created": True, "ticket_id": "LOCAL-PLUGIN-1"},
+        )
 
     monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", True)
     monkeypatch.setattr("services.chat_service.settings.full_kb_llm_passthrough_mode", True)
@@ -1228,16 +1238,7 @@ async def test_full_kb_plugin_ticketing_creates_backend_ticket_without_changing_
         "services.chat_service.ticketing_agent_service.decide_async",
         _fake_ticketing_decide_async,
     )
-    monkeypatch.setattr(
-        "services.chat_service.ticketing_service.build_lumira_ticket_payload",
-        lambda **_kwargs: {"issue": "plugin ticket"},
-    )
-    monkeypatch.setattr(service, "_dispatch_to_handler", _dispatch_should_not_run)
-
-    async def _fake_create_ticket(_payload):
-        return TicketingResult(success=True, ticket_id="LOCAL-PLUGIN-1", status_code=200, response={"ok": True})
-
-    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+    monkeypatch.setattr(service, "_dispatch_to_handler", _fake_dispatch_to_handler)
 
     response = await service.process_message(
         ChatRequest(
@@ -1248,8 +1249,9 @@ async def test_full_kb_plugin_ticketing_creates_backend_ticket_without_changing_
     )
 
     assert response.message == expected_response
-    assert response.metadata.get("response_source") == "full_kb_llm"
-    assert response.metadata.get("full_kb_ticketing_handler") is None
+    assert captured.get("intent") == IntentType.COMPLAINT
+    assert response.metadata.get("response_source") == "full_kb_llm_handler"
+    assert response.metadata.get("full_kb_ticketing_handler") is True
     assert response.metadata.get("ticket_created") is True
     assert response.metadata.get("ticket_id") == "LOCAL-PLUGIN-1"
 
@@ -1261,10 +1263,11 @@ async def test_full_kb_plugin_ticketing_creates_complaint_without_room_number(mo
         session_id="s-fullkb-plugin-complaint-no-room",
         hotel_code="DEFAULT",
         state=ConversationState.IDLE,
+        guest_phone="+919999999999",
+        pending_data={"_integration": {"phase": "pre_booking", "flow": "booking"}},
     )
-    expected_response = (
-        "I'm sorry to hear about the cockroach issue. I'll escalate this immediately."
-    )
+    expected_response = "I captured this issue. Please share your room number."
+    captured: dict[str, object] = {}
 
     async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
         return context
@@ -1326,15 +1329,19 @@ async def test_full_kb_plugin_ticketing_creates_complaint_without_room_number(mo
         "services.chat_service.ticketing_agent_service.decide_async",
         _fake_ticketing_decide_async,
     )
-    monkeypatch.setattr(
-        "services.chat_service.ticketing_service.build_lumira_ticket_payload",
-        lambda **_kwargs: {"issue": "cockroach in room"},
-    )
+    async def _fake_dispatch_to_handler(message, intent_result, _context, _capabilities, _db_session=None):
+        captured["message"] = message
+        captured["intent"] = intent_result.intent
+        return HandlerResult(
+            response_text=expected_response,
+            next_state=ConversationState.AWAITING_INFO,
+            pending_action="collect_ticket_room_number",
+            pending_data={"issue": "cockroach in room"},
+            suggested_actions=["101", "202"],
+            metadata={},
+        )
 
-    async def _fake_create_ticket(_payload):
-        return TicketingResult(success=True, ticket_id="LOCAL-COMP-1", status_code=200, response={"ok": True})
-
-    monkeypatch.setattr("services.chat_service.ticketing_service.create_ticket", _fake_create_ticket)
+    monkeypatch.setattr(service, "_dispatch_to_handler", _fake_dispatch_to_handler)
 
     response = await service.process_message(
         ChatRequest(
@@ -1345,8 +1352,10 @@ async def test_full_kb_plugin_ticketing_creates_complaint_without_room_number(mo
     )
 
     assert response.message == expected_response
-    assert response.metadata.get("ticket_created") is True
-    assert response.metadata.get("ticket_id") == "LOCAL-COMP-1"
+    assert captured.get("intent") == IntentType.COMPLAINT
+    assert response.metadata.get("full_kb_ticketing_handler") is True
+    assert response.state == ConversationState.AWAITING_INFO
+    assert context.pending_action == "collect_ticket_room_number"
 
 
 @pytest.mark.asyncio
@@ -1436,7 +1445,9 @@ async def test_full_kb_plugin_ticketing_evaluates_agent_for_greeting_turn(monkey
     )
 
     assert response.message == expected_response
-    assert decide_calls["count"] == 1
+    # One decision call comes from turn-level status evaluation and one from
+    # plugin ticketing evaluation.
+    assert decide_calls["count"] == 2
     assert response.metadata.get("ticket_created") is None
 
 
