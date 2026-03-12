@@ -90,7 +90,6 @@
       "ticketing_plugin_enabled": null,
       "ticketing_cases": null,
       "ticketing_enabled": true,
-      "phase_id": "pre_booking",
       "is_builtin": false,
       "ticketing_policy": "",
       "service_prompt_pack": {
@@ -100,7 +99,7 @@
         "profile": "room_booking",
         "role": "You are the dedicated assistant for room booking.",
         "professional_behavior": "Collect details clearly, ask one targeted question at a time, validate required fields before confirmation, and avoid assumptions.",
-        "phase_id": "pre_booking",
+        "phase_id": "",
         "required_slots": [
           {
             "id": "request_details",
@@ -184,6 +183,131 @@
         }
       },
       "service_prompt_pack_custom": false
+    },
+    {
+      "id": "book_room",
+      "name": "book room",
+      "type": "service",
+      "description": "The room booking service allows guests to view available rooms, provide necessary information, and complete their reservation through the chatbot.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": [],
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "is_builtin": false,
+      "service_prompt_pack": {
+        "version": 1,
+        "generator": "service_prompt_pack_v1",
+        "source": "auto_generated",
+        "profile": "room_booking",
+        "role": "You are the dedicated assistant for book room.",
+        "professional_behavior": "Collect details clearly, ask one targeted question at a time, validate required fields before confirmation, and avoid assumptions.",
+        "phase_id": "",
+        "required_slots": [
+          {
+            "id": "request_details",
+            "label": "Request Details",
+            "prompt": "Please share the request details so I can proceed correctly.",
+            "required": true,
+            "type": "text"
+          },
+          {
+            "id": "check_in_date",
+            "label": "Check-in Date",
+            "prompt": "What is your check-in date?",
+            "required": true,
+            "type": "date"
+          },
+          {
+            "id": "check_out_date",
+            "label": "Check-out Date",
+            "prompt": "What is your check-out date?",
+            "required": true,
+            "type": "date"
+          },
+          {
+            "id": "guest_count",
+            "label": "Guest Count",
+            "prompt": "How many guests will stay?",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "id": "room_type",
+            "label": "Room Type",
+            "prompt": "Which room type should I look for?",
+            "required": false,
+            "type": "text"
+          }
+        ],
+        "validation_rules": [
+          {
+            "id": "required_slots_complete",
+            "type": "required",
+            "slot_ids": [
+              "request_details",
+              "check_in_date",
+              "check_out_date",
+              "guest_count"
+            ],
+            "error_message": "Please complete all required details before confirmation."
+          },
+          {
+            "id": "checkin_before_checkout",
+            "type": "date_order",
+            "slot_ids": [
+              "check_in_date",
+              "check_out_date"
+            ],
+            "error_message": "Check-out date must be after check-in date."
+          },
+          {
+            "id": "numeric_values_positive",
+            "type": "numeric_min",
+            "slot_ids": [
+              "guest_count"
+            ],
+            "min_value": 1,
+            "error_message": "Please provide a valid positive number."
+          }
+        ],
+        "confirmation_format": {
+          "style": "summary_then_explicit_confirm",
+          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
+          "required_phrase": "yes confirm"
+        },
+        "ticketing_policy": {
+          "enabled": true,
+          "policy": "",
+          "decision_template": "Create ticket only when ticketing is enabled for this service and policy criteria are satisfied."
+        },
+        "execution_guard": {
+          "require_required_slots_before_confirm": true
+        }
+      },
+      "ticketing_policy": "",
+      "service_prompt_pack_custom": false
+    },
+    {
+      "id": "room_book",
+      "name": "room book",
+      "type": "service",
+      "description": "Enables guests to view available rooms and complete the booking process by providing necessary information.",
+      "cuisine": null,
+      "hours": null,
+      "delivery_zones": null,
+      "is_active": true,
+      "ticketing_plugin_enabled": null,
+      "ticketing_cases": null,
+      "ticketing_enabled": true,
+      "phase_id": "pre_booking",
+      "is_builtin": false,
+      "service_prompt_pack": {
+        "extracted_knowledge": "### ICONIQA Hotel Room Booking Service Details\n\n#### 1. Pricing Details\n- **Room Types and Sizes**:\n  - **Premier King Room**: 134 rooms, 229–340 sq. ft.\n  - **Premier Twin Room**: 48 rooms, 230–380 sq. ft.\n  - **Lux Suite**: 79 rooms, 381–485 sq. ft.\n  - **Reserve Suite**: 16 rooms, 375–415 sq. ft.\n  - **Prestige Suite**: 6 rooms, 485 sq. ft.\n  - **Ultimate Suite**: 8 rooms, 603 sq. ft.\n- **Pricing Information**: Not explicitly provided in the knowledge base. Guests are advised to check the hotel's website or contact the hotel directly for current rates, seasonal variations, and available packages.\n\n#### 2. Policies\n- **Cancellation Policy**:\n  - **On BAR**: 48 hours prior to the arrival date.\n  - **Advance Purchase**: Non-refundable, non-amendable, non-cancellable.\n  - **Corporate/TA**: As per the cancellation policy in the signed contract.\n- **Deposit Requirements**: Not specified in the knowledge base.\n\n#### 3. Timing\n- **Check-in Time**: 14:00 hrs\n- **Check-out Time**: 11:00 hrs\n- **Early Check-in Policy**: Before 07:00 AM, 50% of room rate, subject to availability.\n- **Late Check-out Policy**: Complimentary till 12 noon, 50% of the room rate till 4 PM, post 4 PM full night charges, subject to availability.\n\n#### 4. Options and Room Types\n- **Premier King Room**: Calming palette, versatile table-and-chair duo, cloud-soft linens.\n- **Premier Twin Room**: Two plush twin beds, ideal for business and leisure.\n- **Lux Suite**: King-size bed, separate seating area, panoramic city views.\n- **Reserve Suite**: King-size bed, separate lounge area.\n- **Prestige Suite**: King-size bed, elegant seating area, includes bathtub.\n- **Ultimate Suite**: King-size bed, separate living and dining area, designed for longer stays.\n\n#### 5. Restrictions\n- **Smoking Policy**: All rooms are non-smoking. Designated smoking zones are available on the rooftop and outside the main porch.\n- **Pet Policy**: Not specified in the knowledge base.\n- **Age Requirements**: Not specified in the knowledge base.\n- **Maximum Occupancy Limits**: Not specified in the knowledge base.\n\n#### 6. Process Steps\n- **Booking Process**:\n  1. **View Availability**: Guests can check room availability via the hotel's website or by contacting the hotel directly.\n  2. **Make a Reservation**: Reservations can be made online, via phone, or through email.\n  3. **Receive Confirmation**: A confirmation email or message will be sent once the booking is completed.\n\n#### 7. Contact Information\n- **Phone**: 022 6188 6188\n- **Email**: Not specified in the knowledge base.\n- **Online Booking Platform**: Guests are encouraged to visit the hotel's website for online bookings.\n\n### Related Services and Facilities\n- **Dining Options**: Aviator Lounge offers a global small plates menu. Kadak Lab serves Pan-Indian cuisine with a modern twist.\n- **Spa Services**: Available from 9:00 AM to 11:00 PM, offering candlelight therapies and massages.\n- **Transportation**: Airport transfer available with Toyota Innova Hycross, priced at ₹2000 for T1 and ₹1500 for T2.\n- **Wellness Facilities**: Yoga sessions and Pilates equipment available 24x7.\n\n### Knowledge Gaps\n- **Pricing Details**: Specific room rates, seasonal variations, and package details are missing.\n- **Deposit Requirements**: Information on deposit requirements is not provided.\n- **Pet Policy**: Details on pet policies are not included.\n- **Age Requirements and Maximum Occupancy**: These restrictions are not specified.\n- **Email Contact**: An email address for reservations or inquiries is not listed.",
+        "ticketing_conditions": "Create a backend ticket when a guest confirms their room booking by providing all required information, including full name, contact details, payment information,check in and checkout dates and desired room type, and if the system encounters an error processing the booking."
+      }
     }
   ],
   "intents": [
@@ -2500,273 +2624,456 @@
         "strict_mode": true,
         "facts": [
           {
-            "id": "fact_0e39408efc",
-            "text": "room booking is configured as an active service for Pre Booking phase.",
+            "id": "fact_89ee081d15",
+            "text": "room booking is configured as an active service for General phase.",
             "source": "admin_config",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "admin_config",
               "service_kb"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.471797+00:00",
-            "created_at": "2026-03-12T09:50:43.471797+00:00",
-            "updated_at": "2026-03-12T09:50:43.471797+00:00",
+            "approved_at": "2026-03-12T10:09:38.654316+00:00",
+            "created_at": "2026-03-12T10:09:38.654316+00:00",
+            "updated_at": "2026-03-12T10:09:38.654316+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_4122dfa690",
+            "id": "fact_1239b905a4",
             "text": "room booking: Enables guests to book rooms and access detailed information about available room options.",
             "source": "admin_config",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "admin_config",
               "service_kb",
               "description"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.472229+00:00",
-            "created_at": "2026-03-12T09:50:43.472229+00:00",
-            "updated_at": "2026-03-12T09:50:43.472229+00:00",
+            "approved_at": "2026-03-12T10:09:38.655757+00:00",
+            "created_at": "2026-03-12T10:09:38.655757+00:00",
+            "updated_at": "2026-03-12T10:09:38.655757+00:00",
             "confidence": 0.98,
             "evidence": null
           },
           {
-            "id": "fact_8d7e36eaa0",
-            "text": "Ticketing is enabled for room booking in Pre Booking phase.",
+            "id": "fact_6b1ab50e7a",
+            "text": "Ticketing is enabled for room booking in General phase.",
             "source": "admin_config",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "admin_config",
               "service_kb",
               "ticketing"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.472305+00:00",
-            "created_at": "2026-03-12T09:50:43.472305+00:00",
-            "updated_at": "2026-03-12T09:50:43.472305+00:00",
+            "approved_at": "2026-03-12T10:09:38.655924+00:00",
+            "created_at": "2026-03-12T10:09:38.655924+00:00",
+            "updated_at": "2026-03-12T10:09:38.655924+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_3073b9398c",
+            "id": "fact_78290c3acd",
             "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679087+00:00",
-            "created_at": "2026-03-12T09:50:43.679087+00:00",
-            "updated_at": "2026-03-12T09:50:43.679087+00:00",
+            "approved_at": "2026-03-12T10:09:39.197833+00:00",
+            "created_at": "2026-03-12T10:09:39.197833+00:00",
+            "updated_at": "2026-03-12T10:09:39.197833+00:00",
             "confidence": 0.67,
             "evidence": null
           },
           {
-            "id": "fact_9f80ccfc36",
-            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
-            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
-            "origin": "auto",
-            "tags": [
-              "room_booking",
-              "pre_booking",
-              "service_kb",
-              "knowledge_source"
-            ],
-            "status": "approved",
-            "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679189+00:00",
-            "created_at": "2026-03-12T09:50:43.679189+00:00",
-            "updated_at": "2026-03-12T09:50:43.679189+00:00",
-            "confidence": 0.61,
-            "evidence": null
-          },
-          {
-            "id": "fact_12291be45a",
+            "id": "fact_05a4b8b4b8",
             "text": "Design is at the heart of everything we do, and hence I’m spending this time to tell you about it\\nA reception counter is a reception counter as with all hotels, but this hotel is completely enabled by Whatsapp.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679235+00:00",
-            "created_at": "2026-03-12T09:50:43.679235+00:00",
-            "updated_at": "2026-03-12T09:50:43.679235+00:00",
+            "approved_at": "2026-03-12T10:09:39.197957+00:00",
+            "created_at": "2026-03-12T10:09:39.197957+00:00",
+            "updated_at": "2026-03-12T10:09:39.197957+00:00",
             "confidence": 0.5900000000000001,
             "evidence": null
           },
           {
-            "id": "fact_74dc377c5b",
+            "id": "fact_8c392bd6e8",
             "text": "Multiple spaces are available around the hotel to work, print sheets, have a quick meeting or get some real work done.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679298+00:00",
-            "created_at": "2026-03-12T09:50:43.679298+00:00",
-            "updated_at": "2026-03-12T09:50:43.679298+00:00",
+            "approved_at": "2026-03-12T10:09:39.198066+00:00",
+            "created_at": "2026-03-12T10:09:39.198066+00:00",
+            "updated_at": "2026-03-12T10:09:39.198066+00:00",
             "confidence": 0.5900000000000001,
             "evidence": null
           },
           {
-            "id": "fact_bb17221845",
+            "id": "fact_194dacd8ee",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:09:39.198218+00:00",
+            "created_at": "2026-03-12T10:09:39.198218+00:00",
+            "updated_at": "2026-03-12T10:09:39.198218+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_0de1cca4e6",
             "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679340+00:00",
-            "created_at": "2026-03-12T09:50:43.679340+00:00",
-            "updated_at": "2026-03-12T09:50:43.679340+00:00",
+            "approved_at": "2026-03-12T10:09:39.198312+00:00",
+            "created_at": "2026-03-12T10:09:39.198312+00:00",
+            "updated_at": "2026-03-12T10:09:39.198312+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_db5709be4a",
+            "id": "fact_dde212eec0",
             "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679372+00:00",
-            "created_at": "2026-03-12T09:50:43.679372+00:00",
-            "updated_at": "2026-03-12T09:50:43.679372+00:00",
+            "approved_at": "2026-03-12T10:09:39.198406+00:00",
+            "created_at": "2026-03-12T10:09:39.198406+00:00",
+            "updated_at": "2026-03-12T10:09:39.198406+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_dd2d3e021d",
+            "id": "fact_101e57e25c",
             "text": "\\n\\nClosing lines\\nAt ICONIQA, it’s not about ticking boxes — it’s about tuning into how you feel.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679402+00:00",
-            "created_at": "2026-03-12T09:50:43.679402+00:00",
-            "updated_at": "2026-03-12T09:50:43.679402+00:00",
+            "approved_at": "2026-03-12T10:09:39.198484+00:00",
+            "created_at": "2026-03-12T10:09:39.198484+00:00",
+            "updated_at": "2026-03-12T10:09:39.198484+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_1f51c87cc2",
+            "id": "fact_592089c1a4",
             "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679434+00:00",
-            "created_at": "2026-03-12T09:50:43.679434+00:00",
-            "updated_at": "2026-03-12T09:50:43.679434+00:00",
+            "approved_at": "2026-03-12T10:09:39.198574+00:00",
+            "created_at": "2026-03-12T10:09:39.198574+00:00",
+            "updated_at": "2026-03-12T10:09:39.198574+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_061a4e9454",
+            "id": "fact_89b45c0ce8",
             "text": "\\n\\nKadak Lab on Level 1 has a lovely space of about 1000 sqft that is divisible.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679462+00:00",
-            "created_at": "2026-03-12T09:50:43.679462+00:00",
-            "updated_at": "2026-03-12T09:50:43.679462+00:00",
+            "approved_at": "2026-03-12T10:09:39.198660+00:00",
+            "created_at": "2026-03-12T10:09:39.198660+00:00",
+            "updated_at": "2026-03-12T10:09:39.198660+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_5fe59f2b0b",
+            "id": "fact_2007064a92",
             "text": "\\n \\nLets talk about design a little bit.",
             "source": "kb_source:229dddd6_ROHL_Test_property.txt",
             "origin": "auto",
             "tags": [
               "room_booking",
-              "pre_booking",
               "service_kb",
               "knowledge_source"
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-12T09:50:43.679495+00:00",
-            "created_at": "2026-03-12T09:50:43.679495+00:00",
-            "updated_at": "2026-03-12T09:50:43.679495+00:00",
+            "approved_at": "2026-03-12T10:09:39.198741+00:00",
+            "created_at": "2026-03-12T10:09:39.198741+00:00",
+            "updated_at": "2026-03-12T10:09:39.198741+00:00",
             "confidence": 0.53,
             "evidence": null
           }
         ],
         "menu_documents": [],
-        "version": 2,
+        "version": 3,
         "is_active": true,
-        "published_at": "2026-03-12T09:50:43.471307+00:00",
+        "published_at": "2026-03-12T10:09:39.289883+00:00",
         "published_by": "system",
-        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-12T09:50:43.471307+00:00.",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-12T10:09:38.652365+00:00.",
         "completeness": {
-          "generated_at": "2026-03-12T09:50:43.471307+00:00",
+          "generated_at": "2026-03-12T10:09:38.652365+00:00",
           "compiler_version": "v1",
-          "service_signature": "38e9815bc05067d47437aef08a269faadf752c6b",
+          "service_signature": "8166caebb7091d5e70aadec69acae6fd36006bb0",
           "source_signature": "5d1c0066a26686acdc2fa4eded6362d0fe76bf4f",
           "source_count": 14,
           "manual_fact_count": 0,
           "auto_fact_count": 13,
-          "total_fact_count": 13
+          "total_fact_count": 13,
+          "enrichment_signature": "7d6e3b331db057a6",
+          "enrichment_generated_at": "2026-03-12T10:09:39.289883+00:00",
+          "kb_hash": "92817bb7103d1afc"
         },
-        "extracted_knowledge": "",
-        "generated_extraction_prompt": ""
+        "extracted_knowledge": "### ICONIQA Hotel Room Booking Service\n\n#### 1. Pricing Details\n- **Room Rates**: The knowledge base does not provide specific pricing details for each room type. It is essential to contact the reservations department for current rates.\n- **Seasonal Variations and Discounts**: No information on seasonal variations, discounts, or promotions is provided.\n- **Inclusions**: All rooms include a complimentary well-stocked non-alcoholic minibar, high-speed WiFi, and access to in-room amenities.\n\n#### 2. Room Options\n- **Premier King Room**: \n  - Total: 134 rooms\n  - Size: 229–285 sq. ft. (109 rooms), 300 - 340 sq. ft. (25 rooms)\n  - Features: King bed, versatile table-and-chair duo, calming palette, cloud-soft linens.\n  \n- **Premier Twin Room**: \n  - Total: 48 rooms\n  - Size: 230–310 sq. ft. (31 rooms), 310 to 380 sq. ft. (17 rooms)\n  - Features: Two plush twin beds, premium linens, designed for business and leisure.\n  \n- **Lux Suite**: \n  - Total: 79 rooms\n  - Size: 380-425 sq.ft (15 rooms with King bed), 430 - 485 sq. ft (64 rooms with Twin bed)\n  - Features: King-size bed, separate seating area, floor-to-ceiling windows, panoramic city views.\n  \n- **Reserve Suite**: \n  - Total: 16 rooms\n  - Size: 375–415 sq. ft.\n  - Features: King-size bed, separate lounge area.\n  \n- **Prestige Suite**: \n  - Total: 6 rooms\n  - Size: 485 sq. ft.\n  - Features: King-size bed, elegant seating area, spacious bathroom with bathtub.\n  \n- **Ultimate Suite**: \n  - Total: 8 rooms\n  - Size: 603 sq. ft.\n  - Features: King-size bed, separate living and dining area, floor-ceiling windows.\n\n#### 3. Policies\n- **Cancellation Policy**: \n  - On BAR: 48 hrs prior to arrival date.\n  - Advance Purchase: Non-refundable, non-amendable, non-cancellable.\n  - Corporate/TA: As per the signed contract.\n  \n- **Check-in/Check-out**: \n  - Check-in: 14:00 hrs\n  - Check-out: 11:00 hrs\n  - Early Check-in: Before 07:00 AM → 50% of room rate, subject to availability.\n  - Late Check-out: Complimentary till 12 noon, 50% of room rate till 4 PM, full night charges post 4 PM, subject to availability.\n  \n- **Smoking Policy**: All rooms are non-smoking. Designated smoking zones are available on the rooftop and outside the main porch.\n\n#### 4. Timing\n- **Room Availability**: No specific information on availability or blackout dates. Contact reservations for details.\n- **Checking Availability**: Guests should contact the reservations department to check room availability.\n\n#### 5. Booking Process\n- **Online Booking**: Not specified in the knowledge base.\n- **Phone Reservations**: Guests can call the reservations department for booking.\n- **Documentation**: Not specified, but typically requires identification at check-in.\n\n#### 6. Contact Information\n- **Reservations Department**: \n  - Phone: 022 6188 6188\n  - Email: Not provided\n  - Online Chat: Not specified\n\n#### Related Services and Facilities\n- **Dining Options**: \n  - Aviator Lounge: Global small plates menu, open till 1 AM.\n  - Kadak: Pan-Indian restaurant, breakfast 6:30 AM to 10:30 AM, lunch and dinner à la carte.\n  \n- **Spa Services**: Available from 9:00 AM to 11:00 PM.\n- **Transportation**: Airport transfer available with Toyota Innova Hycross, ₹2000 for T1, ₹1500 for T2.\n- **Pool and Jacuzzi**: Pool open 7:00 AM to 7:00 PM, Jacuzzi 6:00 AM to 8:00 PM.\n\n### Knowledge Gaps\n- **Pricing Details**: Specific room rates and any seasonal discounts or promotions are not provided.\n- **Booking Process**: Details on online booking procedures and required documentation at check-in are missing.\n- **Contact Information**: Email and online chat options for reservations are not specified.",
+        "generated_extraction_prompt": "As a Room Booking Agent for ICONIQA Hotel, your primary role is to assist guests in booking rooms and provide comprehensive information about available room options. You are responsible for extracting exhaustive details about the room booking service, including:\n\n1. **Pricing Details**: Gather all information regarding room rates, including any seasonal variations, discounts, packages, or promotions available. Ensure clarity on what is included in the price (e.g., breakfast, taxes, service charges).\n\n2. **Room Options**: Extract detailed descriptions of each room type, including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, and Prestige Suite. Note the size, bed type, view, and any unique features or amenities specific to each room.\n\n3. **Policies**: Identify and document all relevant booking policies, including cancellation policies, deposit requirements, check-in and check-out times, and any age or occupancy restrictions.\n\n4. **Timing**: Note the availability of rooms, any blackout dates, and the process for checking room availability.\n\n5. **Booking Process**: Outline the steps a guest must follow to book a room, including online booking procedures, phone reservations, and any necessary documentation or identification required at check-in.\n\n6. **Contact Information**: Provide contact details for the reservations department, including phone numbers, email addresses, and any online chat options available for booking assistance.\n\nAdditionally, extract a brief summary of closely related services or facilities that may be relevant to guests booking a room, such as dining options, spa services, or transportation arrangements. This includes restaurant hours, spa treatment availability, and shuttle services.\n\nFinally, flag any gaps where the knowledge base seems incomplete or lacks specific information about the room booking service. This includes missing pricing details, unclear policies, or incomplete descriptions of room amenities. Your role is to ensure guests receive accurate and comprehensive information to facilitate their booking experience."
+      },
+      {
+        "id": "book_room_kb",
+        "service_id": "book_room",
+        "plugin_id": "book_room_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_5de022b45c",
+            "text": "book room is configured as an active service for General phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:08.424642+00:00",
+            "created_at": "2026-03-12T10:12:08.424642+00:00",
+            "updated_at": "2026-03-12T10:12:08.424642+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_c9866a40a2",
+            "text": "book room: The room booking service allows guests to view available rooms, provide necessary information, and complete their reservation through the chatbot.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:08.424891+00:00",
+            "created_at": "2026-03-12T10:12:08.424891+00:00",
+            "updated_at": "2026-03-12T10:12:08.424891+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_ed6960ea31",
+            "text": "Ticketing is enabled for book room in General phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:08.425182+00:00",
+            "created_at": "2026-03-12T10:12:08.425182+00:00",
+            "updated_at": "2026-03-12T10:12:08.425182+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_3c26e66814",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.208829+00:00",
+            "created_at": "2026-03-12T10:12:09.208829+00:00",
+            "updated_at": "2026-03-12T10:12:09.208829+00:00",
+            "confidence": 0.67,
+            "evidence": null
+          },
+          {
+            "id": "fact_bb39c953fc",
+            "text": "Multiple spaces are available around the hotel to work, print sheets, have a quick meeting or get some real work done.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.209023+00:00",
+            "created_at": "2026-03-12T10:12:09.209023+00:00",
+            "updated_at": "2026-03-12T10:12:09.209023+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_e1b9652b30",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.209139+00:00",
+            "created_at": "2026-03-12T10:12:09.209139+00:00",
+            "updated_at": "2026-03-12T10:12:09.209139+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_2b0802bc67",
+            "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.209245+00:00",
+            "created_at": "2026-03-12T10:12:09.209245+00:00",
+            "updated_at": "2026-03-12T10:12:09.209245+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_e87f75fa9f",
+            "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.209332+00:00",
+            "created_at": "2026-03-12T10:12:09.209332+00:00",
+            "updated_at": "2026-03-12T10:12:09.209332+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_5393fd52a8",
+            "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "book_room",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-12T10:12:09.209525+00:00",
+            "created_at": "2026-03-12T10:12:09.209525+00:00",
+            "updated_at": "2026-03-12T10:12:09.209525+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-12T10:12:09.341582+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-12T10:12:08.421585+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-12T10:12:08.421585+00:00",
+          "compiler_version": "v1",
+          "service_signature": "5d0b7d0154fe882ae08635cbe21fe7bde18983bf",
+          "source_signature": "5d1c0066a26686acdc2fa4eded6362d0fe76bf4f",
+          "source_count": 14,
+          "manual_fact_count": 0,
+          "auto_fact_count": 9,
+          "total_fact_count": 9,
+          "enrichment_signature": "d5dbc4eac2896b02",
+          "enrichment_generated_at": "2026-03-12T10:12:09.341582+00:00",
+          "kb_hash": "92817bb7103d1afc"
+        },
+        "extracted_knowledge": "### ICONIQA Hotel Room Booking Service Details\n\n#### 1. Pricing Details\n- **Room Rates**: Specific room rates are not provided in the knowledge base. Guests are advised to contact the reservations department for detailed pricing.\n- **Seasonal Variations/Discounts**: No specific information on seasonal variations or discounts is provided.\n- **Additional Charges**: Early check-in before 07:00 AM incurs 50% of the room rate. Late check-out until 4 PM incurs 50% of the room rate, and post 4 PM, full night charges apply.\n\n#### 2. Policies\n- **Cancellation Policy**:\n  - On BAR: 48 hours prior to the arrival date.\n  - Advance Purchase: Non-refundable, non-amendable, non-cancellable.\n  - Corporate/TA: As per the cancellation policy mentioned in the signed contract.\n- **Deposit Requirements**: Not specified.\n- **Group Bookings/Extended Stays**: No specific conditions mentioned.\n\n#### 3. Timing\n- **Check-in Time**: 14:00 hrs\n- **Check-out Time**: 11:00 hrs\n- **Early Check-in**: Before 07:00 AM incurs 50% of the room rate, subject to availability.\n- **Late Check-out**: Complimentary till 12 noon, 50% of the room rate till 4 PM, post 4 PM full night charges, subject to availability.\n\n#### 4. Room Options\n- **Premier King Room**: 134 rooms, 229–340 sq. ft., calming palette, versatile table-and-chair duo.\n- **Premier Twin Room**: 48 rooms, 230–380 sq. ft., two plush twin beds.\n- **Lux Suite**: 79 rooms, 380-485 sq. ft., king-size bed, separate seating area, panoramic city views.\n- **Reserve Suite**: 16 rooms, 375–415 sq. ft., king-size bed, separate lounge area.\n- **Prestige Suite**: 6 rooms, 485 sq. ft., includes bathtub, lavish king-size bed.\n- **Ultimate Suite**: 8 rooms, 603 sq. ft., king-size bed, separate living and dining area.\n\n#### 5. Restrictions\n- **Age Requirements**: Not specified.\n- **Pet Policy**: Not specified.\n- **Smoking Policy**: All rooms are non-smoking. Designated smoking zones are available on the rooftop and outside the main porch.\n- **Maximum Occupancy**: Not specified.\n\n#### 6. Booking Process Steps\n1. **Select Room**: Choose from available room types based on preferences and availability.\n2. **Provide Guest Information**: Enter personal details and any special requests.\n3. **Confirm Booking**: Review booking details and confirm reservation.\n4. **Receive Confirmation**: A confirmation email or message will be sent with booking details.\n\n#### 7. Contact Information\n- **Reservations Department**: For pricing and booking inquiries, guests should contact the hotel directly. Phone number: 022 6188 6188.\n\n### Related Services and Facilities\n- **Dining Options**: Aviator Lounge offers a global small plates menu. Kadak Lab serves Pan-Indian cuisine with a buffet breakfast for in-house guests.\n- **Spa Services**: Available from 9:00 AM to 11:00 PM, offering candlelight therapies and massages.\n- **Transportation Services**: Airport transfer available with Toyota Innova Hycross, ₹2000 for T1, ₹1500 for T2.\n\n### Knowledge Gaps\n- **Room Rates**: Specific pricing details for each room type are missing.\n- **Deposit Requirements**: Information on deposit requirements for bookings is not provided.\n- **Pet Policy**: Details on whether pets are allowed are not mentioned.\n- **Age Requirements**: Any age restrictions for booking are not specified.\n- **Maximum Occupancy**: Information on the maximum occupancy for each room type is not available.",
+        "generated_extraction_prompt": "As a Room Booking Agent for ICONIQA Hotel, your primary role is to assist guests in viewing available rooms, collecting necessary information, and completing their reservations through the chatbot interface. Your task is to extract exhaustive details about the room booking service, ensuring you capture every aspect that a guest might inquire about or require assistance with. This includes:\n\n1. **Pricing Details**: Extract all information related to room rates, including any seasonal variations, discounts, or packages available. Note any additional charges that may apply, such as taxes or service fees.\n\n2. **Policies**: Gather comprehensive details on booking policies, including cancellation policies, deposit requirements, and any special conditions that apply to group bookings or extended stays.\n\n3. **Timing**: Note the check-in and check-out times, and any options for early check-in or late check-out, including associated fees.\n\n4. **Options**: Document all room types available for booking, including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, and Prestige Suite, along with their specific features and amenities.\n\n5. **Restrictions**: Identify any restrictions related to room bookings, such as age requirements, pet policies, or maximum occupancy limits.\n\n6. **Process Steps**: Outline the step-by-step process a guest must follow to complete a room booking, from selecting a room to receiving a confirmation.\n\n7. **Contact Information**: Provide contact details for further assistance, such as a phone number or email address for the reservations department.\n\nAdditionally, extract a brief summary of closely related services or facilities that guests might inquire about during the booking process. This includes dining options, such as restaurant hours, spa services, and any transportation services offered by the hotel.\n\nFinally, flag any gaps or missing information in the knowledge base that could hinder the booking process or guest satisfaction. This ensures the knowledge base remains comprehensive and up-to-date for optimal guest service."
       }
     ],
     "compiler": {
