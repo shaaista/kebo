@@ -790,7 +790,370 @@ class ConfigService:
         return normalized
 
     @classmethod
-    def _normalize_service_entry(cls, service: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _service_prompt_profile_tokens(cls, service: Dict[str, Any]) -> set[str]:
+        parts = [
+            service.get("id"),
+            service.get("name"),
+            service.get("type"),
+            service.get("description"),
+            service.get("phase_id"),
+        ]
+        blob = " ".join(str(part or "") for part in parts).lower()
+        return {token for token in re.findall(r"[a-z0-9]+", blob) if token}
+
+    @classmethod
+    def _infer_service_prompt_profile(cls, service: Dict[str, Any]) -> str:
+        tokens = cls._service_prompt_profile_tokens(service)
+        booking_tokens = {"booking", "book", "reservation", "reserve", "appointment", "schedule"}
+        room_tokens = {"room", "suite", "stay", "checkin", "checkout", "check", "in", "out"}
+        transport_tokens = {"transport", "transfer", "pickup", "drop", "cab", "taxi", "shuttle", "chauffeur"}
+        complaint_tokens = {
+            "complaint",
+            "issue",
+            "problem",
+            "maintenance",
+            "broken",
+            "housekeeping",
+            "support",
+            "escalation",
+        }
+        dining_tokens = {"dining", "food", "menu", "restaurant", "order", "meal", "kitchen"}
+
+        if tokens & transport_tokens:
+            return "transport_request"
+        if tokens & room_tokens and tokens & booking_tokens:
+            return "room_booking"
+        if tokens & complaint_tokens:
+            return "issue_resolution"
+        if tokens & dining_tokens and ("order" in tokens or "dining" in tokens):
+            return "dining_request"
+        if tokens & booking_tokens:
+            return "general_booking"
+        return "general_service"
+
+    @classmethod
+    def _coerce_service_prompt_slot(cls, slot: Any) -> Optional[Dict[str, Any]]:
+        if not isinstance(slot, dict):
+            return None
+        slot_id = cls._normalize_identifier(slot.get("id")) or cls._normalize_slug(slot.get("label"))
+        if not slot_id:
+            return None
+        label = str(slot.get("label") or slot_id.replace("_", " ").title()).strip()
+        prompt = str(slot.get("prompt") or f"Please share {slot_id.replace('_', ' ')}.").strip()
+        slot_type = cls._normalize_identifier(slot.get("type") or "text")
+        if slot_type not in {"text", "number", "date", "time", "datetime", "boolean", "enum"}:
+            slot_type = "text"
+        normalized_slot: Dict[str, Any] = {
+            "id": slot_id,
+            "label": label,
+            "prompt": prompt,
+            "required": bool(slot.get("required", True)),
+            "type": slot_type,
+        }
+        options = slot.get("options")
+        if isinstance(options, list):
+            normalized_options: list[str] = []
+            for option in options:
+                option_text = str(option or "").strip()
+                if option_text and option_text not in normalized_options:
+                    normalized_options.append(option_text)
+            if normalized_options:
+                normalized_slot["options"] = normalized_options
+        return normalized_slot
+
+    @classmethod
+    def _default_service_prompt_slots(cls, profile: str) -> list[dict[str, Any]]:
+        def _slot(slot_id: str, label: str, prompt: str, *, required: bool = True, slot_type: str = "text") -> dict[str, Any]:
+            return {
+                "id": slot_id,
+                "label": label,
+                "prompt": prompt,
+                "required": required,
+                "type": slot_type,
+            }
+
+        base_slots = [
+            _slot(
+                "request_details",
+                "Request Details",
+                "Please share the request details so I can proceed correctly.",
+                required=True,
+                slot_type="text",
+            )
+        ]
+        profile_slots: dict[str, list[dict[str, Any]]] = {
+            "general_booking": [
+                _slot("preferred_date", "Preferred Date", "What date should this be arranged for?", slot_type="date"),
+                _slot("preferred_time", "Preferred Time", "What time works best for you?", slot_type="time"),
+                _slot("guest_count", "Guest Count", "How many guests should I include?", slot_type="number"),
+            ],
+            "room_booking": [
+                _slot("check_in_date", "Check-in Date", "What is your check-in date?", slot_type="date"),
+                _slot("check_out_date", "Check-out Date", "What is your check-out date?", slot_type="date"),
+                _slot("guest_count", "Guest Count", "How many guests will stay?", slot_type="number"),
+                _slot("room_type", "Room Type", "Which room type should I look for?", required=False),
+            ],
+            "transport_request": [
+                _slot("pickup_location", "Pickup Location", "Please share the pickup location."),
+                _slot("drop_location", "Drop Location", "Please share the drop location."),
+                _slot("travel_date", "Travel Date", "What is the travel date?", slot_type="date"),
+                _slot("travel_time", "Travel Time", "What is the pickup time?", slot_type="time"),
+                _slot("passenger_count", "Passenger Count", "How many passengers should be included?", slot_type="number"),
+            ],
+            "issue_resolution": [
+                _slot("issue_summary", "Issue Summary", "Please describe the issue clearly."),
+                _slot("issue_location", "Issue Location", "Where is this happening?", required=False),
+                _slot("room_number", "Room Number", "Please share your room number if applicable.", required=False),
+            ],
+            "dining_request": [
+                _slot("order_items", "Order Items", "What items would you like to order?"),
+                _slot("quantity", "Quantity", "Please share quantity details.", required=False, slot_type="number"),
+                _slot("delivery_time", "Delivery Time", "When should we deliver this?", required=False, slot_type="time"),
+                _slot("room_number", "Room Number", "Please share your room number for delivery."),
+            ],
+        }
+
+        selected = profile_slots.get(str(profile or "").strip().lower(), [])
+        return [*base_slots, *selected]
+
+    @classmethod
+    def _default_service_prompt_validation_rules(cls, required_slots: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        required_slot_ids = [
+            str(slot.get("id") or "").strip()
+            for slot in required_slots
+            if isinstance(slot, dict) and bool(slot.get("required", True))
+        ]
+        required_slot_ids = [slot_id for slot_id in required_slot_ids if slot_id]
+        rules: list[dict[str, Any]] = []
+        if required_slot_ids:
+            rules.append(
+                {
+                    "id": "required_slots_complete",
+                    "type": "required",
+                    "slot_ids": required_slot_ids,
+                    "error_message": "Please complete all required details before confirmation.",
+                }
+            )
+        if {"check_in_date", "check_out_date"}.issubset(set(required_slot_ids)):
+            rules.append(
+                {
+                    "id": "checkin_before_checkout",
+                    "type": "date_order",
+                    "slot_ids": ["check_in_date", "check_out_date"],
+                    "error_message": "Check-out date must be after check-in date.",
+                }
+            )
+        numeric_slots = [slot_id for slot_id in ("guest_count", "passenger_count", "quantity") if slot_id in required_slot_ids]
+        if numeric_slots:
+            rules.append(
+                {
+                    "id": "numeric_values_positive",
+                    "type": "numeric_min",
+                    "slot_ids": numeric_slots,
+                    "min_value": 1,
+                    "error_message": "Please provide a valid positive number.",
+                }
+            )
+        return rules
+
+    @classmethod
+    def _generate_service_prompt_pack(cls, service: Dict[str, Any]) -> Dict[str, Any]:
+        service_name = str(service.get("name") or service.get("id") or "service").strip()
+        phase_id = cls._normalize_phase_identifier(service.get("phase_id"))
+        profile = cls._infer_service_prompt_profile(service)
+        required_slots = cls._default_service_prompt_slots(profile)
+        validation_rules = cls._default_service_prompt_validation_rules(required_slots)
+        ticketing_enabled = bool(service.get("ticketing_enabled", True))
+        ticketing_policy = str(service.get("ticketing_policy") or "").strip()
+
+        return {
+            "version": 1,
+            "generator": "service_prompt_pack_v1",
+            "source": "auto_generated",
+            "profile": profile,
+            "role": f"You are the dedicated assistant for {service_name}.",
+            "professional_behavior": (
+                "Collect details clearly, ask one targeted question at a time, "
+                "validate required fields before confirmation, and avoid assumptions."
+            ),
+            "phase_id": phase_id,
+            "required_slots": required_slots,
+            "validation_rules": validation_rules,
+            "confirmation_format": {
+                "style": "summary_then_explicit_confirm",
+                "template": (
+                    "Please confirm these details before execution: {summary}. "
+                    "Reply 'yes confirm' to proceed or share corrections."
+                ),
+                "required_phrase": "yes confirm",
+            },
+            "ticketing_policy": {
+                "enabled": ticketing_enabled,
+                "policy": ticketing_policy,
+                "decision_template": (
+                    "Create ticket only when ticketing is enabled for this service "
+                    "and policy criteria are satisfied."
+                ),
+            },
+            "execution_guard": {
+                "require_required_slots_before_confirm": True,
+            },
+        }
+
+    @classmethod
+    def _normalize_service_prompt_pack(
+        cls,
+        pack: Any,
+        *,
+        service: Dict[str, Any],
+        source: str = "manual_override",
+    ) -> Dict[str, Any]:
+        generated = cls._generate_service_prompt_pack(service)
+        if not isinstance(pack, dict):
+            return generated
+
+        normalized = copy.deepcopy(generated)
+        for key in ("role", "professional_behavior", "profile"):
+            value = str(pack.get(key) or "").strip()
+            if value:
+                normalized[key] = value
+
+        required_slots_raw = pack.get("required_slots")
+        if isinstance(required_slots_raw, list):
+            normalized_slots: list[dict[str, Any]] = []
+            seen_slot_ids: set[str] = set()
+            for item in required_slots_raw:
+                normalized_slot = cls._coerce_service_prompt_slot(item)
+                if not normalized_slot:
+                    continue
+                slot_id = normalized_slot["id"]
+                if slot_id in seen_slot_ids:
+                    continue
+                seen_slot_ids.add(slot_id)
+                normalized_slots.append(normalized_slot)
+            if normalized_slots:
+                normalized["required_slots"] = normalized_slots
+                normalized["validation_rules"] = cls._default_service_prompt_validation_rules(normalized_slots)
+
+        validation_rules_raw = pack.get("validation_rules")
+        if isinstance(validation_rules_raw, list):
+            normalized_rules: list[dict[str, Any]] = []
+            for rule in validation_rules_raw:
+                if not isinstance(rule, dict):
+                    continue
+                rule_id = cls._normalize_identifier(rule.get("id"))
+                rule_type = cls._normalize_identifier(rule.get("type"))
+                if not rule_id or not rule_type:
+                    continue
+                slot_ids_raw = rule.get("slot_ids", [])
+                if not isinstance(slot_ids_raw, list):
+                    slot_ids_raw = []
+                slot_ids = [cls._normalize_identifier(slot_id) for slot_id in slot_ids_raw]
+                slot_ids = [slot_id for slot_id in slot_ids if slot_id]
+                normalized_rule: Dict[str, Any] = {
+                    "id": rule_id,
+                    "type": rule_type,
+                    "slot_ids": slot_ids,
+                    "error_message": str(rule.get("error_message") or "").strip(),
+                }
+                if "min_value" in rule:
+                    try:
+                        normalized_rule["min_value"] = float(rule.get("min_value"))
+                    except (TypeError, ValueError):
+                        pass
+                normalized_rules.append(normalized_rule)
+            if normalized_rules:
+                normalized["validation_rules"] = normalized_rules
+
+        confirmation = pack.get("confirmation_format")
+        if isinstance(confirmation, dict):
+            normalized_confirmation = dict(normalized.get("confirmation_format", {}))
+            style_value = str(confirmation.get("style") or "").strip()
+            template_value = str(confirmation.get("template") or "").strip()
+            phrase_value = str(confirmation.get("required_phrase") or "").strip()
+            if style_value:
+                normalized_confirmation["style"] = style_value
+            if template_value:
+                normalized_confirmation["template"] = template_value
+            if phrase_value:
+                normalized_confirmation["required_phrase"] = phrase_value
+            normalized["confirmation_format"] = normalized_confirmation
+
+        ticketing = pack.get("ticketing_policy")
+        if isinstance(ticketing, dict):
+            normalized_ticketing = dict(normalized.get("ticketing_policy", {}))
+            if "enabled" in ticketing:
+                normalized_ticketing["enabled"] = bool(ticketing.get("enabled"))
+            policy_value = str(ticketing.get("policy") or "").strip()
+            if policy_value:
+                normalized_ticketing["policy"] = policy_value
+            decision_template = str(ticketing.get("decision_template") or "").strip()
+            if decision_template:
+                normalized_ticketing["decision_template"] = decision_template
+            normalized["ticketing_policy"] = normalized_ticketing
+
+        execution_guard = pack.get("execution_guard")
+        if isinstance(execution_guard, dict):
+            normalized_guard = dict(normalized.get("execution_guard", {}))
+            if "require_required_slots_before_confirm" in execution_guard:
+                normalized_guard["require_required_slots_before_confirm"] = bool(
+                    execution_guard.get("require_required_slots_before_confirm")
+                )
+            normalized["execution_guard"] = normalized_guard
+
+        # Preserve free-text fields that are not part of structural validation
+        passthrough: dict[str, str] = {}
+        for passthrough_key in ("extracted_knowledge", "ticketing_conditions"):
+            value = str(pack.get(passthrough_key) or "").strip()
+            if value:
+                normalized[passthrough_key] = value
+                passthrough[passthrough_key] = value
+
+        try:
+            normalized["version"] = max(1, int(pack.get("version") or normalized.get("version") or 1))
+        except (TypeError, ValueError):
+            normalized["version"] = 1
+        normalized["source"] = str(source or "manual_override")
+        if not cls._is_valid_service_prompt_pack(normalized):
+            # Still carry passthrough fields even when falling back to generated defaults
+            generated.update(passthrough)
+            return generated
+        return normalized
+
+    @classmethod
+    def _is_valid_service_prompt_pack(cls, pack: Any) -> bool:
+        if not isinstance(pack, dict):
+            return False
+        required_slots = pack.get("required_slots")
+        if not isinstance(required_slots, list) or not required_slots:
+            return False
+        for slot in required_slots:
+            if not isinstance(slot, dict):
+                return False
+            slot_id = cls._normalize_identifier(slot.get("id"))
+            prompt = str(slot.get("prompt") or "").strip()
+            if not slot_id or not prompt:
+                return False
+        confirmation = pack.get("confirmation_format")
+        if not isinstance(confirmation, dict):
+            return False
+        if not str(confirmation.get("template") or "").strip():
+            return False
+        ticketing = pack.get("ticketing_policy")
+        if not isinstance(ticketing, dict):
+            return False
+        if "enabled" not in ticketing:
+            return False
+        return True
+
+    @classmethod
+    def _normalize_service_entry(
+        cls,
+        service: Dict[str, Any],
+        *,
+        manual_prompt_override: bool = False,
+        preserve_manual_prompt_pack: bool = True,
+    ) -> Optional[Dict[str, Any]]:
         """Normalize one service entry from admin inputs."""
         if not isinstance(service, dict):
             return None
@@ -834,6 +1197,41 @@ class ConfigService:
                 normalized_zones = [zone_str]
         normalized["delivery_zones"] = normalized_zones
         normalized["is_active"] = bool(service.get("is_active", True))
+        normalized["ticketing_policy"] = str(service.get("ticketing_policy") or "").strip()
+
+        existing_prompt_pack = service.get("service_prompt_pack")
+        existing_source = ""
+        if isinstance(existing_prompt_pack, dict):
+            existing_source = str(existing_prompt_pack.get("source") or "").strip().lower()
+        existing_custom_flag = bool(service.get("service_prompt_pack_custom", False))
+        existing_manual = existing_custom_flag or existing_source == "manual_override"
+
+        prompt_pack: Dict[str, Any]
+        if manual_prompt_override and isinstance(existing_prompt_pack, dict):
+            prompt_pack = cls._normalize_service_prompt_pack(
+                existing_prompt_pack,
+                service=normalized,
+                source="manual_override",
+            )
+            prompt_pack_custom = True
+        elif preserve_manual_prompt_pack and existing_manual and isinstance(existing_prompt_pack, dict):
+            prompt_pack = cls._normalize_service_prompt_pack(
+                existing_prompt_pack,
+                service=normalized,
+                source="manual_override",
+            )
+            prompt_pack_custom = True
+        else:
+            prompt_pack = cls._generate_service_prompt_pack(normalized)
+            prompt_pack_custom = False
+
+        if not cls._is_valid_service_prompt_pack(prompt_pack):
+            prompt_pack = cls._generate_service_prompt_pack(normalized)
+            prompt_pack_custom = False
+        if str(prompt_pack.get("source") or "").strip().lower() != "manual_override":
+            prompt_pack_custom = False
+        normalized["service_prompt_pack"] = prompt_pack
+        normalized["service_prompt_pack_custom"] = prompt_pack_custom
         return normalized
 
     @classmethod
@@ -1326,6 +1724,8 @@ class ConfigService:
             "published_by": str(record.get("published_by") or "").strip() or None,
             "release_notes": str(record.get("release_notes") or "").strip(),
             "completeness": record.get("completeness", {}) if isinstance(record.get("completeness"), dict) else {},
+            "extracted_knowledge": str(record.get("extracted_knowledge") or "").strip(),
+            "generated_extraction_prompt": str(record.get("generated_extraction_prompt") or "").strip(),
         }
 
     @classmethod
@@ -1848,6 +2248,38 @@ class ConfigService:
         services = config.get("services", [])
         return [dict(svc) for svc in services if isinstance(svc, dict)]
 
+    def get_service(self, service_id: str) -> Dict[str, Any] | None:
+        """Get one service by normalized id."""
+        normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return None
+        for service in self.get_services():
+            if self._normalize_identifier(service.get("id")) == normalized_id:
+                return dict(service)
+        return None
+
+    def get_service_prompt_pack(self, service_id: str) -> Dict[str, Any]:
+        """
+        Return normalized prompt pack for a service.
+        Falls back to auto-generated profile when not manually configured.
+        """
+        service = self.get_service(service_id)
+        if not isinstance(service, dict):
+            return {}
+
+        prompt_pack = service.get("service_prompt_pack")
+        if isinstance(prompt_pack, dict):
+            normalized = self._normalize_service_prompt_pack(
+                prompt_pack,
+                service=service,
+                source=str(prompt_pack.get("source") or "manual_override"),
+            )
+            if self._is_valid_service_prompt_pack(normalized):
+                return normalized
+
+        generated = self._generate_service_prompt_pack(service)
+        return generated if self._is_valid_service_prompt_pack(generated) else {}
+
     def get_journey_phases(self) -> List[Dict[str, Any]]:
         """Get configured guest-journey phases."""
         config = self.load_config()
@@ -1903,15 +2335,19 @@ class ConfigService:
         templates = _PHASE_PREBUILT_SERVICES.get(normalized_phase_id, [])
         rows: List[Dict[str, Any]] = []
         for item in templates:
-            row = dict(item)
-            if "ticketing_enabled" not in row:
-                row["ticketing_enabled"] = True
-            rows.append(row)
+            seeded = dict(item)
+            if "ticketing_enabled" not in seeded:
+                seeded["ticketing_enabled"] = True
+            normalized = self._normalize_service_entry(seeded)
+            rows.append(normalized if normalized else seeded)
         return rows
 
     def add_service(self, service: Dict[str, Any]) -> bool:
         """Add a new service."""
-        normalized = self._normalize_service_entry(service)
+        normalized = self._normalize_service_entry(
+            service,
+            manual_prompt_override=isinstance(service, dict) and "service_prompt_pack" in service,
+        )
         if not normalized:
             return False
 
@@ -1942,7 +2378,11 @@ class ConfigService:
             if self._normalize_identifier(service.get("id")) == normalized_id:
                 merged = dict(service)
                 merged.update(updates)
-                normalized = self._normalize_service_entry(merged)
+                normalized = self._normalize_service_entry(
+                    merged,
+                    manual_prompt_override="service_prompt_pack" in updates,
+                    preserve_manual_prompt_pack="service_prompt_pack" not in updates,
+                )
                 if not normalized:
                     return False
                 services[index] = normalized
@@ -2895,6 +3335,8 @@ class ConfigService:
             "hours": service.get("hours", {}),
             "delivery_zones": service.get("delivery_zones", []),
             "is_active": bool(service.get("is_active", True)),
+            "service_prompt_pack": service.get("service_prompt_pack", {}),
+            "service_prompt_pack_custom": bool(service.get("service_prompt_pack_custom", False)),
         }
         faq_signature_payload = []
         for faq in faq_bank[:120]:
@@ -3093,6 +3535,225 @@ class ConfigService:
             "source_count": len(source_texts),
             "source_signature": source_signature,
             "compiler_version": compiler_version,
+        }
+
+    # ------------------------------------------------------------------
+    # LLM-based service knowledge enrichment
+    # ------------------------------------------------------------------
+
+    def get_full_kb_text(self, max_chars: int = 180_000) -> str:
+        """Return combined text of all knowledge sources (for LLM context)."""
+        source_paths = self._resolve_knowledge_source_paths(max_sources=25)
+        parts: list[str] = []
+        total = 0
+        for path in source_paths:
+            text = self._load_knowledge_source_text(path, max_chars=max_chars)
+            if text:
+                parts.append(text)
+                total += len(text)
+                if total >= max_chars:
+                    break
+        return "\n\n".join(parts)[:max_chars]
+
+    async def _generate_service_extraction_prompt(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        full_kb_text: str,
+    ) -> str:
+        """Ask LLM to generate a role-based extraction prompt for this service."""
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a prompt engineer building knowledge packs for hotel chatbot service agents. "
+                    "Given a service name and description, write a detailed extraction instruction for an LLM agent. "
+                    "The instruction MUST:\n"
+                    "1. State the agent's exact role and what it does for hotel guests.\n"
+                    "2. Tell it to extract EXHAUSTIVE detail about this specific service: "
+                    "every pricing detail, policy, timing, option, restriction, process step, and contact info.\n"
+                    "3. Tell it to also extract a BRIEF summary of closely related services or facilities "
+                    "the agent may need to reference (e.g. a spa agent should know the hotel restaurant hours "
+                    "in case a guest asks about dining after a treatment).\n"
+                    "4. Tell it to flag any gaps where the KB seems incomplete for this service.\n"
+                    "Be direct and thorough — this instruction drives what the agent knows. "
+                    "Return only the instruction text, nothing else."
+                ),
+            },
+            {
+                "role": "user",
+                "content": json.dumps(
+                    {
+                        "service_name": service_name,
+                        "service_description": service_description,
+                        "knowledge_base_sample": full_kb_text[:4000],
+                    },
+                    ensure_ascii=False,
+                ),
+            },
+        ]
+        result = await llm_client.chat(messages, temperature=0.2, max_tokens=500)
+        return result.strip()
+
+    async def _extract_service_knowledge_from_kb(
+        self,
+        *,
+        extraction_prompt: str,
+        full_kb_text: str,
+    ) -> str:
+        """Use the generated extraction prompt to extract all relevant service knowledge from the KB."""
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        messages = [
+            {"role": "system", "content": extraction_prompt},
+            {
+                "role": "user",
+                "content": (
+                    f"Here is the complete knowledge base:\n\n{full_kb_text}\n\n"
+                    "---\n"
+                    "EXTRACTION INSTRUCTIONS:\n"
+                    "1. PRIMARY — Extract EVERY detail about your specific service: all options, prices, timings, "
+                    "policies, procedures, restrictions, staff contacts, booking steps, cancellation rules, "
+                    "special notes, and any other specifics. Leave nothing out.\n"
+                    "2. SECONDARY — For closely related services a guest might ask about in this context, "
+                    "include a brief summary (2-4 lines each) so the agent can answer cross-service questions.\n"
+                    "3. GAPS — At the end, add a short 'Knowledge Gaps' section listing anything about this "
+                    "service that seems missing or unclear in the KB.\n\n"
+                    "Format clearly with section headers. Be exhaustive on the primary service."
+                ),
+            },
+        ]
+        result = await llm_client.chat(messages, temperature=0.1, max_tokens=5000)
+        return result.strip()
+
+    async def enrich_service_kb_records(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        force: bool = False,
+        published_by: str = "system",
+    ) -> dict[str, Any]:
+        """
+        LLM-based enrichment pipeline for service knowledge.
+
+        For each active service:
+          Step 1 — LLM generates a role-based extraction prompt from service name + description + KB.
+          Step 2 — LLM uses that prompt to extract all relevant knowledge from the full KB.
+
+        Results (generated_extraction_prompt + extracted_knowledge) are stored permanently
+        in the service KB record. Fingerprint-cached: skips if service + KB unchanged.
+
+        Trigger this after KB upload or service create/update.
+        """
+        target_service_id = self._normalize_identifier(service_id)
+        service_rows = [
+            svc
+            for svc in self.get_services()
+            if isinstance(svc, dict) and bool(svc.get("is_active", True))
+        ]
+        if target_service_id:
+            service_rows = [
+                svc
+                for svc in service_rows
+                if self._normalize_identifier(svc.get("id")) == target_service_id
+            ]
+        if not service_rows:
+            return {
+                "enriched_count": 0,
+                "skipped_count": 0,
+                "enriched_service_ids": [],
+                "skipped_service_ids": [],
+                "reason": "no_matching_services",
+            }
+
+        full_kb_text = self.get_full_kb_text()
+        if not full_kb_text.strip():
+            return {
+                "enriched_count": 0,
+                "skipped_count": 0,
+                "enriched_service_ids": [],
+                "skipped_service_ids": [],
+                "reason": "no_kb_content",
+            }
+
+        kb_hash = hashlib.sha1(full_kb_text.encode("utf-8")).hexdigest()[:16]
+        enriched: list[str] = []
+        skipped: list[str] = []
+        now_iso = datetime.now(UTC).isoformat()
+        published_by_clean = str(published_by or "system").strip() or "system"
+
+        for service in service_rows:
+            normalized_service_id = self._normalize_identifier(service.get("id"))
+            if not normalized_service_id:
+                continue
+            service_name = str(service.get("name") or normalized_service_id).strip()
+            service_description = str(service.get("description") or "").strip()
+
+            existing = self.get_service_kb_record(
+                service_id=normalized_service_id, active_only=False
+            )
+            existing_completeness = (existing or {}).get("completeness", {})
+            if not isinstance(existing_completeness, dict):
+                existing_completeness = {}
+
+            # Fingerprint: service identity + KB content
+            enrichment_sig = hashlib.sha1(
+                f"{service_name}|{service_description}|{kb_hash}".encode("utf-8")
+            ).hexdigest()[:16]
+            existing_sig = str(existing_completeness.get("enrichment_signature") or "").strip()
+
+            if not force and existing and existing_sig and existing_sig == enrichment_sig:
+                skipped.append(normalized_service_id)
+                continue
+
+            # Step 1: Generate extraction prompt
+            extraction_prompt = await self._generate_service_extraction_prompt(
+                service_name=service_name,
+                service_description=service_description,
+                full_kb_text=full_kb_text,
+            )
+            if not extraction_prompt:
+                skipped.append(normalized_service_id)
+                continue
+
+            # Step 2: Extract knowledge using that prompt
+            extracted_knowledge = await self._extract_service_knowledge_from_kb(
+                extraction_prompt=extraction_prompt,
+                full_kb_text=full_kb_text,
+            )
+            if not extracted_knowledge:
+                skipped.append(normalized_service_id)
+                continue
+
+            # Persist into kb_record
+            current_record: dict[str, Any] = dict(existing or {})
+            if not current_record.get("id"):
+                current_record["id"] = f"{normalized_service_id}_kb"
+            current_record["service_id"] = normalized_service_id
+            current_record["generated_extraction_prompt"] = extraction_prompt
+            current_record["extracted_knowledge"] = extracted_knowledge
+            current_record["is_active"] = True
+            current_record["published_at"] = now_iso
+            current_record["published_by"] = published_by_clean
+
+            completeness = dict(current_record.get("completeness") or {})
+            completeness["enrichment_signature"] = enrichment_sig
+            completeness["enrichment_generated_at"] = now_iso
+            completeness["kb_hash"] = kb_hash
+            current_record["completeness"] = completeness
+
+            saved = self.upsert_service_kb_record(current_record)
+            if saved:
+                enriched.append(normalized_service_id)
+
+        return {
+            "enriched_count": len(enriched),
+            "skipped_count": len(skipped),
+            "enriched_service_ids": enriched,
+            "skipped_service_ids": skipped,
         }
 
     def set_service_kb_manual_facts(
@@ -3993,6 +4654,8 @@ class ConfigService:
                     "published_by": str(record.get("published_by") or "").strip(),
                     "completeness": record.get("completeness", {}) if isinstance(record.get("completeness"), dict) else {},
                     "facts": approved_facts,
+                    "extracted_knowledge": str(record.get("extracted_knowledge") or "").strip(),
+                    "generated_extraction_prompt": str(record.get("generated_extraction_prompt") or "").strip(),
                 }
             )
 
@@ -4022,6 +4685,9 @@ class ConfigService:
                 "is_active": svc.get("is_active", True),
                 "phase_id": self._normalize_phase_identifier(svc.get("phase_id")),
                 "ticketing_enabled": svc.get("ticketing_enabled", True),
+                "ticketing_policy": str(svc.get("ticketing_policy") or "").strip(),
+                "service_prompt_pack": copy.deepcopy(svc.get("service_prompt_pack", {})),
+                "service_prompt_pack_custom": bool(svc.get("service_prompt_pack_custom", False)),
             }
             service_catalog.append(service_row)
 

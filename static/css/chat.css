@@ -306,6 +306,14 @@ body {
     line-height: 1.5;
 }
 
+.llm-source-label {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    color: var(--text-light);
+    opacity: 0.7;
+    font-style: italic;
+}
+
 .message-meta {
     display: flex;
     gap: 10px;

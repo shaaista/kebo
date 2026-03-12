@@ -47,8 +47,8 @@ class EvaluationMetricsService:
             "channel": self._normalize_channel(
                 request.channel or (request.metadata or {}).get("channel")
             ),
-            "intent": str(getattr(response.intent, "value", response.intent) or ""),
-            "confidence": float(response.confidence or 0.0),
+            "intent": str(metadata.get("classified_intent") or ""),
+            "confidence": float(metadata.get("classified_confidence") or metadata.get("service_llm_confidence") or 0.0),
             "state": str(getattr(response.state, "value", response.state) or ""),
             "routing_path": str(metadata.get("routing_path") or "unknown"),
             "response_source": str(metadata.get("response_source") or "unknown"),

@@ -171,6 +171,9 @@ class LLMClient:
         memory_recent_changes = context.get("memory_recent_changes", [])
         if not isinstance(memory_recent_changes, list):
             memory_recent_changes = []
+        context_pack = context.get("context_pack", {})
+        if not isinstance(context_pack, dict):
+            context_pack = {}
         selected_phase_id = str(
             context.get("selected_phase_id")
             or context.get("phase_id")
@@ -278,6 +281,9 @@ MEMORY FACTS (LATEST VALUES):
 RECENT FACT CHANGES:
 {memory_recent_changes}
 
+STRICT CONTEXT PACK (authoritative each turn):
+{context_pack}
+
 ADMIN INTENT CATALOG:
 {intent_catalog}
 
@@ -303,6 +309,11 @@ CONVERSATION HISTORY:
 {history}
 
 Use the full conversation history above for context continuity. Do not ignore prior collected details.
+
+MANDATORY ORCHESTRATION RULES:
+- Classify from context pack + policy + service schema only.
+- Do not make random assumptions for missing slots/phase/service data.
+- If confidence is low or context is insufficient, return intent="unclear" and request clarification in entities.clarification_needed.
 
 Respond in JSON format:
 {{
@@ -341,6 +352,7 @@ IMPORTANT INTENT ENABLEMENT RULE:
             conversation_summary=memory_summary or "No long-term summary yet.",
             memory_facts=json.dumps(memory_facts, ensure_ascii=False),
             memory_recent_changes=json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
+            context_pack=json.dumps(context_pack, ensure_ascii=False),
             intent_catalog=intent_catalog_str,
             service_catalog=service_catalog_str,
             faq_bank=faq_bank_str,
@@ -484,6 +496,9 @@ IMPORTANT INTENT ENABLEMENT RULE:
         memory_recent_changes = context.get("memory_recent_changes", [])
         if not isinstance(memory_recent_changes, list):
             memory_recent_changes = []
+        context_pack = context.get("context_pack", {})
+        if not isinstance(context_pack, dict):
+            context_pack = {}
         selected_phase_id = str(
             context.get("selected_phase_id")
             or context.get("phase_id")
@@ -543,6 +558,9 @@ MEMORY FACTS (LATEST VALUES):
 RECENT FACT CHANGES:
 {memory_recent_changes}
 
+STRICT CONTEXT PACK (authoritative each turn):
+{context_pack}
+
 DETECTED INTENT: {intent}
 EXTRACTED ENTITIES: {entities}
 
@@ -559,6 +577,8 @@ RESPONSE GUIDELINES:
 5. If unsure, offer to connect with staff
 6. Keep responses under 150 words
 7. Response style preference: {response_style}
+8. Answer from context pack + policy + service schema only
+9. If critical data is missing, ask a targeted clarification question instead of guessing
 
 Respond naturally to the user's message."""
 
@@ -589,6 +609,7 @@ Respond naturally to the user's message."""
             conversation_summary=memory_summary or "No long-term summary yet.",
             memory_facts=json.dumps(memory_facts, ensure_ascii=False),
             memory_recent_changes=json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
+            context_pack=json.dumps(context_pack, ensure_ascii=False),
             intent=intent,
             entities=json.dumps(entities),
             response_style=response_style or "Default",

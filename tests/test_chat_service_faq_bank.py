@@ -169,6 +169,8 @@ async def test_process_message_deescalates_on_return_to_bot(monkeypatch):
         "services.chat_service.config_service.resolve_hotel_code",
         lambda _requested: "DEFAULT",
     )
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_pure_llm_mode", False)
     monkeypatch.setattr(
         "services.chat_service.context_manager.get_or_create_context",
         _fake_get_or_create_context,
@@ -244,7 +246,6 @@ async def test_full_kb_simple_greeting_uses_shortcut_without_llm(monkeypatch):
         )
     )
 
-    assert response.intent == IntentType.GREETING
     assert response.metadata.get("response_source") == "full_kb_shortcut"
     assert response.metadata.get("full_kb_shortcut_type") == "greeting"
     assert "welcome to iconiqa demo hotel" in response.message.lower()
@@ -329,7 +330,6 @@ async def test_full_kb_identity_typo_uses_shortcut_without_llm(monkeypatch):
         )
     )
 
-    assert response.intent == IntentType.FAQ
     assert response.metadata.get("response_source") == "full_kb_shortcut"
     assert response.metadata.get("full_kb_shortcut_type") == "identity"
     assert "concierge assistant" in response.message.lower()
@@ -362,6 +362,8 @@ async def test_process_message_rechecks_service_shortcut_after_pending_interrupt
         "services.chat_service.config_service.resolve_hotel_code",
         lambda _requested: "DEFAULT",
     )
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_pure_llm_mode", False)
     monkeypatch.setattr(
         "services.chat_service.context_manager.get_or_create_context",
         _fake_get_or_create_context,
@@ -402,7 +404,6 @@ async def test_process_message_rechecks_service_shortcut_after_pending_interrupt
         )
     )
 
-    assert response.intent == IntentType.FAQ
     assert response.metadata.get("pending_interrupted") is True
     assert response.metadata.get("service_catalog_match") is True
     assert "00:00" in response.message
@@ -433,6 +434,8 @@ async def test_process_message_sets_service_detail_pending_for_service_action(mo
         "services.chat_service.config_service.resolve_hotel_code",
         lambda _requested: "DEFAULT",
     )
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_pure_llm_mode", False)
     monkeypatch.setattr(
         "services.chat_service.context_manager.get_or_create_context",
         _fake_get_or_create_context,
@@ -505,6 +508,8 @@ async def test_process_message_interrupts_collect_service_details_for_unrelated_
         "services.chat_service.config_service.resolve_hotel_code",
         lambda _requested: "DEFAULT",
     )
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_pure_llm_mode", False)
     monkeypatch.setattr(
         "services.chat_service.context_manager.get_or_create_context",
         _fake_get_or_create_context,
@@ -545,10 +550,248 @@ async def test_process_message_interrupts_collect_service_details_for_unrelated_
         )
     )
 
-    assert response.intent == IntentType.FAQ
     assert response.metadata.get("pending_interrupted") is True
     assert "noted your Hotel Booking request details" not in response.message
     assert context.pending_action is None
+
+
+@pytest.mark.asyncio
+async def test_process_message_resume_restores_parked_task(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-parked-resume",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+        pending_action=None,
+        pending_data={
+            "_task_state": {
+                "version": 1,
+                "active_task": None,
+                "parked_tasks": [
+                    {
+                        "pending_action": "collect_booking_time",
+                        "pending_data": {"restaurant_name": "Kadak", "party_size": "2"},
+                        "state": "awaiting_info",
+                        "summary": "your Kadak request",
+                    }
+                ],
+            }
+        },
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    monkeypatch.setattr("services.chat_service.settings.chat_llm_preprocess_enabled", False)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "intents": [], "tools": [], "services": {}},
+    )
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-parked-resume",
+            message="resume",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.metadata.get("parked_task_resumed") is True
+    assert context.pending_action == "collect_booking_time"
+    assert context.state == ConversationState.AWAITING_INFO
+    assert "Resuming your Kadak request" in response.message
+
+
+@pytest.mark.asyncio
+async def test_process_message_cancel_pending_drops_parked_task(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-parked-cancel",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+        pending_action=None,
+        pending_data={
+            "_task_state": {
+                "version": 1,
+                "active_task": None,
+                "parked_tasks": [
+                    {
+                        "pending_action": "collect_service_details",
+                        "pending_data": {"service_name": "Spa Booking"},
+                        "state": "awaiting_info",
+                        "summary": "your spa booking request",
+                    }
+                ],
+            }
+        },
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    monkeypatch.setattr("services.chat_service.settings.chat_llm_preprocess_enabled", False)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "intents": [], "tools": [], "services": {}},
+    )
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-parked-cancel",
+            message="cancel pending",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.metadata.get("parked_task_cancelled") is True
+    assert response.state == ConversationState.IDLE
+    assert context.pending_action is None
+    assert response.metadata.get("parked_tasks_remaining") == 0
+
+
+@pytest.mark.asyncio
+async def test_process_message_auto_resumes_parked_task_from_detail_reply(monkeypatch):
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-parked-auto-resume",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+        pending_action=None,
+        pending_data={
+            "_task_state": {
+                "version": 1,
+                "active_task": None,
+                "parked_tasks": [
+                    {
+                        "pending_action": "collect_booking_party_size",
+                        "pending_data": {"restaurant_name": "Kadak", "date": "today"},
+                        "state": "awaiting_info",
+                        "summary": "your Kadak request",
+                    }
+                ],
+            }
+        },
+    )
+
+    async def _fake_get_or_create_context(session_id, hotel_code, guest_phone, channel, db_session):
+        return context
+
+    async def _fake_save_context(_context, db_session=None):
+        return None
+
+    async def _no_summary(_context):
+        return None
+
+    async def _fake_classify(_message, _history, _ctx):
+        return IntentResult(intent=IntentType.TABLE_BOOKING, confidence=0.95, entities={})
+
+    async def _fake_dispatch(message, intent_result, ctx, capabilities, db_session=None):
+        assert ctx.pending_action == "collect_booking_party_size"
+        assert (ctx.pending_data or {}).get("restaurant_name") == "Kadak"
+        return HandlerResult(
+            response_text="Noted 3 guests. What time would you prefer?",
+            next_state=ConversationState.AWAITING_INFO,
+            pending_action="collect_booking_time",
+            pending_data={"restaurant_name": "Kadak", "party_size": "3", "date": "today"},
+            suggested_actions=["7 PM", "8 PM"],
+            metadata={"auto_resumed_from_parked_task": True},
+        )
+
+    monkeypatch.setattr("services.chat_service.settings.chat_llm_preprocess_enabled", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_full_kb_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.settings.chat_pure_llm_mode", False)
+    monkeypatch.setattr("services.chat_service.config_service.resolve_hotel_code", lambda _requested: "DEFAULT")
+    monkeypatch.setattr("services.chat_service.context_manager.get_or_create_context", _fake_get_or_create_context)
+    monkeypatch.setattr("services.chat_service.context_manager.save_context", _fake_save_context)
+    monkeypatch.setattr("services.chat_service.conversation_memory_service.maybe_refresh_summary", _no_summary)
+    monkeypatch.setattr(service, "_classify_intent", _fake_classify)
+    monkeypatch.setattr(service, "_dispatch_to_handler", _fake_dispatch)
+    monkeypatch.setattr(
+        "services.chat_service.config_service.get_capability_summary",
+        lambda _hotel_code=None: {"service_catalog": [], "intents": [], "tools": [], "services": {}},
+    )
+
+    response = await service.process_message(
+        ChatRequest(
+            session_id="s-parked-auto-resume",
+            message="for 3 guests",
+            hotel_code="DEFAULT",
+        )
+    )
+
+    assert response.state == ConversationState.AWAITING_INFO
+    assert context.pending_action == "collect_booking_time"
+    assert response.metadata.get("auto_resumed_from_parked_task") is True
+    assert response.metadata.get("parked_task_available") is False
+
+
+def test_build_llm_context_pack_includes_required_runtime_fields():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="s-context-pack",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_service_details",
+        pending_data={"service_id": "spa_booking"},
+    )
+
+    context_pack = service._build_llm_context_pack(
+        context=context,
+        capabilities_summary={
+            "service_catalog": [
+                {
+                    "id": "spa_booking",
+                    "name": "Spa Booking",
+                    "type": "service",
+                    "phase_id": "during_stay",
+                    "ticketing_enabled": False,
+                    "service_prompt_pack": {
+                        "required_slots": [{"id": "preferred_time", "required": True}]
+                    },
+                }
+            ]
+        },
+        selected_phase_context={"selected_phase_id": "during_stay", "selected_phase_name": "During Stay"},
+        memory_snapshot={"facts": {"last_user_topic": "book spa"}},
+        user_message="book spa",
+    )
+
+    assert isinstance(context_pack, dict)
+    for key in (
+        "current_phase",
+        "active_flow",
+        "pending_action",
+        "missing_slots",
+        "recent_user_goal",
+        "phase_services",
+        "ticketing_enabled_by_service",
+        "stay_window",
+        "current_time",
+    ):
+        assert key in context_pack
+    assert context_pack.get("pending_action") == "collect_service_details"
+    assert context_pack.get("ticketing_enabled_by_service", {}).get("spa_booking") is False
+    assert "preferred_time" in context_pack.get("missing_slots", [])
 
 
 @pytest.mark.asyncio
@@ -2034,7 +2277,6 @@ async def test_full_kb_requires_ticket_true_does_not_hijack_order_flow(monkeypat
 
     assert response.metadata.get("response_source") == "full_kb_llm"
     assert response.metadata.get("full_kb_ticketing_handler") is None
-    assert response.intent == IntentType.ORDER_FOOD
 
 
 @pytest.mark.asyncio
@@ -2103,7 +2345,6 @@ async def test_full_kb_room_service_info_query_with_requires_ticket_false_skips_
 
     assert response.metadata.get("response_source") == "full_kb_llm"
     assert response.metadata.get("full_kb_ticketing_handler") is None
-    assert response.intent == IntentType.ROOM_SERVICE
 
 
 @pytest.mark.asyncio
@@ -2315,7 +2556,6 @@ async def test_full_kb_table_booking_with_requires_ticket_keeps_booking_flow(mon
     assert response.metadata.get("response_source") == "full_kb_llm"
     assert response.metadata.get("full_kb_ticketing_handler") is None
     assert response.state == ConversationState.AWAITING_INFO
-    assert response.intent == IntentType.TABLE_BOOKING
 
 
 @pytest.mark.asyncio
@@ -2386,7 +2626,6 @@ async def test_full_kb_order_quantity_reply_ignores_spurious_complaint_ticket_ro
 
     assert response.metadata.get("response_source") == "full_kb_llm"
     assert response.metadata.get("full_kb_ticketing_handler") is None
-    assert response.intent == IntentType.ORDER_FOOD
     assert response.state == ConversationState.AWAITING_INFO
     assert response.metadata.get("full_kb_ticketing_requested") is None
     assert "would you like to add anything else" in response.message.lower()
@@ -2559,7 +2798,6 @@ async def test_full_kb_room_booking_details_turn_forces_review_and_confirmation(
     )
 
     assert response.state == ConversationState.AWAITING_CONFIRMATION
-    assert response.intent == IntentType.TABLE_BOOKING
     assert "review your room booking request" in str(response.message or "").lower()
     assert "ultimate suite" in str(response.message or "").lower()
     assert "for 5 guests" in str(response.message or "").lower()
@@ -2636,7 +2874,6 @@ async def test_full_kb_room_booking_details_without_room_type_prompts_for_room_t
     )
 
     assert response.state == ConversationState.AWAITING_INFO
-    assert response.intent == IntentType.TABLE_BOOKING
     assert "preferred room type" in str(response.message or "").lower()
     assert response.metadata.get("ticket_created") is None
 

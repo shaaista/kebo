@@ -19,8 +19,6 @@ const elements = {
     ticketDetailsWrap: document.getElementById('ticket-details-wrap'),
     ticketDetailsContent: document.getElementById('ticket-details-content'),
     messageCount: document.getElementById('message-count'),
-    lastIntent: document.getElementById('last-intent'),
-    confidence: document.getElementById('confidence'),
     suggestedActions: document.getElementById('suggested-actions'),
     newSessionBtn: document.getElementById('new-session-btn'),
     resetBtn: document.getElementById('reset-btn'),
@@ -185,15 +183,14 @@ function addMessageToUI(role, content, data = null) {
 
     let html = `<div class="message-content">${escapeHtml(content)}</div>`;
 
-    if (data && role === 'assistant') {
-        const intentLabel = resolveDisplayIntent(data);
-        const confidence = Number.isFinite(data.confidence) ? data.confidence : 0;
-        html += `
-            <div class="message-meta">
-                <span class="intent">${intentLabel || 'unknown'}</span>
-                <span class="confidence ${getConfidenceClass(confidence)}">${(confidence * 100).toFixed(0)}%</span>
-            </div>
-        `;
+    if (role === 'assistant' && data) {
+        const label = data.service_llm_label || (data.metadata && data.metadata.service_llm_label);
+        if (label) {
+            const display = label === 'main'
+                ? 'main orchestrator'
+                : `${label} agent`;
+            html += `<div class="llm-source-label">answered by: ${escapeHtml(display)}</div>`;
+        }
     }
 
     messageEl.innerHTML = html;
@@ -222,29 +219,8 @@ function updateSessionInfoFromResponse(data) {
     elements.ticketStatus.className = `value ticket-badge ${ticketStatus.badge}`;
     renderCreatedTicketDetails(data);
     elements.messageCount.textContent = data.metadata?.message_count || state.messages.length;
-    elements.lastIntent.textContent = resolveDisplayIntent(data) || '-';
-
-    if (data.confidence) {
-        const pct = (data.confidence * 100).toFixed(0);
-        elements.confidence.textContent = `${pct}%`;
-        elements.confidence.className = `value ${getConfidenceClass(data.confidence)}`;
-    }
 }
 
-function resolveDisplayIntent(data) {
-    const apiIntent = String(data?.intent || '').trim();
-    const metadata = data?.metadata || {};
-    const rawIntent = String(
-        metadata?.full_kb_raw_intent
-        || metadata?.entities?.raw_intent
-        || metadata?.raw_intent
-        || ''
-    ).trim().toLowerCase();
-    if (rawIntent && ['room_booking', 'spa_booking', 'table_booking', 'order_food'].includes(rawIntent)) {
-        return rawIntent;
-    }
-    return apiIntent || 'unknown';
-}
 
 function resolveTicketStatus(data) {
     const metadata = data?.metadata || {};
@@ -309,8 +285,6 @@ function updateSessionInfo() {
     elements.ticketStatus.className = 'value ticket-badge idle';
     clearTicketDetails();
     elements.messageCount.textContent = '0';
-    elements.lastIntent.textContent = '-';
-    elements.confidence.textContent = '-';
 }
 
 function clearTicketDetails() {
@@ -468,13 +442,6 @@ async function viewHistory() {
 // Update debug panel
 function updateDebug(data) {
     elements.debugContent.textContent = JSON.stringify(data, null, 2);
-}
-
-// Utility: Get confidence class
-function getConfidenceClass(confidence) {
-    if (confidence >= 0.7) return 'high';
-    if (confidence >= 0.4) return 'medium';
-    return 'low';
 }
 
 // Utility: Escape HTML

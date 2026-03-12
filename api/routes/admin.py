@@ -112,6 +112,7 @@ class AddService(BaseModel):
     ticketing_enabled: Optional[bool] = None
     phase_id: Optional[str] = None
     is_builtin: Optional[bool] = None
+    service_prompt_pack: Optional[Dict[str, Any]] = None
 
 
 class AgentPluginSlotInput(BaseModel):
@@ -340,6 +341,7 @@ class RAGStartJobRequest(BaseModel):
 class SuggestServiceDescriptionRequest(BaseModel):
     name: str
     phase_id: Optional[str] = None
+    user_intent: Optional[str] = None  # freeform "what do you expect" text from admin
 
 
 def _normalize_tenant(value: str) -> str:
@@ -691,6 +693,9 @@ async def upload_rag_files(
                 existing.add(entry["path"])
         config_service.update_knowledge_config({"sources": sources})
 
+    # Trigger LLM-based service knowledge enrichment after KB upload (non-blocking)
+    asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
+
     return {
         "tenant_id": normalized_tenant,
         "uploaded_count": len(saved),
@@ -832,6 +837,11 @@ async def add_config_service(service: AddService):
         return {"message": "Service added to database"}
 
     if config_service.add_service(payload):
+        # Trigger LLM-based knowledge enrichment for the newly added service (non-blocking)
+        service_id_for_enrichment = payload.get("id")
+        asyncio.create_task(config_service.enrich_service_kb_records(
+            service_id=service_id_for_enrichment, published_by="system"
+        ))
         return {"message": "Service added to JSON"}
     raise HTTPException(status_code=500, detail="Failed to add service")
 
@@ -847,6 +857,10 @@ async def update_config_service(service_id: str, update: dict):
         return {"message": f"Service {service_id} updated in database"}
 
     if config_service.update_service(service_id, update):
+        # Re-enrich knowledge when service definition changes (non-blocking)
+        asyncio.create_task(config_service.enrich_service_kb_records(
+            service_id=service_id, published_by="system"
+        ))
         return {"message": f"Service {service_id} updated in JSON"}
     raise HTTPException(status_code=404, detail="Service not found")
 
@@ -963,38 +977,98 @@ async def suggest_phase_service_description(payload: SuggestServiceDescriptionRe
     if not name:
         raise HTTPException(status_code=400, detail="Service name is required")
 
+    user_intent = str(payload.user_intent or "").strip()
     fallback = _fallback_phase_service_description(name, phase_id)
     if not str(settings.openai_api_key or "").strip():
         return {"description": fallback, "source": "fallback"}
 
     prompt_phase = phase_id or "general"
+    if user_intent:
+        system_msg = (
+            "You write clear, professional service descriptions for a hotel chatbot admin panel. "
+            "The admin has described what they expect from this service in plain language. "
+            "Rewrite it as a crisp 1-2 sentence description suitable for a service catalog. "
+            "Keep it factual and specific — no fluff. Return only the description text."
+        )
+        user_msg = (
+            f"Service name: {name}\n"
+            f"Journey phase: {prompt_phase}\n"
+            f"Admin's expectation: {user_intent}\n\n"
+            "Refine this into a clean service description."
+        )
+        max_tok = 120
+    else:
+        system_msg = (
+            "You write concise admin catalog descriptions for chatbot services. "
+            "Return one clear sentence (under 25 words), plain text only. "
+            "Be specific to what the service does for hotel guests."
+        )
+        user_msg = (
+            f"Service name: {name}\n"
+            f"Journey phase: {prompt_phase}\n"
+            "Write a practical description for hotel guest support configuration."
+        )
+        max_tok = 80
     messages = [
-        {
-            "role": "system",
-            "content": (
-                "You write concise admin catalog descriptions for chatbot services. "
-                "Return one sentence, under 20 words, plain text only."
-            ),
-        },
-        {
-            "role": "user",
-            "content": (
-                f"Service name: {name}\n"
-                f"Journey phase: {prompt_phase}\n"
-                "Write a practical description for hotel guest support configuration."
-            ),
-        },
+        {"role": "system", "content": system_msg},
+        {"role": "user", "content": user_msg},
     ]
     try:
-        raw = await llm_client.chat(messages, temperature=0.2, max_tokens=60)
+        raw = await llm_client.chat(messages, temperature=0.2, max_tokens=max_tok)
         suggestion = re.sub(r"\s+", " ", str(raw or "").strip()).strip("\"'")
         if not suggestion or "having trouble processing" in suggestion.lower():
             return {"description": fallback, "source": "fallback"}
-        if len(suggestion) > 220:
-            suggestion = suggestion[:220].rstrip()
+        if len(suggestion) > 400:
+            suggestion = suggestion[:400].rstrip()
         return {"description": suggestion, "source": "llm"}
     except Exception:
         return {"description": fallback, "source": "fallback"}
+
+
+@router.post("/api/config/phases/ticketing-conditions/suggest")
+async def suggest_ticketing_conditions(payload: dict):
+    """Suggest or refine ticketing trigger conditions for a service."""
+    service_name = str(payload.get("service_name") or "").strip()
+    service_description = str(payload.get("service_description") or "").strip()
+    current_conditions = str(payload.get("current_conditions") or "").strip()
+    if not service_name:
+        raise HTTPException(status_code=422, detail="service_name is required")
+
+    if current_conditions:
+        system_msg = (
+            "You are a hotel chatbot configuration expert. "
+            "Refine the given ticketing trigger condition into a clear, precise rule. "
+            "1-3 sentences. Be specific about what guest action or data triggers the ticket. "
+            "Return only the condition text, nothing else."
+        )
+        user_msg = (
+            f"Service: {service_name}\n"
+            f"Description: {service_description}\n"
+            f"Current condition to refine: {current_conditions}\n\n"
+            "Refine into a clear ticket creation trigger rule."
+        )
+    else:
+        system_msg = (
+            "You are a hotel chatbot configuration expert. "
+            "Write a clear, specific rule for WHEN the bot should create a backend ticket for a service. "
+            "Focus on the key guest confirmation step and required data collected. "
+            "1-3 sentences. Return only the condition text, nothing else."
+        )
+        user_msg = (
+            f"Service: {service_name}\n"
+            f"Description: {service_description}\n\n"
+            "Write a ticket creation trigger condition for this service."
+        )
+    try:
+        raw = await llm_client.chat(
+            [{"role": "system", "content": system_msg}, {"role": "user", "content": user_msg}],
+            temperature=0.2,
+            max_tokens=150,
+        )
+        conditions = re.sub(r"\s+", " ", str(raw or "").strip()).strip("\"'")
+        return {"conditions": conditions or ""}
+    except Exception as exc:
+        return {"conditions": "", "reason": str(exc)}
 
 
 @router.get("/api/config/agent-plugins/settings")
@@ -1179,7 +1253,52 @@ async def compile_service_kb_records(payload: CompileServiceKBRequest):
         preserve_manual=bool(payload.preserve_manual),
         published_by=str(payload.published_by or "admin"),
     )
+    # After compiling facts, also run LLM enrichment
+    try:
+        enrich_result = await config_service.enrich_service_kb_records(
+            service_id=payload.service_id,
+            force=bool(payload.force),
+            published_by=str(payload.published_by or "admin"),
+        )
+        result["llm_enrichment"] = enrich_result
+    except Exception:
+        pass  # Non-blocking
     return result
+
+
+@router.post("/api/config/service-kb/preview-extract")
+async def preview_extract_service_kb(payload: dict):
+    """
+    Run LLM KB extraction for a service name+description WITHOUT saving.
+    Used by the admin modal 'Pull from KB' button.
+    Returns the extracted knowledge text so the admin can review/edit before saving.
+    """
+    service_name = str(payload.get("service_name") or "").strip()
+    service_description = str(payload.get("service_description") or "").strip()
+    if not service_name:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=422, detail="service_name is required")
+
+    full_kb_text = config_service.get_full_kb_text()
+    if not full_kb_text.strip():
+        return {"extracted_knowledge": "", "reason": "no_kb_content"}
+
+    try:
+        extraction_prompt = await config_service._generate_service_extraction_prompt(
+            service_name=service_name,
+            service_description=service_description,
+            full_kb_text=full_kb_text,
+        )
+        if not extraction_prompt:
+            return {"extracted_knowledge": "", "reason": "extraction_prompt_empty"}
+
+        extracted_knowledge = await config_service._extract_service_knowledge_from_kb(
+            extraction_prompt=extraction_prompt,
+            full_kb_text=full_kb_text,
+        )
+        return {"extracted_knowledge": extracted_knowledge or "", "reason": "ok"}
+    except Exception as exc:
+        return {"extracted_knowledge": "", "reason": str(exc)}
 
 
 @router.put("/api/config/service-kb/manual-facts")

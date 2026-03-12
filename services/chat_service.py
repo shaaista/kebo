@@ -9,7 +9,7 @@ Now uses config_service for business configuration (synced with Admin Portal).
 import json
 import logging
 import re
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from difflib import SequenceMatcher
 from typing import Any, Optional
 from pydantic import BaseModel, Field
@@ -23,6 +23,7 @@ from schemas.chat import (
     IntentResult,
     MessageRole,
 )
+from schemas.orchestration import OrchestrationDecision
 from core.complexity_router import ProcessingPath, complexity_router
 from core.context_manager import context_manager
 from core.state_machine import state_machine
@@ -36,6 +37,8 @@ from services.agent_plugin_service import agent_plugin_service
 from services.response_validator import response_validator
 from services.ticketing_agent_service import ticketing_agent_service
 from services.ticketing_service import ticketing_service
+from services.llm_orchestration_service import llm_orchestration_service
+from services.orchestration_policy_service import orchestration_policy_service
 from handlers import handler_registry
 from handlers.base_handler import HandlerResult
 
@@ -106,6 +109,8 @@ _TICKETING_PENDING_ACTIONS = {
 }
 
 _INTERNAL_PENDING_TICKET_DRAFT_KEY = "_pending_ticket_draft"
+_INTERNAL_TASK_STATE_KEY = "_task_state"
+_MAX_PARKED_TASKS = 5
 
 _RETURN_TO_BOT_MARKERS = {
     "return to bot",
@@ -113,6 +118,25 @@ _RETURN_TO_BOT_MARKERS = {
     "resume bot",
     "switch to bot",
     "continue with bot",
+}
+
+_RESUME_TASK_MARKERS = {
+    "resume",
+    "continue",
+    "continue pending",
+    "resume pending",
+    "resume task",
+    "continue task",
+    "yes resume",
+    "resume previous",
+}
+
+_CANCEL_TASK_MARKERS = {
+    "cancel pending",
+    "cancel task",
+    "drop task",
+    "cancel previous",
+    "skip pending",
 }
 
 _INFORMATION_QUERY_PREFIXES = (
@@ -126,6 +150,15 @@ _INFORMATION_QUERY_PREFIXES = (
     "are",
     "do",
     "can",
+)
+
+_INFORMATION_QUERY_IMPERATIVE_PREFIXES = (
+    "tell me",
+    "give me",
+    "show me",
+    "share",
+    "explain",
+    "describe",
 )
 
 _GENERIC_SERVICE_ALIASES = {
@@ -315,6 +348,173 @@ class ChatService:
             capabilities_summary,
             db_session,
         )
+        self._sync_active_task_snapshot(
+            context=context,
+            selected_phase_context=selected_phase_context,
+        )
+
+        no_template_mode = bool(getattr(settings, "chat_no_template_response_mode", False))
+        if no_template_mode:
+            no_template_response = await self._process_policy_verified_llm_message(
+                request=request_for_processing,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                routing_decision=routing_decision,
+                memory_snapshot=memory_snapshot,
+                selected_phase_context=selected_phase_context,
+                db_session=db_session,
+            )
+            if no_template_response is not None:
+                return no_template_response
+
+        parked_task = self._peek_parked_task(context)
+        if context.pending_action is None and parked_task is not None:
+            if self._is_resume_task_request(effective_user_message) or self._is_resume_task_request(raw_user_message):
+                resumed_task = self._restore_parked_task(context)
+                resumed_summary = str((resumed_task or {}).get("summary") or "your previous request").strip()
+                response_text = (
+                    f"Resuming {resumed_summary}. "
+                    "Please continue with the remaining details."
+                )
+                response_text, _ = await self._maybe_llm_rewrite_response(
+                    response_text=response_text,
+                    user_message=effective_user_message,
+                    intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.95, entities={}),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source="parked_task_resume",
+                    validator_replaced=False,
+                )
+                assistant_metadata = {
+                    "intent": IntentType.FAQ.value,
+                    "confidence": 0.95,
+                    "channel": context.channel,
+                    "parked_task_resumed": True,
+                    "parked_task_summary": resumed_summary,
+                }
+                context.add_message(
+                    MessageRole.ASSISTANT,
+                    response_text,
+                    metadata=assistant_metadata,
+                )
+                conversation_memory_service.capture_assistant_message(
+                    context,
+                    response_text,
+                    metadata=assistant_metadata,
+                )
+                await conversation_memory_service.maybe_refresh_summary(context)
+                await context_manager.save_context(context, db_session=db_session)
+                memory_snapshot = conversation_memory_service.get_snapshot(context)
+                remaining_parked = self._ensure_internal_task_state(context).get("parked_tasks", [])
+                remaining_count = len(remaining_parked) if isinstance(remaining_parked, list) else 0
+
+                return ChatResponse(
+                    session_id=request.session_id,
+                    message=response_text,
+                    intent=IntentType.FAQ,
+                    confidence=0.95,
+                    state=context.state,
+                    suggested_actions=self._build_contextual_suggested_actions(
+                        context.state,
+                        IntentType.FAQ,
+                        context.pending_action,
+                        capabilities_summary,
+                        context.pending_data,
+                    ),
+                    metadata={
+                        "message_count": len(context.messages),
+                        "routing_path": ProcessingPath.SIMPLE.value,
+                        "routing_score": 1.0,
+                        "routing_signals": {"path": "parked_task_resume"},
+                        "response_source": "parked_task_resume",
+                        "parked_task_resumed": True,
+                        "parked_task_summary": resumed_summary,
+                        "parked_tasks_remaining": remaining_count,
+                        "memory_summary": memory_snapshot.get("summary", ""),
+                        "memory_facts": memory_snapshot.get("facts", {}),
+                    },
+                )
+
+            if self._is_cancel_task_request(effective_user_message) or self._is_cancel_task_request(raw_user_message):
+                canceled_task = self._cancel_parked_task(context)
+                canceled_summary = str((canceled_task or {}).get("summary") or "that pending request").strip()
+                response_text = (
+                    f"Cancelled {canceled_summary}. "
+                    "What would you like to do next?"
+                )
+                response_text, _ = await self._maybe_llm_rewrite_response(
+                    response_text=response_text,
+                    user_message=effective_user_message,
+                    intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.95, entities={}),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source="parked_task_cancel",
+                    validator_replaced=False,
+                )
+                context.state = ConversationState.IDLE
+                assistant_metadata = {
+                    "intent": IntentType.FAQ.value,
+                    "confidence": 0.95,
+                    "channel": context.channel,
+                    "parked_task_cancelled": True,
+                    "parked_task_summary": canceled_summary,
+                }
+                context.add_message(
+                    MessageRole.ASSISTANT,
+                    response_text,
+                    metadata=assistant_metadata,
+                )
+                conversation_memory_service.capture_assistant_message(
+                    context,
+                    response_text,
+                    metadata=assistant_metadata,
+                )
+                await conversation_memory_service.maybe_refresh_summary(context)
+                await context_manager.save_context(context, db_session=db_session)
+                memory_snapshot = conversation_memory_service.get_snapshot(context)
+                remaining_parked = self._ensure_internal_task_state(context).get("parked_tasks", [])
+                remaining_count = len(remaining_parked) if isinstance(remaining_parked, list) else 0
+
+                return ChatResponse(
+                    session_id=request.session_id,
+                    message=response_text,
+                    intent=IntentType.FAQ,
+                    confidence=0.95,
+                    state=ConversationState.IDLE,
+                    suggested_actions=config_service.get_quick_actions(limit=4),
+                    metadata={
+                        "message_count": len(context.messages),
+                        "routing_path": ProcessingPath.SIMPLE.value,
+                        "routing_score": 1.0,
+                        "routing_signals": {"path": "parked_task_cancel"},
+                        "response_source": "parked_task_cancel",
+                        "parked_task_cancelled": True,
+                        "parked_task_summary": canceled_summary,
+                        "parked_tasks_remaining": remaining_count,
+                        "memory_summary": memory_snapshot.get("summary", ""),
+                        "memory_facts": memory_snapshot.get("facts", {}),
+                    },
+                )
+
+            if self._should_auto_resume_parked_task(
+                message=effective_user_message,
+                parked_task=parked_task,
+                capabilities_summary=capabilities_summary,
+            ):
+                self._restore_parked_task(context)
+                selected_phase_context = self._get_selected_phase_context(
+                    context=context,
+                    pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+                    entities={},
+                )
+                self._sync_active_task_snapshot(
+                    context=context,
+                    selected_phase_context=selected_phase_context,
+                )
 
         # Ticketing status evaluation runs for every turn (required or not).
         # This does not create tickets; it only computes status metadata.
@@ -347,6 +547,18 @@ class ChatService:
                         plugin_result.pending_data or {},
                         internal_pending_entries,
                     )
+                    response_text = str(plugin_result.response_text or "").strip()
+                    response_text, _ = await self._maybe_llm_rewrite_response(
+                        response_text=response_text,
+                        user_message=effective_user_message,
+                        intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.9, entities={}),
+                        context=context,
+                        capabilities_summary=capabilities_summary,
+                        capability_check_allowed=True,
+                        capability_reason="",
+                        response_source="agent_plugin_runtime",
+                        validator_replaced=False,
+                    )
 
                     assistant_metadata = {
                         "intent": IntentType.FAQ.value,
@@ -359,12 +571,12 @@ class ChatService:
 
                     context.add_message(
                         MessageRole.ASSISTANT,
-                        plugin_result.response_text,
+                        response_text,
                         metadata=assistant_metadata,
                     )
                     conversation_memory_service.capture_assistant_message(
                         context,
-                        plugin_result.response_text,
+                        response_text,
                         metadata=assistant_metadata,
                     )
                     await conversation_memory_service.maybe_refresh_summary(context)
@@ -373,7 +585,7 @@ class ChatService:
 
                     return ChatResponse(
                         session_id=request.session_id,
-                        message=plugin_result.response_text,
+                        message=response_text,
                         intent=IntentType.FAQ,
                         confidence=0.9,
                         state=plugin_result.next_state,
@@ -393,6 +605,23 @@ class ChatService:
                             **(plugin_result.metadata or {}),
                         },
                     )
+
+        # Optional two-stage LLM orchestration mode:
+        # 1) orchestrator LLM decides service/action/ticketing
+        # 2) service LLM refines slot collection/response
+        # Deterministic policy gate runs before any execution side-effect.
+        if bool(getattr(settings, "chat_llm_orchestration_mode", False)):
+            orchestration_response = await self._process_llm_orchestration_message(
+                request=request_for_processing,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                routing_decision=routing_decision,
+                memory_snapshot=memory_snapshot,
+                selected_phase_context=selected_phase_context,
+                db_session=db_session,
+            )
+            if orchestration_response is not None:
+                return orchestration_response
 
         # Optional pure-LLM mode: full KB + full context with no deterministic
         # post-processing overrides in runtime.
@@ -441,13 +670,30 @@ class ChatService:
             return multi_ask_response
 
         # 3a. Deterministic de-escalation from human handoff back to bot flow.
-        if context.state == ConversationState.ESCALATED and self._is_return_to_bot_request(effective_user_message):
+        if (
+            context.state == ConversationState.ESCALATED
+            and (
+                self._is_return_to_bot_request(effective_user_message)
+                or self._is_return_to_bot_request(raw_user_message)
+            )
+        ):
             internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
             context.pending_action = None
             context.pending_data = conversation_memory_service.merge_with_internal({}, internal_pending_entries)
             context.pending_data.pop("_clarification_attempts", None)
             context.state = ConversationState.IDLE
             response_text = "You're back with the bot. How can I help you next?"
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=IntentResult(intent=IntentType.HUMAN_REQUEST, confidence=1.0, entities={}),
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="deescalation",
+                validator_replaced=False,
+            )
             assistant_metadata = {
                 "intent": IntentType.HUMAN_REQUEST.value,
                 "confidence": 1.0,
@@ -504,6 +750,18 @@ class ChatService:
                         followup_result.pending_data or {},
                         conversation_memory_service.internal_pending_entries(context.pending_data),
                     )
+                    response_text = str(followup_result.response_text or "").strip()
+                    response_text, _ = await self._maybe_llm_rewrite_response(
+                        response_text=response_text,
+                        user_message=effective_user_message,
+                        intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.88, entities={}),
+                        context=context,
+                        capabilities_summary=capabilities_summary,
+                        capability_check_allowed=True,
+                        capability_reason="",
+                        response_source="service_detail_followup",
+                        validator_replaced=False,
+                    )
                     assistant_metadata = {
                         "intent": IntentType.FAQ.value,
                         "confidence": 0.88,
@@ -514,12 +772,12 @@ class ChatService:
                         assistant_metadata.update(followup_result.metadata)
                     context.add_message(
                         MessageRole.ASSISTANT,
-                        followup_result.response_text,
+                        response_text,
                         metadata=assistant_metadata,
                     )
                     conversation_memory_service.capture_assistant_message(
                         context,
-                        followup_result.response_text,
+                        response_text,
                         metadata=assistant_metadata,
                     )
                     await conversation_memory_service.maybe_refresh_summary(context)
@@ -527,7 +785,7 @@ class ChatService:
                     memory_snapshot = conversation_memory_service.get_snapshot(context)
                     return ChatResponse(
                         session_id=request.session_id,
-                        message=followup_result.response_text,
+                        message=response_text,
                         intent=IntentType.FAQ,
                         confidence=0.88,
                         state=followup_result.next_state,
@@ -562,6 +820,17 @@ class ChatService:
                 },
             )
             response_text = memory_match["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="memory_shortcut",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -617,6 +886,17 @@ class ChatService:
                 entities={"identity_match_type": identity_match.get("match_type")},
             )
             response_text = identity_match["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="identity_shortcut",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -672,6 +952,17 @@ class ChatService:
                 entities={"match_type": "service_overview"},
             )
             response_text = services_overview["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="service_overview",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -729,6 +1020,17 @@ class ChatService:
                 },
             )
             response_text = room_update["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="room_number_update",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -783,6 +1085,17 @@ class ChatService:
                 entities={"match_type": "room_number_lookup"},
             )
             response_text = room_lookup["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="room_number_lookup",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -841,6 +1154,17 @@ class ChatService:
             response_text = str(faq_match.get("answer") or "").strip()
             if faq_match.get("description"):
                 response_text = f"{response_text}\n\n{str(faq_match['description']).strip()}"
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="faq_bank",
+                validator_replaced=False,
+            )
 
             context.state = ConversationState.IDLE
             assistant_metadata = {
@@ -905,6 +1229,17 @@ class ChatService:
                 },
             )
             response_text = menu_recommendation["response_text"]
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="menu_recommendation",
+                validator_replaced=False,
+            )
             context.state = ConversationState.IDLE
             context.pending_action = None
             context.pending_data = conversation_memory_service.merge_with_internal(
@@ -956,6 +1291,19 @@ class ChatService:
         # 3d. Deterministic service-aware shortcut (status/hours/description from admin services).
         service_match = self._match_service_information_response(effective_user_message, context, capabilities_summary)
         if service_match is not None:
+            pending_interrupted = False
+            if context.pending_action and self._should_interrupt_pending_flow_for_user_query(
+                message=effective_user_message,
+                context=context,
+                capabilities_summary=capabilities_summary,
+            ):
+                parked = self._park_active_task(
+                    context=context,
+                    selected_phase_context=selected_phase_context,
+                    reason="topic_diversion",
+                    user_message=effective_user_message,
+                )
+                pending_interrupted = parked is not None
             service_match_type = str(service_match.get("match_type") or "")
             if service_match_type == "service_catalog_unavailable_handoff":
                 handoff_response = await self._handle_service_catalog_unavailable_handoff(
@@ -965,7 +1313,7 @@ class ChatService:
                     service_match=service_match,
                     db_session=db_session,
                     routing_path_tag="service_catalog_unavailable_handoff",
-                    pending_interrupted=False,
+                    pending_interrupted=pending_interrupted,
                 )
                 if handoff_response is not None:
                     return handoff_response
@@ -979,7 +1327,7 @@ class ChatService:
                     "service_match_type": service_match.get("match_type"),
                 },
             )
-            response_text = service_match["response_text"]
+            response_text = str(service_match.get("response_text") or "")
             if service_match_type == "service_catalog_action":
                 context.state = ConversationState.AWAITING_INFO
                 internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
@@ -998,6 +1346,22 @@ class ChatService:
                     {},
                     conversation_memory_service.internal_pending_entries(context.pending_data),
                 )
+            response_text, resume_actions = self._append_resume_checkpoint(
+                response_text=response_text,
+                context=context,
+                pending_interrupted=pending_interrupted,
+            )
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="service_catalog",
+                validator_replaced=False,
+            )
             assistant_metadata = {
                 "intent": intent_result.intent.value,
                 "confidence": intent_result.confidence,
@@ -1026,7 +1390,7 @@ class ChatService:
                 confidence=intent_result.confidence,
                 state=context.state,
                 suggested_actions=self._finalize_user_query_suggestions(
-                    (
+                    resume_actions + (
                         list(service_match.get("suggested_actions") or [])
                         if isinstance(service_match.get("suggested_actions"), list)
                         and service_match.get("suggested_actions")
@@ -1052,6 +1416,9 @@ class ChatService:
                     "routing_path": ProcessingPath.SIMPLE.value,
                     "routing_score": 1.0,
                     "routing_signals": {"path": "service_catalog"},
+                    "pending_interrupted": pending_interrupted,
+                    "resume_checkpoint": bool(resume_actions),
+                    "parked_task_available": self._peek_parked_task(context) is not None,
                     "service_catalog_match": True,
                     "service_id": service_match.get("service_id"),
                     "service_match_type": service_match.get("match_type"),
@@ -1059,6 +1426,14 @@ class ChatService:
                     "memory_facts": memory_snapshot.get("facts", {}),
                 },
             )
+
+        context_pack = self._build_llm_context_pack(
+            context=context,
+            capabilities_summary=capabilities_summary,
+            selected_phase_context=selected_phase_context,
+            memory_snapshot=memory_snapshot,
+            user_message=effective_user_message,
+        )
 
         # 4. Build context dict for LLM (with capabilities)
         llm_context = {
@@ -1090,6 +1465,15 @@ class ChatService:
             "conversation_summary": memory_snapshot.get("summary", ""),
             "memory_facts": memory_snapshot.get("facts", {}),
             "memory_recent_changes": memory_snapshot.get("recent_changes", []),
+            "context_pack": context_pack,
+            "current_phase": context_pack.get("current_phase", {}),
+            "active_flow": context_pack.get("active_flow", {}),
+            "missing_slots": context_pack.get("missing_slots", []),
+            "phase_services": context_pack.get("phase_services", []),
+            "ticketing_enabled_by_service": context_pack.get("ticketing_enabled_by_service", {}),
+            "stay_window": context_pack.get("stay_window", {}),
+            "current_time": context_pack.get("current_time", ""),
+            "recent_user_goal": context_pack.get("recent_user_goal", ""),
         }
 
         # 5. Classify intent using LLM
@@ -1106,19 +1490,33 @@ class ChatService:
             context=context,
             capabilities_summary=capabilities_summary,
         ):
-            internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
-            context.pending_action = None
-            context.pending_data = conversation_memory_service.merge_with_internal(
-                {},
-                internal_pending_entries,
+            parked = self._park_active_task(
+                context=context,
+                selected_phase_context=selected_phase_context,
+                reason="topic_diversion",
+                user_message=effective_user_message,
             )
-            context.state = ConversationState.IDLE
-            pending_interrupted = True
+            pending_interrupted = parked is not None
 
         if pending_interrupted:
             identity_match = self._match_identity_response(effective_user_message, capabilities_summary, context)
             if identity_match is not None:
-                response_text = identity_match["response_text"]
+                response_text, resume_actions = self._append_resume_checkpoint(
+                    response_text=str(identity_match["response_text"] or ""),
+                    context=context,
+                    pending_interrupted=pending_interrupted,
+                )
+                response_text, _ = await self._maybe_llm_rewrite_response(
+                    response_text=response_text,
+                    user_message=effective_user_message,
+                    intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.92, entities={}),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source="identity_shortcut_post_interrupt",
+                    validator_replaced=False,
+                )
                 context.add_message(
                     MessageRole.ASSISTANT,
                     response_text,
@@ -1148,10 +1546,18 @@ class ChatService:
                     intent=IntentType.FAQ,
                     confidence=0.92,
                     state=ConversationState.IDLE,
-                    suggested_actions=self._get_suggested_actions(
-                        ConversationState.IDLE,
-                        IntentType.FAQ,
-                        capabilities_summary,
+                    suggested_actions=self._finalize_user_query_suggestions(
+                        resume_actions
+                        + self._get_suggested_actions(
+                            ConversationState.IDLE,
+                            IntentType.FAQ,
+                            capabilities_summary,
+                        ),
+                        state=ConversationState.IDLE,
+                        intent=IntentType.FAQ,
+                        pending_action=context.pending_action,
+                        pending_data=context.pending_data,
+                        capabilities_summary=capabilities_summary,
                     ),
                     metadata={
                         "message_count": len(context.messages),
@@ -1159,6 +1565,8 @@ class ChatService:
                         "routing_score": 1.0,
                         "routing_signals": {"path": "identity_shortcut_post_interrupt"},
                         "pending_interrupted": True,
+                        "resume_checkpoint": bool(resume_actions),
+                        "parked_task_available": self._peek_parked_task(context) is not None,
                         "identity_shortcut_match": True,
                         "identity_match_type": identity_match.get("match_type"),
                         "memory_summary": memory_snapshot.get("summary", ""),
@@ -1186,7 +1594,22 @@ class ChatService:
                     if handoff_response is not None:
                         return handoff_response
 
-                response_text = service_match["response_text"]
+                response_text, resume_actions = self._append_resume_checkpoint(
+                    response_text=str(service_match["response_text"] or ""),
+                    context=context,
+                    pending_interrupted=pending_interrupted,
+                )
+                response_text, _ = await self._maybe_llm_rewrite_response(
+                    response_text=response_text,
+                    user_message=effective_user_message,
+                    intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.86, entities={}),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source="service_catalog_post_interrupt",
+                    validator_replaced=False,
+                )
                 context.add_message(
                     MessageRole.ASSISTANT,
                     response_text,
@@ -1219,7 +1642,7 @@ class ChatService:
                     confidence=0.86,
                     state=ConversationState.IDLE,
                     suggested_actions=self._finalize_user_query_suggestions(
-                        (
+                        resume_actions + (
                             list(service_match.get("suggested_actions") or [])
                             if isinstance(service_match.get("suggested_actions"), list)
                             and service_match.get("suggested_actions")
@@ -1241,6 +1664,8 @@ class ChatService:
                         "routing_score": 1.0,
                         "routing_signals": {"path": "service_catalog_post_interrupt"},
                         "pending_interrupted": True,
+                        "resume_checkpoint": bool(resume_actions),
+                        "parked_task_available": self._peek_parked_task(context) is not None,
                         "service_catalog_match": True,
                         "service_id": service_match.get("service_id"),
                         "service_match_type": service_match.get("match_type"),
@@ -1253,7 +1678,27 @@ class ChatService:
         low_confidence = self._handle_low_confidence(intent_result, context)
         if low_confidence is not None:
             response_text, next_state = low_confidence
+            response_text, resume_actions = self._append_resume_checkpoint(
+                response_text=response_text,
+                context=context,
+                pending_interrupted=pending_interrupted,
+            )
+            response_text, low_confidence_rewrite_metadata = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="low_confidence",
+                validator_replaced=False,
+            )
             context.state = next_state
+            self._sync_active_task_snapshot(
+                context=context,
+                selected_phase_context=selected_phase_context,
+            )
             assistant_metadata = {
                 "intent": intent_result.intent.value,
                 "confidence": intent_result.confidence,
@@ -1280,19 +1725,30 @@ class ChatService:
                 "routing_score": routing_decision.score,
                 "routing_signals": routing_decision.signals,
                 "pending_interrupted": pending_interrupted,
+                "resume_checkpoint": bool(resume_actions),
+                "parked_task_available": self._peek_parked_task(context) is not None,
                 "memory_summary": memory_snapshot.get("summary", ""),
                 "memory_facts": memory_snapshot.get("facts", {}),
             }
+            metadata.update(low_confidence_rewrite_metadata)
             return ChatResponse(
                 session_id=request.session_id,
                 message=response_text,
                 intent=intent_result.intent,
                 confidence=intent_result.confidence,
                 state=next_state,
-                suggested_actions=self._get_suggested_actions(
-                    next_state,
-                    intent_result.intent,
-                    capabilities_summary,
+                suggested_actions=self._finalize_user_query_suggestions(
+                    resume_actions
+                    + self._get_suggested_actions(
+                        next_state,
+                        intent_result.intent,
+                        capabilities_summary,
+                    ),
+                    state=next_state,
+                    intent=intent_result.intent,
+                    pending_action=context.pending_action,
+                    pending_data=context.pending_data,
+                    capabilities_summary=capabilities_summary,
                 ),
                 metadata=metadata,
             )
@@ -1357,7 +1813,13 @@ class ChatService:
             else None
         )
         phase_gate_handler_result = (
-            self._build_ticketing_phase_gate_handler_result(phase_gate)
+            await self._build_ticketing_phase_gate_handler_result(
+                phase_gate,
+                user_message=effective_user_message,
+                intent=phase_gate_intent,
+                context=context,
+                capabilities_summary=capabilities_summary,
+            )
             if phase_gate is not None
             else None
         )
@@ -1439,9 +1901,12 @@ class ChatService:
             response_text = validation.replacement_response
             validator_replaced = True
         response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
+        state_basis_response_text = response_text
 
         # 9. Determine next state
         internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        resume_actions: list[str] = []
+        response_rewrite_metadata: dict[str, Any] = {}
         if handler_result is not None:
             next_state = handler_result.next_state
             # Apply pending action/data from handler
@@ -1466,7 +1931,25 @@ class ChatService:
             if handler_result.metadata.get("room_number"):
                 context.room_number = str(handler_result.metadata["room_number"])
         else:
-            next_state = self._determine_next_state(context, intent_result, response_text)
+            next_state = self._determine_next_state(context, intent_result, state_basis_response_text)
+
+        response_text, response_rewrite_metadata = await self._maybe_llm_rewrite_response(
+            response_text=response_text,
+            user_message=effective_user_message,
+            intent_result=intent_result,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=capability_check.allowed,
+            capability_reason=capability_check.reason,
+            response_source=response_source,
+            validator_replaced=validator_replaced,
+        )
+
+        response_text, resume_actions = self._append_resume_checkpoint(
+            response_text=response_text,
+            context=context,
+            pending_interrupted=pending_interrupted,
+        )
 
         turn_ticketing_status = await self._evaluate_ticketing_status_for_turn(
             message=effective_user_message,
@@ -1480,6 +1963,10 @@ class ChatService:
 
         # 10. Update context
         context.state = next_state
+        self._sync_active_task_snapshot(
+            context=context,
+            selected_phase_context=selected_phase_context,
+        )
         assistant_metadata = {
             "intent": intent_result.intent.value,
             "confidence": intent_result.confidence,
@@ -1503,9 +1990,9 @@ class ChatService:
 
         # 11. Build suggested actions
         if handler_result is not None and handler_result.suggested_actions:
-            suggested_actions = handler_result.suggested_actions
+            suggested_actions = resume_actions + handler_result.suggested_actions
         else:
-            suggested_actions = self._get_suggested_actions(
+            suggested_actions = resume_actions + self._get_suggested_actions(
                 next_state,
                 intent_result.intent,
                 capabilities_summary,
@@ -1529,6 +2016,8 @@ class ChatService:
             "routing_score": routing_decision.score,
             "routing_signals": routing_decision.signals,
             "pending_interrupted": pending_interrupted,
+            "resume_checkpoint": bool(resume_actions),
+            "parked_task_available": self._peek_parked_task(context) is not None,
             "response_valid": validation.valid,
             "validation_issues": [issue.code for issue in validation.issues],
             "validator_replaced": validator_replaced,
@@ -1547,7 +2036,9 @@ class ChatService:
             metadata.update(agent_orchestrator_result.metadata)
         if handler_result is not None and handler_result.metadata:
             metadata.update(handler_result.metadata)
+        metadata.update(response_rewrite_metadata)
         metadata.update(turn_ticketing_status)
+        metadata = self._apply_ticket_metadata_contract(metadata)
 
         # 13. Build response
         return ChatResponse(
@@ -1652,6 +2143,17 @@ class ChatService:
         if not kb_validation.valid and kb_validation.action == "replace" and kb_validation.replacement_response:
             response_text = kb_validation.replacement_response
             kb_validator_replaced = True
+        response_text, kb_response_rewrite_metadata = await self._maybe_llm_rewrite_response(
+            response_text=response_text,
+            user_message=effective_user_message,
+            intent_result=forced_intent,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=True,
+            capability_reason="",
+            response_source="kb_only_faq_handler",
+            validator_replaced=kb_validator_replaced,
+        )
 
         assistant_metadata = {
             "intent": forced_intent.intent.value,
@@ -1665,6 +2167,7 @@ class ChatService:
         }
         if handler_result.metadata:
             assistant_metadata.update(handler_result.metadata)
+        assistant_metadata.update(kb_response_rewrite_metadata)
         assistant_metadata["kb_only_mode"] = True
         assistant_metadata["kb_only_llm_mode"] = True
         context.add_message(
@@ -1721,6 +2224,7 @@ class ChatService:
         }
         if handler_result.metadata:
             metadata.update(handler_result.metadata)
+        metadata.update(kb_response_rewrite_metadata)
         metadata["kb_only_mode"] = True
         metadata["kb_only_llm_mode"] = True
 
@@ -1915,6 +2419,13 @@ class ChatService:
         llm_ticketing_preference = self._extract_full_kb_ticketing_preference(llm_result)
         if llm_ticketing_preference is not True:
             return {}
+        ticket_ready_to_create = self._is_pure_llm_ticket_ready(llm_result)
+        if not ticket_ready_to_create:
+            return {
+                "ticket_create_skipped": True,
+                "ticket_create_skip_reason": "ticket_not_ready_to_create",
+                "ticket_source": ticket_source,
+            }
 
         service = self._resolve_pure_llm_ticket_service(
             capabilities_summary=capabilities_summary,
@@ -2065,6 +2576,957 @@ class ChatService:
             "ticket_service_name": str(service.get("name") or service.get("id") or "").strip(),
         }
 
+    @staticmethod
+    def _parse_orchestration_intent(raw_intent: str, fallback: IntentType = IntentType.FAQ) -> IntentType:
+        normalized = str(raw_intent or "").strip().lower().replace(" ", "_")
+        mapping = {
+            "greeting": IntentType.GREETING,
+            "faq": IntentType.FAQ,
+            "order_food": IntentType.ORDER_FOOD,
+            "food_order": IntentType.ORDER_FOOD,
+            "table_booking": IntentType.TABLE_BOOKING,
+            "room_booking": IntentType.GENERAL_SERVICE,
+            "stay_booking": IntentType.GENERAL_SERVICE,
+            "reservation": IntentType.GENERAL_SERVICE,
+            "room_service": IntentType.ROOM_SERVICE,
+            "complaint": IntentType.COMPLAINT,
+            "human_request": IntentType.HUMAN_REQUEST,
+            "confirmation_yes": IntentType.CONFIRMATION_YES,
+            "confirmation_no": IntentType.CONFIRMATION_NO,
+            "unclear": IntentType.UNCLEAR,
+            "out_of_scope": IntentType.OUT_OF_SCOPE,
+        }
+        return mapping.get(normalized, fallback)
+
+    def _intent_from_service_id(
+        self,
+        *,
+        service_id: str,
+        capabilities_summary: dict[str, Any],
+        fallback: IntentType = IntentType.FAQ,
+    ) -> IntentType:
+        normalized = self._normalize_service_identifier(service_id)
+        if not normalized:
+            return fallback
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        service_row = None
+        if isinstance(service_catalog, list):
+            for row in service_catalog:
+                if not isinstance(row, dict):
+                    continue
+                if self._normalize_service_identifier(row.get("id")) == normalized:
+                    service_row = row
+                    break
+        if not isinstance(service_row, dict):
+            service_row = {"id": normalized, "name": normalized}
+
+        prompt_pack = service_row.get("service_prompt_pack")
+        if not isinstance(prompt_pack, dict):
+            prompt_pack = config_service.get_service_prompt_pack(normalized)
+        if not isinstance(prompt_pack, dict):
+            prompt_pack = {}
+        profile = str(prompt_pack.get("profile") or "").strip().lower()
+        semantic_text = " ".join(
+            [
+                str(service_row.get("id") or ""),
+                str(service_row.get("name") or ""),
+                str(service_row.get("type") or ""),
+                str(service_row.get("description") or ""),
+                profile,
+            ]
+        ).strip().lower()
+
+        if any(token in semantic_text for token in ("complaint", "issue", "maintenance", "housekeeping")):
+            return IntentType.COMPLAINT
+        if any(token in semantic_text for token in ("handoff", "human", "escalation", "staff")):
+            return IntentType.HUMAN_REQUEST
+        if any(token in semantic_text for token in ("food", "dining", "menu", "restaurant_order")):
+            return IntentType.ORDER_FOOD
+        if any(token in semantic_text for token in ("room_service", "housekeeping", "maintenance")):
+            return IntentType.ROOM_SERVICE
+        if any(token in semantic_text for token in ("table",)) and "room" not in semantic_text:
+            return IntentType.TABLE_BOOKING
+        if any(token in semantic_text for token in ("room_booking", "booking", "reservation", "room_discovery")):
+            return IntentType.GENERAL_SERVICE
+        return fallback
+
+    def _service_name_from_id(
+        self,
+        *,
+        service_id: str,
+        capabilities_summary: dict[str, Any],
+    ) -> str:
+        normalized = self._normalize_service_identifier(service_id)
+        if not normalized:
+            return ""
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            service_catalog = []
+        for row in service_catalog:
+            if not isinstance(row, dict):
+                continue
+            if self._normalize_service_identifier(row.get("id")) != normalized:
+                continue
+            return str(row.get("name") or row.get("id") or normalized).strip()
+        return normalized
+
+    def _service_llm_label_for_service(
+        self,
+        *,
+        service_id: str,
+        capabilities_summary: dict[str, Any],
+        effective_intent: IntentType | None = None,
+        fallback: str = "main",
+    ) -> str:
+        normalized = self._normalize_service_identifier(service_id)
+        if not normalized:
+            return "complain" if effective_intent == IntentType.COMPLAINT else fallback
+
+        if normalized in {"complain", "complaint", "complaint_service", "complain_service"}:
+            return "complain"
+
+        mapped_intent = self._intent_from_service_id(
+            service_id=normalized,
+            capabilities_summary=capabilities_summary,
+            fallback=IntentType.FAQ,
+        )
+        if mapped_intent == IntentType.COMPLAINT or effective_intent == IntentType.COMPLAINT:
+            return "complain"
+
+        service_name = self._service_name_from_id(
+            service_id=normalized,
+            capabilities_summary=capabilities_summary,
+        )
+        return service_name or normalized
+
+    @staticmethod
+    def _is_waiting_state_for_user_input(state: ConversationState) -> bool:
+        return state in {
+            ConversationState.AWAITING_CONFIRMATION,
+            ConversationState.AWAITING_INFO,
+            ConversationState.AWAITING_SELECTION,
+        }
+
+    def _can_create_orchestration_ticket_now(
+        self,
+        *,
+        decision: OrchestrationDecision,
+        policy_result: Any,
+        next_state: ConversationState,
+        pending_action: str | None,
+    ) -> tuple[bool, str]:
+        if not bool(decision.ticket.required):
+            return False, "ticket_not_required"
+        if not bool(getattr(policy_result, "ticket_create_allowed", False)):
+            return False, str(getattr(policy_result, "ticket_skip_reason", "") or "ticket_policy_gate_blocked")
+        if str(decision.action or "").strip().lower() != "create_ticket":
+            return False, "ticket_action_not_create_ticket"
+        if not bool(decision.ticket.ready_to_create):
+            return False, "ticket_not_ready_to_create"
+        if bool(decision.missing_fields):
+            return False, "ticket_missing_required_fields"
+        if str(pending_action or "").strip():
+            # Confirmation state is the trigger for ticket creation — do not block it
+            if not str(pending_action or "").strip().lower().startswith("confirm_"):
+                return False, "ticket_pending_followup"
+        if self._is_waiting_state_for_user_input(next_state):
+            return False, "ticket_waiting_for_user_input"
+        return True, ""
+
+    @staticmethod
+    def _should_hide_intent_in_no_template_mode() -> bool:
+        return bool(getattr(settings, "chat_no_template_response_mode", False))
+
+    @staticmethod
+    def _derive_orchestration_state(
+        *,
+        decision: OrchestrationDecision,
+        current_state: ConversationState,
+    ) -> ConversationState:
+        if bool(decision.requires_human_handoff):
+            return ConversationState.ESCALATED
+        action = str(decision.action or "").strip().lower()
+        pending_action = str(decision.pending_action or "").strip().lower()
+        if action == "collect_info" or pending_action.startswith("collect_") or pending_action.startswith("select_"):
+            return ConversationState.AWAITING_INFO
+        if pending_action.startswith("confirm_"):
+            return ConversationState.AWAITING_CONFIRMATION
+        if action == "dispatch_handler":
+            return current_state
+        return ConversationState.IDLE
+
+    async def _process_policy_verified_llm_message(
+        self,
+        *,
+        request: ChatRequest,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        routing_decision: Any,
+        memory_snapshot: dict[str, Any],
+        selected_phase_context: dict[str, Any] | None = None,
+        db_session=None,
+    ) -> ChatResponse | None:
+        """
+        Strict no-template response path:
+        - prefer orchestration/service LLM responses
+        - fallback to pure full-KB LLM runtime
+        - deterministic policy/validator gates remain enforced
+        """
+        try:
+            orchestration_response = await self._process_llm_orchestration_message(
+                request=request,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                routing_decision=routing_decision,
+                memory_snapshot=memory_snapshot,
+                selected_phase_context=selected_phase_context,
+                db_session=db_session,
+            )
+            if orchestration_response is not None:
+                return orchestration_response
+        except Exception:
+            logger.exception("no_template_orchestration_path_failed")
+
+        return await self._process_pure_llm_message(
+            request=request,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            routing_decision=routing_decision,
+            memory_snapshot=memory_snapshot,
+            db_session=db_session,
+        )
+
+    async def _process_llm_orchestration_message(
+        self,
+        *,
+        request: ChatRequest,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        routing_decision: Any,
+        memory_snapshot: dict[str, Any],
+        selected_phase_context: dict[str, Any] | None = None,
+        db_session=None,
+    ) -> ChatResponse | None:
+        """
+        Two-stage LLM orchestration runtime:
+        - orchestrator LLM decides service/action/ticket intent
+        - service LLM refines slot collection and response
+        - deterministic policy gate validates all action execution
+        """
+        effective_user_message = str(request.message or "").strip()
+        decision = await llm_orchestration_service.orchestrate_turn(
+            user_message=effective_user_message,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            memory_snapshot=memory_snapshot,
+            selected_phase_context=selected_phase_context,
+        )
+        if decision is None:
+            return None
+        no_template_mode = bool(getattr(settings, "chat_no_template_response_mode", False))
+        hide_intent_in_response = self._should_hide_intent_in_no_template_mode()
+        if not str(decision.target_service_id or "").strip() and isinstance(decision.metadata, dict):
+            metadata_service_id = str(
+                decision.metadata.get("target_service_id")
+                or decision.metadata.get("service_id")
+                or decision.metadata.get("resolved_service_id")
+                or ""
+            ).strip()
+            if metadata_service_id:
+                decision.target_service_id = metadata_service_id
+
+        pending_action_active = str(context.pending_action or "").strip().lower()
+        pending_public = context.pending_data if isinstance(context.pending_data, dict) else {}
+        pending_service_id_hint = self._normalize_service_identifier(
+            pending_public.get("service_id")
+            or pending_public.get("target_service_id")
+            or pending_public.get("resolved_service_id")
+            or ""
+        )
+        if pending_action_active.startswith("confirm_"):
+            confirmation_intent = self._detect_confirmation_intent(
+                re.sub(r"\s+", " ", str(effective_user_message or "").strip().lower())
+            )
+            if pending_service_id_hint and not str(decision.target_service_id or "").strip():
+                decision.target_service_id = pending_service_id_hint
+            # In no_template/orchestration mode the service agent handles confirmations
+            # and returns action="create_ticket" directly — do NOT override its decision.
+            if not no_template_mode and confirmation_intent == IntentType.CONFIRMATION_YES:
+                decision.action = "dispatch_handler"
+                decision.use_handler = True
+                decision.handler_intent = IntentType.CONFIRMATION_YES.value
+                decision.intent = IntentType.CONFIRMATION_YES.value
+                decision.interrupt_pending = False
+                decision.resume_pending = False
+                decision.cancel_pending = False
+                decision.pending_action = context.pending_action
+                decision.response_text = ""
+                decision.pending_data_updates = (
+                    dict(decision.pending_data_updates)
+                    if isinstance(decision.pending_data_updates, dict)
+                    else {}
+                )
+                if pending_service_id_hint:
+                    decision.pending_data_updates.setdefault("service_id", pending_service_id_hint)
+                decision.metadata.setdefault("confirmation_continuity_forced", True)
+            elif (
+                self._is_room_booking_pending_action(pending_action_active)
+                and confirmation_intent is None
+                and (
+                    self._looks_like_room_booking_detail_followup(effective_user_message)
+                    or self._looks_like_room_options_information_query(effective_user_message)
+                    or self._looks_like_room_type_preference_reply(
+                        str(effective_user_message or "").strip().lower()
+                    )
+                    or self._looks_like_room_stay_booking_request(effective_user_message)
+                )
+            ):
+                decision.interrupt_pending = False
+                decision.resume_pending = False
+                decision.cancel_pending = False
+                if str(decision.action or "").strip().lower() not in {"respond_only", "collect_info", "dispatch_handler"}:
+                    decision.action = "respond_only"
+                if not str(decision.pending_action or "").strip():
+                    decision.pending_action = "collect_room_booking_details"
+                decision.pending_data_updates = (
+                    dict(decision.pending_data_updates)
+                    if isinstance(decision.pending_data_updates, dict)
+                    else {}
+                )
+                if pending_service_id_hint:
+                    decision.pending_data_updates.setdefault("service_id", pending_service_id_hint)
+                decision.metadata.setdefault("confirmation_continuity_reopened_collection", True)
+
+        pending_interrupted = False
+        if context.pending_action and bool(decision.interrupt_pending):
+            parked = self._park_active_task(
+                context=context,
+                selected_phase_context=selected_phase_context or {},
+                reason="llm_orchestration_topic_diversion",
+                user_message=effective_user_message,
+            )
+            pending_interrupted = parked is not None
+
+        if bool(decision.resume_pending) or str(decision.action or "").strip().lower() == "resume_pending":
+            resumed = self._restore_parked_task(context)
+            if resumed is not None:
+                resumed_summary = str(resumed.get("summary") or "your previous request").strip()
+                response_text = str(decision.response_text or "").strip() or (
+                    f"Resuming {resumed_summary}. Please continue with the remaining details."
+                )
+                response_text, _ = await self._maybe_llm_rewrite_response(
+                    response_text=response_text,
+                    user_message=effective_user_message,
+                    intent_result=IntentResult(intent=IntentType.FAQ, confidence=max(0.6, float(decision.confidence or 0.0))),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source="llm_orchestration",
+                    validator_replaced=False,
+                )
+                assistant_metadata = {
+                    "intent": IntentType.FAQ.value,
+                    "confidence": max(0.6, float(decision.confidence or 0.0)),
+                    "service_llm_label": "main",
+                    "service_llm_confidence": max(0.6, float(decision.confidence or 0.0)),
+                    "channel": context.channel,
+                    "orchestration_mode": True,
+                    "orchestration_action": "resume_pending",
+                }
+                context.add_message(MessageRole.ASSISTANT, response_text, metadata=assistant_metadata)
+                conversation_memory_service.capture_assistant_message(
+                    context,
+                    response_text,
+                    metadata=assistant_metadata,
+                )
+                await conversation_memory_service.maybe_refresh_summary(context)
+                await context_manager.save_context(context, db_session=db_session)
+                memory_snapshot = conversation_memory_service.get_snapshot(context)
+                return ChatResponse(
+                    session_id=request.session_id,
+                    message=response_text,
+                    intent=None if hide_intent_in_response else IntentType.FAQ,
+                    confidence=None if hide_intent_in_response else max(0.6, float(decision.confidence or 0.0)),
+                    service_llm_label="main",
+                    service_llm_confidence=max(0.6, float(decision.confidence or 0.0)),
+                    state=context.state,
+                    suggested_actions=self._build_contextual_suggested_actions(
+                        context.state,
+                        IntentType.FAQ,
+                        context.pending_action,
+                        capabilities_summary,
+                        context.pending_data,
+                    ),
+                    metadata={
+                        "message_count": len(context.messages),
+                        "routing_path": ProcessingPath.SIMPLE.value,
+                        "routing_score": 1.0,
+                        "routing_signals": {"path": "llm_orchestration_resume_pending"},
+                        "response_source": "llm_orchestration",
+                        "orchestration_mode": True,
+                        "service_llm_label": "main",
+                        "service_llm_confidence": max(0.6, float(decision.confidence or 0.0)),
+                        "memory_summary": memory_snapshot.get("summary", ""),
+                        "memory_facts": memory_snapshot.get("facts", {}),
+                    },
+                )
+
+        if bool(decision.cancel_pending) or str(decision.action or "").strip().lower() == "cancel_pending":
+            canceled = self._cancel_parked_task(context)
+            canceled_summary = str((canceled or {}).get("summary") or "that pending request").strip()
+            response_text = str(decision.response_text or "").strip() or (
+                f"Cancelled {canceled_summary}. What would you like to do next?"
+            )
+            response_text, _ = await self._maybe_llm_rewrite_response(
+                response_text=response_text,
+                user_message=effective_user_message,
+                intent_result=IntentResult(intent=IntentType.FAQ, confidence=max(0.6, float(decision.confidence or 0.0))),
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=True,
+                capability_reason="",
+                response_source="llm_orchestration",
+                validator_replaced=False,
+            )
+            context.state = ConversationState.IDLE
+            assistant_metadata = {
+                "intent": IntentType.FAQ.value,
+                "confidence": max(0.6, float(decision.confidence or 0.0)),
+                "service_llm_label": "main",
+                "service_llm_confidence": max(0.6, float(decision.confidence or 0.0)),
+                "channel": context.channel,
+                "orchestration_mode": True,
+                "orchestration_action": "cancel_pending",
+            }
+            context.add_message(MessageRole.ASSISTANT, response_text, metadata=assistant_metadata)
+            conversation_memory_service.capture_assistant_message(
+                context,
+                response_text,
+                metadata=assistant_metadata,
+            )
+            await conversation_memory_service.maybe_refresh_summary(context)
+            await context_manager.save_context(context, db_session=db_session)
+            memory_snapshot = conversation_memory_service.get_snapshot(context)
+            return ChatResponse(
+                session_id=request.session_id,
+                message=response_text,
+                intent=None if hide_intent_in_response else IntentType.FAQ,
+                confidence=None if hide_intent_in_response else max(0.6, float(decision.confidence or 0.0)),
+                service_llm_label="main",
+                service_llm_confidence=max(0.6, float(decision.confidence or 0.0)),
+                state=ConversationState.IDLE,
+                suggested_actions=config_service.get_quick_actions(limit=4),
+                metadata={
+                    "message_count": len(context.messages),
+                    "routing_path": ProcessingPath.SIMPLE.value,
+                    "routing_score": 1.0,
+                    "routing_signals": {"path": "llm_orchestration_cancel_pending"},
+                    "response_source": "llm_orchestration",
+                    "orchestration_mode": True,
+                    "service_llm_label": "main",
+                    "service_llm_confidence": max(0.6, float(decision.confidence or 0.0)),
+                    "memory_summary": memory_snapshot.get("summary", ""),
+                    "memory_facts": memory_snapshot.get("facts", {}),
+                },
+            )
+
+        policy_result = orchestration_policy_service.evaluate(
+            decision=decision,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            selected_phase_context=selected_phase_context,
+        )
+
+        policy_override_applied = False
+        if policy_result.override_response or not policy_result.action_allowed:
+            override_payload = {
+                "service_id": str(
+                    ((policy_result.target_service or {}).get("id") if isinstance(policy_result.target_service, dict) else "")
+                    or decision.target_service_id
+                    or ""
+                ).strip(),
+                "service_name": str(
+                    ((policy_result.target_service or {}).get("name") if isinstance(policy_result.target_service, dict) else "")
+                    or decision.target_service_id
+                    or "This service"
+                ).strip(),
+                "current_phase_id": str(policy_result.current_phase_id or "").strip(),
+                "current_phase_name": str(policy_result.current_phase_name or "").strip(),
+                "service_phase_id": str(policy_result.service_phase_id or "").strip(),
+                "service_phase_name": str(policy_result.service_phase_name or "").strip(),
+                "phase_service_unavailable": bool(policy_result.out_of_phase),
+                "policy_blocked_reason": str(policy_result.blocked_reason or "").strip(),
+                "ticket_skip_reason": str(policy_result.ticket_skip_reason or "").strip(),
+                "suggested_actions": self._current_phase_service_names(
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                )[:3] + ["Show available services", "Ask another question"],
+            }
+            override_intent = self._parse_orchestration_intent(
+                decision.handler_intent or decision.intent,
+                fallback=IntentType.FAQ,
+            )
+            override_text = await self._compose_policy_guardrail_response(
+                user_message=effective_user_message,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                intent=override_intent,
+                gate_payload=override_payload,
+                fallback_text="",
+                response_source="llm_orchestration_policy_gate",
+            )
+            decision.response_text = str(override_text or decision.response_text or "").strip()
+            decision.use_handler = False
+            decision.pending_action = None
+            decision.pending_data_updates = {}
+            policy_override_applied = True
+            if policy_result.out_of_phase:
+                decision.ticket = decision.ticket.model_copy(
+                    update={
+                        "required": False,
+                        "ready_to_create": False,
+                    }
+                )
+
+        # In orchestration/no_template mode the LLM controls everything —
+        # intent mapping only causes validator interference. Use GENERAL_SERVICE.
+        effective_intent = IntentType.GENERAL_SERVICE
+        if bool(decision.requires_human_handoff):
+            effective_intent = IntentType.HUMAN_REQUEST
+        message_lower = str(effective_user_message or "").strip().lower()
+        complaint_signal = (
+            self._looks_like_operational_issue_for_ticketing(message_lower)
+            or self._looks_like_strong_ticket_issue_marker(message_lower)
+        )
+        if complaint_signal and effective_intent in {
+            IntentType.FAQ,
+            IntentType.MENU_REQUEST,
+            IntentType.UNCLEAR,
+            IntentType.HUMAN_REQUEST,
+            IntentType.GENERAL_SERVICE,
+        }:
+            effective_intent = IntentType.COMPLAINT
+            if isinstance(decision.metadata, dict):
+                decision.metadata["intent_override"] = "operational_issue_complaint"
+
+        entities = dict(decision.metadata) if isinstance(decision.metadata, dict) else {}
+        if decision.target_service_id:
+            entities.setdefault("service_id", str(decision.target_service_id))
+        if decision.missing_fields:
+            entities.setdefault("missing_fields", list(decision.missing_fields))
+        if bool(decision.ticket.required):
+            entities.setdefault("ticketing_flow", True)
+            if decision.ticket.reason:
+                entities.setdefault("ticket_reason", decision.ticket.reason)
+        intent_result = IntentResult(
+            intent=effective_intent,
+            confidence=max(0.0, min(1.0, float(decision.confidence or 0.0))),
+            entities=entities,
+            requires_confirmation=effective_intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING},
+        )
+
+        dispatch_handlers = bool(getattr(settings, "chat_llm_orchestration_dispatch_handlers", True))
+        if no_template_mode:
+            dispatch_handlers = False
+        prefer_llm_response = bool(getattr(settings, "chat_llm_orchestration_prefer_llm_response", True))
+        prefer_llm_suggested_actions = bool(getattr(settings, "chat_llm_orchestration_prefer_llm_suggested_actions", True))
+        handler_result: HandlerResult | None = None
+        if (
+            policy_result.action_allowed
+            and dispatch_handlers
+            and bool(decision.use_handler or str(decision.action or "").strip().lower() == "dispatch_handler")
+        ):
+            handler_result = await self._dispatch_to_handler(
+                effective_user_message,
+                intent_result,
+                context,
+                capabilities_summary,
+                db_session,
+            )
+
+        internal_pending_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        existing_public_pending = {
+            key: value
+            for key, value in (context.pending_data or {}).items()
+            if isinstance(key, str) and not key.startswith("_")
+        }
+
+        response_text = str(decision.response_text or "").strip()
+        next_state = self._derive_orchestration_state(decision=decision, current_state=context.state)
+        if handler_result is not None:
+            handler_text = str(handler_result.response_text or "").strip()
+            if not prefer_llm_response or not response_text:
+                response_text = handler_text or response_text
+            next_state = handler_result.next_state
+            if handler_result.pending_action is not None:
+                context.pending_action = handler_result.pending_action
+            if handler_result.pending_data is not None:
+                context.pending_data = conversation_memory_service.merge_with_internal(
+                    handler_result.pending_data,
+                    internal_pending_entries,
+                )
+            if handler_result.pending_action is None and next_state not in (
+                ConversationState.AWAITING_CONFIRMATION,
+                ConversationState.AWAITING_INFO,
+                ConversationState.AWAITING_SELECTION,
+                ConversationState.PROCESSING_ORDER,
+            ):
+                context.pending_action = None
+                context.pending_data = conversation_memory_service.merge_with_internal(
+                    {},
+                    internal_pending_entries,
+                )
+                context.pending_data.pop("_clarification_attempts", None)
+            if handler_result.metadata.get("room_number"):
+                context.room_number = str(handler_result.metadata["room_number"])
+        else:
+            pending_action_target = decision.pending_action
+            if not pending_action_target and decision.missing_fields:
+                first_missing = str(decision.missing_fields[0] or "").strip().lower()
+                if first_missing:
+                    pending_action_target = f"collect_{first_missing}"
+
+            context.pending_action = pending_action_target
+            merged_public_pending = dict(existing_public_pending)
+            if isinstance(decision.pending_data_updates, dict):
+                merged_public_pending.update(decision.pending_data_updates)
+
+            if context.pending_action or merged_public_pending:
+                context.pending_data = conversation_memory_service.merge_with_internal(
+                    merged_public_pending,
+                    internal_pending_entries,
+                )
+            else:
+                context.pending_data = conversation_memory_service.merge_with_internal(
+                    {},
+                    internal_pending_entries,
+                )
+                context.pending_data.pop("_clarification_attempts", None)
+
+        if bool(decision.requires_human_handoff):
+            next_state = ConversationState.ESCALATED
+            context.pending_action = None
+            context.pending_data = conversation_memory_service.merge_with_internal(
+                {},
+                internal_pending_entries,
+            )
+
+        if context.pending_action and isinstance(context.pending_data, dict):
+            resolved_pending_service_id = self._normalize_service_identifier(
+                context.pending_data.get("service_id")
+                or decision.target_service_id
+                or pending_service_id_hint
+                or ""
+            )
+            if resolved_pending_service_id:
+                context.pending_data.setdefault("service_id", resolved_pending_service_id)
+
+        ticket_meta: dict[str, Any] = {}
+        if handler_result is None or not bool((handler_result.metadata or {}).get("ticket_created")):
+            ticket_required = bool(decision.ticket.required)
+            if ticket_required:
+                ticket_allowed_now, ticket_skip_reason = self._can_create_orchestration_ticket_now(
+                    decision=decision,
+                    policy_result=policy_result,
+                    next_state=next_state,
+                    pending_action=context.pending_action,
+                )
+                if ticket_allowed_now:
+                    issue_text = str(
+                        decision.ticket.issue
+                        or decision.ticket.reason
+                        or response_text
+                        or effective_user_message
+                    ).strip()
+                    category = str(
+                        decision.ticket.category
+                        or ("complaint" if effective_intent in {IntentType.COMPLAINT, IntentType.HUMAN_REQUEST} else "request")
+                    ).strip().lower()
+                    sub_category = str(
+                        decision.ticket.sub_category
+                        or self._normalize_service_identifier(decision.target_service_id)
+                        or "general_request"
+                    ).strip().lower()
+                    priority = str(decision.ticket.priority or "medium").strip().upper()
+                    if priority not in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}:
+                        priority = "MEDIUM"
+                    phase_text = str(
+                        policy_result.current_phase_name
+                        or (selected_phase_context or {}).get("selected_phase_name")
+                        or "During Stay"
+                    ).strip()
+                    try:
+                        payload = ticketing_service.build_lumira_ticket_payload(
+                            context=context,
+                            issue=issue_text,
+                            message=effective_user_message or issue_text,
+                            category=category,
+                            sub_category=sub_category,
+                            priority=priority,
+                            phase=phase_text,
+                        )
+                        if decision.target_service_id:
+                            payload["service_id"] = str(decision.target_service_id).strip()
+                        create_result = await ticketing_service.create_ticket(payload)
+                        if create_result.success:
+                            created_ticket_id = str(create_result.ticket_id or "").strip()
+                            ticket_meta = {
+                                "ticket_created": True,
+                                "ticket_id": created_ticket_id,
+                                "ticket_status": "open",
+                                "ticket_category": category,
+                                "ticket_sub_category": sub_category,
+                                "ticket_priority": priority,
+                                "ticket_source": "llm_orchestration",
+                                "ticket_api_status_code": create_result.status_code,
+                                "ticket_api_response": create_result.response,
+                            }
+                            # Update response_text with ticket confirmation so LLM response reflects reality
+                            ticket_ref = f" (Reference: #{created_ticket_id})" if created_ticket_id else ""
+                            # Build a summary from pending_data for the confirmation message
+                            _pub = {k: v for k, v in (context.pending_data or {}).items() if not k.startswith("_")}
+                            _parts = []
+                            if _pub.get("room_type"): _parts.append(str(_pub["room_type"]))
+                            if _pub.get("check_in_date"): _parts.append(f"check-in: {_pub['check_in_date']}")
+                            if _pub.get("check_out_date"): _parts.append(f"check-out: {_pub['check_out_date']}")
+                            if _pub.get("guest_count"): _parts.append(f"{_pub['guest_count']} guest(s)")
+                            _summary = ", ".join(_parts)
+                            response_text = (
+                                f"Your booking has been confirmed{ticket_ref}! "
+                                + (f"Details: {_summary}. " if _summary else "")
+                                + "Our team will follow up with you shortly."
+                            )
+                        else:
+                            ticket_meta = {
+                                "ticket_created": False,
+                                "ticket_create_failed": True,
+                                "ticket_error": str(create_result.error or "ticket_create_failed"),
+                                "ticket_source": "llm_orchestration",
+                                "ticket_api_status_code": create_result.status_code,
+                                "ticket_api_response": create_result.response,
+                            }
+                            response_text = "I wasn't able to confirm your booking right now. Please try again or speak to our front desk."
+                    except Exception as exc:
+                        ticket_meta = {
+                            "ticket_created": False,
+                            "ticket_create_failed": True,
+                            "ticket_error": str(exc),
+                            "ticket_source": "llm_orchestration",
+                        }
+                else:
+                    ticket_meta = {
+                        "ticket_created": False,
+                        "ticket_create_skipped": True,
+                        "ticket_create_skip_reason": ticket_skip_reason or policy_result.ticket_skip_reason or "ticket_policy_gate_blocked",
+                        "ticket_source": "llm_orchestration",
+                    }
+
+        if not response_text:
+            response_text = "Please share one more detail so I can continue."
+
+        if no_template_mode:
+            capability_check = CapabilityCheck(allowed=True, reason="service_first_mode")
+        else:
+            intent_enabled_check = self._check_intent_enabled(effective_intent)
+            capability_check = (
+                intent_enabled_check
+                if not intent_enabled_check.allowed
+                else self._check_capability_for_intent(
+                    context.hotel_code,
+                    intent_result,
+                    effective_user_message,
+                )
+            )
+        # In orchestration mode the LLM/service-agent controls everything —
+        # skip response_validator entirely to prevent canned responses overriding good LLM output.
+        orchestration_validator_replaced = False
+        if no_template_mode:
+            from services.response_validator import ValidationResult as _VR
+            orchestration_validation = _VR(valid=True, action="allow")
+        else:
+            orchestration_validation = response_validator.validate(
+                response_text=response_text,
+                intent_result=intent_result,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                capability_check_allowed=capability_check.allowed,
+                capability_reason=capability_check.reason,
+            )
+            if (
+                not orchestration_validation.valid
+                and orchestration_validation.action == "replace"
+                and orchestration_validation.replacement_response
+            ):
+                response_text = orchestration_validation.replacement_response
+                orchestration_validator_replaced = True
+        response_text, orchestration_rewrite_metadata = await self._maybe_llm_rewrite_response(
+            response_text=response_text,
+            user_message=effective_user_message,
+            intent_result=intent_result,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=capability_check.allowed,
+            capability_reason=capability_check.reason,
+            response_source="llm_orchestration",
+            validator_replaced=(orchestration_validator_replaced or policy_override_applied),
+        )
+
+        response_text, resume_actions = self._append_resume_checkpoint(
+            response_text=response_text,
+            context=context,
+            pending_interrupted=pending_interrupted,
+        )
+
+        context.state = next_state
+        self._sync_active_task_snapshot(
+            context=context,
+            selected_phase_context=selected_phase_context or {},
+        )
+        assistant_intent_value = (
+            "service_routed"
+            if hide_intent_in_response
+            else effective_intent.value
+        )
+        assistant_confidence_value = (
+            float(decision.confidence or 0.0)
+            if hide_intent_in_response
+            else intent_result.confidence
+        )
+        orchestration_source = str((decision.metadata or {}).get("source") or "orchestrator")
+        source_key = self._normalize_service_identifier(orchestration_source)
+        service_llm_label = "main"
+        if source_key.startswith("service_agent"):
+            service_llm_label = self._service_llm_label_for_service(
+                service_id=str(decision.target_service_id or ""),
+                capabilities_summary=capabilities_summary,
+                effective_intent=effective_intent,
+                fallback="main",
+            )
+        service_llm_confidence = max(
+            0.0,
+            min(1.0, float(decision.confidence or intent_result.confidence or 0.0)),
+        )
+        assistant_metadata = {
+            "intent": assistant_intent_value,
+            "confidence": assistant_confidence_value,
+            "service_llm_label": service_llm_label,
+            "service_llm_confidence": service_llm_confidence,
+            "channel": context.channel,
+            "orchestration_mode": True,
+            "orchestration_action": str(decision.action or ""),
+            "orchestration_target_service_id": str(decision.target_service_id or ""),
+            "orchestration_interrupt_pending": bool(decision.interrupt_pending),
+            "orchestration_source": orchestration_source,
+            "orchestration_trace_id": str((decision.metadata or {}).get("orchestration_trace_id") or ""),
+            "policy_blocked_reason": str(policy_result.blocked_reason or ""),
+            "policy_out_of_phase": bool(policy_result.out_of_phase),
+            "policy_ticket_skip_reason": str(policy_result.ticket_skip_reason or ""),
+            "orchestration_handler_executed": handler_result is not None,
+            "orchestration_prefer_llm_response": prefer_llm_response,
+            "intent_hidden_in_response": hide_intent_in_response,
+            "response_validator_applied": True,
+            "response_validator_replaced": orchestration_validator_replaced,
+            "response_validator_issues": [
+                str(issue.code)
+                for issue in (orchestration_validation.issues or [])
+                if getattr(issue, "code", None)
+            ],
+        }
+        if handler_result is not None and handler_result.metadata:
+            assistant_metadata.update(handler_result.metadata)
+        if ticket_meta:
+            assistant_metadata.update(ticket_meta)
+        assistant_metadata.update(orchestration_rewrite_metadata)
+
+        context.add_message(
+            MessageRole.ASSISTANT,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        conversation_memory_service.capture_assistant_message(
+            context,
+            response_text,
+            metadata=assistant_metadata,
+        )
+        await conversation_memory_service.maybe_refresh_summary(context)
+        await context_manager.save_context(context, db_session=db_session)
+        memory_snapshot = conversation_memory_service.get_snapshot(context)
+
+        if prefer_llm_suggested_actions and decision.suggested_actions:
+            suggested_actions = list(decision.suggested_actions)
+        elif handler_result is not None and handler_result.suggested_actions:
+            suggested_actions = list(handler_result.suggested_actions)
+        elif decision.suggested_actions:
+            suggested_actions = list(decision.suggested_actions)
+        else:
+            suggested_actions = self._get_suggested_actions(next_state, effective_intent, capabilities_summary)
+        suggested_actions = resume_actions + suggested_actions
+        suggested_actions = self._finalize_user_query_suggestions(
+            suggested_actions,
+            state=next_state,
+            intent=effective_intent,
+            pending_action=context.pending_action,
+            pending_data=context.pending_data,
+            capabilities_summary=capabilities_summary,
+        )
+
+        routing_path = getattr(
+            getattr(routing_decision, "path", ProcessingPath.SIMPLE),
+            "value",
+            ProcessingPath.SIMPLE.value,
+        )
+        routing_score = float(getattr(routing_decision, "score", 1.0))
+        routing_signals = list(getattr(routing_decision, "signals", []))
+
+        metadata = {
+            "message_count": len(context.messages),
+            "entities": {
+                "orchestration_action": str(decision.action or ""),
+                "target_service_id": str(decision.target_service_id or ""),
+                "missing_fields": list(decision.missing_fields),
+                "pending_action": context.pending_action,
+            },
+            "classified_intent": assistant_intent_value,
+            "classified_confidence": assistant_confidence_value,
+            "routing_path": routing_path,
+            "routing_score": routing_score,
+            "routing_signals": routing_signals,
+            "response_source": "llm_orchestration",
+            "orchestration_mode": True,
+            "service_llm_label": service_llm_label,
+            "service_llm_confidence": service_llm_confidence,
+            "orchestration_policy_blocked_reason": str(policy_result.blocked_reason or ""),
+            "orchestration_policy_out_of_phase": bool(policy_result.out_of_phase),
+            "orchestration_policy_ticket_skip_reason": str(policy_result.ticket_skip_reason or ""),
+            "intent_hidden_in_response": hide_intent_in_response,
+            "response_validator_applied": True,
+            "response_validator_replaced": orchestration_validator_replaced,
+            "response_validator_issues": [
+                str(issue.code)
+                for issue in (orchestration_validation.issues or [])
+                if getattr(issue, "code", None)
+            ],
+            "memory_summary": memory_snapshot.get("summary", ""),
+            "memory_facts": memory_snapshot.get("facts", {}),
+            "memory_recent_changes": memory_snapshot.get("recent_changes", []),
+        }
+        if ticket_meta:
+            metadata.update(self._apply_ticket_metadata_contract(ticket_meta))
+        metadata.update(orchestration_rewrite_metadata)
+
+        return ChatResponse(
+            session_id=request.session_id,
+            message=response_text,
+            intent=None if hide_intent_in_response else effective_intent,
+            confidence=None if hide_intent_in_response else intent_result.confidence,
+            service_llm_label=service_llm_label,
+            service_llm_confidence=service_llm_confidence,
+            state=next_state,
+            suggested_actions=suggested_actions,
+            metadata=metadata,
+        )
+
     async def _process_pure_llm_message(
         self,
         request: ChatRequest,
@@ -2099,6 +3561,8 @@ class ChatService:
             capabilities_summary=capabilities_summary,
             memory_snapshot=memory_snapshot,
         )
+        no_template_mode = bool(getattr(settings, "chat_no_template_response_mode", False))
+        hide_intent_in_response = self._should_hide_intent_in_no_template_mode()
 
         next_state = llm_result.next_state
         response_text = str(llm_result.response_text or "").strip() or (
@@ -2115,6 +3579,18 @@ class ChatService:
             memory_snapshot=memory_snapshot,
             entities=pure_llm_entities,
         )
+        if no_template_mode:
+            service_driven_intent = self._intent_from_service_id(
+                service_id=str(
+                    pure_llm_entities.get("service_id")
+                    or pure_llm_entities.get("target_service_id")
+                    or pure_llm_entities.get("resolved_service_id")
+                    or ""
+                ),
+                capabilities_summary=capabilities_summary,
+                fallback=effective_intent,
+            )
+            effective_intent = service_driven_intent
         clear_pending_data = bool(llm_result.clear_pending_data)
         contextual_sanity_issue = self._detect_contextual_sanity_issue(
             message=effective_user_message,
@@ -2129,6 +3605,48 @@ class ChatService:
             pending_action_target = None
             pending_data_target = {}
             clear_pending_data = True
+
+        pure_validation_intent = IntentResult(
+            intent=effective_intent,
+            confidence=max(0.0, min(1.0, float(effective_confidence or 0.0))),
+            entities=pure_llm_entities if isinstance(pure_llm_entities, dict) else {},
+        )
+        if no_template_mode:
+            pure_capability_check = CapabilityCheck(allowed=True, reason="service_first_mode")
+        else:
+            intent_enabled_check = self._check_intent_enabled(effective_intent)
+            pure_capability_check = (
+                intent_enabled_check
+                if not intent_enabled_check.allowed
+                else self._check_capability_for_intent(
+                    context.hotel_code,
+                    pure_validation_intent,
+                    effective_user_message,
+                )
+            )
+        pure_validation = response_validator.validate(
+            response_text=response_text,
+            intent_result=pure_validation_intent,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=pure_capability_check.allowed,
+            capability_reason=pure_capability_check.reason,
+        )
+        pure_validator_replaced = False
+        if not pure_validation.valid and pure_validation.action == "replace" and pure_validation.replacement_response:
+            response_text = pure_validation.replacement_response
+            pure_validator_replaced = True
+        response_text, pure_response_rewrite_metadata = await self._maybe_llm_rewrite_response(
+            response_text=response_text,
+            user_message=effective_user_message,
+            intent_result=pure_validation_intent,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=pure_capability_check.allowed,
+            capability_reason=pure_capability_check.reason,
+            response_source="pure_llm",
+            validator_replaced=pure_validator_replaced,
+        )
 
         context.pending_action = pending_action_target
         if clear_pending_data:
@@ -2172,10 +3690,40 @@ class ChatService:
             llm_result=llm_result,
             effective_intent=effective_intent,
         )
+        pure_ticket_meta = self._apply_ticket_metadata_contract(pure_ticket_meta or {})
+        assistant_intent_value = (
+            "service_routed"
+            if hide_intent_in_response
+            else effective_intent.value
+        )
+        assistant_confidence_value = (
+            float(effective_confidence or 0.0)
+            if hide_intent_in_response
+            else effective_confidence
+        )
+        llm_output_map = llm_result.llm_output if isinstance(getattr(llm_result, "llm_output", None), dict) else {}
+        pure_service_id = str(
+            pure_llm_entities.get("service_id")
+            or pure_llm_entities.get("target_service_id")
+            or pure_llm_entities.get("resolved_service_id")
+            or llm_output_map.get("service_id")
+            or llm_output_map.get("target_service_id")
+            or llm_output_map.get("resolved_service_id")
+            or ""
+        ).strip()
+        service_llm_label = self._service_llm_label_for_service(
+            service_id=pure_service_id,
+            capabilities_summary=capabilities_summary,
+            effective_intent=effective_intent,
+            fallback="main",
+        )
+        service_llm_confidence = max(0.0, min(1.0, float(effective_confidence or 0.0)))
 
         assistant_metadata = {
-            "intent": effective_intent.value,
-            "confidence": effective_confidence,
+            "intent": assistant_intent_value,
+            "confidence": assistant_confidence_value,
+            "service_llm_label": service_llm_label,
+            "service_llm_confidence": service_llm_confidence,
             "channel": context.channel,
             "kb_only_mode": True,
             "full_kb_llm_mode": True,
@@ -2186,9 +3734,18 @@ class ChatService:
             "response_source": "pure_llm",
             "contextual_sanity_gate": bool(contextual_sanity_issue),
             "contextual_sanity_code": str((contextual_sanity_issue or {}).get("code") or ""),
+            "intent_hidden_in_response": hide_intent_in_response,
+            "response_validator_applied": True,
+            "response_validator_replaced": pure_validator_replaced,
+            "response_validator_issues": [
+                str(issue.code)
+                for issue in (pure_validation.issues or [])
+                if getattr(issue, "code", None)
+            ],
         }
         if pure_ticket_meta:
             assistant_metadata.update(pure_ticket_meta)
+        assistant_metadata.update(pure_response_rewrite_metadata)
 
         context.add_message(
             MessageRole.ASSISTANT,
@@ -2228,8 +3785,8 @@ class ChatService:
                 "raw_intent": llm_result.raw_intent,
                 "pending_action": context.pending_action,
             },
-            "classified_intent": effective_intent.value,
-            "classified_confidence": effective_confidence,
+            "classified_intent": assistant_intent_value,
+            "classified_confidence": assistant_confidence_value,
             "routing_path": routing_path,
             "routing_score": routing_score,
             "routing_signals": routing_signals,
@@ -2237,22 +3794,35 @@ class ChatService:
             "kb_only_mode": True,
             "full_kb_llm_mode": True,
             "pure_llm_mode": True,
+            "service_llm_label": service_llm_label,
+            "service_llm_confidence": service_llm_confidence,
             "full_kb_trace_id": llm_result.trace_id,
             "full_kb_status": llm_result.status,
             "contextual_sanity_gate": bool(contextual_sanity_issue),
             "contextual_sanity_code": str((contextual_sanity_issue or {}).get("code") or ""),
+            "intent_hidden_in_response": hide_intent_in_response,
+            "response_validator_applied": True,
+            "response_validator_replaced": pure_validator_replaced,
+            "response_validator_issues": [
+                str(issue.code)
+                for issue in (pure_validation.issues or [])
+                if getattr(issue, "code", None)
+            ],
             "memory_summary": memory_snapshot.get("summary", ""),
             "memory_facts": memory_snapshot.get("facts", {}),
             "memory_recent_changes": memory_snapshot.get("recent_changes", []),
         }
         if pure_ticket_meta:
             metadata.update(pure_ticket_meta)
+        metadata.update(pure_response_rewrite_metadata)
 
         return ChatResponse(
             session_id=request.session_id,
             message=response_text,
-            intent=effective_intent,
-            confidence=effective_confidence,
+            intent=None if hide_intent_in_response else effective_intent,
+            confidence=None if hide_intent_in_response else effective_confidence,
+            service_llm_label=service_llm_label,
+            service_llm_confidence=service_llm_confidence,
             state=next_state,
             suggested_actions=suggested_actions,
             metadata=metadata,
@@ -2708,7 +4278,7 @@ class ChatService:
                 full_kb_validator_replaced,
                 full_kb_validation_issue_codes,
                 full_kb_capability_allowed,
-            ) = self._apply_full_kb_response_validation(
+            ) = await self._apply_full_kb_response_validation(
                 response_text=response_text,
                 effective_intent=effective_intent,
                 effective_confidence=effective_confidence,
@@ -2744,6 +4314,7 @@ class ChatService:
                 combined_ticket_meta.update(transaction_ticket_meta)
             if plugin_ticket_meta:
                 combined_ticket_meta.update(plugin_ticket_meta)
+            combined_ticket_meta = self._apply_ticket_metadata_contract(combined_ticket_meta)
             (
                 pending_action_target,
                 pending_data_target,
@@ -3335,7 +4906,7 @@ class ChatService:
             full_kb_validator_replaced,
             full_kb_validation_issue_codes,
             full_kb_capability_allowed,
-        ) = self._apply_full_kb_response_validation(
+        ) = await self._apply_full_kb_response_validation(
             response_text=response_text,
             effective_intent=effective_intent,
             effective_confidence=effective_confidence,
@@ -3371,6 +4942,7 @@ class ChatService:
             combined_ticket_meta.update(transaction_ticket_meta)
         if plugin_ticket_meta:
             combined_ticket_meta.update(plugin_ticket_meta)
+        combined_ticket_meta = self._apply_ticket_metadata_contract(combined_ticket_meta)
         (
             pending_action_target,
             pending_data_target,
@@ -3659,7 +5231,15 @@ class ChatService:
         if gate_payload is None:
             return None
 
-        response_text = str(gate_payload.get("response_text") or "").strip()
+        response_text = await self._compose_policy_guardrail_response(
+            user_message=phase_gate_message,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            intent=effective_intent,
+            gate_payload=gate_payload,
+            fallback_text="",
+            response_source=gate_source,
+        )
         if not response_text:
             return None
         if effective_intent == IntentType.HUMAN_REQUEST:
@@ -5644,6 +7224,18 @@ class ChatService:
         llm_ticketing_preference: bool | None,
     ) -> bool:
         msg_lower = str(message or "").strip().lower()
+        current_pending = str(current_pending_action or "").strip().lower()
+        if current_pending.startswith("confirm_"):
+            binary_reply = self._detect_simple_binary_reply(message)
+            explicit_complaint_evidence = (
+                self._looks_like_ticketing_request(msg_lower)
+                or self._looks_like_strong_ticket_issue_marker(msg_lower)
+                or self._looks_like_operational_issue_for_ticketing(msg_lower)
+            )
+            # Confirmation lock: yes/no replies should stay in the active
+            # transactional flow unless user shows explicit complaint intent.
+            if binary_reply is not None and not explicit_complaint_evidence:
+                return False
 
         # Keep order slot-collection conversational.
         # If the user is still giving order details (for example quantity),
@@ -5731,6 +7323,16 @@ class ChatService:
         """
         pending_current = str(current_pending_action or "").strip().lower()
         pending_target = str(pending_action_target or "").strip().lower()
+        msg_lower = str(message or "").strip().lower()
+        if pending_current.startswith("confirm_"):
+            binary_reply = self._detect_simple_binary_reply(message)
+            explicit_complaint_evidence = (
+                self._looks_like_ticketing_request(msg_lower)
+                or self._looks_like_strong_ticket_issue_marker(msg_lower)
+                or self._looks_like_operational_issue_for_ticketing(msg_lower)
+            )
+            if binary_reply is not None and not explicit_complaint_evidence:
+                return None, "", ""
         if self._is_ticketing_pending_action(pending_current) or self._is_ticketing_pending_action(pending_target):
             return IntentType.COMPLAINT, "existing_ticketing_pending_action", "pending_action"
         if effective_intent == IntentType.COMPLAINT:
@@ -5823,6 +7425,44 @@ class ChatService:
             if parsed is not None:
                 return parsed
         return None
+
+    @staticmethod
+    def _extract_full_kb_ticket_ready_flag(llm_result: Any) -> bool | None:
+        llm_output = llm_result.llm_output if isinstance(llm_result.llm_output, dict) else {}
+        pending_data = llm_result.pending_data if isinstance(llm_result.pending_data, dict) else {}
+        candidates = (
+            llm_output.get("ticket_ready_to_create"),
+            llm_output.get("ready_to_create"),
+            llm_output.get("ticket_ready"),
+            llm_output.get("ticket_create_ready"),
+            pending_data.get("ticket_ready_to_create"),
+            pending_data.get("ready_to_create"),
+            pending_data.get("ticket_ready"),
+            pending_data.get("ticket_create_ready"),
+        )
+        for value in candidates:
+            parsed = ChatService._coerce_optional_bool(value)
+            if parsed is not None:
+                return parsed
+        return None
+
+    @classmethod
+    def _is_pure_llm_ticket_ready(cls, llm_result: Any) -> bool:
+        explicit_ready = cls._extract_full_kb_ticket_ready_flag(llm_result)
+        pending_action = str(getattr(llm_result, "pending_action", "") or "").strip()
+        next_state = getattr(llm_result, "next_state", ConversationState.IDLE)
+        waiting_for_user = pending_action or next_state in {
+            ConversationState.AWAITING_CONFIRMATION,
+            ConversationState.AWAITING_INFO,
+            ConversationState.AWAITING_SELECTION,
+        }
+        if explicit_ready is not None:
+            return bool(explicit_ready) and not waiting_for_user
+        return not waiting_for_user and next_state in {
+            ConversationState.COMPLETED,
+            ConversationState.ESCALATED,
+            ConversationState.PROCESSING_ORDER,
+        }
 
     @staticmethod
     def _extract_full_kb_ticketing_reason(llm_result: Any) -> str:
@@ -5954,6 +7594,297 @@ class ChatService:
         if cleaned:
             return cleaned
         return cls._normalize_multi_ask_query_text(normalized)
+
+    @staticmethod
+    def _response_surface_key(text: str) -> str:
+        normalized = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        return normalized.strip(" \n\t\r.,!?:;\"'")
+
+    def _current_phase_service_names(
+        self,
+        *,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+    ) -> list[str]:
+        selected_phase = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        phase_id = self._normalize_phase_identifier(selected_phase.get("selected_phase_id"))
+        if not phase_id:
+            return []
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            return []
+        names: list[str] = []
+        for service in service_catalog:
+            if not isinstance(service, dict):
+                continue
+            if not bool(service.get("is_active", True)):
+                continue
+            service_phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+            if service_phase_id != phase_id:
+                continue
+            name = str(service.get("name") or service.get("id") or "").strip()
+            if not name:
+                continue
+            names.append(name)
+            if len(names) >= 6:
+                break
+        return names
+
+    async def _maybe_llm_rewrite_response(
+        self,
+        *,
+        response_text: str,
+        user_message: str,
+        intent_result: IntentResult,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        capability_check_allowed: bool = True,
+        capability_reason: str = "",
+        response_source: str = "",
+        validator_replaced: bool = False,
+    ) -> tuple[str, dict[str, Any]]:
+        base_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
+        metadata = {
+            "llm_surface_rewrite_attempted": False,
+            "llm_surface_rewrite_applied": False,
+            "llm_surface_rewrite_validator_replaced": False,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": str(response_source or ""),
+        }
+        if not base_text:
+            return "", metadata
+
+        response_surface_enabled = bool(getattr(settings, "chat_llm_response_surface_enabled", True))
+        no_template_mode = bool(getattr(settings, "chat_no_template_response_mode", False))
+        # In orchestration/no_template mode the service agent and ticket confirmation logic
+        # already produce the correct response — never let a secondary LLM rewrite it.
+        if no_template_mode:
+            return base_text, metadata
+        if not response_surface_enabled:
+            return base_text, metadata
+        if not str(getattr(settings, "openai_api_key", "") or "").strip():
+            return base_text, metadata
+
+        control_sources = {
+            "deescalation",
+            "parked_task_resume",
+            "parked_task_cancel",
+            "low_confidence",
+        }
+        if str(response_source or "").strip().lower() in control_sources:
+            return base_text, metadata
+
+        llm_generated_sources = {
+            "llm_fallback",
+            "agent_orchestrator",
+            "full_kb_llm",
+            "full_kb_llm_handler",
+            "full_kb_shortcut",
+            "pure_llm",
+            "llm_orchestration",
+            "multi_ask_orchestrator",
+        }
+        rewrite_llm_outputs = bool(getattr(settings, "chat_llm_response_surface_rewrite_llm_outputs", False))
+        if (
+            str(response_source or "").strip().lower() in llm_generated_sources
+            and not validator_replaced
+            and not rewrite_llm_outputs
+            and not no_template_mode
+        ):
+            return base_text, metadata
+
+        metadata["llm_surface_rewrite_attempted"] = True
+        selected_phase = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
+        )
+        phase_name = str(selected_phase.get("selected_phase_name") or "").strip()
+        phase_id = str(selected_phase.get("selected_phase_id") or "").strip()
+        phase_label = phase_name or (phase_id.replace("_", " ").title() if phase_id else "Current")
+        phase_services = self._current_phase_service_names(
+            context=context,
+            capabilities_summary=capabilities_summary,
+        )
+        phase_services_text = ", ".join(phase_services) if phase_services else "Not specified"
+        nlu_policy = capabilities_summary.get("nlu_policy", {}) if isinstance(capabilities_summary, dict) else {}
+        dos = nlu_policy.get("dos", []) if isinstance(nlu_policy, dict) else []
+        donts = nlu_policy.get("donts", []) if isinstance(nlu_policy, dict) else []
+        dos_text = "; ".join(str(item).strip() for item in dos if str(item).strip()) or "None"
+        donts_text = "; ".join(str(item).strip() for item in donts if str(item).strip()) or "None"
+        model = str(getattr(settings, "chat_llm_response_surface_model", "") or "").strip() or None
+        temperature = float(getattr(settings, "chat_llm_response_surface_temperature", 0.35) or 0.35)
+        max_tokens = max(120, int(getattr(settings, "chat_llm_response_surface_max_tokens", 420) or 420))
+        confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
+
+        system_prompt = (
+            "You rewrite concierge assistant replies.\n"
+            "Return plain text only.\n"
+            "Strict rules:\n"
+            "- Preserve factual meaning from the draft.\n"
+            "- Do not add new facts, prices, policies, or promises.\n"
+            "- Preserve all restrictions (phase limits, unavailable services, ticketing constraints).\n"
+            "- Keep explicit confirmation phrase instructions unchanged when present.\n"
+            "- Keep list/number formatting if the draft uses it.\n"
+            "- Keep tone human, concise, and helpful.\n"
+        )
+        user_payload = (
+            f"User message: {str(user_message or '').strip()}\n"
+            f"Intent: {intent_result.intent.value}\n"
+            f"Current phase: {phase_label} ({phase_id or 'unknown'})\n"
+            f"Current phase services: {phase_services_text}\n"
+            f"Capability allowed: {bool(capability_check_allowed)}\n"
+            f"Capability reason (if blocked): {str(capability_reason or '').strip() or 'N/A'}\n"
+            f"Policy DO rules: {dos_text}\n"
+            f"Policy DONT rules: {donts_text}\n"
+            f"Confirmation phrase: {confirmation_phrase}\n\n"
+            f"Draft response:\n{base_text}"
+        )
+        try:
+            rewritten = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_payload},
+                ],
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+        except Exception:
+            rewritten = ""
+
+        candidate = self._dedupe_response_sentences(rewritten) or str(rewritten or "").strip()
+        if not candidate or len(candidate) < 3:
+            return base_text, metadata
+
+        validation = response_validator.validate(
+            response_text=candidate,
+            intent_result=intent_result,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=capability_check_allowed,
+            capability_reason=capability_reason,
+        )
+        issue_codes = [str(issue.code) for issue in (validation.issues or []) if getattr(issue, "code", None)]
+        metadata["llm_surface_rewrite_validation_issues"] = issue_codes
+        if validation.valid:
+            metadata["llm_surface_rewrite_applied"] = (
+                self._response_surface_key(candidate) != self._response_surface_key(base_text)
+            )
+            return candidate, metadata
+
+        if validation.action == "replace" and validation.replacement_response:
+            safe_text = self._dedupe_response_sentences(validation.replacement_response) or str(
+                validation.replacement_response or ""
+            ).strip()
+            metadata["llm_surface_rewrite_validator_replaced"] = True
+
+            # First try an issue-aware LLM repair instead of surfacing deterministic replacement text.
+            repair_issue_text = ", ".join(issue_codes) if issue_codes else "policy_violation"
+            repair_prompt = (
+                "Rewrite the assistant response so it passes runtime policy checks.\n"
+                "Return plain text only.\n"
+                "Do not use templated/canned phrasing.\n"
+                "Keep meaning aligned with policy restrictions and available services.\n"
+                "Do not promise blocked actions.\n\n"
+                f"User message: {str(user_message or '').strip()}\n"
+                f"Intent: {intent_result.intent.value}\n"
+                f"Policy issue codes: {repair_issue_text}\n"
+                f"Current phase: {phase_label} ({phase_id or 'unknown'})\n"
+                f"Current phase services: {phase_services_text}\n"
+                f"Capability allowed: {bool(capability_check_allowed)}\n"
+                f"Capability reason (if blocked): {str(capability_reason or '').strip() or 'N/A'}\n\n"
+                f"Original draft:\n{base_text}\n\n"
+                f"Unsafe candidate:\n{candidate}\n\n"
+                f"Validator-safe fallback reference:\n{safe_text}"
+            )
+            try:
+                repaired = await llm_client.chat(
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": (
+                                "You produce concise, policy-compliant concierge replies. "
+                                "Output plain text only."
+                            ),
+                        },
+                        {"role": "user", "content": repair_prompt},
+                    ],
+                    model=model,
+                    temperature=max(0.1, min(temperature, 0.45)),
+                    max_tokens=max_tokens,
+                )
+            except Exception:
+                repaired = ""
+            repaired_candidate = self._dedupe_response_sentences(repaired) or str(repaired or "").strip()
+            if repaired_candidate:
+                repaired_validation = response_validator.validate(
+                    response_text=repaired_candidate,
+                    intent_result=intent_result,
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=capability_check_allowed,
+                    capability_reason=capability_reason,
+                )
+                if repaired_validation.valid:
+                    metadata["llm_surface_rewrite_applied"] = (
+                        self._response_surface_key(repaired_candidate) != self._response_surface_key(base_text)
+                    )
+                    return repaired_candidate
+                if repaired_validation.action == "replace" and repaired_validation.replacement_response:
+                    safe_text = self._dedupe_response_sentences(repaired_validation.replacement_response) or str(
+                        repaired_validation.replacement_response or ""
+                    ).strip()
+
+            if bool(getattr(settings, "chat_llm_response_surface_rewrite_replacements", True)) and safe_text:
+                try:
+                    soft_rewrite = await llm_client.chat(
+                        messages=[
+                            {
+                                "role": "system",
+                                "content": (
+                                    "Paraphrase the response with the same policy constraints and meaning. "
+                                    "Do not relax restrictions. Return plain text only."
+                                ),
+                            },
+                            {"role": "user", "content": safe_text},
+                        ],
+                        model=model,
+                        temperature=max(0.0, min(temperature, 0.25)),
+                        max_tokens=max_tokens,
+                    )
+                except Exception:
+                    soft_rewrite = ""
+                soft_candidate = self._dedupe_response_sentences(soft_rewrite) or str(soft_rewrite or "").strip()
+                if soft_candidate:
+                    soft_validation = response_validator.validate(
+                        response_text=soft_candidate,
+                        intent_result=intent_result,
+                        context=context,
+                        capabilities_summary=capabilities_summary,
+                        capability_check_allowed=capability_check_allowed,
+                        capability_reason=capability_reason,
+                    )
+                    if soft_validation.valid:
+                        safe_text = soft_candidate
+                    elif (
+                        soft_validation.action == "replace"
+                        and soft_validation.replacement_response
+                    ):
+                        safe_text = self._dedupe_response_sentences(soft_validation.replacement_response) or str(
+                            soft_validation.replacement_response or ""
+                        ).strip()
+
+            metadata["llm_surface_rewrite_applied"] = (
+                self._response_surface_key(safe_text) != self._response_surface_key(base_text)
+            )
+            return safe_text, metadata
+
+        return base_text, metadata
 
     @classmethod
     def _split_stacked_multi_ask_part(cls, part: str) -> list[str]:
@@ -6290,9 +8221,17 @@ class ChatService:
             )
 
         if phase_gate is not None:
-            response_text = str(phase_gate.get("response_text") or "").strip() or (
-                "This service is not available in the current phase."
+            response_text = await self._compose_policy_guardrail_response(
+                user_message=normalized_query,
+                context=context,
+                capabilities_summary=capabilities_summary,
+                intent=intent_result.intent,
+                gate_payload=phase_gate,
+                fallback_text="",
+                response_source="multi_ask_phase_gate",
             )
+            if not response_text:
+                response_text = "I can help with services available in your current phase."
             response_source = "multi_ask_phase_gate"
         else:
             intent_enabled_check = self._check_intent_enabled(intent_result.intent)
@@ -8854,96 +10793,9 @@ class ChatService:
         self,
         conversation_context: ConversationContext | None,
     ) -> list[str]:
-        if conversation_context is None:
-            return []
-
-        candidates: list[str] = []
-        seen: set[str] = set()
-        structured_pattern = re.compile(
-            r"\*\*(?P<label>[^*]{2,120}?(?:room|suite|villa|residence))\*\*",
-            re.IGNORECASE,
-        )
-        list_line_pattern = re.compile(
-            r"^\s*(?:[-*]|\d+[.)])\s*(?P<label>[a-z0-9&'/-][^:\n]{1,120}?(?:room|suite|villa|residence))\s*(?::|-|$)",
-            re.IGNORECASE | re.MULTILINE,
-        )
-        pattern = re.compile(
-            r"\b((?:[a-z0-9&'/-]+\s+){0,5}(?:room|suite|villa|residence))\b",
-            re.IGNORECASE,
-        )
-        blocked = {"room", "suite", "villa", "residence", "selected room"}
-
-        def _add_candidate(raw_candidate: str) -> None:
-            clean = re.sub(r"\s+", " ", str(raw_candidate or "").strip())
-            clean = clean.strip(" .,:;!?'\"")
-            clean = re.sub(
-                r"^(?:we\s+have|we\s+offer|we\s+offers|available|our|the|option|options)\s+",
-                "",
-                clean,
-                flags=re.IGNORECASE,
-            ).strip()
-            clean = re.sub(r"^(?:and)\s+", "", clean, flags=re.IGNORECASE).strip()
-            lower = clean.lower()
-            if not clean or lower in blocked:
-                return
-            token_count = len(re.findall(r"[a-z0-9]+", lower))
-            if token_count < 2 or token_count > 8:
-                return
-            if self._is_generic_room_reference(clean):
-                return
-            key = self._normalize_room_type_label(lower)
-            if not key or key in seen:
-                return
-            seen.add(key)
-            candidates.append(clean)
-
-        for msg in reversed(conversation_context.messages):
-            if msg.role != MessageRole.ASSISTANT:
-                continue
-            content = str(msg.content or "")
-            if not content:
-                continue
-            has_structured_candidates = False
-            structured_match_found = False
-            for match in structured_pattern.finditer(content):
-                structured_match_found = True
-                count_before = len(candidates)
-                _add_candidate(str(match.group("label") or ""))
-                if len(candidates) > count_before:
-                    has_structured_candidates = True
-            for match in list_line_pattern.finditer(content):
-                structured_match_found = True
-                count_before = len(candidates)
-                _add_candidate(str(match.group("label") or ""))
-                if len(candidates) > count_before:
-                    has_structured_candidates = True
-            # If a message already contains structured room labels, skip broad regex
-            # extraction for that message to avoid prompt-fragment candidates.
-            if not has_structured_candidates and not structured_match_found:
-                for raw_candidate in pattern.findall(content):
-                    _add_candidate(str(raw_candidate or ""))
-
-        # Keep latest-message ordering but remove overly broad catches.
-        filtered: list[str] = []
-        for candidate in candidates:
-            lower = candidate.lower()
-            if any(
-                marker in lower
-                for marker in (
-                    "room booking",
-                    "book a room",
-                    "room request",
-                    "selected room",
-                    "preferred room",
-                    "specific room",
-                    "each room",
-                    "here are the room",
-                    "help with your room",
-                )
-            ):
-                continue
-            filtered.append(candidate)
-        return filtered
+        # Room type candidates are now managed by the LLM via service_knowledge
+        # (extracted from KB at upload time). No regex extraction from history needed.
+        return []
 
     @staticmethod
     def _is_bot_instruction_style_action(action_text: str) -> bool:
@@ -9768,6 +11620,8 @@ class ChatService:
         if self._is_room_booking_pending_action(pending_action):
             # Keep room-booking slot context active for room-detail/room-option
             # follow-ups so the user doesn't lose collected booking data.
+            if self._looks_like_problem_report(msg_lower):
+                return True
             if self._looks_like_room_booking_detail_followup(msg_lower):
                 return False
             if self._looks_like_room_options_information_query(msg_lower):
@@ -9814,9 +11668,34 @@ class ChatService:
         pending_owner = _PENDING_ACTION_TO_INTENT.get(pending_action)
         if pending_owner and intent_result.intent not in {IntentType.UNCLEAR, pending_owner}:
             return True
+        if self._looks_like_problem_report(msg_lower):
+            return True
         if self._looks_like_information_query(msg_lower):
             return True
         return False
+
+    def _should_interrupt_pending_flow_for_user_query(
+        self,
+        *,
+        message: str,
+        context: ConversationContext,
+        capabilities_summary: dict,
+    ) -> bool:
+        """
+        Lightweight interruption check for deterministic user-query shortcuts.
+        Uses content heuristics without forcing intent mismatch interruption.
+        """
+        synthetic_intent = IntentResult(
+            intent=IntentType.UNCLEAR,
+            confidence=0.5,
+            entities={},
+        )
+        return self._should_interrupt_pending_flow(
+            message=message,
+            intent_result=synthetic_intent,
+            context=context,
+            capabilities_summary=capabilities_summary,
+        )
 
     @staticmethod
     def _looks_like_service_selection(msg_lower: str, capabilities_summary: dict) -> bool:
@@ -9869,7 +11748,12 @@ class ChatService:
         if isinstance(pending_draft, dict) and pending_draft:
             internal_pending_entries[_INTERNAL_PENDING_TICKET_DRAFT_KEY] = dict(pending_draft)
 
-        skip_reason = str(meta.get("ticket_create_skip_reason") or "").strip().lower()
+        skip_reason = str(
+            meta.get("ticket_skip_reason")
+            or meta.get("ticket_create_skip_reason")
+            or meta.get("ticketing_skip_reason")
+            or ""
+        ).strip().lower()
         if skip_reason == "missing_required_details":
             missing_fields = {
                 str(field).strip().lower()
@@ -9907,7 +11791,12 @@ class ChatService:
         entities: dict[str, Any] | None = None,
     ) -> str:
         meta = ticket_meta if isinstance(ticket_meta, dict) else {}
-        if str(meta.get("ticket_create_skip_reason") or "").strip().lower() != "missing_required_details":
+        if str(
+            meta.get("ticket_skip_reason")
+            or meta.get("ticket_create_skip_reason")
+            or meta.get("ticketing_skip_reason")
+            or ""
+        ).strip().lower() != "missing_required_details":
             return str(response_text or "").strip()
 
         resolved_phase = self._resolve_current_ticketing_phase(
@@ -10311,6 +12200,11 @@ class ChatService:
             response_text = f"{prefix}\n\n{handler_result.response_text}"
         else:
             response_text = handler_result.response_text
+        response_text, resume_actions = self._append_resume_checkpoint(
+            response_text=response_text,
+            context=context,
+            pending_interrupted=pending_interrupted,
+        )
 
         assistant_metadata = {
             "intent": escalation_intent.intent.value,
@@ -10338,9 +12232,9 @@ class ChatService:
         memory_snapshot = conversation_memory_service.get_snapshot(context)
 
         if handler_result.suggested_actions:
-            suggested_actions = handler_result.suggested_actions
+            suggested_actions = resume_actions + handler_result.suggested_actions
         else:
-            suggested_actions = list(service_match.get("suggested_actions") or [])
+            suggested_actions = resume_actions + list(service_match.get("suggested_actions") or [])
         suggested_actions = self._finalize_user_query_suggestions(
             suggested_actions,
             state=next_state,
@@ -10357,6 +12251,8 @@ class ChatService:
             "routing_score": 1.0,
             "routing_signals": {"path": routing_path_tag},
             "pending_interrupted": pending_interrupted,
+            "resume_checkpoint": bool(resume_actions),
+            "parked_task_available": self._peek_parked_task(context) is not None,
             "service_catalog_match": True,
             "service_id": service_match.get("service_id"),
             "service_match_type": service_match.get("match_type"),
@@ -10466,12 +12362,90 @@ class ChatService:
     def _looks_like_information_query(msg_lower: str) -> bool:
         if "?" in msg_lower:
             return True
-        tokens = re.findall(r"[a-z]+", msg_lower)
+        normalized = re.sub(r"\s+", " ", str(msg_lower or "").strip().lower())
+        if not normalized:
+            return False
+        if ChatService._looks_like_imperative_information_request(normalized):
+            return True
+        tokens = re.findall(r"[a-z]+", normalized)
         if not tokens:
             return False
         if tokens[0] in _INFORMATION_QUERY_PREFIXES:
             return True
-        return any(token in msg_lower for token in ("timing", "hours", "price", "cost", "available"))
+        return any(
+            token in normalized
+            for token in (
+                "timing",
+                "hours",
+                "price",
+                "cost",
+                "available",
+                "address",
+                "location",
+            )
+        )
+
+    @staticmethod
+    def _looks_like_imperative_information_request(msg_lower: str) -> bool:
+        normalized = re.sub(r"\s+", " ", str(msg_lower or "").strip().lower())
+        if not normalized:
+            return False
+        if any(normalized.startswith(prefix) for prefix in _INFORMATION_QUERY_IMPERATIVE_PREFIXES):
+            return True
+        imperative_markers = (
+            "tell me about",
+            "more about",
+            "give me the address",
+            "share the address",
+            "share details",
+            "hotel address",
+        )
+        return any(marker in normalized for marker in imperative_markers)
+
+    @staticmethod
+    def _looks_like_problem_report(msg_lower: str) -> bool:
+        normalized = re.sub(r"\s+", " ", str(msg_lower or "").strip().lower())
+        if not normalized:
+            return False
+        direct_markers = (
+            "booking system",
+            "bookingsystem",
+            "cannot access",
+            "can't access",
+            "cant access",
+            "unable to access",
+            "not able to access",
+        )
+        if any(marker in normalized for marker in direct_markers):
+            return True
+
+        issue_markers = (
+            "not able",
+            "unable",
+            "can't",
+            "cannot",
+            "cant",
+            "issue",
+            "problem",
+            "error",
+            "failed",
+            "not working",
+        )
+        system_markers = (
+            "website",
+            "site",
+            "portal",
+            "system",
+            "app",
+            "booking",
+            "login",
+            "sign in",
+            "signin",
+            "access",
+        )
+        return any(marker in normalized for marker in issue_markers) and any(
+            marker in normalized for marker in system_markers
+        )
 
     def _check_capability_for_intent(
         self,
@@ -10800,7 +12774,17 @@ class ChatService:
 
         asks_business_name = any(
             marker in msg_lower
-            for marker in ("which hotel is this", "hotel name", "which business is this", "where am i")
+            for marker in (
+                "which hotel is this",
+                "hotel name",
+                "which business is this",
+                "where am i",
+                "tell me about your hotel",
+                "tell me about ur hotel",
+                "about your hotel",
+                "about ur hotel",
+                "about this hotel",
+            )
         )
         if asks_business_name:
             business_name = str(capabilities_summary.get("hotel_name") or "our business").strip()
@@ -13308,11 +15292,210 @@ class ChatService:
             "response_text": response_text,
         }
 
-    @staticmethod
-    def _build_ticketing_phase_gate_handler_result(phase_gate: dict[str, Any]) -> HandlerResult:
-        response_text = str(phase_gate.get("response_text") or "").strip()
+    def _phase_services_for_id(
+        self,
+        *,
+        capabilities_summary: dict[str, Any],
+        phase_id: str,
+        limit: int = 6,
+    ) -> list[str]:
+        normalized_phase = self._normalize_phase_identifier(phase_id)
+        if not normalized_phase:
+            return []
+        services = capabilities_summary.get("service_catalog", [])
+        if not isinstance(services, list):
+            return []
+        names: list[str] = []
+        for service in services:
+            if not isinstance(service, dict):
+                continue
+            if not bool(service.get("is_active", True)):
+                continue
+            service_phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+            if service_phase_id != normalized_phase:
+                continue
+            service_name = str(service.get("name") or service.get("id") or "").strip()
+            if not service_name:
+                continue
+            if service_name in names:
+                continue
+            names.append(service_name)
+            if len(names) >= max(1, int(limit or 6)):
+                break
+        return names
+
+    async def _compose_policy_guardrail_response(
+        self,
+        *,
+        user_message: str,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        intent: IntentType,
+        gate_payload: dict[str, Any] | None = None,
+        fallback_text: str = "",
+        response_source: str = "policy_guardrail",
+    ) -> str:
+        gate = gate_payload if isinstance(gate_payload, dict) else {}
+        fallback = self._dedupe_response_sentences(fallback_text) or str(fallback_text or "").strip()
+        if not fallback:
+            fallback = "I can help with services available in your current phase."
+
+        selected_phase = self._get_selected_phase_context(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        current_phase_id = self._normalize_phase_identifier(
+            gate.get("current_phase_id") or selected_phase.get("selected_phase_id")
+        )
+        current_phase_name = str(gate.get("current_phase_name") or selected_phase.get("selected_phase_name") or "").strip()
+        if not current_phase_name and current_phase_id:
+            current_phase_name = self._phase_label(current_phase_id)
+
+        service_phase_id = self._normalize_phase_identifier(gate.get("service_phase_id"))
+        service_phase_name = str(gate.get("service_phase_name") or "").strip()
+        if service_phase_id and not service_phase_name:
+            service_phase_name = self._phase_label(service_phase_id)
+        service_name = str(gate.get("service_name") or gate.get("requested_service") or "This service").strip()
+        timing_hint = self._phase_transition_timing_hint(
+            current_phase_id=current_phase_id,
+            service_phase_id=service_phase_id,
+        )
+
+        available_now = self._phase_services_for_id(
+            capabilities_summary=capabilities_summary,
+            phase_id=current_phase_id,
+            limit=6,
+        )
+        raw_actions = gate.get("suggested_actions")
+        suggested_actions: list[str] = []
+        if isinstance(raw_actions, list):
+            for action in raw_actions:
+                label = str(action or "").strip()
+                if not label:
+                    continue
+                if label.lower() in {"show available services", "ask another question"}:
+                    continue
+                if label not in suggested_actions:
+                    suggested_actions.append(label)
+                if len(suggested_actions) >= 4:
+                    break
+
+        prompt_payload = {
+            "intent": intent.value if isinstance(intent, IntentType) else str(intent),
+            "user_message": str(user_message or "").strip(),
+            "policy_reason_code": str(
+                gate.get("policy_blocked_reason")
+                or gate.get("ticket_skip_reason")
+                or gate.get("code")
+                or ""
+            ).strip(),
+            "current_phase": {
+                "id": current_phase_id,
+                "name": current_phase_name,
+            },
+            "requested_service": {
+                "id": str(gate.get("service_id") or "").strip(),
+                "name": service_name,
+                "target_phase_id": service_phase_id,
+                "target_phase_name": service_phase_name,
+                "timing_hint": timing_hint,
+            },
+            "phase_service_unavailable": bool(gate.get("phase_service_unavailable")),
+            "available_services_now": available_now,
+            "suggested_services_now": suggested_actions,
+        }
+
+        if not str(getattr(settings, "openai_api_key", "") or "").strip():
+            return fallback
+
+        system_prompt = (
+            "You are a hotel concierge assistant composing a policy-guarded reply.\n"
+            "Return plain text only.\n"
+            "Use only the supplied facts.\n"
+            "Do not promise immediate booking/order/ticket actions when blocked.\n"
+            "If service is out of phase, mention current phase and when it becomes available.\n"
+            "Keep response concise, natural, and guest-friendly (2-4 short sentences).\n"
+        )
+        user_prompt = (
+            "Generate the final user response from this JSON policy payload:\n"
+            f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+        )
+        model = str(getattr(settings, "chat_llm_response_surface_model", "") or "").strip() or None
+        base_temperature = float(getattr(settings, "chat_llm_response_surface_temperature", 0.35) or 0.35)
+        temperature = max(0.2, min(0.8, base_temperature + 0.1))
+        max_tokens = max(120, int(getattr(settings, "chat_llm_response_surface_max_tokens", 420) or 420))
+
+        try:
+            rendered = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                model=model,
+                temperature=temperature,
+                max_tokens=min(max_tokens, 260),
+            )
+        except Exception:
+            return fallback
+
+        candidate = self._dedupe_response_sentences(rendered) or str(rendered or "").strip()
+        if not candidate:
+            return fallback
+
+        validation_intent = intent if isinstance(intent, IntentType) else IntentType.FAQ
+        validation = response_validator.validate(
+            response_text=candidate,
+            intent_result=IntentResult(intent=validation_intent, confidence=0.82, entities={}),
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=True,
+            capability_reason="",
+        )
+        if validation.valid:
+            return candidate
+
+        if validation.action == "replace" and validation.replacement_response:
+            safe = self._dedupe_response_sentences(validation.replacement_response) or str(
+                validation.replacement_response or ""
+            ).strip()
+            if safe and bool(getattr(settings, "chat_no_template_response_mode", False)):
+                rewritten_safe, _ = await self._maybe_llm_rewrite_response(
+                    response_text=safe,
+                    user_message=user_message,
+                    intent_result=IntentResult(intent=validation_intent, confidence=0.82, entities={}),
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    capability_check_allowed=True,
+                    capability_reason="",
+                    response_source=response_source,
+                    validator_replaced=True,
+                )
+                safe = self._dedupe_response_sentences(rewritten_safe) or str(rewritten_safe or "").strip() or safe
+            return safe or fallback
+
+        return fallback
+
+    async def _build_ticketing_phase_gate_handler_result(
+        self,
+        phase_gate: dict[str, Any],
+        *,
+        user_message: str,
+        intent: IntentType,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+    ) -> HandlerResult:
+        response_text = await self._compose_policy_guardrail_response(
+            user_message=user_message,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            intent=intent,
+            gate_payload=phase_gate,
+            fallback_text="",
+            response_source="ticketing_phase_gate",
+        )
         if not response_text:
-            response_text = "This service is not available in the current phase."
+            response_text = "I can help with services available in your current phase."
         response_text = ChatService._dedupe_response_sentences(response_text) or response_text
         raw_actions = phase_gate.get("suggested_actions")
         suggestions: list[str] = []
@@ -14034,7 +16217,7 @@ class ChatService:
 
         return response
 
-    def _apply_full_kb_response_validation(
+    async def _apply_full_kb_response_validation(
         self,
         *,
         response_text: str,
@@ -14072,9 +16255,34 @@ class ChatService:
             capability_reason=capability_check.reason,
         )
         issue_codes = [str(issue.code) for issue in (validation.issues or []) if getattr(issue, "code", None)]
+        validator_replaced = False
+        final_response_text = str(response_text or "").strip()
         if not validation.valid and validation.action == "replace" and validation.replacement_response:
-            return validation.replacement_response, True, issue_codes, capability_check.allowed
-        return response_text, False, issue_codes, capability_check.allowed
+            final_response_text = str(validation.replacement_response or "").strip()
+            validator_replaced = True
+        final_response_text, rewrite_meta = await self._maybe_llm_rewrite_response(
+            response_text=final_response_text,
+            user_message=request_message,
+            intent_result=validation_intent,
+            context=context,
+            capabilities_summary=capabilities_summary,
+            capability_check_allowed=capability_check.allowed,
+            capability_reason=capability_check.reason,
+            response_source="full_kb_llm",
+            validator_replaced=validator_replaced,
+        )
+        if bool(rewrite_meta.get("llm_surface_rewrite_validator_replaced")):
+            validator_replaced = True
+        rewrite_issue_codes = [
+            str(code).strip()
+            for code in (rewrite_meta.get("llm_surface_rewrite_validation_issues") or [])
+            if str(code).strip()
+        ]
+        combined_issue_codes: list[str] = []
+        for code in [*issue_codes, *rewrite_issue_codes]:
+            if code and code not in combined_issue_codes:
+                combined_issue_codes.append(code)
+        return final_response_text, validator_replaced, combined_issue_codes, capability_check.allowed
 
     async def _classify_intent(
         self,
@@ -14431,6 +16639,515 @@ class ChatService:
             if len(deduped) >= 4:
                 break
         return deduped or ["Ask another question", "Talk to human"]
+
+    def _ensure_internal_task_state(self, context: ConversationContext) -> dict[str, Any]:
+        """Ensure diversion task-state payload exists in internal pending data."""
+        if not isinstance(context.pending_data, dict):
+            context.pending_data = {}
+        state = context.pending_data.get(_INTERNAL_TASK_STATE_KEY)
+        if not isinstance(state, dict):
+            state = {}
+
+        parked_tasks = state.get("parked_tasks")
+        if not isinstance(parked_tasks, list):
+            parked_tasks = []
+        normalized_parked: list[dict[str, Any]] = []
+        for item in parked_tasks:
+            if isinstance(item, dict):
+                normalized_parked.append(dict(item))
+
+        active_task = state.get("active_task")
+        if not isinstance(active_task, dict):
+            active_task = None
+
+        normalized = {
+            "version": int(state.get("version") or 1),
+            "active_task": dict(active_task) if isinstance(active_task, dict) else None,
+            "parked_tasks": normalized_parked[:_MAX_PARKED_TASKS],
+            "updated_at": str(state.get("updated_at") or datetime.now(UTC).isoformat()),
+        }
+        context.pending_data[_INTERNAL_TASK_STATE_KEY] = normalized
+        return normalized
+
+    @staticmethod
+    def _public_pending_data(context: ConversationContext) -> dict[str, Any]:
+        pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        return {
+            key: value
+            for key, value in pending.items()
+            if isinstance(key, str) and not key.startswith("_")
+        }
+
+    def _active_task_summary_text(
+        self,
+        *,
+        pending_action: str | None,
+        pending_data: dict[str, Any],
+    ) -> str:
+        service_name = str(
+            pending_data.get("service_name")
+            or pending_data.get("restaurant_name")
+            or pending_data.get("service")
+            or ""
+        ).strip()
+        issue_text = str(
+            pending_data.get("issue")
+            or pending_data.get("ticket_issue")
+            or pending_data.get("request")
+            or ""
+        ).strip()
+        item_name = str(
+            pending_data.get("order_item")
+            or pending_data.get("item_name")
+            or ""
+        ).strip()
+        if service_name:
+            return f"your {service_name} request"
+        if issue_text:
+            return issue_text[:120]
+        if item_name:
+            return f"your {item_name} request"
+        action_label = str(pending_action or "").strip().replace("_", " ")
+        if action_label:
+            return f"your {action_label} flow"
+        return "your previous request"
+
+    def _sync_active_task_snapshot(
+        self,
+        *,
+        context: ConversationContext,
+        selected_phase_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Keep internal active_task aligned with current pending flow."""
+        task_state = self._ensure_internal_task_state(context)
+        if not str(context.pending_action or "").strip():
+            task_state["active_task"] = None
+            task_state["updated_at"] = datetime.now(UTC).isoformat()
+            context.pending_data[_INTERNAL_TASK_STATE_KEY] = task_state
+            return task_state
+
+        pending_public = self._public_pending_data(context)
+        phase_ctx = selected_phase_context if isinstance(selected_phase_context, dict) else {}
+        task_state["active_task"] = {
+            "pending_action": str(context.pending_action or "").strip(),
+            "pending_data": dict(pending_public),
+            "state": context.state.value,
+            "phase_id": str(phase_ctx.get("selected_phase_id") or "").strip(),
+            "phase_name": str(phase_ctx.get("selected_phase_name") or "").strip(),
+            "summary": self._active_task_summary_text(
+                pending_action=context.pending_action,
+                pending_data=pending_public,
+            ),
+            "updated_at": datetime.now(UTC).isoformat(),
+        }
+        task_state["updated_at"] = datetime.now(UTC).isoformat()
+        context.pending_data[_INTERNAL_TASK_STATE_KEY] = task_state
+        return task_state
+
+    def _park_active_task(
+        self,
+        *,
+        context: ConversationContext,
+        selected_phase_context: dict[str, Any] | None = None,
+        reason: str = "topic_diversion",
+        user_message: str = "",
+    ) -> dict[str, Any] | None:
+        """Suspend current pending flow into parked task queue."""
+        task_state = self._sync_active_task_snapshot(
+            context=context,
+            selected_phase_context=selected_phase_context or {},
+        )
+        active_task = task_state.get("active_task")
+        if not isinstance(active_task, dict):
+            return None
+
+        parked_task = dict(active_task)
+        parked_task["reason"] = str(reason or "topic_diversion")
+        parked_task["diversion_message"] = str(user_message or "").strip()[:280]
+        parked_task["parked_at"] = datetime.now(UTC).isoformat()
+
+        parked_tasks = [
+            dict(item)
+            for item in (task_state.get("parked_tasks") or [])
+            if isinstance(item, dict)
+        ]
+        parked_tasks.insert(0, parked_task)
+        deduped: list[dict[str, Any]] = []
+        seen_keys: set[str] = set()
+        for item in parked_tasks:
+            key = json.dumps(
+                {
+                    "pending_action": str(item.get("pending_action") or ""),
+                    "pending_data": item.get("pending_data") if isinstance(item.get("pending_data"), dict) else {},
+                },
+                sort_keys=True,
+                ensure_ascii=False,
+            )
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            deduped.append(item)
+            if len(deduped) >= _MAX_PARKED_TASKS:
+                break
+
+        task_state["active_task"] = None
+        task_state["parked_tasks"] = deduped
+        task_state["updated_at"] = datetime.now(UTC).isoformat()
+
+        internal_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        internal_entries[_INTERNAL_TASK_STATE_KEY] = task_state
+        context.pending_action = None
+        context.pending_data = conversation_memory_service.merge_with_internal({}, internal_entries)
+        context.pending_data.pop("_clarification_attempts", None)
+        context.state = ConversationState.IDLE
+        return parked_task
+
+    def _peek_parked_task(self, context: ConversationContext) -> dict[str, Any] | None:
+        task_state = self._ensure_internal_task_state(context)
+        for item in task_state.get("parked_tasks", []):
+            if isinstance(item, dict):
+                return dict(item)
+        return None
+
+    def _restore_parked_task(self, context: ConversationContext) -> dict[str, Any] | None:
+        """Resume the most recently parked task."""
+        task_state = self._ensure_internal_task_state(context)
+        parked_tasks = [
+            dict(item)
+            for item in (task_state.get("parked_tasks") or [])
+            if isinstance(item, dict)
+        ]
+        if not parked_tasks:
+            return None
+
+        task = parked_tasks.pop(0)
+        pending_action = str(task.get("pending_action") or "").strip()
+        pending_public = task.get("pending_data")
+        if not isinstance(pending_public, dict):
+            pending_public = {}
+
+        internal_entries = conversation_memory_service.internal_pending_entries(context.pending_data)
+        task_state["parked_tasks"] = parked_tasks
+        task_state["active_task"] = dict(task)
+        task_state["updated_at"] = datetime.now(UTC).isoformat()
+        internal_entries[_INTERNAL_TASK_STATE_KEY] = task_state
+
+        context.pending_action = pending_action or None
+        context.pending_data = conversation_memory_service.merge_with_internal(
+            dict(pending_public),
+            internal_entries,
+        )
+
+        restored_state_raw = str(task.get("state") or "").strip().lower().replace("-", "_")
+        try:
+            restored_state = ConversationState(restored_state_raw)
+        except Exception:
+            restored_state = ConversationState.AWAITING_INFO
+        context.state = restored_state
+        return task
+
+    def _cancel_parked_task(self, context: ConversationContext) -> dict[str, Any] | None:
+        """Discard the most recently parked task."""
+        task_state = self._ensure_internal_task_state(context)
+        parked_tasks = [
+            dict(item)
+            for item in (task_state.get("parked_tasks") or [])
+            if isinstance(item, dict)
+        ]
+        if not parked_tasks:
+            return None
+        task = parked_tasks.pop(0)
+        task_state["parked_tasks"] = parked_tasks
+        task_state["updated_at"] = datetime.now(UTC).isoformat()
+        context.pending_data[_INTERNAL_TASK_STATE_KEY] = task_state
+        return task
+
+    @staticmethod
+    def _is_resume_task_request(message: str) -> bool:
+        compact = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        if not compact:
+            return False
+        if compact in _RESUME_TASK_MARKERS:
+            return True
+        return compact.startswith("resume ")
+
+    @staticmethod
+    def _is_cancel_task_request(message: str) -> bool:
+        compact = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        if not compact:
+            return False
+        if compact in _CANCEL_TASK_MARKERS:
+            return True
+        return compact in {"cancel pending", "cancel pending task", "cancel"}
+
+    def _should_auto_resume_parked_task(
+        self,
+        *,
+        message: str,
+        parked_task: dict[str, Any],
+        capabilities_summary: dict[str, Any],
+    ) -> bool:
+        """
+        Resume a parked task when user naturally returns with task-specific details.
+        """
+        msg_lower = re.sub(r"\s+", " ", str(message or "").strip().lower())
+        if not msg_lower:
+            return False
+        if self._is_resume_task_request(msg_lower) or self._is_cancel_task_request(msg_lower):
+            return False
+        if self._looks_like_information_query(msg_lower):
+            return False
+        if self._looks_like_problem_report(msg_lower):
+            return False
+
+        pending_action = str(parked_task.get("pending_action") or "").strip().lower()
+        if not pending_action:
+            return False
+        pending_data = parked_task.get("pending_data")
+        if not isinstance(pending_data, dict):
+            pending_data = {}
+
+        if self._is_room_booking_pending_action(pending_action):
+            if self._looks_like_room_booking_detail_followup(msg_lower):
+                return True
+            if self._looks_like_room_type_preference_reply(msg_lower):
+                return True
+            if self._looks_like_room_stay_booking_request(msg_lower):
+                return True
+            return bool(
+                "?" not in msg_lower
+                and re.search(r"\b(room|suite|stay|check in|check-in|check out|check-out|guest|guests)\b", msg_lower)
+            )
+
+        if pending_action in {"select_service", "select_restaurant"}:
+            if self._looks_like_service_selection(msg_lower, capabilities_summary):
+                return True
+            known_service = str(
+                pending_data.get("service_name")
+                or pending_data.get("restaurant_name")
+                or pending_data.get("service")
+                or ""
+            ).strip().lower()
+            if known_service and (known_service in msg_lower or msg_lower in known_service):
+                return True
+            return False
+
+        if pending_action == "collect_booking_party_size":
+            return self._looks_like_party_size_reply(msg_lower)
+        if pending_action == "collect_booking_time":
+            return self._looks_like_time_reply(msg_lower)
+        if pending_action in {"collect_ticket_room_number", "awaiting_room_number"}:
+            return self._looks_like_room_number_reply(msg_lower)
+        if pending_action in {"collect_ticket_issue_details", "collect_ticket_update_note"}:
+            return self._looks_like_ticket_update_note(msg_lower)
+        if pending_action == "collect_ticket_identity_details":
+            return self._looks_like_ticket_identity_details_reply(msg_lower)
+        if pending_action == "awaiting_request_detail":
+            return self._looks_like_room_service_detail(msg_lower)
+        if pending_action == "collect_transport_details":
+            return self._looks_like_transport_detail(msg_lower)
+        if pending_action == "collect_service_details":
+            return self._looks_like_service_detail_reply(msg_lower)
+
+        if pending_action.startswith("confirm_"):
+            return msg_lower in {"yes", "yes confirm", "confirm", "no", "cancel"}
+
+        return False
+
+    def _append_resume_checkpoint(
+        self,
+        *,
+        response_text: str,
+        context: ConversationContext,
+        pending_interrupted: bool,
+    ) -> tuple[str, list[str]]:
+        """Add resume/cancel checkpoint after a diversion answer."""
+        if not pending_interrupted:
+            return response_text, []
+        parked_task = self._peek_parked_task(context)
+        if parked_task is None:
+            return response_text, []
+        summary = str(
+            parked_task.get("summary")
+            or self._active_task_summary_text(
+                pending_action=parked_task.get("pending_action"),
+                pending_data=parked_task.get("pending_data")
+                if isinstance(parked_task.get("pending_data"), dict)
+                else {},
+            )
+        ).strip()
+        checkpoint_line = (
+            f"Shall we continue with {summary}? "
+            "Reply 'resume' to continue or 'cancel pending' to drop it."
+        )
+        current_text = str(response_text or "").strip()
+        if checkpoint_line.lower() in current_text.lower():
+            return current_text, ["resume", "cancel pending"]
+        if current_text:
+            current_text = f"{current_text}\n\n{checkpoint_line}"
+        else:
+            current_text = checkpoint_line
+        return current_text, ["resume", "cancel pending"]
+
+    def _infer_context_missing_slots(
+        self,
+        *,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+    ) -> list[str]:
+        pending_public = self._public_pending_data(context)
+        missing: list[str] = []
+        if context.state == ConversationState.AWAITING_INFO and context.pending_action:
+            missing.append(str(context.pending_action))
+
+        target_service_id = self._normalize_service_identifier(
+            pending_public.get("service_id")
+            or pending_public.get("target_service_id")
+            or pending_public.get("resolved_service_id")
+        )
+        if not target_service_id:
+            return missing
+
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            return missing
+        target_service = next(
+            (
+                service
+                for service in service_catalog
+                if isinstance(service, dict)
+                and self._normalize_service_identifier(service.get("id")) == target_service_id
+            ),
+            None,
+        )
+        if not isinstance(target_service, dict):
+            return missing
+        prompt_pack = target_service.get("service_prompt_pack")
+        if not isinstance(prompt_pack, dict):
+            return missing
+        required_slots = prompt_pack.get("required_slots")
+        if not isinstance(required_slots, list):
+            return missing
+        for slot in required_slots:
+            if not isinstance(slot, dict):
+                continue
+            if not bool(slot.get("required", True)):
+                continue
+            slot_id = str(slot.get("id") or "").strip()
+            if not slot_id:
+                continue
+            if str(pending_public.get(slot_id) or "").strip():
+                continue
+            missing.append(slot_id)
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for item in missing:
+            key = str(item or "").strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(str(item))
+        return deduped[:8]
+
+    def _build_llm_context_pack(
+        self,
+        *,
+        context: ConversationContext,
+        capabilities_summary: dict[str, Any],
+        selected_phase_context: dict[str, Any],
+        memory_snapshot: dict[str, Any],
+        user_message: str,
+    ) -> dict[str, Any]:
+        phase_id = self._normalize_phase_identifier(selected_phase_context.get("selected_phase_id"))
+        phase_name = str(selected_phase_context.get("selected_phase_name") or "").strip()
+
+        service_catalog = capabilities_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            service_catalog = []
+        phase_services: list[dict[str, Any]] = []
+        ticketing_enabled_by_service: dict[str, bool] = {}
+        for service in service_catalog:
+            if not isinstance(service, dict):
+                continue
+            service_id = self._normalize_service_identifier(service.get("id"))
+            if not service_id:
+                continue
+            ticketing_enabled = bool(service.get("ticketing_enabled", True))
+            ticketing_enabled_by_service[service_id] = ticketing_enabled
+            service_phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+            if phase_id and service_phase_id and service_phase_id != phase_id:
+                continue
+            phase_services.append(
+                {
+                    "id": service_id,
+                    "name": str(service.get("name") or service_id).strip(),
+                    "type": str(service.get("type") or "service").strip(),
+                    "ticketing_enabled": ticketing_enabled,
+                }
+            )
+
+        stay_window = self._resolve_known_stay_window(
+            context=context,
+            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
+            entities={},
+        )
+        stay_window_payload: dict[str, Any] = {"available": False}
+        if stay_window is not None:
+            stay_window_payload = {
+                "available": True,
+                "check_in": self._format_calendar_date_label(stay_window[0]),
+                "check_out": self._format_calendar_date_label(stay_window[1]),
+            }
+
+        memory_facts = memory_snapshot.get("facts", {}) if isinstance(memory_snapshot, dict) else {}
+        if not isinstance(memory_facts, dict):
+            memory_facts = {}
+        recent_goal = str(
+            memory_facts.get("last_user_topic")
+            or memory_facts.get("latest_user_request")
+            or user_message
+            or ""
+        ).strip()
+        flow_type = "information"
+        if context.pending_action or context.state in {
+            ConversationState.AWAITING_CONFIRMATION,
+            ConversationState.AWAITING_INFO,
+            ConversationState.AWAITING_SELECTION,
+            ConversationState.PROCESSING_ORDER,
+        }:
+            flow_type = "transactional"
+
+        return {
+            "current_phase": {"id": phase_id, "name": phase_name},
+            "active_flow": {
+                "state": context.state.value,
+                "type": flow_type,
+            },
+            "pending_action": str(context.pending_action or "").strip(),
+            "missing_slots": self._infer_context_missing_slots(
+                context=context,
+                capabilities_summary=capabilities_summary,
+            ),
+            "recent_user_goal": recent_goal[:180],
+            "phase_services": phase_services[:30],
+            "ticketing_enabled_by_service": ticketing_enabled_by_service,
+            "stay_window": stay_window_payload,
+            "current_time": datetime.now(UTC).isoformat(),
+        }
+
+    @staticmethod
+    def _apply_ticket_metadata_contract(metadata: dict[str, Any]) -> dict[str, Any]:
+        """Normalize ticket metadata keys across runtime paths."""
+        normalized = dict(metadata or {})
+        ticket_skip_reason = str(normalized.get("ticket_skip_reason") or "").strip()
+        if not ticket_skip_reason:
+            ticket_skip_reason = str(normalized.get("ticket_create_skip_reason") or "").strip()
+        if not ticket_skip_reason:
+            ticket_skip_reason = str(normalized.get("ticketing_skip_reason") or "").strip()
+        if ticket_skip_reason:
+            normalized["ticket_skip_reason"] = ticket_skip_reason
+            normalized.setdefault("ticket_created", False)
+        return normalized
 
     def _ingest_request_metadata(self, context: ConversationContext, request: ChatRequest) -> None:
         """

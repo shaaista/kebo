@@ -74,6 +74,26 @@ class FullKBLLMService:
     def _normalize_phase_identifier(value: Any) -> str:
         return re.sub(r"[^a-z0-9]+", "_", str(value or "").strip().lower()).strip("_")
 
+    @staticmethod
+    def _phase_transition_timing_hint(current_phase_id: str, service_phase_id: str) -> str:
+        current_norm = re.sub(r"[^a-z0-9]+", "_", str(current_phase_id or "").strip().lower()).strip("_")
+        service_norm = re.sub(r"[^a-z0-9]+", "_", str(service_phase_id or "").strip().lower()).strip("_")
+        if not current_norm or not service_norm or current_norm == service_norm:
+            return ""
+        if current_norm == "pre_booking":
+            if service_norm == "pre_checkin":
+                return "after your booking is confirmed"
+            if service_norm in {"during_stay", "post_checkout"}:
+                return "after check-in"
+        if current_norm == "pre_checkin":
+            if service_norm == "during_stay":
+                return "once you check in"
+            if service_norm == "post_checkout":
+                return "after checkout"
+        if current_norm == "during_stay" and service_norm == "post_checkout":
+            return "after checkout"
+        return ""
+
     def _phase_label(self, phase_id: str, capabilities_summary: dict[str, Any]) -> str:
         normalized = self._normalize_phase_identifier(phase_id)
         if not normalized:
@@ -807,6 +827,36 @@ class FullKBLLMService:
                 for tool in admin_tools
                 if str(tool.get("type") or "").strip().lower() in {"workflow", "handoff", "automation", "plugin"}
             ]
+            current_phase_allowed_services: list[dict[str, Any]] = []
+            out_of_phase_services: list[dict[str, Any]] = []
+            for service in admin_services:
+                if not isinstance(service, dict):
+                    continue
+                if not bool(service.get("is_active", True)):
+                    continue
+                service_id = str(service.get("id") or "").strip()
+                if not service_id:
+                    continue
+                service_phase_id = self._normalize_phase_identifier(service.get("phase_id"))
+                service_phase_name = str(service.get("phase_name") or self._phase_label(service_phase_id, capabilities_summary)).strip()
+                row = {
+                    "id": service_id,
+                    "name": str(service.get("name") or service_id).strip(),
+                    "phase_id": service_phase_id,
+                    "phase_name": service_phase_name,
+                    "ticketing_enabled": bool(service.get("ticketing_enabled", True)),
+                }
+                if service_phase_id == selected_phase_id:
+                    current_phase_allowed_services.append(row)
+                elif service_phase_id:
+                    row["availability_hint"] = self._phase_transition_timing_hint(selected_phase_id, service_phase_id)
+                    out_of_phase_services.append(row)
+            phase_service_policy = {
+                "current_phase_id": selected_phase_id,
+                "current_phase_name": selected_phase_name,
+                "allowed_services": current_phase_allowed_services[:120],
+                "blocked_out_of_phase_services": out_of_phase_services[:180],
+            }
 
             admin_config = {
                 "business_profile": {
@@ -846,6 +896,7 @@ class FullKBLLMService:
                     "id": selected_phase_id,
                     "name": selected_phase_name,
                 },
+                "phase_service_policy": phase_service_policy,
             }
 
             llm_input = {
@@ -911,12 +962,16 @@ class FullKBLLMService:
                 "If KB text conflicts with ADMIN CONFIG operational settings, prefer ADMIN CONFIG and communicate uncertainty politely.\n\n"
                 "Conversation behavior requirements:\n"
                 "0) Enforce selected phase context from selected_phase_id/selected_phase_name for action availability and ticketing behavior.\n"
+                "0.1) Treat admin_config.phase_service_policy.allowed_services as the only executable services in the current phase.\n"
+                "0.2) For services in admin_config.phase_service_policy.blocked_out_of_phase_services: do not execute booking/order/ticket flow.\n"
+                "0.3) For out-of-phase asks, clearly state the target availability phase and keep action non-transactional for this turn.\n"
                 "1) Normalize user typos mentally and output normalized_query.\n"
                 "2) Understand multi-turn context from current_state, pending_action, pending_data, complete chat history, and memory.\n"
                 "2.1) Use service-agent reasoning from admin_config.service_agent_prompts: identify which service agent(s) own each ask, answer each ask with the relevant agent instruction, then return one combined user response.\n"
                 "2.2) When an actionable request maps to a configured service, set service_id to that exact admin service id and keep pending_data.service_id aligned.\n"
                 "2.2.1) service_id must be an exact value from admin_config.services[].id (never a generic word).\n"
                 "2.2.2) For any request that needs service action/routing (including out-of-phase asks), set service_id explicitly. Leave service_id empty only for pure information asks.\n"
+                "2.2.3) Service_id is the primary routing signal. Intent label is secondary metadata and must not contradict chosen service_id.\n"
                 "2.3) For service-specific facts (timings, amenities, inclusions, pricing, policies), use admin_config.service_knowledge_packs facts for that service first. "
                 "If pack facts are missing for that detail, clearly state unavailable instead of guessing.\n"
                 "3) Handle flows naturally (ordering, bookings, support, FAQs).\n"
@@ -936,8 +991,11 @@ class FullKBLLMService:
                 "10.5) For nearby sightseeing/location asks around this hotel, provide the best available nearby guidance from KB/context; if exact detail is missing, state that clearly and still provide useful local direction.\n"
                 "10.6) If a user asks multiple questions in one message, answer each ask in one combined response (do not ignore any part).\n"
                 "10.7) For out-of-phase services, keep tone sales-friendly: confirm the hotel offers the service and clearly state when it becomes available (for example, after check-in).\n"
+                "10.8) Never list menus/options as immediately orderable for an out-of-phase service.\n"
                 "11) If user chooses one branch of a prior question, advance that branch; do not repeat the same choice question.\n"
                 "11.1) During an active booking flow, if the user asks an informational follow-up (for example room options/types/details), answer it from KB first and keep booking pending_action context.\n"
+                "11.2) Never block a direct informational answer only because transactional slots are incomplete.\n"
+                "11.3) Ask for missing transactional details only after answering the current ask.\n"
                 "12) suggested_actions must be user-askable prompts, not bot instructions (avoid 'Provide/Specify/Enter').\n"
                 "13) Provide 3-5 short, context-relevant suggested_actions for UI chips.\n"
                 "14) If user asks to show/list/recommend/options (including follow-ups like 'show more'), return the complete matching option set from KB, not a sample subset.\n"
@@ -946,6 +1004,7 @@ class FullKBLLMService:
                 "17) Keep responses clear. Be concise for normal Q&A, but be exhaustive when user explicitly asks for options/lists/recommendations.\n\n"
                 "17.1) If user asks for treatments/packages/options/details, answer directly with concrete details from KB first. Do not respond with another clarifying question unless required data is missing in KB.\n"
                 "17.2) Avoid repetitive generic phrasing across turns. If user repeats/clarifies, progress the answer with new specifics.\n\n"
+                "17.5) If only one follow-up is needed, ask exactly one concise follow-up question at the end of the answer.\n\n"
                 "17.3) Memory/profile updates or recall asks (for example 'remember my room', 'call me Sam') are FAQ context updates, not service actions.\n"
                 "17.4) Informational policy/privacy/security asks (for example card data retention) stay FAQ unless user explicitly asks for staff action.\n\n"
                 "18) For order_food, behave like a real concierge and collect required order details before final confirmation.\n"
@@ -969,10 +1028,14 @@ class FullKBLLMService:
                 "31.1) Differentiate room_booking vs room_service carefully:\n"
                 "    - room_booking: stay/reservation/check-in/check-out/room type/pricing/availability intent.\n"
                 "    - room_service: in-stay operational needs (housekeeping, towels, maintenance, amenities, issues).\n\n"
+                "31.2) Operational issue reports (for example cockroach, dirty room, broken AC, no water, maintenance/housekeeping complaints)\n"
+                "      must not be treated as FAQ. Classify as room_service, complaint-style, or human_request depending on requested action.\n\n"
                 "32) Decide ticketing per turn:\n"
                 "    - Set requires_ticket=true only when staff follow-up/action is required (complaints, maintenance/service requests, manual booking/order fulfillment, escalations).\n"
                 "    - Set requires_ticket=false for pure informational replies or when you still need follow-up details before creating a staff task.\n"
                 "    - You may set requires_ticket=true for complaints, room service, order_food, table_booking, room_booking, or faq if human/staff action is required.\n"
+                "    - Set ticket_ready_to_create=true only when ticket details are complete and no further user confirmation/details are pending.\n"
+                "    - Keep ticket_ready_to_create=false while you are still asking follow-up or confirmation questions.\n"
                 "    - Never set requires_ticket=true for a service where admin_config.services[].ticketing_enabled is false.\n"
                 "    - If assistant_response says a ticket was created/raised/escalated/forwarded, requires_ticket must be true with a non-empty ticket_reason.\n"
                 "    - Provide a short ticket_reason when requires_ticket=true.\n\n"
@@ -1004,7 +1067,11 @@ class FullKBLLMService:
                 '  "clear_pending_data": false,\n'
                 '  "room_number": null,\n'
                 '  "service_id": "",\n'
+                '  "answered_current_query": true,\n'
+                '  "blocking_fields": [],\n'
+                '  "deferrable_fields": [],\n'
                 '  "requires_ticket": false,\n'
+                '  "ticket_ready_to_create": false,\n'
                 '  "ticket_reason": "",\n'
                 '  "ticket_category": "",\n'
                 '  "ticket_sub_category": "",\n'

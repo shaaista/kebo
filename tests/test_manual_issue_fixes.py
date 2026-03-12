@@ -208,6 +208,48 @@ def test_pending_flow_keeps_context_for_ticket_identity_reply():
     assert should_interrupt is False
 
 
+def test_pending_flow_interrupts_for_imperative_hotel_info_query():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="interrupt4",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"stay_checkin_date": "Mar 10", "stay_checkout_date": "Mar 12"},
+    )
+    intent = IntentResult(intent=IntentType.TABLE_BOOKING, confidence=0.95, entities={})
+
+    should_interrupt = service._should_interrupt_pending_flow(
+        message="tell me about your hotel",
+        intent_result=intent,
+        context=context,
+        capabilities_summary={"service_catalog": []},
+    )
+
+    assert should_interrupt is True
+
+
+def test_pending_flow_interrupts_for_booking_system_problem_report():
+    service = ChatService()
+    context = ConversationContext(
+        session_id="interrupt5",
+        hotel_code="DEFAULT",
+        state=ConversationState.AWAITING_INFO,
+        pending_action="collect_room_booking_details",
+        pending_data={"stay_checkin_date": "Mar 10", "stay_checkout_date": "Mar 12"},
+    )
+    intent = IntentResult(intent=IntentType.TABLE_BOOKING, confidence=0.95, entities={})
+
+    should_interrupt = service._should_interrupt_pending_flow(
+        message="im not able to access the booking system on the website",
+        intent_result=intent,
+        context=context,
+        capabilities_summary={"service_catalog": []},
+    )
+
+    assert should_interrupt is True
+
+
 def test_finalize_user_query_suggestions_rewrites_bot_side_questions():
     service = ChatService()
     suggestions = [

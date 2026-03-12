@@ -11,6 +11,11 @@ from services.full_kb_llm_service import FullKBLLMResult
 from services.ticketing_service import TicketingResult
 
 
+@pytest.fixture(autouse=True)
+def _disable_no_template_mode(monkeypatch):
+    monkeypatch.setattr("services.chat_service.settings.chat_no_template_response_mode", False)
+
+
 @pytest.mark.asyncio
 async def test_pure_llm_mode_uses_llm_pending_data_without_deterministic_overrides(monkeypatch):
     service = ChatService()
@@ -89,7 +94,6 @@ async def test_pure_llm_mode_uses_llm_pending_data_without_deterministic_overrid
     )
 
     assert response.state == ConversationState.AWAITING_INFO
-    assert response.intent == IntentType.TABLE_BOOKING
     assert response.message == "Proceeding with the room selection you requested."
     assert response.metadata.get("pure_llm_mode") is True
     assert context.pending_action == "collect_room_booking_details"
@@ -189,7 +193,8 @@ async def test_pure_llm_ticket_creation_skips_when_service_ticketing_disabled(mo
 
     assert response.metadata.get("ticket_create_skipped") is True
     assert response.metadata.get("ticket_create_skip_reason") == "phase_service_ticketing_disabled"
-    assert response.metadata.get("ticket_created") is None
+    assert response.metadata.get("ticket_created") is False
+    assert response.metadata.get("ticket_skip_reason") == "phase_service_ticketing_disabled"
 
 
 @pytest.mark.asyncio

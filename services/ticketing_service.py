@@ -96,6 +96,56 @@ class TicketingService:
         "response_json",
     )
 
+    @staticmethod
+    def _ticket_debug_enabled() -> bool:
+        return bool(getattr(settings, "ticketing_debug_log_enabled", True))
+
+    @staticmethod
+    def _ticket_debug_path() -> Path:
+        raw = str(getattr(settings, "ticketing_debug_log_file", "") or "").strip()
+        if not raw:
+            raw = "./logs/ticketing_debug.jsonl"
+        return Path(raw)
+
+    @classmethod
+    def _sanitize_debug_value(cls, value: Any, depth: int = 0) -> Any:
+        if depth > 5:
+            return str(value)[:400]
+        if value is None:
+            return None
+        if isinstance(value, (bool, int, float)):
+            return value
+        if isinstance(value, str):
+            return value[:1800]
+        if isinstance(value, list):
+            return [cls._sanitize_debug_value(item, depth + 1) for item in value[:60]]
+        if isinstance(value, dict):
+            normalized: dict[str, Any] = {}
+            for raw_key, raw_value in list(value.items())[:100]:
+                key = str(raw_key)[:100]
+                normalized[key] = cls._sanitize_debug_value(raw_value, depth + 1)
+            return normalized
+        return str(value)[:1800]
+
+    @classmethod
+    def _write_ticket_debug_event(cls, event: str, **data: Any) -> None:
+        if not cls._ticket_debug_enabled():
+            return
+        path = cls._ticket_debug_path()
+        payload = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "event": str(event or "").strip() or "unknown_event",
+        }
+        for key, value in data.items():
+            payload[str(key)] = cls._sanitize_debug_value(value)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(payload, ensure_ascii=False))
+                handle.write("\n")
+        except Exception:
+            logger.exception("Failed writing ticket debug log event=%s path=%s", event, path)
+
     def is_ticketing_enabled(self, capabilities: dict[str, Any] | None = None) -> bool:
         """Ticketing is enabled only when endpoint exists and tool toggle allows it."""
         if not bool(getattr(settings, "ticketing_plugin_enabled", True)):
@@ -154,12 +204,32 @@ class TicketingService:
 
     async def create_ticket(self, payload: dict[str, Any]) -> TicketingResult:
         """Create a ticket using Lumira-compatible payload contract."""
+        debug_context = {
+            "operation": "create_ticket",
+            "mode": "local" if self._use_local_mode() else "api",
+            "ticketing_base_url": self._ticketing_base_url(),
+            "ticketing_create_path": str(settings.ticketing_create_path or "/insert/ticket.htm").strip(),
+            "local_store_path": str(self._local_store_path()),
+            "local_csv_path": str(self._local_csv_path()),
+        }
+        self._write_ticket_debug_event(
+            "ticket_create_requested",
+            payload=payload,
+            context=debug_context,
+        )
         gate = self.detect_service_ticketing_disabled(payload)
         if gate is not None:
             response_payload = {
                 "skip_reason": "phase_service_ticketing_disabled",
                 **gate,
             }
+            self._write_ticket_debug_event(
+                "ticket_create_blocked",
+                reason="phase_service_ticketing_disabled",
+                gate=gate,
+                payload=payload,
+                context=debug_context,
+            )
             return TicketingResult(
                 success=False,
                 status_code=409,
@@ -176,15 +246,46 @@ class TicketingService:
                 result.ticket_id,
                 self._safe_str(result.error),
             )
+            self._write_ticket_debug_event(
+                "ticket_create_local_completed",
+                success=result.success,
+                ticket_id=result.ticket_id,
+                status_code=result.status_code,
+                error=result.error,
+                result_response=result.response,
+                context=debug_context,
+            )
             return result
 
         base_url = self._ticketing_base_url()
         if not base_url:
+            self._write_ticket_debug_event(
+                "ticket_create_failed_missing_base_url",
+                error="TICKETING_BASE_URL is not configured",
+                payload=payload,
+                context=debug_context,
+            )
             return TicketingResult(success=False, error="TICKETING_BASE_URL is not configured")
 
         path = str(settings.ticketing_create_path or "/insert/ticket.htm").strip() or "/insert/ticket.htm"
         url = f"{base_url}{path if path.startswith('/') else '/' + path}"
-        return await self._request_json("POST", url, payload)
+        result = await self._request_json(
+            "POST",
+            url,
+            payload,
+            debug_context=debug_context,
+        )
+        self._write_ticket_debug_event(
+            "ticket_create_api_completed",
+            success=result.success,
+            ticket_id=result.ticket_id,
+            assigned_id=result.assigned_id,
+            status_code=result.status_code,
+            error=result.error,
+            result_response=result.response,
+            context={**debug_context, "request_url": url},
+        )
+        return result
 
     async def update_ticket(
         self,
@@ -193,12 +294,41 @@ class TicketingService:
         extra_fields: dict[str, Any] | None = None,
     ) -> TicketingResult:
         """Update an existing ticket (manager notes and optional additional fields)."""
+        debug_context = {
+            "operation": "update_ticket",
+            "mode": "local" if self._use_local_mode() else "api",
+            "ticketing_base_url": self._ticketing_base_url(),
+            "ticketing_update_path_template": str(
+                settings.ticketing_update_path_template or "/insert/ticket/{ticket_id}.htm"
+            ).strip(),
+            "local_store_path": str(self._local_store_path()),
+            "local_csv_path": str(self._local_csv_path()),
+        }
         tid = str(ticket_id or "").strip()
         notes = str(manager_notes or "").strip()
         if not tid:
+            self._write_ticket_debug_event(
+                "ticket_update_rejected",
+                reason="ticket_id is required",
+                ticket_id=ticket_id,
+                context=debug_context,
+            )
             return TicketingResult(success=False, error="ticket_id is required")
         if not notes:
+            self._write_ticket_debug_event(
+                "ticket_update_rejected",
+                reason="manager_notes is required",
+                ticket_id=ticket_id,
+                context=debug_context,
+            )
             return TicketingResult(success=False, error="manager_notes is required")
+        self._write_ticket_debug_event(
+            "ticket_update_requested",
+            ticket_id=tid,
+            manager_notes=notes,
+            extra_fields=extra_fields or {},
+            context=debug_context,
+        )
         if self._use_local_mode():
             result = await self._update_ticket_local(tid, notes, extra_fields=extra_fields)
             logger.info(
@@ -207,9 +337,24 @@ class TicketingService:
                 result.ticket_id or tid,
                 self._safe_str(result.error),
             )
+            self._write_ticket_debug_event(
+                "ticket_update_local_completed",
+                success=result.success,
+                ticket_id=result.ticket_id or tid,
+                status_code=result.status_code,
+                error=result.error,
+                result_response=result.response,
+                context=debug_context,
+            )
             return result
         base_url = self._ticketing_base_url()
         if not base_url:
+            self._write_ticket_debug_event(
+                "ticket_update_failed_missing_base_url",
+                ticket_id=tid,
+                error="TICKETING_BASE_URL is not configured",
+                context=debug_context,
+            )
             return TicketingResult(success=False, error="TICKETING_BASE_URL is not configured")
 
         path_template = (
@@ -228,9 +373,24 @@ class TicketingService:
                 if key not in body and value is not None:
                     body[key] = value
 
-        result = await self._request_json("PATCH", url, body)
+        result = await self._request_json(
+            "PATCH",
+            url,
+            body,
+            debug_context={**debug_context, "ticket_id": tid},
+        )
         if not result.ticket_id:
             result.ticket_id = tid
+        self._write_ticket_debug_event(
+            "ticket_update_api_completed",
+            success=result.success,
+            ticket_id=result.ticket_id,
+            assigned_id=result.assigned_id,
+            status_code=result.status_code,
+            error=result.error,
+            result_response=result.response,
+            context={**debug_context, "request_url": url, "ticket_id": tid},
+        )
         return result
 
     async def handoff_to_agent(
@@ -243,6 +403,12 @@ class TicketingService:
         """Trigger human-agent handoff API."""
         url = str(settings.agent_handoff_api_url or "").strip()
         if not url:
+            self._write_ticket_debug_event(
+                "handoff_rejected_missing_url",
+                error="AGENT_HANDOFF_API_URL is not configured",
+                conversation_id=conversation_id,
+                session_id=session_id,
+            )
             return TicketingResult(success=False, error="AGENT_HANDOFF_API_URL is not configured")
 
         payload = {
@@ -253,7 +419,33 @@ class TicketingService:
             "to_agent_id": str(agent_id or "").strip(),
             "reason": str(reason or "").strip(),
         }
-        return await self._request_json("POST", url, payload)
+        self._write_ticket_debug_event(
+            "handoff_requested",
+            payload=payload,
+            request_url=url,
+        )
+        result = await self._request_json(
+            "POST",
+            url,
+            payload,
+            debug_context={
+                "operation": "handoff_to_agent",
+                "request_url": url,
+                "conversation_id": str(conversation_id or "").strip(),
+                "session_id": str(session_id or "").strip(),
+            },
+        )
+        self._write_ticket_debug_event(
+            "handoff_completed",
+            success=result.success,
+            status_code=result.status_code,
+            error=result.error,
+            result_response=result.response,
+            request_url=url,
+            conversation_id=str(conversation_id or "").strip(),
+            session_id=str(session_id or "").strip(),
+        )
+        return result
 
     def build_lumira_ticket_payload(
         self,
@@ -421,14 +613,37 @@ class TicketingService:
             ).strip()
         return normalized
 
-    async def _request_json(self, method: str, url: str, payload: dict[str, Any]) -> TicketingResult:
+    async def _request_json(
+        self,
+        method: str,
+        url: str,
+        payload: dict[str, Any],
+        *,
+        debug_context: dict[str, Any] | None = None,
+    ) -> TicketingResult:
         method_upper = str(method or "POST").upper()
         timeout = float(getattr(settings, "ticketing_timeout_seconds", 10.0) or 10.0)
+        self._write_ticket_debug_event(
+            "ticketing_http_request",
+            method=method_upper,
+            url=url,
+            payload=payload,
+            timeout_seconds=timeout,
+            context=debug_context or {},
+        )
         try:
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.request(method_upper, url, json=payload)
         except Exception as exc:
             logger.exception("Ticketing request failed: %s %s", method_upper, url)
+            self._write_ticket_debug_event(
+                "ticketing_http_exception",
+                method=method_upper,
+                url=url,
+                payload=payload,
+                error=str(exc),
+                context=debug_context or {},
+            )
             return TicketingResult(
                 success=False,
                 error=str(exc),
@@ -446,6 +661,18 @@ class TicketingService:
                 or response.text
                 or f"HTTP {response.status_code}"
             )
+        self._write_ticket_debug_event(
+            "ticketing_http_response",
+            method=method_upper,
+            url=url,
+            status_code=response.status_code,
+            success=success,
+            ticket_id=ticket_id,
+            assigned_id=assigned_id,
+            error=error,
+            response_body=raw,
+            context=debug_context or {},
+        )
 
         return TicketingResult(
             success=success,
@@ -1208,6 +1435,12 @@ class TicketingService:
         self._append_local_ticket_csv_rows(rows)
 
     async def _create_ticket_local(self, payload: dict[str, Any]) -> TicketingResult:
+        self._write_ticket_debug_event(
+            "local_ticket_create_start",
+            local_store_path=str(self._local_store_path()),
+            local_csv_path=str(self._local_csv_path()),
+            payload=payload,
+        )
         logger.info(
             "Local ticket create requested: session_id=%s issue=%s category=%s sub_category=%s",
             self._safe_str((payload or {}).get("session_id")),
@@ -1282,6 +1515,18 @@ class TicketingService:
             csv_primary_synced,
             csv_path_used,
         )
+        self._write_ticket_debug_event(
+            "local_ticket_create_completed",
+            success=True,
+            ticket_id=ticket_id,
+            total_tickets=len(store.get("tickets") or []),
+            csv_written=csv_written,
+            csv_primary_synced=csv_primary_synced,
+            csv_path=str(csv_path_used),
+            local_store_path=str(self._local_store_path()),
+            local_csv_path=str(self._local_csv_path()),
+            response=response,
+        )
         return TicketingResult(
             success=True,
             ticket_id=ticket_id,
@@ -1298,6 +1543,14 @@ class TicketingService:
         *,
         extra_fields: dict[str, Any] | None = None,
     ) -> TicketingResult:
+        self._write_ticket_debug_event(
+            "local_ticket_update_start",
+            ticket_id=ticket_id,
+            manager_notes=manager_notes,
+            extra_fields=extra_fields or {},
+            local_store_path=str(self._local_store_path()),
+            local_csv_path=str(self._local_csv_path()),
+        )
         logger.info(
             "Local ticket update requested: ticket_id=%s manager_notes_chars=%s",
             ticket_id,
@@ -1374,6 +1627,17 @@ class TicketingService:
             csv_written,
             csv_primary_synced,
             csv_path_used,
+        )
+        self._write_ticket_debug_event(
+            "local_ticket_update_completed",
+            success=True,
+            ticket_id=ticket_id,
+            csv_written=csv_written,
+            csv_primary_synced=csv_primary_synced,
+            csv_path=str(csv_path_used),
+            local_store_path=str(self._local_store_path()),
+            local_csv_path=str(self._local_csv_path()),
+            response=response,
         )
         return TicketingResult(
             success=True,

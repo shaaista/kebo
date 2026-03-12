@@ -122,6 +122,112 @@ def test_service_ticketing_toggle_is_persisted(tmp_path, monkeypatch):
     assert row.get("ticketing_enabled") is False
 
 
+def test_service_prompt_pack_auto_generated_on_add(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    assert service.add_service(
+        {
+            "id": "airport_transfer",
+            "name": "Airport Transfer",
+            "type": "service",
+            "description": "Arrange pickup and drop support before arrival.",
+            "phase_id": "pre_checkin",
+            "ticketing_enabled": False,
+            "ticketing_policy": "Create ticket only when manual dispatch is required.",
+            "is_active": True,
+        }
+    )
+
+    services = service.get_services()
+    row = next(item for item in services if item.get("id") == "airport_transfer")
+    pack = row.get("service_prompt_pack")
+
+    assert isinstance(pack, dict)
+    assert pack.get("source") == "auto_generated"
+    assert isinstance(pack.get("required_slots"), list) and len(pack.get("required_slots")) > 0
+    assert any(str(slot.get("id")) == "request_details" for slot in pack.get("required_slots", []))
+    ticketing_policy = pack.get("ticketing_policy", {})
+    assert isinstance(ticketing_policy, dict)
+    assert ticketing_policy.get("enabled") is False
+    assert row.get("service_prompt_pack_custom") is False
+
+
+def test_service_prompt_pack_manual_override_persists_on_update(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    manual_pack = {
+        "role": "You are custom transport concierge.",
+        "professional_behavior": "Collect exact route details and avoid assumptions.",
+        "required_slots": [
+            {
+                "id": "pickup_location",
+                "label": "Pickup Location",
+                "prompt": "Share pickup location.",
+                "required": True,
+                "type": "text",
+            }
+        ],
+        "confirmation_format": {
+            "style": "manual",
+            "template": "Please confirm transport details: {summary}.",
+            "required_phrase": "yes confirm",
+        },
+        "ticketing_policy": {
+            "enabled": True,
+            "policy": "Always ticket.",
+            "decision_template": "Always ticket.",
+        },
+    }
+
+    assert service.add_service(
+        {
+            "id": "transport_manual",
+            "name": "Transport Manual",
+            "type": "service",
+            "description": "Manual transport support.",
+            "phase_id": "pre_checkin",
+            "service_prompt_pack": manual_pack,
+            "is_active": True,
+        }
+    )
+
+    assert service.update_service("transport_manual", {"description": "Updated description text"})
+
+    row = next(item for item in service.get_services() if item.get("id") == "transport_manual")
+    pack = row.get("service_prompt_pack", {})
+
+    assert row.get("service_prompt_pack_custom") is True
+    assert pack.get("source") == "manual_override"
+    assert pack.get("role") == "You are custom transport concierge."
+    assert str(pack.get("confirmation_format", {}).get("template") or "").startswith("Please confirm transport details")
+
+
+def test_service_prompt_pack_regenerates_for_non_custom_service_on_update(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    assert service.add_service(
+        {
+            "id": "spa_booking",
+            "name": "Spa Booking",
+            "type": "service",
+            "description": "Book spa sessions.",
+            "phase_id": "during_stay",
+            "is_active": True,
+        }
+    )
+    before = next(item for item in service.get_services() if item.get("id") == "spa_booking")
+    assert before.get("service_prompt_pack_custom") is False
+    assert "Spa Booking" in str(before.get("service_prompt_pack", {}).get("role") or "")
+
+    assert service.update_service("spa_booking", {"name": "Wellness Booking"})
+    after = next(item for item in service.get_services() if item.get("id") == "spa_booking")
+    pack = after.get("service_prompt_pack", {})
+
+    assert after.get("service_prompt_pack_custom") is False
+    assert pack.get("source") == "auto_generated"
+    assert "Wellness Booking" in str(pack.get("role") or "")
+
+
 def test_faq_bank_crud_and_matching(tmp_path, monkeypatch):
     service = _build_temp_config_service(tmp_path, monkeypatch)
 

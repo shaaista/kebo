@@ -903,20 +903,49 @@
                             </div>
                         </div>
                         <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
-                            <label>Description</label>
-                            <textarea class="form-control" id="phase-new-service-description" rows="3" placeholder="Describe what this service handles"></textarea>
+                            <label>What do you expect from this service?</label>
+                            <textarea class="form-control" id="phase-new-service-user-intent" rows="2" placeholder="e.g. Guest can order food to their room, we need room number and order details, kitchen is open 24/7"></textarea>
                             <div class="phase-description-actions">
-                                <span class="phase-helper-text">Tip: Use autofill if you want a quick draft description.</span>
-                                <button class="btn btn-outline btn-small" type="button" id="phase-autofill-btn" onclick="autofillPhaseServiceDescription()">Auto-fill Description</button>
+                                <span class="phase-helper-text">Describe in plain words — AI will turn this into a clean description.</span>
+                                <button class="btn btn-outline btn-small" type="button" id="phase-autofill-btn" onclick="autofillPhaseServiceDescription()">Refine with AI</button>
                             </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px; margin-bottom: 0;">
+                            <label>Description <span style="color:#9ca3af; font-weight:400; font-size:0.82rem;">(auto-filled or edit manually)</span></label>
+                            <textarea class="form-control" id="phase-new-service-description" rows="2" placeholder="Filled after 'Refine with AI', or type directly"></textarea>
                         </div>
                         <div style="margin-top: 10px;">
                             <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;">
-                                <input type="checkbox" id="phase-new-service-ticketing-enabled" checked>
+                                <input type="checkbox" id="phase-new-service-ticketing-enabled" onchange="togglePhaseTicketingConditions(this)" checked>
                                 Enable ticketing for this service
                             </label>
                         </div>
-                        <div style="margin-top: 10px;">
+                        <div id="phase-ticketing-conditions-wrap" style="margin-top:10px;">
+                            <label style="display:flex; align-items:center; justify-content:space-between;">
+                                <span>When should a ticket be created?</span>
+                                <button class="btn btn-outline btn-small" type="button" id="phase-refine-ticketing-btn" onclick="refinePhaseTicketingConditions()">Refine with AI</button>
+                            </label>
+                            <div id="phase-ticketing-conditions-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
+                            <textarea class="form-control" id="phase-new-service-ticketing-conditions" rows="2"
+                                placeholder="Auto-suggested when you enable ticketing — edit then refine with AI"></textarea>
+                            <div class="phase-helper-text">Tells the bot exactly when to raise a backend ticket for this service.</div>
+                        </div>
+
+                        <!-- KB Knowledge pull -->
+                        <div class="form-group" style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; margin-bottom: 0;">
+                            <label style="display:flex; align-items:center; justify-content:space-between;">
+                                <span>Knowledge from KB</span>
+                                <button class="btn btn-outline btn-small" type="button" id="phase-pull-kb-btn" onclick="pullPhaseKbKnowledge()">
+                                    ✦ Pull from KB
+                                </button>
+                            </label>
+                            <div id="phase-pull-kb-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
+                            <textarea class="form-control" id="phase-new-service-kb-knowledge" rows="6"
+                                placeholder="Click 'Pull from KB' to auto-extract relevant knowledge, or type manually."></textarea>
+                            <div class="phase-helper-text">This knowledge will be fed to the service agent. You can edit it after pulling.</div>
+                        </div>
+
+                        <div style="margin-top: 14px;">
                             <button class="btn btn-primary" type="button" onclick="createPhaseService()">Create Service</button>
                         </div>
                     </div>
@@ -1416,6 +1445,32 @@
                         <button class="btn btn-outline btn-small" type="button" onclick="addServiceTicketingCase()">+ Add Case</button>
                     </div>
                     <div class="service-modal-hint">Example: Table booking at restaurant requires staff confirmation.</div>
+                </div>
+
+                <!-- Ticketing Conditions -->
+                <div class="form-group" style="margin-top:14px;" id="svc-modal-ticketing-conditions-wrap">
+                    <label style="display:flex; align-items:center; justify-content:space-between;">
+                        <span>When should a ticket be created?</span>
+                        <button class="btn btn-outline btn-small" type="button" id="svc-refine-ticketing-btn" onclick="refineSvcTicketingConditions()">Refine with AI</button>
+                    </label>
+                    <div id="svc-ticketing-conditions-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
+                    <textarea class="form-control" id="new-svc-ticketing-conditions" rows="2"
+                        placeholder="e.g. Create a ticket once the guest confirms their request and all required details are collected"></textarea>
+                    <div class="service-modal-hint">Tells the bot exactly when to raise a backend ticket for this service.</div>
+                </div>
+
+                <!-- KB Knowledge Section -->
+                <div class="form-group" style="margin-top:18px; border-top:1px solid var(--border); padding-top:16px;">
+                    <label style="display:flex; align-items:center; justify-content:space-between;">
+                        <span>Knowledge from KB</span>
+                        <button class="btn btn-outline btn-small" type="button" id="pull-kb-btn" onclick="pullKbKnowledge()">
+                            ✦ Pull from KB
+                        </button>
+                    </label>
+                    <div id="pull-kb-status" style="display:none; font-size:0.82rem; color:#6b7280; margin-bottom:6px;"></div>
+                    <textarea class="form-control" id="new-svc-kb-knowledge" rows="6"
+                        placeholder="Click 'Pull from KB' to auto-extract relevant knowledge for this service, or type manually."></textarea>
+                    <div class="service-modal-hint">This knowledge will be fed to the service agent. You can edit it after pulling.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1945,11 +2000,88 @@
             document.getElementById('new-svc-name').value = '';
             document.getElementById('new-svc-type').value = 'service';
             document.getElementById('new-svc-desc').value = '';
+            document.getElementById('new-svc-kb-knowledge').value = '';
+            document.getElementById('new-svc-ticketing-conditions').value = '';
+            const kbStatus = document.getElementById('pull-kb-status');
+            if (kbStatus) { kbStatus.style.display = 'none'; kbStatus.textContent = ''; }
+            const pullBtn = document.getElementById('pull-kb-btn');
+            if (pullBtn) { pullBtn.disabled = false; pullBtn.textContent = '✦ Pull from KB'; }
+            const tcStatus = document.getElementById('svc-ticketing-conditions-status');
+            if (tcStatus) { tcStatus.style.display = 'none'; tcStatus.textContent = ''; }
+            const refineBtn = document.getElementById('svc-refine-ticketing-btn');
+            if (refineBtn) { refineBtn.disabled = false; refineBtn.textContent = 'Refine with AI'; }
             document.getElementById('new-svc-id-hint').textContent = 'Use lowercase with underscores (for example: front_desk).';
             document.getElementById('service-modal-title').textContent = mode === 'edit' ? 'Edit Service' : 'Add New Service';
             document.getElementById('save-service-btn').textContent = mode === 'edit' ? 'Save Service' : 'Add Service';
             renderServiceTicketingCases();
             updateServiceTicketingSectionVisibility();
+        }
+
+        async function refineSvcTicketingConditions() {
+            const name = document.getElementById('new-svc-name').value.trim();
+            const desc = document.getElementById('new-svc-desc').value.trim();
+            const current = document.getElementById('new-svc-ticketing-conditions').value.trim();
+            if (!name) { showToast('Enter a Service Name first', 'error'); return; }
+            const btn = document.getElementById('svc-refine-ticketing-btn');
+            const statusEl = document.getElementById('svc-ticketing-conditions-status');
+            btn.disabled = true; btn.textContent = 'Thinking…';
+            statusEl.style.display = 'block'; statusEl.style.color = '#6b7280';
+            statusEl.textContent = current ? 'Refining conditions…' : 'Suggesting conditions…';
+            try {
+                const res = await fetch(`${API_BASE}/config/phases/ticketing-conditions/suggest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service_name: name, service_description: desc, current_conditions: current }),
+                });
+                const data = await res.json();
+                if (data.conditions) {
+                    document.getElementById('new-svc-ticketing-conditions').value = data.conditions;
+                    statusEl.textContent = '✓ Done — edit as needed.'; statusEl.style.color = '#16a34a';
+                } else {
+                    statusEl.textContent = 'Could not generate conditions.'; statusEl.style.color = '#dc2626';
+                }
+            } catch (err) {
+                statusEl.textContent = 'Error: ' + err.message; statusEl.style.color = '#dc2626';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Refine with AI';
+            }
+        }
+
+        async function pullKbKnowledge() {
+            const name = document.getElementById('new-svc-name').value.trim();
+            const desc = document.getElementById('new-svc-desc').value.trim();
+            if (!name) {
+                showToast('Enter a Service Name first', 'error');
+                return;
+            }
+            const btn = document.getElementById('pull-kb-btn');
+            const statusEl = document.getElementById('pull-kb-status');
+            btn.disabled = true;
+            btn.textContent = 'Pulling…';
+            statusEl.style.display = 'block';
+            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment…';
+            try {
+                const res = await fetch(`${API_BASE}/config/service-kb/preview-extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service_name: name, service_description: desc }),
+                });
+                const data = await res.json();
+                if (data.extracted_knowledge) {
+                    document.getElementById('new-svc-kb-knowledge').value = data.extracted_knowledge;
+                    statusEl.textContent = '✓ Knowledge pulled — review and edit as needed.';
+                    statusEl.style.color = '#16a34a';
+                } else {
+                    statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;
+                    statusEl.style.color = '#dc2626';
+                }
+            } catch (err) {
+                statusEl.textContent = 'Error pulling KB: ' + err.message;
+                statusEl.style.color = '#dc2626';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✦ Pull from KB';
+            }
         }
 
         async function ensureTicketingPluginService(services) {
@@ -3471,6 +3603,10 @@
                 document.getElementById('new-svc-name').value = String(svc.name || '');
                 typeField.value = svcType;
                 document.getElementById('new-svc-desc').value = String(svc.description || svc.cuisine || '');
+                const existingKb = String((svc.service_prompt_pack || {}).extracted_knowledge || '');
+                document.getElementById('new-svc-kb-knowledge').value = existingKb;
+                const existingTc = String((svc.service_prompt_pack || {}).ticketing_conditions || '');
+                document.getElementById('new-svc-ticketing-conditions').value = existingTc;
                 updateServiceTicketingSectionVisibility();
                 document.getElementById('service-modal-title').textContent = 'Edit Service';
                 document.getElementById('save-service-btn').textContent = 'Save Service';
@@ -3486,6 +3622,8 @@
             const name = document.getElementById('new-svc-name').value.trim();
             const type = document.getElementById('new-svc-type').value;
             const desc = document.getElementById('new-svc-desc').value.trim();
+            const kbKnowledge = (document.getElementById('new-svc-kb-knowledge').value || '').trim();
+            const svcTicketingConditions = (document.getElementById('new-svc-ticketing-conditions').value || '').trim();
             syncTicketingCasesDraftFromModal();
             const isTicketing = serviceModalLooksLikeTicketingPlugin();
             const ticketingCases = serviceTicketingCasesDraft
@@ -3507,6 +3645,11 @@
             if (isTicketing) {
                 payload.ticketing_plugin_enabled = true;
                 payload.ticketing_cases = ticketingCases;
+            }
+            if (kbKnowledge || svcTicketingConditions) {
+                payload.service_prompt_pack = {};
+                if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
+                if (svcTicketingConditions) payload.service_prompt_pack.ticketing_conditions = svcTicketingConditions;
             }
 
             try {
@@ -3896,11 +4039,66 @@
             }
         }
 
+        async function togglePhaseTicketingConditions(checkbox) {
+            const wrap = document.getElementById('phase-ticketing-conditions-wrap');
+            if (wrap) wrap.style.display = checkbox.checked ? 'block' : 'none';
+            if (!checkbox.checked) return;
+            // Auto-suggest conditions if field is empty
+            const condEl = document.getElementById('phase-new-service-ticketing-conditions');
+            if (condEl && !condEl.value.trim()) {
+                await _suggestPhaseTicketingConditions({ silent: true });
+            }
+        }
+
+        async function refinePhaseTicketingConditions() {
+            await _suggestPhaseTicketingConditions({ silent: false });
+        }
+
+        async function _suggestPhaseTicketingConditions({ silent = false } = {}) {
+            const name = String(document.getElementById('phase-new-service-name')?.value || '').trim();
+            const desc = String(document.getElementById('phase-new-service-description')?.value || '').trim();
+            const currentConditions = String(document.getElementById('phase-new-service-ticketing-conditions')?.value || '').trim();
+            if (!name) {
+                if (!silent) showToast('Enter a Service Name first', 'error');
+                return;
+            }
+            const btn = document.getElementById('phase-refine-ticketing-btn');
+            const statusEl = document.getElementById('phase-ticketing-conditions-status');
+            if (btn) { btn.disabled = true; btn.textContent = 'Thinking…'; }
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = '#6b7280'; statusEl.textContent = 'Suggesting ticket conditions…'; }
+            try {
+                const res = await fetch(`${API_BASE}/config/phases/ticketing-conditions/suggest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        service_name: name,
+                        service_description: desc,
+                        current_conditions: currentConditions,
+                    }),
+                });
+                const data = await res.json();
+                const conditions = String(data.conditions || '').trim();
+                const condEl = document.getElementById('phase-new-service-ticketing-conditions');
+                if (condEl && conditions) {
+                    condEl.value = conditions;
+                    if (statusEl) { statusEl.textContent = '✓ Suggested — edit as needed.'; statusEl.style.color = '#16a34a'; }
+                } else {
+                    if (statusEl) { statusEl.textContent = 'Could not suggest conditions.'; statusEl.style.color = '#dc2626'; }
+                }
+            } catch (err) {
+                if (statusEl) { statusEl.textContent = 'Error: ' + err.message; statusEl.style.color = '#dc2626'; }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Refine with AI'; }
+            }
+        }
+
         async function autofillPhaseServiceDescription() {
             const nameInput = document.getElementById('phase-new-service-name');
+            const userIntentInput = document.getElementById('phase-new-service-user-intent');
             const descInput = document.getElementById('phase-new-service-description');
             const button = document.getElementById('phase-autofill-btn');
             const name = String(nameInput ? nameInput.value : '').trim();
+            const userIntent = String(userIntentInput ? userIntentInput.value : '').trim();
             if (!name) {
                 showToast('Enter a service name first', 'error');
                 return;
@@ -3909,14 +4107,15 @@
             try {
                 if (button) {
                     button.disabled = true;
-                    button.textContent = 'Generating...';
+                    button.textContent = 'Refining…';
                 }
                 const res = await fetch(`${API_BASE}/config/phases/service-description/suggest`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name,
-                        phase_id: normalizeIdentifier(currentPhaseId) || 'pre_booking'
+                        phase_id: normalizeIdentifier(currentPhaseId) || 'pre_booking',
+                        user_intent: userIntent || undefined,
                     })
                 });
                 if (!res.ok) {
@@ -3927,17 +4126,55 @@
                 const description = String(data.description || '').trim();
                 if (descInput && description) {
                     descInput.value = description;
-                    showToast(data.source === 'llm' ? 'Description generated' : 'Added fallback description');
+                    showToast(data.source === 'llm' ? 'Description refined' : 'Added fallback description');
                 } else {
                     showToast('Could not generate description', 'error');
                 }
             } catch (error) {
-                showToast(`Error generating description: ${error.message || error}`, 'error');
+                showToast(`Error refining description: ${error.message || error}`, 'error');
             } finally {
                 if (button) {
                     button.disabled = false;
-                    button.textContent = 'Auto-fill Description';
+                    button.textContent = 'Refine with AI';
                 }
+            }
+        }
+
+        async function pullPhaseKbKnowledge() {
+            const name = String(document.getElementById('phase-new-service-name')?.value || '').trim();
+            const desc = String(document.getElementById('phase-new-service-description')?.value || '').trim();
+            if (!name) {
+                showToast('Enter a Service Name first', 'error');
+                return;
+            }
+            const btn = document.getElementById('phase-pull-kb-btn');
+            const statusEl = document.getElementById('phase-pull-kb-status');
+            btn.disabled = true;
+            btn.textContent = 'Pulling…';
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#6b7280';
+            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment…';
+            try {
+                const res = await fetch(`${API_BASE}/config/service-kb/preview-extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service_name: name, service_description: desc }),
+                });
+                const data = await res.json();
+                if (data.extracted_knowledge) {
+                    document.getElementById('phase-new-service-kb-knowledge').value = data.extracted_knowledge;
+                    statusEl.textContent = '✓ Knowledge pulled — review and edit as needed.';
+                    statusEl.style.color = '#16a34a';
+                } else {
+                    statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;
+                    statusEl.style.color = '#dc2626';
+                }
+            } catch (err) {
+                statusEl.textContent = 'Error pulling KB: ' + err.message;
+                statusEl.style.color = '#dc2626';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✦ Pull from KB';
             }
         }
 
@@ -3946,10 +4183,14 @@
             const typeEl = document.getElementById('phase-new-service-type');
             const descEl = document.getElementById('phase-new-service-description');
             const ticketingEnabledEl = document.getElementById('phase-new-service-ticketing-enabled');
+            const kbKnowledgeEl = document.getElementById('phase-new-service-kb-knowledge');
+            const ticketingConditionsEl = document.getElementById('phase-new-service-ticketing-conditions');
             const name = String(nameEl ? nameEl.value : '').trim();
             const type = String(typeEl ? typeEl.value : 'service').trim() || 'service';
             const description = String(descEl ? descEl.value : '').trim();
             const ticketingEnabled = ticketingEnabledEl ? !!ticketingEnabledEl.checked : true;
+            const kbKnowledge = String(kbKnowledgeEl ? kbKnowledgeEl.value : '').trim();
+            const ticketingConditions = String(ticketingConditionsEl ? ticketingConditionsEl.value : '').trim();
             const phaseId = normalizeIdentifier(currentPhaseId) || 'pre_booking';
 
             if (!name) {
@@ -3986,8 +4227,13 @@
                 is_active: true,
                 phase_id: phaseId,
                 is_builtin: false,
-                ticketing_enabled: ticketingEnabled
+                ticketing_enabled: ticketingEnabled,
             };
+            if (kbKnowledge || ticketingConditions) {
+                payload.service_prompt_pack = {};
+                if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
+                if (ticketingConditions) payload.service_prompt_pack.ticketing_conditions = ticketingConditions;
+            }
 
             try {
                 const res = await fetch(`${API_BASE}/config/services`, {
@@ -4003,6 +4249,14 @@
                 if (nameEl) nameEl.value = '';
                 if (descEl) descEl.value = '';
                 if (ticketingEnabledEl) ticketingEnabledEl.checked = true;
+                if (kbKnowledgeEl) kbKnowledgeEl.value = '';
+                if (ticketingConditionsEl) ticketingConditionsEl.value = '';
+                const userIntentEl = document.getElementById('phase-new-service-user-intent');
+                if (userIntentEl) userIntentEl.value = '';
+                const kbStatus = document.getElementById('phase-pull-kb-status');
+                if (kbStatus) { kbStatus.style.display = 'none'; kbStatus.textContent = ''; }
+                const tcStatus = document.getElementById('phase-ticketing-conditions-status');
+                if (tcStatus) { tcStatus.style.display = 'none'; tcStatus.textContent = ''; }
                 await loadJourneyPhasesWorkspace(phaseId);
                 await loadServices(phaseAllServices);
                 loadConfigBanner();

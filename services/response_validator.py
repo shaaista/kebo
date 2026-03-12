@@ -1180,12 +1180,14 @@ class ResponseValidator:
                     )
                 return " ".join(part.strip() for part in parts if part and part.strip()).strip()
 
-        suffix = f"I can share information, and action requests are available only for {phase_label} phase services."
-        if current_phase_service_names:
-            suffix += f" Right now, I can help with {', '.join(current_phase_service_names)}."
         if cleaned:
-            return f"{cleaned} {suffix}".strip()
-        return suffix
+            return cleaned
+        if current_phase_service_names:
+            return (
+                f"In {phase_label} phase, available services include "
+                f"{', '.join(current_phase_service_names)}."
+            )
+        return f"Only services available in {phase_label} phase can be actioned right now."
 
     @classmethod
     def _phase_transition_timing_hint(cls, *, current_phase_id: str, service_phase_id: str) -> str:

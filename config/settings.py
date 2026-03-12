@@ -99,6 +99,19 @@ class Settings(BaseSettings):
     chat_llm_preprocess_model: str = ""
     chat_llm_preprocess_temperature: float = 0.0
     chat_llm_preprocess_max_tokens: int = 80
+    chat_llm_orchestration_mode: bool = False
+    chat_no_template_response_mode: bool = True
+    chat_llm_service_agent_enabled: bool = True
+    llm_orchestration_model: str = ""
+    llm_service_agent_model: str = ""
+    llm_orchestration_history_messages: int = 12
+    llm_orchestration_history_chars: int = 8000
+    chat_llm_orchestration_dispatch_handlers: bool = True
+    chat_llm_orchestration_prefer_llm_response: bool = True
+    chat_llm_orchestration_prefer_llm_suggested_actions: bool = True
+    chat_llm_answer_first_guard_enabled: bool = True
+    chat_llm_answer_first_guard_model: str = ""
+    chat_llm_answer_first_guard_temperature: float = 0.0
     chat_multi_ask_orchestration_enabled: bool = True
     chat_multi_ask_min_items: int = 2
     chat_multi_ask_max_items: int = 6
@@ -108,6 +121,12 @@ class Settings(BaseSettings):
     chat_confirmation_phrase: str = "yes confirm"
     chat_kb_only_mode: bool = False
     chat_phase_gate_llm_only: bool = True
+    chat_llm_response_surface_enabled: bool = False
+    chat_llm_response_surface_model: str = ""
+    chat_llm_response_surface_temperature: float = 0.35
+    chat_llm_response_surface_max_tokens: int = 420
+    chat_llm_response_surface_rewrite_replacements: bool = True
+    chat_llm_response_surface_rewrite_llm_outputs: bool = False
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_collection: str = "kepsla_kb_chunks"
@@ -178,6 +197,8 @@ class Settings(BaseSettings):
     ticketing_identity_require_phone: bool = True
     ticketing_update_window_minutes: int = 2
     ticketing_update_window_llm_assessment_enabled: bool = True
+    ticketing_debug_log_enabled: bool = True
+    ticketing_debug_log_file: str = "./logs/ticketing_debug.jsonl"
 
     @property
     def is_production(self) -> bool:

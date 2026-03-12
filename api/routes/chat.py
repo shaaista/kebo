@@ -44,6 +44,45 @@ def _record_evaluation_event(request: ChatRequest, response: ChatResponse, trace
         )
 
 
+def _enrich_service_llm_display_fields(response: ChatResponse) -> None:
+    """Ensure service-label display fields are always present for UI clients."""
+    if not isinstance(response.metadata, dict):
+        response.metadata = {}
+    metadata = response.metadata
+
+    label = str(
+        response.service_llm_label
+        or metadata.get("service_llm_label")
+        or metadata.get("orchestration_target_service_id")
+        or ""
+    ).strip()
+    if not label:
+        label = "main"
+
+    confidence_candidates = (
+        response.service_llm_confidence,
+        metadata.get("service_llm_confidence"),
+        metadata.get("classified_confidence"),
+        metadata.get("confidence"),
+    )
+    parsed_confidence: Optional[float] = None
+    for candidate in confidence_candidates:
+        try:
+            value = float(candidate)
+        except (TypeError, ValueError):
+            continue
+        if value != value:  # NaN guard
+            continue
+        parsed_confidence = max(0.0, min(1.0, value))
+        break
+
+    response.service_llm_label = label
+    response.service_llm_confidence = parsed_confidence
+    metadata["service_llm_label"] = label
+    if parsed_confidence is not None:
+        metadata["service_llm_confidence"] = parsed_confidence
+
+
 @router.post("/message", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
@@ -59,6 +98,7 @@ async def send_message(
         response = await chat_service.process_message(request, db_session=db)
         if not isinstance(response.metadata, dict):
             response.metadata = {}
+        _enrich_service_llm_display_fields(response)
         if trace_id:
             response.metadata.setdefault("trace_id", trace_id)
         _record_evaluation_event(request, response, trace_id)
@@ -69,7 +109,7 @@ async def send_message(
                 "session_id": request.session_id,
                 "hotel_code": request.hotel_code,
                 "channel": request.channel or (request.metadata or {}).get("channel") or "web",
-                "intent": str(getattr(response.intent, "value", response.intent) or ""),
+                "intent": str((response.metadata or {}).get("classified_intent") or ""),
                 "state": str(getattr(response.state, "value", response.state) or ""),
                 "routing_path": str((response.metadata or {}).get("routing_path") or ""),
                 "response_source": str((response.metadata or {}).get("response_source") or ""),
@@ -89,6 +129,7 @@ async def send_message(
             response = await chat_service.process_message(request, db_session=None)
             if not isinstance(response.metadata, dict):
                 response.metadata = {}
+            _enrich_service_llm_display_fields(response)
             response.metadata["db_fallback"] = True
             if trace_id:
                 response.metadata.setdefault("trace_id", trace_id)

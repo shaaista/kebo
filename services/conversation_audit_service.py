@@ -222,7 +222,7 @@ class ConversationAuditService:
                 "user_message": self._as_text(request.message),
                 "bot_message": self._as_text(response.message if response is not None else ""),
             },
-            "intent": self._enum_value(response.intent) if response is not None else "",
+            "intent": self._as_text((response.metadata or {}).get("classified_intent")) if response is not None else "",
             "state": self._enum_value(response.state) if response is not None else "",
             "phase": phase_payload,
             "services_enabled": services_snapshot,

@@ -39,6 +39,7 @@ class IntentType(str, Enum):
     HUMAN_REQUEST = "human_request"
     UNCLEAR = "unclear"
     OUT_OF_SCOPE = "out_of_scope"
+    GENERAL_SERVICE = "general_service"
 
 
 class Message(BaseModel):
@@ -70,10 +71,12 @@ class IntentResult(BaseModel):
 
 class ChatResponse(BaseModel):
     """Outgoing chat response."""
+    model_config = {"extra": "ignore"}
+
     session_id: str
     message: str
-    intent: IntentType | None = None
-    confidence: float | None = None
+    service_llm_label: str | None = None
+    service_llm_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     state: ConversationState
     suggested_actions: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -91,6 +94,11 @@ class ConversationContext(BaseModel):
     state: ConversationState = ConversationState.IDLE
     pending_action: str | None = None
     pending_data: dict[str, Any] = Field(default_factory=dict)
+
+    # Suspended service tasks: saved when user switches topic mid-collection
+    suspended_services: list[dict[str, Any]] = Field(default_factory=list)
+    # True after we asked the user once whether to resume a suspended service
+    resume_prompt_sent: bool = False
 
     messages: list[Message] = Field(default_factory=list)
 
