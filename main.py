@@ -18,6 +18,7 @@ from api.routes.admin import router as admin_router
 from api.routes.lumira_compat import router as lumira_compat_router
 from models.database import init_db
 from services.config_service import config_service
+from services.db_config_service import db_config_service
 from services.gateway_service import gateway_service
 from services.observability_service import observability_service
 
@@ -63,8 +64,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️  Database init failed (will use in-memory): {e}")
 
-    # Run LLM-based service KB enrichment in background — does not block startup
+    # Restore KB files from DB if missing from disk, then sync services to JSON.
     import asyncio
+    try:
+        from services.rag_service import rag_service as _rag
+        restored = await db_config_service.restore_kb_files(str(_rag.kb_dir))
+        if restored:
+            print(f"📂 Restored {restored} KB file(s) from database")
+        await db_config_service.get_services()  # Syncs DB services → JSON
+    except Exception as e:
+        print(f"⚠️  Startup DB sync failed (non-fatal): {e}")
+
+    # Run LLM-based service KB enrichment in background — does not block startup
     asyncio.create_task(_run_startup_kb_enrichment())
 
     print(f"🌐 Server: http://{settings.host}:{settings.port}")

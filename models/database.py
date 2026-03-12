@@ -127,6 +127,16 @@ class Hotel(Base, TimestampMixin):
         back_populates="hotel",
         cascade="all, delete-orphan",
     )
+    bot_services = relationship(
+        "BotService",
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
+    kb_files = relationship(
+        "KBFile",
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
 
 
 class Restaurant(Base, TimestampMixin):
@@ -388,6 +398,57 @@ class Intent(Base, TimestampMixin):
     enabled = Column(Boolean, nullable=False, server_default=text("1"))
 
     hotel = relationship("Hotel", back_populates="intents")
+
+
+class BotService(Base, TimestampMixin):
+    """Stores all service configuration per hotel. Primary persistent store."""
+    __tablename__ = "new_bot_services"
+    __table_args__ = (
+        UniqueConstraint("hotel_id", "service_id", name="uq_bot_service"),
+        Index("idx_bot_services_hotel_id", "hotel_id"),
+        Index("idx_bot_services_phase_id", "hotel_id", "phase_id"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hotel_id = Column(
+        Integer,
+        ForeignKey("new_bot_hotels.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    service_id = Column(String(100), nullable=False)
+    name = Column(String(255), nullable=False)
+    type = Column(String(50), nullable=False, server_default=text("'service'"))
+    description = Column(Text, nullable=True)
+    phase_id = Column(String(50), nullable=True)
+    is_active = Column(Boolean, nullable=False, server_default=text("1"))
+    is_builtin = Column(Boolean, nullable=False, server_default=text("0"))
+    ticketing_enabled = Column(Boolean, nullable=False, server_default=text("1"))
+    ticketing_policy = Column(Text, nullable=True)
+    service_prompt_pack = Column(JSON, nullable=True)
+
+    hotel = relationship("Hotel", back_populates="bot_services")
+
+
+class KBFile(Base, TimestampMixin):
+    """Stores uploaded knowledge base file content in the database for persistence."""
+    __tablename__ = "new_bot_kb_files"
+    __table_args__ = (
+        UniqueConstraint("hotel_id", "stored_name", name="uq_kb_file"),
+        Index("idx_kb_files_hotel_id", "hotel_id"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hotel_id = Column(
+        Integer,
+        ForeignKey("new_bot_hotels.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    original_name = Column(String(255), nullable=False)
+    stored_name = Column(String(255), nullable=False)
+    content = Column(Text(length=4294967295), nullable=False)  # LONGTEXT
+    content_hash = Column(String(64), nullable=True)
+
+    hotel = relationship("Hotel", back_populates="kb_files")
 
 
 # Async engine + session factory

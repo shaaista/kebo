@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.database import (
-    Hotel, Restaurant, MenuItem, BusinessConfig, Capability, Intent,
+    Hotel, Restaurant, MenuItem, BusinessConfig, Capability, Intent, BotService,
     AsyncSessionLocal, engine
 )
 
@@ -34,7 +34,8 @@ class DBConfigService:
     - new_bot_business_config: Key-value config (welcome_message, bot_name, etc.)
     - new_bot_capabilities: Capability settings per hotel
     - new_bot_intents: Intent settings per hotel
-    - new_bot_restaurants: Services/outlets
+    - new_bot_services: Service config (primary persistent store)
+    - new_bot_restaurants: Legacy restaurant rows (food ordering only)
     - new_bot_menu_items: Menu items per restaurant
     """
 
@@ -327,377 +328,312 @@ class DBConfigService:
 
     # ==================== SERVICES/RESTAURANTS ====================
 
+    # ==================== SERVICES (new_bot_services - DB primary) ====================
+
+    def _service_to_dict(self, row: "BotService") -> Dict[str, Any]:
+        """Convert a BotService ORM row to the dict format used everywhere."""
+        result: Dict[str, Any] = {
+            "id": row.service_id,
+            "name": row.name,
+            "type": row.type or "service",
+            "description": row.description or "",
+            "is_active": bool(row.is_active),
+            "is_builtin": bool(row.is_builtin),
+            "ticketing_enabled": bool(row.ticketing_enabled),
+            "ticketing_policy": row.ticketing_policy or "",
+        }
+        if row.phase_id:
+            result["phase_id"] = row.phase_id
+        if row.service_prompt_pack:
+            result["service_prompt_pack"] = row.service_prompt_pack
+        return result
+
+    def _sync_services_to_json(self, services: List[Dict[str, Any]]) -> None:
+        """Write current service list to JSON so config_service / LLM path stays fresh."""
+        try:
+            json_config = self._load_json_config()
+            json_config["services"] = services
+            self._save_json_config(json_config)
+        except Exception as e:
+            print(f"[JSON] Failed to sync services to JSON: {e}")
+
     async def get_services(self) -> List[Dict[str, Any]]:
-        """Get all services (restaurants) from database."""
+        """Load services from new_bot_services (DB-primary). Syncs JSON on load."""
         hotel_id = await self.get_current_hotel_id()
-        json_services = self._load_json_config().get("services", [])
-
-        normalized_json: List[Dict[str, Any]] = []
-        json_by_id: Dict[str, Dict[str, Any]] = {}
-        for service in json_services:
-            if not isinstance(service, dict):
-                continue
-            service_id = self._normalize_identifier(service.get("id"))
-            if not service_id:
-                continue
-            normalized = dict(service)
-            normalized["id"] = service_id
-            normalized["name"] = str(service.get("name") or service_id).strip()
-            normalized["type"] = self._normalize_identifier(service.get("type") or "service")
-            normalized["description"] = str(service.get("description") or "").strip()
-            normalized["is_active"] = bool(service.get("is_active", True))
-            phase_id = self._normalize_phase_identifier(service.get("phase_id"))
-            if phase_id:
-                normalized["phase_id"] = phase_id
-            elif "phase_id" in normalized:
-                normalized.pop("phase_id", None)
-            normalized_json.append(normalized)
-            json_by_id[service_id] = normalized
-
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(
-                select(Restaurant).where(Restaurant.hotel_id == hotel_id)
-            )
-            restaurants = result.scalars().all()
-
-            if not restaurants:
-                return normalized_json
-            if not normalized_json:
-                # JSON is the authoritative service list. If it is empty, treat
-                # DB-only rows as legacy/orphaned and do not expose them in admin.
-                return []
-
-            for restaurant in restaurants:
-                service_id = self._normalize_identifier(restaurant.code)
-                if service_id not in json_by_id:
-                    # Do not reintroduce DB-only services that were removed from JSON.
-                    continue
-                base = dict(json_by_id.get(service_id, {}))
-                hours = {
-                    "open": str(restaurant.opens_at) if restaurant.opens_at else "00:00",
-                    "close": str(restaurant.closes_at) if restaurant.closes_at else "23:59",
-                }
-                db_service = dict(base)
-                db_service.update(
-                    {
-                    "id": service_id,
-                    "name": restaurant.name,
-                    "type": base.get("type", "service"),
-                    "description": base.get("description") or restaurant.cuisine or "",
-                    "cuisine": restaurant.cuisine or base.get("cuisine"),
-                    "hours": hours,
-                    "delivery_zones": ["room"] if restaurant.delivers_to_room else ["dine_in_only"],
-                    "is_active": restaurant.is_active,
-                    }
+        try:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(BotService)
+                    .where(BotService.hotel_id == hotel_id)
+                    .order_by(BotService.id)
                 )
-                json_by_id[service_id] = db_service
-
-            ordered: List[Dict[str, Any]] = []
-            seen_ids: set[str] = set()
-            for service in normalized_json:
-                service_id = self._normalize_identifier(service.get("id"))
-                if service_id in seen_ids:
-                    continue
-                ordered.append(json_by_id.get(service_id, service))
-                seen_ids.add(service_id)
-
-            return ordered
+                rows = result.scalars().all()
+                services = [self._service_to_dict(row) for row in rows]
+                # Keep JSON in sync so the LLM prompt builder always reads current data.
+                self._sync_services_to_json(services)
+                return services
+        except Exception as e:
+            print(f"[DB] get_services failed, falling back to JSON: {e}")
+            return self._load_json_config().get("services", [])
 
     async def add_service(self, service: Dict[str, Any]) -> bool:
-        """Add a new service/restaurant."""
+        """Upsert a service into new_bot_services."""
         service_id = self._normalize_identifier(service.get("id"))
         if not service_id:
             return False
 
-        normalized = dict(service)
-        normalized["id"] = service_id
-        normalized["name"] = str(service.get("name") or service_id).strip()
-        normalized["type"] = self._normalize_identifier(service.get("type") or "service")
-        normalized["description"] = str(service.get("description") or "").strip()
-        normalized["is_active"] = bool(service.get("is_active", True))
-        phase_id = self._normalize_phase_identifier(normalized.get("phase_id"))
-        if phase_id:
-            normalized["phase_id"] = phase_id
-        elif "phase_id" in normalized:
-            normalized.pop("phase_id", None)
-
-        # Always save JSON first (source of truth for richer service metadata).
-        json_config = self._load_json_config()
-        json_services = json_config.setdefault("services", [])
-        replaced = False
-        for idx, existing in enumerate(json_services):
-            if self._normalize_identifier(existing.get("id")) == service_id:
-                merged = dict(existing)
-                merged.update(normalized)
-                json_services[idx] = merged
-                replaced = True
-                break
-        if not replaced:
-            json_services.append(normalized)
-        self._save_json_config(json_config)
-        print(f"[JSON] Upserted service {service_id}")
-
-        if normalized["type"] != "restaurant":
-            return True
-
         hotel_id = await self.get_current_hotel_id()
+        phase_id = self._normalize_phase_identifier(service.get("phase_id")) or None
+        prompt_pack = service.get("service_prompt_pack")
+        if isinstance(prompt_pack, str):
+            try:
+                prompt_pack = json.loads(prompt_pack)
+            except Exception:
+                prompt_pack = None
 
-        async with AsyncSessionLocal() as session:
-            from datetime import time
-
-            hours = normalized.get("hours", {})
-            opens_at = None
-            closes_at = None
-
-            if hours.get("open"):
-                try:
-                    parts = hours["open"].split(":")
-                    opens_at = time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
-                except:
-                    pass
-
-            if hours.get("close"):
-                try:
-                    parts = hours["close"].split(":")
-                    closes_at = time(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
-                except:
-                    pass
-
-            delivery_zones = normalized.get("delivery_zones", [])
-            delivers_to_room = "room" in delivery_zones
-
-            result = await session.execute(
-                select(Restaurant).where(
-                    Restaurant.hotel_id == hotel_id,
-                    Restaurant.code == service_id,
+        try:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(BotService).where(
+                        BotService.hotel_id == hotel_id,
+                        BotService.service_id == service_id,
+                    )
                 )
-            )
-            restaurant = result.scalar_one_or_none()
+                row = result.scalar_one_or_none()
+                if row:
+                    row.name = str(service.get("name") or service_id).strip()
+                    row.type = self._normalize_identifier(service.get("type") or "service")
+                    row.description = str(service.get("description") or "").strip()
+                    row.phase_id = phase_id
+                    row.is_active = bool(service.get("is_active", True))
+                    row.is_builtin = bool(service.get("is_builtin", False))
+                    row.ticketing_enabled = bool(service.get("ticketing_enabled", True))
+                    row.ticketing_policy = str(service.get("ticketing_policy") or "").strip() or None
+                    if prompt_pack is not None:
+                        row.service_prompt_pack = prompt_pack
+                else:
+                    row = BotService(
+                        hotel_id=hotel_id,
+                        service_id=service_id,
+                        name=str(service.get("name") or service_id).strip(),
+                        type=self._normalize_identifier(service.get("type") or "service"),
+                        description=str(service.get("description") or "").strip(),
+                        phase_id=phase_id,
+                        is_active=bool(service.get("is_active", True)),
+                        is_builtin=bool(service.get("is_builtin", False)),
+                        ticketing_enabled=bool(service.get("ticketing_enabled", True)),
+                        ticketing_policy=str(service.get("ticketing_policy") or "").strip() or None,
+                        service_prompt_pack=prompt_pack,
+                    )
+                    session.add(row)
+                await session.commit()
+                print(f"[DB] Upserted service {service_id}")
+        except Exception as e:
+            print(f"[DB] add_service failed for {service_id}: {e}")
+            return False
 
-            if restaurant:
-                restaurant.name = normalized.get("name", restaurant.name)
-                restaurant.cuisine = normalized.get("cuisine") or normalized.get("description") or restaurant.cuisine
-                restaurant.opens_at = opens_at
-                restaurant.closes_at = closes_at
-                restaurant.delivers_to_room = delivers_to_room
-                restaurant.is_active = normalized.get("is_active", True)
-            else:
-                new_restaurant = Restaurant(
-                    hotel_id=hotel_id,
-                    code=service_id,
-                    name=normalized.get("name", "New Service"),
-                    cuisine=normalized.get("cuisine") or normalized.get("description"),
-                    opens_at=opens_at,
-                    closes_at=closes_at,
-                    delivers_to_room=delivers_to_room,
-                    is_active=normalized.get("is_active", True),
-                )
-                session.add(new_restaurant)
-            await session.commit()
-            print(f"[DB] Upserted service {service_id} as restaurant")
-            return True
+        # Sync JSON so LLM reads fresh data.
+        all_services = await self.get_services()
+        self._sync_services_to_json(all_services)
+        return True
 
     async def update_service(self, service_id: str, updates: Dict[str, Any]) -> bool:
-        """Update a service/restaurant."""
+        """Patch fields on an existing service row."""
         normalized_id = self._normalize_identifier(service_id)
         if not normalized_id:
             return False
 
-        # Always update JSON first for full metadata retention.
-        json_config = self._load_json_config()
-        json_services = json_config.setdefault("services", [])
-        current: Dict[str, Any] = {"id": normalized_id, "name": normalized_id, "type": "service", "is_active": True}
-        found = False
-        for existing in json_services:
-            if self._normalize_identifier(existing.get("id")) == normalized_id:
-                current = dict(existing)
-                found = True
-                break
-        current.update(updates)
-        current["id"] = normalized_id
-        phase_id = self._normalize_phase_identifier(current.get("phase_id"))
-        if phase_id:
-            current["phase_id"] = phase_id
-        elif "phase_id" in current:
-            current.pop("phase_id", None)
-
-        if found:
-            for idx, existing in enumerate(json_services):
-                if self._normalize_identifier(existing.get("id")) == normalized_id:
-                    json_services[idx] = current
-                    break
-        else:
-            json_services.append(current)
-        self._save_json_config(json_config)
-        print(f"[JSON] Updated service {normalized_id}: {list(updates.keys())}")
-
-        # For non-restaurant service types, JSON persistence is enough for now.
-        service_type = self._normalize_identifier(current.get("type") or "service")
-        if service_type != "restaurant":
-            return True
-
         hotel_id = await self.get_current_hotel_id()
-
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(
-                select(Restaurant).where(
-                    Restaurant.hotel_id == hotel_id,
-                    Restaurant.code == normalized_id
+        try:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(BotService).where(
+                        BotService.hotel_id == hotel_id,
+                        BotService.service_id == normalized_id,
+                    )
                 )
-            )
-            restaurant = result.scalar_one_or_none()
+                row = result.scalar_one_or_none()
+                if not row:
+                    # Row doesn't exist yet — create it.
+                    updates["id"] = normalized_id
+                    return await self.add_service(updates)
 
-            if not restaurant:
-                # If DB row doesn't exist yet, create it from merged JSON state.
-                return await self.add_service(current)
+                if "name" in updates:
+                    row.name = str(updates["name"]).strip()
+                if "type" in updates:
+                    row.type = self._normalize_identifier(updates["type"] or "service")
+                if "description" in updates:
+                    row.description = str(updates["description"] or "").strip()
+                if "phase_id" in updates:
+                    row.phase_id = self._normalize_phase_identifier(updates["phase_id"]) or None
+                if "is_active" in updates:
+                    row.is_active = bool(updates["is_active"])
+                if "is_builtin" in updates:
+                    row.is_builtin = bool(updates["is_builtin"])
+                if "ticketing_enabled" in updates:
+                    row.ticketing_enabled = bool(updates["ticketing_enabled"])
+                if "ticketing_policy" in updates:
+                    row.ticketing_policy = str(updates["ticketing_policy"] or "").strip() or None
+                if "service_prompt_pack" in updates:
+                    pack = updates["service_prompt_pack"]
+                    if isinstance(pack, str):
+                        try:
+                            pack = json.loads(pack)
+                        except Exception:
+                            pack = None
+                    row.service_prompt_pack = pack
+                await session.commit()
+                print(f"[DB] Updated service {normalized_id}: {list(updates.keys())}")
+        except Exception as e:
+            print(f"[DB] update_service failed for {normalized_id}: {e}")
+            return False
 
-            if "name" in current:
-                restaurant.name = current["name"]
-            if "cuisine" in current or "description" in current:
-                restaurant.cuisine = current.get("cuisine") or current.get("description")
-            if "is_active" in current:
-                restaurant.is_active = bool(current["is_active"])
-            if "delivery_zones" in current:
-                restaurant.delivers_to_room = "room" in (current.get("delivery_zones") or [])
-            if "hours" in current and isinstance(current.get("hours"), dict):
-                from datetime import time
-
-                open_val = str(current["hours"].get("open") or "").strip()
-                close_val = str(current["hours"].get("close") or "").strip()
-
-                if open_val:
-                    try:
-                        hh, mm = open_val.split(":")[:2]
-                        restaurant.opens_at = time(int(hh), int(mm))
-                    except Exception:
-                        pass
-                if close_val:
-                    try:
-                        hh, mm = close_val.split(":")[:2]
-                        restaurant.closes_at = time(int(hh), int(mm))
-                    except Exception:
-                        pass
-
-            await session.commit()
-            print(f"[DB] Updated service {normalized_id}")
-            return True
+        all_services = await self.get_services()
+        self._sync_services_to_json(all_services)
+        return True
 
     async def delete_service(self, service_id: str) -> bool:
-        """Delete a service/restaurant."""
+        """Hard-delete a service row from new_bot_services."""
         normalized_id = self._normalize_identifier(service_id)
-
-        # Delete from JSON first.
-        json_config = self._load_json_config()
-        json_config["services"] = [
-            service
-            for service in json_config.get("services", [])
-            if self._normalize_identifier(service.get("id")) != normalized_id
-        ]
-        self._save_json_config(json_config)
-        print(f"[JSON] Deleted service {normalized_id}")
-
         hotel_id = await self.get_current_hotel_id()
-
-        async with AsyncSessionLocal() as session:
-            try:
-                restaurant_ids = list(
-                    (
-                        await session.execute(
-                            select(Restaurant.id).where(
-                                Restaurant.hotel_id == hotel_id,
-                                Restaurant.code == normalized_id,
-                            )
-                        )
-                    ).scalars().all()
+        try:
+            async with AsyncSessionLocal() as session:
+                await session.execute(
+                    delete(BotService).where(
+                        BotService.hotel_id == hotel_id,
+                        BotService.service_id == normalized_id,
+                    )
                 )
-                if restaurant_ids:
-                    # Best-effort hard delete for menu rows first.
-                    await session.execute(
-                        delete(MenuItem).where(MenuItem.restaurant_id.in_(restaurant_ids))
-                    )
-                    await session.execute(
-                        delete(Restaurant).where(
-                            Restaurant.hotel_id == hotel_id,
-                            Restaurant.code == normalized_id,
-                        )
-                    )
                 await session.commit()
                 print(f"[DB] Deleted service {normalized_id}")
-            except IntegrityError:
-                # Existing orders/history can block hard delete. Soft-disable instead.
-                await session.rollback()
-                await session.execute(
-                    update(Restaurant)
-                    .where(
-                        Restaurant.hotel_id == hotel_id,
-                        Restaurant.code == normalized_id,
-                    )
-                    .values(is_active=False)
-                )
-                await session.commit()
-                print(f"[DB] Soft-disabled service {normalized_id} (FK protected)")
-            except Exception as e:
-                # Any driver-specific FK/constraint error should not break admin delete UX.
-                await session.rollback()
-                await session.execute(
-                    update(Restaurant)
-                    .where(
-                        Restaurant.hotel_id == hotel_id,
-                        Restaurant.code == normalized_id,
-                    )
-                    .values(is_active=False)
-                )
-                await session.commit()
-                print(f"[DB] Soft-disabled service {normalized_id} after delete error: {e}")
-            return True
+        except Exception as e:
+            print(f"[DB] delete_service failed for {normalized_id}: {e}")
+            return False
+
+        all_services = await self.get_services()
+        self._sync_services_to_json(all_services)
+        # Prune orphaned KB records for the deleted service.
+        try:
+            json_config = self._load_json_config()
+            service_kb = json_config.get("service_kb")
+            if isinstance(service_kb, dict) and isinstance(service_kb.get("records"), list):
+                service_kb["records"] = [
+                    r for r in service_kb["records"]
+                    if self._normalize_identifier(r.get("service_id")) != normalized_id
+                ]
+                self._save_json_config(json_config)
+                print(f"[JSON] Pruned KB records for deleted service {normalized_id}")
+        except Exception as e:
+            print(f"[JSON] KB record prune failed for {normalized_id}: {e}")
+        return True
 
     async def clear_services(self) -> bool:
-        """Delete all services/restaurants."""
-        # Delete all service entries from JSON first.
-        json_config = self._load_json_config()
-        json_config["services"] = []
-        self._save_json_config(json_config)
-        print("[JSON] Cleared all services")
-
+        """Delete all services for this hotel."""
         hotel_id = await self.get_current_hotel_id()
-        async with AsyncSessionLocal() as session:
-            try:
-                restaurant_ids = list(
-                    (
-                        await session.execute(
-                            select(Restaurant.id).where(Restaurant.hotel_id == hotel_id)
-                        )
-                    ).scalars().all()
+        try:
+            async with AsyncSessionLocal() as session:
+                await session.execute(
+                    delete(BotService).where(BotService.hotel_id == hotel_id)
                 )
-                if restaurant_ids:
-                    await session.execute(
-                        delete(MenuItem).where(MenuItem.restaurant_id.in_(restaurant_ids))
+                await session.commit()
+                print("[DB] Cleared all services")
+        except Exception as e:
+            print(f"[DB] clear_services failed: {e}")
+            return False
+
+        self._sync_services_to_json([])
+        # Clear all KB records since no services remain.
+        try:
+            json_config = self._load_json_config()
+            service_kb = json_config.get("service_kb")
+            if isinstance(service_kb, dict):
+                service_kb["records"] = []
+                self._save_json_config(json_config)
+                print("[JSON] Cleared all service KB records")
+        except Exception as e:
+            print(f"[JSON] KB records clear failed: {e}")
+        return True
+
+    # ==================== KB FILES (DB-PRIMARY) ====================
+
+    async def save_kb_file(
+        self,
+        original_name: str,
+        stored_name: str,
+        content: str,
+        content_hash: str,
+    ) -> bool:
+        """Upsert KB file content into new_bot_kb_files."""
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            from models.database import KBFile
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(KBFile).where(
+                        KBFile.hotel_id == hotel_id,
+                        KBFile.stored_name == stored_name,
                     )
-                await session.execute(
-                    delete(Restaurant).where(Restaurant.hotel_id == hotel_id)
                 )
+                row = result.scalar_one_or_none()
+                if row:
+                    row.content = content
+                    row.content_hash = content_hash
+                    row.original_name = original_name
+                else:
+                    session.add(KBFile(
+                        hotel_id=hotel_id,
+                        original_name=original_name,
+                        stored_name=stored_name,
+                        content=content,
+                        content_hash=content_hash,
+                    ))
                 await session.commit()
-                print("[DB] Cleared all services/restaurants")
-            except IntegrityError:
-                # Keep historical rows intact and hide services operationally.
-                await session.rollback()
-                await session.execute(
-                    update(Restaurant)
-                    .where(Restaurant.hotel_id == hotel_id)
-                    .values(is_active=False)
+                print(f"[DB] Saved KB file {stored_name}")
+                return True
+        except Exception as e:
+            print(f"[DB] save_kb_file failed: {e}")
+            return False
+
+    async def restore_kb_files(self, kb_dir: str) -> int:
+        """
+        On startup, restore any DB-stored KB files that are missing from disk.
+        Updates knowledge_config.sources to point to the restored paths.
+        Returns the number of files restored.
+        """
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            from models.database import KBFile
+            from pathlib import Path as _Path
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(KBFile).where(KBFile.hotel_id == hotel_id)
                 )
-                await session.commit()
-                print("[DB] Soft-disabled all services/restaurants (FK protected)")
-            except Exception as e:
-                await session.rollback()
-                await session.execute(
-                    update(Restaurant)
-                    .where(Restaurant.hotel_id == hotel_id)
-                    .values(is_active=False)
-                )
-                await session.commit()
-                print(f"[DB] Soft-disabled all services/restaurants after clear error: {e}")
-            return True
+                rows = result.scalars().all()
+
+            if not rows:
+                return 0
+
+            restored = 0
+            valid_paths: list[str] = []
+            for row in rows:
+                # Rebuild a canonical local path under kb_dir/uploads/default/
+                dest = _Path(kb_dir) / "uploads" / "default" / row.stored_name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                if not dest.exists():
+                    dest.write_text(row.content, encoding="utf-8")
+                    restored += 1
+                    print(f"[KB] Restored {row.stored_name} from DB")
+                valid_paths.append(str(dest.resolve()))
+
+            # Update knowledge_config.sources to valid local paths.
+            from services.config_service import config_service as _cs
+            existing_sources = _cs.get_knowledge_config().get("sources", [])
+            merged = list({p for p in (existing_sources + valid_paths) if _Path(p).exists()})
+            _cs.update_knowledge_config({"sources": merged})
+            return restored
+        except Exception as e:
+            print(f"[KB] restore_kb_files failed: {e}")
+            return 0
 
     # ==================== FAQ BANK (JSON-FIRST) ====================
 

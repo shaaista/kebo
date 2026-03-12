@@ -18,6 +18,8 @@ import re
 import tempfile
 from uuid import uuid4
 
+import hashlib
+
 from services.db_config_service import db_config_service
 from services.config_service import config_service  # Keep for JSON fallback
 from services.rag_service import rag_service
@@ -232,18 +234,6 @@ class UpdateToolConfig(BaseModel):
     ticketing_plugin_enabled: Optional[bool] = None
     ticketing_cases: Optional[List[Any]] = None
 
-
-class UpdateIntent(BaseModel):
-    enabled: Optional[bool] = None
-    label: Optional[str] = None
-    maps_to: Optional[str] = None
-
-
-class AddIntent(BaseModel):
-    id: str
-    label: Optional[str] = None
-    enabled: bool = True
-    maps_to: Optional[str] = None
 
 
 class ApplyTemplate(BaseModel):
@@ -680,6 +670,19 @@ async def upload_rag_files(
             }
         )
         await file.close()
+
+        # Persist KB content to DB so files survive restarts / machine changes.
+        try:
+            text_content = content.decode("utf-8", errors="replace")
+            content_hash = hashlib.sha256(content).hexdigest()
+            await db_config_service.save_kb_file(
+                original_name=file.filename or safe_name,
+                stored_name=target_name,
+                content=text_content,
+                content_hash=content_hash,
+            )
+        except Exception as _kb_err:
+            print(f"[DB] KB file save failed (non-fatal): {_kb_err}")
 
     if add_to_sources:
         knowledge = config_service.get_knowledge_config()
@@ -1488,61 +1491,6 @@ async def delete_config_tool(tool_id: str):
     raise HTTPException(status_code=404, detail="Tool not found")
 
 
-@router.get("/api/config/intents")
-async def get_config_intents():
-    """Get all intents from database."""
-    try:
-        return await db_config_service.get_intents()
-    except Exception as e:
-        print(f"DB error: {e}")
-        return config_service.get_intents()
-
-
-@router.put("/api/config/intents/{intent_id}")
-async def update_config_intent(intent_id: str, update: UpdateIntent):
-    """Enable/disable an intent in database."""
-    updates = update.model_dump(exclude_unset=True)
-    if not updates:
-        raise HTTPException(status_code=400, detail="No intent updates provided")
-
-    try:
-        if await db_config_service.update_intent(intent_id, updates):
-            return {"message": f"Intent {intent_id} updated in database"}
-    except Exception as e:
-        print(f"DB error: {e}")
-
-    if config_service.update_intent(intent_id, updates):
-        return {"message": f"Intent {intent_id} updated in JSON"}
-    raise HTTPException(status_code=404, detail="Intent not found")
-
-
-@router.post("/api/config/intents")
-async def add_config_intent(intent: AddIntent):
-    """Add a new custom intent."""
-    payload = intent.model_dump(exclude_unset=True)
-    try:
-        if await db_config_service.add_intent(payload):
-            return {"message": f"Intent {intent.id} added to database"}
-    except Exception as e:
-        print(f"DB error: {e}")
-
-    if config_service.add_intent(payload):
-        return {"message": f"Intent {intent.id} added to JSON"}
-    raise HTTPException(status_code=500, detail="Failed to add intent")
-
-
-@router.delete("/api/config/intents/{intent_id}")
-async def delete_config_intent(intent_id: str):
-    """Delete an intent."""
-    try:
-        if await db_config_service.delete_intent(intent_id):
-            return {"message": f"Intent {intent_id} deleted from database"}
-    except Exception as e:
-        print(f"DB error: {e}")
-
-    if config_service.delete_intent(intent_id):
-        return {"message": f"Intent {intent_id} deleted from JSON"}
-    raise HTTPException(status_code=404, detail="Intent not found")
 
 
 @router.get("/api/config/escalation")
@@ -1686,6 +1634,26 @@ async def init_database():
         return {"message": "Database tables created/verified"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Init failed: {e}")
+
+
+# ============ Local Tickets API ============
+
+@router.get("/api/tickets")
+async def list_local_tickets():
+    """Return all locally stored tickets."""
+    import json
+    from pathlib import Path
+    path = Path("./data/ticketing/local_tickets.json")
+    if not path.exists():
+        return {"tickets": [], "total": 0}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        tickets = list(data.get("tickets") or [])
+        # newest first
+        tickets.sort(key=lambda t: t.get("created_at", ""), reverse=True)
+        return {"tickets": tickets, "total": len(tickets)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load tickets: {e}")
 
 
 # ============ Admin UI ============

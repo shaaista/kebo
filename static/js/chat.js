@@ -28,6 +28,10 @@ const elements = {
     historyModal: document.getElementById('history-modal'),
     historyContent: document.getElementById('history-content'),
     closeModal: document.getElementById('close-modal'),
+    ticketsModal: document.getElementById('tickets-modal'),
+    ticketsContent: document.getElementById('tickets-content'),
+    closeTicketsModal: document.getElementById('close-tickets-modal'),
+    viewTicketsBtn: document.getElementById('view-tickets-btn'),
     debugPanel: document.getElementById('debug-panel'),
     debugContent: document.getElementById('debug-content'),
     toggleDebug: document.getElementById('toggle-debug'),
@@ -68,6 +72,15 @@ function setupEventListeners() {
     elements.viewHistoryBtn.addEventListener('click', viewHistory);
     elements.closeModal.addEventListener('click', () => {
         elements.historyModal.classList.remove('visible');
+    });
+    elements.viewTicketsBtn.addEventListener('click', viewTickets);
+    elements.closeTicketsModal.addEventListener('click', () => {
+        elements.ticketsModal.classList.remove('visible');
+    });
+    elements.ticketsModal.addEventListener('click', (e) => {
+        if (e.target === elements.ticketsModal) {
+            elements.ticketsModal.classList.remove('visible');
+        }
     });
 
     // Scenario buttons
@@ -454,6 +467,54 @@ function escapeHtml(text) {
 // Utility: Scroll to bottom
 function scrollToBottom() {
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+}
+
+// View local tickets
+async function viewTickets() {
+    elements.ticketsModal.classList.add('visible');
+    elements.ticketsContent.innerHTML = 'Loading...';
+
+    try {
+        const response = await fetch('/admin/api/tickets');
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const tickets = data.tickets || [];
+
+        if (tickets.length === 0) {
+            elements.ticketsContent.innerHTML = '<p style="color:#64748b;">No tickets yet.</p>';
+            return;
+        }
+
+        let html = `<p style="margin-bottom:12px;color:#64748b;">${tickets.length} ticket(s) found — newest first</p>`;
+        tickets.forEach(t => {
+            const created = t.created_at ? new Date(t.created_at).toLocaleString() : '-';
+            const status = t.status || 'open';
+            const statusColor = status === 'open' ? '#16a34a' : '#64748b';
+            const fields = Object.entries(t)
+                .filter(([k]) => !['created_at', 'updated_at', 'ticket_id', 'status', 'id'].includes(k))
+                .map(([k, v]) => {
+                    if (!v && v !== 0) return '';
+                    return `<div><span style="color:#64748b;min-width:130px;display:inline-block;">${k}:</span> ${escapeHtml(String(v))}</div>`;
+                })
+                .filter(Boolean)
+                .join('');
+
+            html += `
+                <div style="border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:12px;background:#fff;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <strong style="font-size:15px;">🎫 ${escapeHtml(t.ticket_id || t.id || '-')}</strong>
+                        <span style="background:${statusColor};color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;">${escapeHtml(status)}</span>
+                    </div>
+                    <div style="font-size:13px;line-height:1.7;">${fields}</div>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;">Created: ${created}</div>
+                </div>
+            `;
+        });
+
+        elements.ticketsContent.innerHTML = html;
+    } catch (error) {
+        elements.ticketsContent.innerHTML = `<p style="color:#ef4444;">Error loading tickets: ${error.message}</p>`;
+    }
 }
 
 // Initialize on DOM ready

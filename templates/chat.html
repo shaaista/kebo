@@ -44,6 +44,7 @@
                 <button id="new-session-btn" class="btn btn-primary">New Session</button>
                 <button id="reset-btn" class="btn btn-secondary">Reset State</button>
                 <button id="view-history-btn" class="btn btn-secondary">View History</button>
+                <button id="view-tickets-btn" class="btn btn-secondary">View Tickets</button>
             </div>
 
             <div class="test-scenarios">
@@ -121,6 +122,19 @@
         </aside>
     </div>
 
+    <!-- Tickets Modal -->
+    <div class="modal" id="tickets-modal">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header">
+                <h2>Local Tickets</h2>
+                <button class="modal-close" id="close-tickets-modal">×</button>
+            </div>
+            <div class="modal-body" id="tickets-content">
+                Loading...
+            </div>
+        </div>
+    </div>
+
     <!-- History Modal -->
     <div class="modal" id="history-modal">
         <div class="modal-content">
@@ -134,6 +148,6 @@
         </div>
     </div>
 
-    <script src="/static/js/chat.js?v=20260312_2"></script>
+    <script src="/static/js/chat.js?v=20260313_1"></script>
 </body>
 </html>

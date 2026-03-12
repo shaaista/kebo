@@ -159,355 +159,15 @@ _DEFAULT_JOURNEY_PHASES = [
 ]
 
 _PREBOOKING_PREBUILT_SERVICES = [
-    {
-        "id": "hotel_enquiry_sales",
-        "name": "Hotel Enquiry & Sales",
-        "type": "service",
-        "description": "Answer hotel questions and guide guests toward booking decisions.",
-        "ticketing_policy": "Create ticket only when guest asks for manual callback or human sales follow-up.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "room_discovery",
-        "name": "Room Discovery",
-        "type": "service",
-        "description": "Help guests compare room types, amenities, and suitability.",
-        "ticketing_policy": "Create ticket only for custom/manual room requests or non-standard requirements.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "rate_quote_enquiry",
-        "name": "Rate & Quote Enquiry",
-        "type": "service",
-        "description": "Handle price, package, and quotation enquiries before booking.",
-        "ticketing_policy": "Create ticket for custom quote, corporate/group pricing, or manual discount approval.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "policy_enquiry",
-        "name": "Policy Enquiry",
-        "type": "service",
-        "description": "Answer cancellation, check-in/out, and stay-policy questions.",
-        "ticketing_policy": "Create ticket only when policy exception approval is requested.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "website_booking_support",
-        "name": "Website Booking Support",
-        "type": "service",
-        "description": "Assist with booking-site issues such as OTP, login, or form errors.",
-        "ticketing_policy": "Create ticket when booking website issue is unresolved or needs staff intervention.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "prebooking_payment_support",
-        "name": "Pre-Booking Payment Support",
-        "type": "service",
-        "description": "Handle payment failures or pending confirmations before booking completion.",
-        "ticketing_policy": "Create ticket for failed/pending/duplicate payments or payment confirmation mismatch.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "sales_callback_request",
-        "name": "Sales Callback Request",
-        "type": "service",
-        "description": "Collect callback requests for manual sales/reservations follow-up.",
-        "ticketing_policy": "Always create ticket for callback ownership and follow-up tracking.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "group_booking_enquiry",
-        "name": "Group Booking Enquiry",
-        "type": "service",
-        "description": "Capture group/corporate booking enquiries requiring manual proposal support.",
-        "ticketing_policy": "Always create ticket for group/corporate proposal workflow.",
-        "phase_id": "pre_booking",
-        "is_active": True,
-        "is_builtin": True,
-    },
 ]
 
 _PRECHECKIN_PREBUILT_SERVICES = [
-    {
-        "id": "booking_status",
-        "name": "Booking Status",
-        "type": "service",
-        "description": "Confirm reservation status, dates, room type, and booking reference before arrival.",
-        "ticketing_policy": "Create ticket only if booking is mismatched/not found or manual verification is needed.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "booking_modification",
-        "name": "Booking Modification",
-        "type": "service",
-        "description": "Handle date, guest count, room type, and special-request booking changes.",
-        "ticketing_policy": "Always create ticket when booking changes require staff or PMS action.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "booking_cancellation",
-        "name": "Booking Cancellation",
-        "type": "service",
-        "description": "Support cancellation requests, policy guidance, and cancellation confirmation.",
-        "ticketing_policy": "Create ticket when cancellation execution, refund follow-up, or exception approval is required.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "pre_arrival_coordination",
-        "name": "Pre-Arrival Coordination",
-        "type": "service",
-        "description": "Collect ETA, preferences, and arrival instructions before guest check-in.",
-        "ticketing_policy": "Create ticket when pre-arrival request needs operational handoff.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "early_checkin_request",
-        "name": "Early Check-in Request",
-        "type": "service",
-        "description": "Capture and route early check-in requests for availability-based approval.",
-        "ticketing_policy": "Always create ticket for early check-in request approval workflow.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "airport_transfer_coordination",
-        "name": "Airport Transfer Coordination",
-        "type": "service",
-        "description": "Arrange pickup/drop timing and transfer details before guest arrival.",
-        "ticketing_policy": "Always create ticket unless transfer flow is fully automated.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "precheckin_document_support",
-        "name": "Pre-Checkin Document Support",
-        "type": "service",
-        "description": "Help guests complete pre-checkin forms and document requirements.",
-        "ticketing_policy": "Create ticket when document validation fails or manual verification is required.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "special_occasion_preparation",
-        "name": "Special Occasion Preparation",
-        "type": "service",
-        "description": "Capture celebration and amenity setup requests before arrival.",
-        "ticketing_policy": "Always create ticket for pre-arrival setup and ownership tracking.",
-        "phase_id": "pre_checkin",
-        "is_active": True,
-        "is_builtin": True,
-    },
 ]
 
 _DURINGSTAY_PREBUILT_SERVICES = [
-    {
-        "id": "housekeeping_request",
-        "name": "Housekeeping Request",
-        "type": "service",
-        "description": "Handle cleaning, linen, and in-room amenity requests during the guest stay.",
-        "ticketing_policy": "Always create ticket for actionable housekeeping requests.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "maintenance_support",
-        "name": "Maintenance Support",
-        "type": "service",
-        "description": "Handle AC, plumbing, electrical, TV, Wi-Fi, and room maintenance issues.",
-        "ticketing_policy": "Always create high-priority ticket for confirmed maintenance issues.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "in_room_dining_support",
-        "name": "In-Room Dining Support",
-        "type": "service",
-        "description": "Support in-room dining ordering, status checks, and missing-item follow-up.",
-        "ticketing_policy": "Create ticket on order confirmation or unresolved in-room dining issue.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "restaurant_reservation",
-        "name": "Restaurant Reservation",
-        "type": "service",
-        "description": "Handle in-house table booking requests for hotel restaurants.",
-        "ticketing_policy": "Create ticket when reservation needs outlet staff confirmation.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "spa_recreation_booking",
-        "name": "Spa & Recreation Booking",
-        "type": "service",
-        "description": "Handle spa, pool, and recreation bookings during stay.",
-        "ticketing_policy": "Create ticket when spa/recreation booking requires staff confirmation.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "transport_on_demand",
-        "name": "Transport On-Demand",
-        "type": "service",
-        "description": "Arrange on-demand local transport, pickup, and drop requests.",
-        "ticketing_policy": "Always create ticket for transport dispatch and driver coordination.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "complaint_resolution",
-        "name": "Complaint Resolution",
-        "type": "service",
-        "description": "Handle in-stay complaints, dissatisfaction, and service recovery follow-up.",
-        "ticketing_policy": "Always create ticket for complaints and escalate urgent dissatisfaction quickly.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "late_checkout_extend_stay",
-        "name": "Late Checkout & Extend Stay",
-        "type": "service",
-        "description": "Handle late checkout and extension requests subject to availability and policy.",
-        "ticketing_policy": "Always create ticket for late checkout or stay extension approval.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "front_desk_assistance",
-        "name": "Front Desk Assistance",
-        "type": "service",
-        "description": "Handle key card issues, room changes, and general front desk support.",
-        "ticketing_policy": "Always create ticket when front desk intervention is required.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "urgent_emergency_support",
-        "name": "Urgent Emergency Support",
-        "type": "service",
-        "description": "Handle emergency safety, medical, and security incidents during stay.",
-        "ticketing_policy": "Immediately create CRITICAL ticket and escalate to human response team.",
-        "phase_id": "during_stay",
-        "is_active": True,
-        "is_builtin": True,
-    },
 ]
 
 _POSTCHECKOUT_PREBUILT_SERVICES = [
-    {
-        "id": "postcheckout_invoice_support",
-        "name": "Billing & Invoice Support",
-        "type": "service",
-        "description": "Handle post-stay invoice copy, billing clarification, and charge-review requests.",
-        "ticketing_policy": "Create ticket when invoice correction or billing dispute needs manual review.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_refund_followup",
-        "name": "Refund & Deposit Follow-up",
-        "type": "service",
-        "description": "Track refund and security-deposit settlements after guest checkout.",
-        "ticketing_policy": "Always create ticket for refund/deposit verification and closure ownership.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_lost_and_found",
-        "name": "Lost & Found Support",
-        "type": "service",
-        "description": "Capture lost-item reports and coordinate item verification, storage, and return.",
-        "ticketing_policy": "Always create ticket for lost-and-found handling and courier coordination.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_feedback_resolution",
-        "name": "Post-Stay Feedback Resolution",
-        "type": "service",
-        "description": "Handle complaints and negative post-stay feedback requiring service recovery.",
-        "ticketing_policy": "Always create ticket for unresolved complaints and assign service-recovery owner.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_tax_invoice_correction",
-        "name": "Tax Invoice / GST Correction",
-        "type": "service",
-        "description": "Support tax invoice edits, GST updates, and corporate billing detail corrections.",
-        "ticketing_policy": "Always create ticket when tax invoice details require back-office update.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_loyalty_support",
-        "name": "Loyalty & Membership Support",
-        "type": "service",
-        "description": "Handle loyalty points, membership credit, and stay-benefit correction requests.",
-        "ticketing_policy": "Create ticket when points or membership benefits need manual correction.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_receipt_folio_support",
-        "name": "Receipt / Folio Resend",
-        "type": "service",
-        "description": "Resend stay receipt, folio, and confirmation documents after checkout.",
-        "ticketing_policy": "Create ticket when receipt/folio resend fails or needs manual processing.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
-    {
-        "id": "postcheckout_rebooking_assistance",
-        "name": "Rebooking Assistance",
-        "type": "service",
-        "description": "Handle repeat-stay interest, callback requests, and post-stay rebooking support.",
-        "ticketing_policy": "Create ticket when guest requests callback or assisted rebooking.",
-        "phase_id": "post_checkout",
-        "is_active": True,
-        "is_builtin": True,
-    },
 ]
 
 _PHASE_PREBUILT_SERVICES: dict[str, list[dict[str, Any]]] = {
@@ -888,6 +548,8 @@ class ConfigService:
                 _slot("guest_count", "Guest Count", "How many guests should I include?", slot_type="number"),
             ],
             "room_booking": [
+                _slot("guest_name", "Guest Name", "May I have your full name?"),
+                _slot("contact_number", "Contact Number", "What is your contact number?"),
                 _slot("check_in_date", "Check-in Date", "What is your check-in date?", slot_type="date"),
                 _slot("check_out_date", "Check-out Date", "What is your check-out date?", slot_type="date"),
                 _slot("guest_count", "Guest Count", "How many guests will stay?", slot_type="number"),
@@ -2392,8 +2054,21 @@ class ConfigService:
                 return saved
         return False
 
+    def _prune_service_kb_records(self, config: Dict[str, Any], service_ids_to_remove: set) -> None:
+        """Remove service_kb records for deleted service IDs in-place."""
+        service_kb = config.get("service_kb")
+        if not isinstance(service_kb, dict):
+            return
+        records = service_kb.get("records")
+        if not isinstance(records, list):
+            return
+        service_kb["records"] = [
+            r for r in records
+            if self._normalize_identifier(r.get("service_id")) not in service_ids_to_remove
+        ]
+
     def delete_service(self, service_id: str) -> bool:
-        """Delete a service."""
+        """Delete a service and its KB records."""
         normalized_id = self._normalize_identifier(service_id)
         config = self.load_config()
         config["services"] = [
@@ -2401,15 +2076,19 @@ class ConfigService:
             for s in config.get("services", [])
             if self._normalize_identifier(s.get("id")) != normalized_id
         ]
+        self._prune_service_kb_records(config, {normalized_id})
         saved = self.save_config(config)
         if saved:
             self._maybe_auto_compile_service_kb()
         return saved
 
     def clear_services(self) -> bool:
-        """Delete all services from config."""
+        """Delete all services and their KB records from config."""
         config = self.load_config()
         config["services"] = []
+        service_kb = config.get("service_kb")
+        if isinstance(service_kb, dict):
+            service_kb["records"] = []
         saved = self.save_config(config)
         if saved:
             self._maybe_auto_compile_service_kb()
@@ -3615,14 +3294,12 @@ class ConfigService:
                     f"Here is the complete knowledge base:\n\n{full_kb_text}\n\n"
                     "---\n"
                     "EXTRACTION INSTRUCTIONS:\n"
-                    "1. PRIMARY — Extract EVERY detail about your specific service: all options, prices, timings, "
-                    "policies, procedures, restrictions, staff contacts, booking steps, cancellation rules, "
-                    "special notes, and any other specifics. Leave nothing out.\n"
-                    "2. SECONDARY — For closely related services a guest might ask about in this context, "
-                    "include a brief summary (2-4 lines each) so the agent can answer cross-service questions.\n"
-                    "3. GAPS — At the end, add a short 'Knowledge Gaps' section listing anything about this "
-                    "service that seems missing or unclear in the KB.\n\n"
-                    "Format clearly with section headers. Be exhaustive on the primary service."
+                    "Extract ONLY information that is directly about this specific service. "
+                    "Include every detail: all options, prices, timings, policies, procedures, "
+                    "restrictions, staff contacts, booking steps, cancellation rules, and any other specifics.\n"
+                    "Do NOT include information about other services, facilities, or departments unless "
+                    "it is directly part of this service's offering.\n"
+                    "Format clearly with section headers. Be exhaustive and accurate."
                 ),
             },
         ]

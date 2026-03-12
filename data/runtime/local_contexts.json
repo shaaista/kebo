@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-12T09:55:19.430036+00:00",
+  "saved_at": "2026-03-12T20:02:55.626208+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -15917,6 +15917,3543 @@
       ],
       "created_at": "2026-03-12T09:50:38.816409Z",
       "updated_at": "2026-03-12T09:55:19.394041Z"
+    },
+    "session_1773335805715_n1we0t672": {
+      "session_id": "session_1773335805715_n1we0t672",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_booking_details",
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": 2,
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase at ICONIQA Hotel and is interested in both ordering food and booking a room. They have inquired about dining options, which include the Aviator Food Menu, Bombay Swim Club Menu, and In-Room Dining, but have not yet specified their food choice or placed an order. Additionally, the user is looking to book a room for February 1-2 for two people and needs to confirm their preferred room type. The assistant is ready to assist with both food orders and room bookings. There are no unresolved asks at this time.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "menu_or_order",
+            "party_size": "2"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-12T17:16:51.839896+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "menu_or_order",
+              "change_type": "set",
+              "source_message": "i need food",
+              "timestamp": "2026-03-12T17:17:20.911333+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "feb 1-2 for 2 people",
+              "timestamp": "2026-03-12T17:23:10.376961+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-12T17:23:41.081404+00:00",
+          "last_user_message": "show rooms",
+          "last_assistant_message": "At ICONIQA Hotel, we offer the following room types:\n1. **Premier King Room**: Features a calming palette, cloud-soft linens, and a versatile table-and-chair duo. Includes amenities like an in-room smart laundry closet, complimentary non-alcoholic minibar, espresso machines, high-speed WiFi, and a power shower with Ayurvedic bath products.\n2. **Premier Twin Room**: Offers plush twin beds with prem"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_booking_details",
+            "pending_data": {
+              "service_id": "room_booking",
+              "check_in_date": "2024-02-01",
+              "check_out_date": "2024-02-02",
+              "guest_count": 2
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect booking details flow",
+            "updated_at": "2026-03-12T17:23:41.081192+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T17:23:41.081212+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "93ffafcd-70ec-42c0-af47-d26dce8b9dd4",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-12T17:16:51.839706Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "956e1e0b-6d94-476d-872f-cd7d3473c36e",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today at ICONIQA Hotel? Whether you have questions about our hotel or need help with room bookings, I'm here to help.",
+          "timestamp": "2026-03-12T17:17:04.573558Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-4828b65f8dee",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7a095979-8f14-4a6b-b0a0-42b4b71f13fa",
+          "role": "user",
+          "content": "i need food",
+          "timestamp": "2026-03-12T17:17:20.911028Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need food."
+          }
+        },
+        {
+          "id": "031c16e0-162c-4efe-ab7b-ec758045c931",
+          "role": "assistant",
+          "content": "You can explore our dining options at ICONIQA Hotel. We have a variety of menus available, including the Aviator Food Menu, Bombay Swim Club Menu, and In-Room Dining options. If you need specific recommendations or wish to place an order, please let me know!",
+          "timestamp": "2026-03-12T17:17:36.765925Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-b5ef509c89ae",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "9bc298ca-2d1d-4abe-8158-c4caf69b1281",
+          "role": "user",
+          "content": "order food",
+          "timestamp": "2026-03-12T17:18:20.328883Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Order food"
+          }
+        },
+        {
+          "id": "31813b49-a138-48aa-ab86-2cc2bc5268df",
+          "role": "assistant",
+          "content": "You can order food from our various dining options at ICONIQA Hotel. We offer the Aviator Food Menu, Bombay Swim Club Menu, and In-Room Dining options. Please let me know if you need specific recommendations or wish to place an order.",
+          "timestamp": "2026-03-12T17:18:39.891578Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-c3166a642f55",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ee2bbae3-3948-4aba-9a61-88b21b13419f",
+          "role": "user",
+          "content": "i need food",
+          "timestamp": "2026-03-12T17:21:24.116531Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need food."
+          }
+        },
+        {
+          "id": "d95a9789-ee35-441a-b3dc-d3026975fcd0",
+          "role": "assistant",
+          "content": "You can order food from our various dining options at ICONIQA Hotel. We offer the Aviator Food Menu, Bombay Swim Club Menu, and In-Room Dining options. Please let me know if you need specific recommendations or wish to place an order.",
+          "timestamp": "2026-03-12T17:21:47.442945Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-07b20f61a3ff",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "26b4b8f1-9e06-41b2-b398-0f41be5dfd30",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T17:22:05.326983Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "9324c6f2-4b06-4252-81df-eb8334f764a8",
+          "role": "assistant",
+          "content": "To assist you with booking a room at ICONIQA Hotel, could you please provide your check-in date, check-out date, number of guests, and preferred room type?",
+          "timestamp": "2026-03-12T17:22:21.590641Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-01b38544d0e5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ad37b513-7cc0-4526-935b-0004ca1a861d",
+          "role": "user",
+          "content": "feb 1-2 for 2 people",
+          "timestamp": "2026-03-12T17:23:10.376852Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 2 people"
+          }
+        },
+        {
+          "id": "aaa8fae0-ef31-4d7f-8160-33b0a697b97a",
+          "role": "assistant",
+          "content": "Thank you for providing some details. To proceed with your room booking at ICONIQA Hotel, could you please confirm your preferred room type?",
+          "timestamp": "2026-03-12T17:23:18.629774Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "f2d8f4be-5b27-421b-9ce3-d9b781e95fd6",
+          "role": "user",
+          "content": "show rooms",
+          "timestamp": "2026-03-12T17:23:32.725392Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Show rooms."
+          }
+        },
+        {
+          "id": "8279c30a-8ff6-4cb0-b0ae-07666ed100a3",
+          "role": "assistant",
+          "content": "At ICONIQA Hotel, we offer the following room types:\n1. **Premier King Room**: Features a calming palette, cloud-soft linens, and a versatile table-and-chair duo. Includes amenities like an in-room smart laundry closet, complimentary non-alcoholic minibar, espresso machines, high-speed WiFi, and a power shower with Ayurvedic bath products.\n2. **Premier Twin Room**: Offers plush twin beds with premium linens, ideal for both business and leisure travelers. Includes similar amenities as the Premier King Room.\nCould you please confirm your preferred room type?",
+          "timestamp": "2026-03-12T17:23:41.081348Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T17:16:48.715689Z",
+      "updated_at": "2026-03-12T17:23:41.081433Z"
+    },
+    "session_1773338200539_nmjmnix7z": {
+      "session_id": "session_1773338200539_nmjmnix7z",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_booking_details",
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": 2,
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is looking to book a room at ICONIQA Hotel for 2 people. They have specified the dates as February 1st to February 2nd. The user has not yet confirmed the check-in and check-out dates or chosen a preferred room type from the available options: Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, or Ultimate Suite. The user needs to confirm these details to proceed with the booking.",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "2"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-12T17:56:49.852718+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "feb 1-2 for 2 people",
+              "timestamp": "2026-03-12T17:58:04.954714+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-12T17:58:20.444853+00:00",
+          "last_user_message": "feb 1-2 for 2 people",
+          "last_assistant_message": "Thank you for providing some details. Could you please confirm your check-in date as February 1st and check-out date as February 2nd? Also, please specify your preferred room type from the following options: Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, or Ultimate Suite."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_booking_details",
+            "pending_data": {
+              "service_id": "room_booking",
+              "check_in_date": "2024-02-01",
+              "check_out_date": "2024-02-02",
+              "guest_count": 2
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect booking details flow",
+            "updated_at": "2026-03-12T17:58:17.838480+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T17:58:17.838496+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "e137edd8-99d2-4e44-8ad9-8202238bc9ba",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-12T17:56:49.852603Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "58d59bfa-0d24-4dc7-9ad3-d4b9b196df4a",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today with your pre-booking inquiries or room booking at ICONIQA Hotel?",
+          "timestamp": "2026-03-12T17:57:05.584385Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-8d6f5688469b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "263cff36-9182-42f3-ad29-0ceadb587be1",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T17:57:14.939633Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "d9278ef9-f89d-4030-b423-0ad4d1eaeb0a",
+          "role": "assistant",
+          "content": "Welcome to ICONIQA Hotel's room booking service! We offer a variety of room options including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Please note that specific room rates are not provided in the knowledge base, and early check-in or late check-out may incur additional charges. Could you please provide your check-in date, check-out date, number of guests, and preferred room type?",
+          "timestamp": "2026-03-12T17:57:38.937943Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-e2bc99b27025",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "60ee5bd8-12f0-4304-934b-4852ee29bb43",
+          "role": "user",
+          "content": "feb 1-2 for 2 people",
+          "timestamp": "2026-03-12T17:58:04.954562Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 2 people"
+          }
+        },
+        {
+          "id": "eea6be7d-2a25-49f2-a044-911677d1dcd7",
+          "role": "assistant",
+          "content": "Thank you for providing some details. Could you please confirm your check-in date as February 1st and check-out date as February 2nd? Also, please specify your preferred room type from the following options: Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, or Ultimate Suite.",
+          "timestamp": "2026-03-12T17:58:17.838614Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T17:56:45.197962Z",
+      "updated_at": "2026-03-12T17:58:20.444877Z"
+    },
+    "session_1773340202658_wtxck4gky": {
+      "session_id": "session_1773340202658_wtxck4gky",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_booking_details",
+      "pending_data": {
+        "service_id": "room_booking",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is looking to book a room at ICONIQA Hotel. There are no unresolved asks at the moment.",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-12T18:30:09.313638+00:00"
+            }
+          ],
+          "last_summarized_count": 3,
+          "updated_at": "2026-03-12T18:31:09.424067+00:00",
+          "last_user_message": "i need a room",
+          "last_assistant_message": "To assist you with booking a room at ICONIQA Relaxed QA Hotel, could you please provide the check-in and check-out dates, the number of guests, and your preferred room type?"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T18:30:38.867399+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "b7b57107-42e8-45c2-a6f3-cfc5eb043a45",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-12T18:30:09.313562Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "0228fdbe-06e6-4985-8285-2104890fe8d5",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today with your pre-booking inquiries or room booking at ICONIQA Hotel?",
+          "timestamp": "2026-03-12T18:30:27.105419Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-cf16000c6141",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "479595ad-ca63-4dcd-aaee-14e56cd2b6f0",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T18:30:37.921431Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "af93dfb6-0bf6-491b-90ed-b258f5434ddc",
+          "role": "assistant",
+          "content": "To assist you with booking a room at ICONIQA Relaxed QA Hotel, could you please provide the check-in and check-out dates, the number of guests, and your preferred room type?",
+          "timestamp": "2026-03-12T18:31:09.424012Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "kb_only_mode": true,
+            "full_kb_llm_mode": true,
+            "pure_llm_mode": true,
+            "full_kb_trace_id": "fullkb-087dda76cad2",
+            "full_kb_raw_intent": "room_booking",
+            "full_kb_normalized_query": "I need a room.",
+            "response_source": "pure_llm",
+            "contextual_sanity_gate": false,
+            "contextual_sanity_code": "",
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "pure_llm"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T18:30:05.278157Z",
+      "updated_at": "2026-03-12T18:31:09.424080Z"
+    },
+    "session_1773340480299_n0ynms045": {
+      "session_id": "session_1773340480299_n0ynms045",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "room_type": "Prestige Suite",
+        "check_in_date": "February 1",
+        "check_out_date": "February 2",
+        "guest_count": "2",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and interested in booking a Prestige Suite at ICONIQA Hotel, which includes a bathtub. They have provided their check-in date as February 1 and check-out date as February 2, with a party size of 2. The user has not yet confirmed these booking details. They have inquired about room amenities and received information on room options and general amenities, including dining venues, spa services, wellness facilities, and transportation options. The user has not resolved any specific questions about the amenities beyond room features.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "room_service",
+            "party_size": "2"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need a room",
+              "timestamp": "2026-03-12T18:34:48.660479+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "room_service",
+              "change_type": "set",
+              "source_message": "tell me about amenities",
+              "timestamp": "2026-03-12T18:37:17.463543+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "feb 1-2 for 2 people",
+              "timestamp": "2026-03-12T18:39:24.505476+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-12T18:40:04.539116+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "I wasn't able to confirm your booking right now. Please try again or speak to our front desk."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T18:40:04.538896+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "c33d1b46-549f-46d5-9395-faf86a6de6ba",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T18:34:48.660410Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "8baecf82-275e-4e9c-b56c-8b16fc926c5e",
+          "role": "assistant",
+          "content": "Welcome to ICONIQA Hotel Room Booking Service! We offer a variety of room options including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. To proceed with your booking, could you please provide the following details: Check-in Date, Check-out Date, Guest Count, and any specific room type preference if you have one?",
+          "timestamp": "2026-03-12T18:35:03.530140Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-9246440945e4",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d552ae2d-e10f-4e1d-8af9-f47a97114f6b",
+          "role": "user",
+          "content": "tell me more aboutthe rooms",
+          "timestamp": "2026-03-12T18:36:54.308221Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "tell me more about the rooms"
+          }
+        },
+        {
+          "id": "bd208f9c-da17-467f-9634-e100e6698ef5",
+          "role": "assistant",
+          "content": "Certainly! Here's a brief overview of our room options:\n- **Premier King Room**: 134 rooms, 229–340 sq. ft.\n- **Premier Twin Room**: 48 rooms, 230–380 sq. ft., ideal for both business and leisure travelers.\n- **Lux Suite**: 79 rooms, 380–485 sq. ft.\n- **Reserve Suite**: 16 rooms, 375–415 sq. ft.\n- **Prestige Suite**: 6 rooms, 485 sq. ft., includes a bathtub.\n- **Ultimate Suite**: 8 rooms, 603 sq. ft.\nPlease let me know your check-in date, check-out date, and the number of guests to proceed with the booking.",
+          "timestamp": "2026-03-12T18:36:59.436875Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "9c5acd93-5de0-4966-8ab2-18e7ba1c19e5",
+          "role": "user",
+          "content": "tell me about amenities",
+          "timestamp": "2026-03-12T18:37:17.463390Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Tell me about amenities."
+          }
+        },
+        {
+          "id": "25640787-9058-4d57-8f81-55d3c46c739a",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a range of amenities to enhance your stay, including multiple dining venues such as the Aviator Lounge, Kadak Lab, and Bombay Swim Club. We also provide spa services available from 9:00 AM to 11:00 PM, wellness facilities like a pool, jacuzzi, yoga sessions, and a beauty bar. Additionally, we offer transportation arrangements with airport transfers. If you have any specific questions or need further details, feel free to ask!",
+          "timestamp": "2026-03-12T18:37:21.681558Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "f24e7cfa-8fc4-43b7-8490-a612d745f6a7",
+          "role": "user",
+          "content": "room amenities",
+          "timestamp": "2026-03-12T18:38:03.587214Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "room ammenities"
+          }
+        },
+        {
+          "id": "55046b9c-96bd-495b-aebd-4af3f8263b98",
+          "role": "assistant",
+          "content": "Our rooms at ICONIQA Hotel are designed for comfort and versatility. Each room is equipped with premium linens, modern furnishings, and essential amenities to ensure a pleasant stay. Specific amenities may vary by room type, but generally include high-speed internet, a flat-screen TV, a work desk, and a mini-bar. If you have any specific requirements or need more detailed information about a particular room type, please let me know!",
+          "timestamp": "2026-03-12T18:38:13.154229Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6fe299c9-5ffc-43b0-9a50-2156321b03d7",
+          "role": "user",
+          "content": "i need a room with bathtub",
+          "timestamp": "2026-03-12T18:39:01.280465Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room with a bathtub."
+          }
+        },
+        {
+          "id": "ef23246a-88b9-4adb-b0a1-48951262dc9a",
+          "role": "assistant",
+          "content": "The Prestige Suite includes a bathtub. To proceed with your booking, please provide the following details: Check-in Date, Check-out Date, and the number of guests.",
+          "timestamp": "2026-03-12T18:39:06.767039Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "154f3aa3-543a-49f0-9cc4-66e64ec6d456",
+          "role": "user",
+          "content": "feb 1-2 for 2 people",
+          "timestamp": "2026-03-12T18:39:24.505343Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 2 people"
+          }
+        },
+        {
+          "id": "c87c1bd2-4ea8-40d9-a8b9-239dba5c20d6",
+          "role": "assistant",
+          "content": "Thank you for providing the dates and guest count. To proceed, please confirm the following details:\n- Check-in Date: February 1\n- Check-out Date: February 2\n- Guest Count: 2\n- Room Type: Prestige Suite\nPlease confirm these details before execution. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T18:39:29.033565Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "42f555cf-c087-4e4c-bc9a-1db5c7d2fa94",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T18:39:47.294661Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "a2f1bffa-8e77-466d-b244-3ecbe1108f46",
+          "role": "assistant",
+          "content": "I wasn't able to confirm your booking right now. Please try again or speak to our front desk.",
+          "timestamp": "2026-03-12T18:40:04.539046Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": false,
+            "ticket_create_failed": true,
+            "ticket_error": "ticket_create_failed",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": null,
+            "ticket_api_response": {},
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T18:34:44.998807Z",
+      "updated_at": "2026-03-12T18:40:04.539130Z"
+    },
+    "session_1773341760665_70s0q64mm": {
+      "session_id": "session_1773341760665_70s0q64mm",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": "2",
+        "room_type": "Prestige Suite",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and aims to book a room for two people from February 1st to 2nd. They are interested in a room with a bathtub and have been informed that the Prestige Suite includes this feature. The user has not yet confirmed the room type they wish to book.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation",
+            "party_size": "2",
+            "guest_count": "2"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "book a room",
+              "timestamp": "2026-03-12T18:56:17.497341+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a room",
+              "timestamp": "2026-03-12T18:56:17.497780+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "feb 1-2 for 2 people",
+              "timestamp": "2026-03-12T18:56:59.963105+00:00"
+            },
+            {
+              "key": "guest_count",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "Feb 1-2 for 2 people",
+              "timestamp": "2026-03-12T18:57:04.865086+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-12T18:58:10.099834+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "I wasn't able to confirm your booking right now. Please try again or speak to our front desk."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T18:58:10.099605+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "6e9cc5f0-ed66-4e23-b990-d81ca445fa17",
+          "role": "user",
+          "content": "book a room",
+          "timestamp": "2026-03-12T18:56:17.497238Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book a room."
+          }
+        },
+        {
+          "id": "b95ae1f4-407a-4011-9bc7-a3029abcfbbe",
+          "role": "assistant",
+          "content": "Welcome to ICONIQA Hotel Room Booking Service! We offer a variety of room options including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Could you please provide the check-in date, check-out date, and the number of guests for your stay?",
+          "timestamp": "2026-03-12T18:56:33.660098Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-548910d2320a",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c4716482-f02b-48d0-a5d0-2ca6c3d01688",
+          "role": "user",
+          "content": "feb 1-2 for 2 people",
+          "timestamp": "2026-03-12T18:56:59.962984Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 2 people"
+          }
+        },
+        {
+          "id": "e3c306c2-604c-4a1e-9f69-7352863f52a9",
+          "role": "assistant",
+          "content": "Thank you for providing the dates and number of guests. Could you please specify the type of room you would like to book? We have Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite available.",
+          "timestamp": "2026-03-12T18:57:04.866002Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "8e96d432-3ffa-4404-9f75-46d10c14811b",
+          "role": "user",
+          "content": "which room has a bathtub",
+          "timestamp": "2026-03-12T18:57:19.567601Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Which room has a bathtub?"
+          }
+        },
+        {
+          "id": "d2513048-dcf6-46be-8823-1a6e6f6f66da",
+          "role": "assistant",
+          "content": "The Prestige Suite includes a bathtub. Would you like to book this room type for your stay?",
+          "timestamp": "2026-03-12T18:57:23.348198Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "864bb34f-ff74-45f9-b824-a3feac43f000",
+          "role": "user",
+          "content": "yes",
+          "timestamp": "2026-03-12T18:57:35.542830Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "b2c8f1c3-f4a6-4091-a6a0-c02218b91e51",
+          "role": "assistant",
+          "content": "Thank you for choosing the Prestige Suite. Please confirm these details before execution: Check-in Date: 2024-02-01, Check-out Date: 2024-02-02, Guest Count: 2, Room Type: Prestige Suite. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T18:57:42.138490Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c0caa250-184b-4f22-8926-990bd4f958e6",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T18:57:54.290321Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "2ad1e0a7-9256-4c0e-aa9c-c24f4b32fb1d",
+          "role": "assistant",
+          "content": "I wasn't able to confirm your booking right now. Please try again or speak to our front desk.",
+          "timestamp": "2026-03-12T18:58:10.099769Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": false,
+            "ticket_create_failed": true,
+            "ticket_error": "ticket_create_failed",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": null,
+            "ticket_api_response": {},
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T18:56:13.524682Z",
+      "updated_at": "2026-03-12T18:58:10.099845Z"
+    },
+    "session_1773342924484_qs1uf8gtw": {
+      "session_id": "session_1773342924484_qs1uf8gtw",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": "3",
+        "room_type": "Prestige Suite",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and aims to book a room at the ICONIQA Hotel. They have confirmed a stay from February 1st to February 2nd for 3 guests and are interested in the Prestige Suite, which includes a bathtub. The user has yet to confirm the booking details provided by the assistant.",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "3",
+            "latest_ticket": {
+              "id": "LOCAL-212",
+              "status": "open",
+              "category": "room_booking",
+              "sub_category": "prestige_suite",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-12T19:19:29.641809+00:00"
+            },
+            "last_ticket_id": "LOCAL-212",
+            "ticket_history": [
+              {
+                "id": "LOCAL-212",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "prestige_suite",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:19:29.641809+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "which hotel is ths",
+              "timestamp": "2026-03-12T19:15:39.270515+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "3",
+              "change_type": "set",
+              "source_message": "feb 1-2 for 3 people",
+              "timestamp": "2026-03-12T19:18:10.448685+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-212",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "prestige_suite",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:19:29.641809+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-212)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 3 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:19:29.641839+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-212",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-212)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 3 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:19:29.641845+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-212",
+                  "status": "open",
+                  "category": "room_booking",
+                  "sub_category": "prestige_suite",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-12T19:19:29.641809+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-212)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 3 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:19:29.641874+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-12T19:19:29.641886+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "Your booking has been confirmed (Reference: #LOCAL-212)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 3 guest(s). Our team will follow up with you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T19:19:29.641467+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "040e6cca-7a29-493c-8c01-551125d346ed",
+          "role": "user",
+          "content": "which hotel is ths",
+          "timestamp": "2026-03-12T19:15:39.270462Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which hotel is this"
+          }
+        },
+        {
+          "id": "e097a46d-fae2-46f4-b9f5-ed832739fabe",
+          "role": "assistant",
+          "content": "This is the ICONIQA Hotel. How can I assist you with your pre-booking inquiries?",
+          "timestamp": "2026-03-12T19:15:51.127609Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-b8d4916f341e",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "db07824b-9ffb-49e9-8102-04aba38f3625",
+          "role": "user",
+          "content": "do you have a pool and a spa",
+          "timestamp": "2026-03-12T19:16:06.705847Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a pool and a spa?"
+          }
+        },
+        {
+          "id": "ebf92bc2-cc45-4673-ace8-57a621f65aa9",
+          "role": "assistant",
+          "content": "Yes, ICONIQA Hotel offers both a pool and a spa. The pool is open from 7:00 AM to 7:00 PM for all guests, and guests with reservations at the Bombay Swim Club can use it until 11 PM. The spa operates from 9:00 AM to 11:00 PM. If you have any more questions or need further details, feel free to ask!",
+          "timestamp": "2026-03-12T19:16:21.286200Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-b738de20a216",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "f702d247-2573-4b44-8da0-cd757bfaefc9",
+          "role": "user",
+          "content": "i need s room",
+          "timestamp": "2026-03-12T19:16:58.294845Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "4f2c1d11-cb87-4367-a542-0c0c5ae29750",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a variety of room options including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Could you please provide the following details to proceed with your booking: check-in date, check-out date, room type, and the number of guests?",
+          "timestamp": "2026-03-12T19:17:16.782352Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-2a6c6502e31a",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "270444cd-4d7f-4e72-af3a-1a538918135a",
+          "role": "user",
+          "content": "feb 1-2 for 3 people",
+          "timestamp": "2026-03-12T19:18:10.448506Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 3 people"
+          }
+        },
+        {
+          "id": "6d039a06-9088-46bb-aa74-ba46748316b7",
+          "role": "assistant",
+          "content": "Thank you for providing the dates and the number of guests. Could you please specify the type of room you would like to book? The options are Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite.",
+          "timestamp": "2026-03-12T19:18:14.643510Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "9305d5a5-4bfb-4fe1-9cd0-c5234bff9ad2",
+          "role": "user",
+          "content": "whihc has a bathtub",
+          "timestamp": "2026-03-12T19:18:43.440972Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which has a bathtub"
+          }
+        },
+        {
+          "id": "de602b6d-9971-4316-9b69-b4e847321b1c",
+          "role": "assistant",
+          "content": "The Prestige Suite at ICONIQA Hotel includes a bathtub. Would you like to proceed with booking the Prestige Suite for your stay from February 1st to February 2nd for 3 guests?",
+          "timestamp": "2026-03-12T19:18:46.742401Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "5c7e7776-2695-42f0-9261-1a87c728445b",
+          "role": "user",
+          "content": "yes",
+          "timestamp": "2026-03-12T19:19:00.899752Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "3ec683d4-91ac-4445-9ef0-43e058a11d1d",
+          "role": "assistant",
+          "content": "Please confirm these details before execution: Check-in Date: 2024-02-01, Check-out Date: 2024-02-02, Guest Count: 3, Room Type: Prestige Suite. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T19:19:06.997481Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7edec643-353b-4a62-bdd9-dba7ffd274db",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T19:19:25.536849Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "022ec3ef-d752-48cf-88f1-fee1230f0ded",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-212)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 3 guest(s). Our team will follow up with you shortly.",
+          "timestamp": "2026-03-12T19:19:29.641749Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-212",
+            "ticket_status": "open",
+            "ticket_category": "room_booking",
+            "ticket_sub_category": "prestige_suite",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-212",
+              "id": "LOCAL-212",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-212",
+                "ticket_id": "LOCAL-212",
+                "status": "open",
+                "issue": "Booking request for Prestige Suite from 2024-02-01 to 2024-02-02 for 3 guests.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-12T19:19:29.611899+00:00",
+                "updated_at": "2026-03-12T19:19:29.611899+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Booking request for Prestige Suite from 2024-02-01 to 2024-02-02 for 3 guests.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "room_booking",
+                  "sub_categorization": "prestige_suite",
+                  "manager_notes": "",
+                  "created_at": "19:19:29 12-03-2026",
+                  "session_id": "session_1773342924484_qs1uf8gtw",
+                  "phase": "Pre Booking",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "room_booking",
+                  "sub_category": "prestige_suite",
+                  "service_id": "room_booking"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T19:15:34.953786Z",
+      "updated_at": "2026-03-12T19:19:29.641897Z"
+    },
+    "session_1773343976637_7mr4bj639": {
+      "session_id": "session_1773343976637_7mr4bj639",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": "2",
+        "room_type": "Ultimate Suite",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user has successfully booked a stay at ICONIQA Hotel for 2 days, from February 1st to 2nd, 2024, for 2 people. They have chosen the Ultimate Suite, the most luxurious option available. The booking has been confirmed with the reference number #LOCAL-213. There are no unresolved asks at this time, as all details have been confirmed and the booking process is complete. The user is in the pre-booking phase, and the hotel team will follow up with them shortly.",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "2",
+            "latest_ticket": {
+              "id": "LOCAL-213",
+              "status": "open",
+              "category": "room_booking",
+              "sub_category": "ultimate_suite",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-12T19:35:35.950929+00:00"
+            },
+            "last_ticket_id": "LOCAL-213",
+            "ticket_history": [
+              {
+                "id": "LOCAL-213",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "ultimate_suite",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:35:35.950929+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hey whats ur nam,e",
+              "timestamp": "2026-03-12T19:33:05.285624+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "im looking for a place to stay for 2 days",
+              "timestamp": "2026-03-12T19:33:27.684210+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-213",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "ultimate_suite",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:35:35.950929+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-213)! Details: Ultimate Suite, check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:35:35.950966+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-213",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-213)! Details: Ultimate Suite, check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:35:35.950972+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-213",
+                  "status": "open",
+                  "category": "room_booking",
+                  "sub_category": "ultimate_suite",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-12T19:35:35.950929+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-213)! Details: Ultimate Suite, check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:35:35.950978+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-12T19:35:40.507698+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "Your booking has been confirmed (Reference: #LOCAL-213)! Details: Ultimate Suite, check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T19:35:35.950767+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "8df0ee58-7a3b-46bc-bb4d-9a579c965898",
+          "role": "user",
+          "content": "hey whats ur nam,e",
+          "timestamp": "2026-03-12T19:33:05.285564Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "e6514ce3-f315-4425-9f6d-b1f5ac0834cb",
+          "role": "assistant",
+          "content": "Hello! I'm your virtual concierge assistant here to help you with information and services related to ICONIQA Hotel. How can I assist you today?",
+          "timestamp": "2026-03-12T19:33:22.854767Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-c579a8c5f684",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3fd31629-954b-4faa-bf79-833c49828bb9",
+          "role": "user",
+          "content": "im looking for a place to stay for 2 days",
+          "timestamp": "2026-03-12T19:33:27.683797Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'm looking for a place to stay for 2 days."
+          }
+        },
+        {
+          "id": "a59aa11d-e8db-4b2e-a3a6-08249401a084",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a variety of room options including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Could you please provide the check-in date, check-out date, and the number of guests for your stay?",
+          "timestamp": "2026-03-12T19:33:40.100874Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-ca3cab58d308",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7a1325ec-bb2b-4517-b358-72f8cc17434b",
+          "role": "user",
+          "content": "feb 1-2 for 2 people",
+          "timestamp": "2026-03-12T19:34:04.618119Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Feb 1-2 for 2 people"
+          }
+        },
+        {
+          "id": "8a81eb6e-74b9-482e-81a1-a0b7909415c9",
+          "role": "assistant",
+          "content": "Thank you for providing the dates and guest count. Could you please specify the room type you are interested in booking? We have options like Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite.",
+          "timestamp": "2026-03-12T19:34:08.682438Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "618d5988-c137-46a8-b428-92d6727c5335",
+          "role": "user",
+          "content": "i need the most luxurious one",
+          "timestamp": "2026-03-12T19:34:24.494642Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need the most luxurious one."
+          }
+        },
+        {
+          "id": "62cbc455-633e-4a43-ac2c-ce6ff44d5421",
+          "role": "assistant",
+          "content": "The most luxurious room available at ICONIQA Hotel is the Ultimate Suite, which is 603 sq. ft. Would you like to proceed with booking the Ultimate Suite?",
+          "timestamp": "2026-03-12T19:34:28.234397Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "a5826799-6e9b-4fce-9000-5ef53c300a40",
+          "role": "user",
+          "content": "yes",
+          "timestamp": "2026-03-12T19:34:37.345967Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "269a2818-acf1-4b6c-8dca-45a1163378b4",
+          "role": "assistant",
+          "content": "Please confirm these details before execution: Check-in Date: 2024-02-01, Check-out Date: 2024-02-02, Guest Count: 2, Room Type: Ultimate Suite. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T19:34:40.763402Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "42f20a02-ceeb-45b5-affa-481a4f0c1b06",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T19:35:29.408420Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "9d27d15d-37e0-49a2-ad95-527c4b92c45f",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-213)! Details: Ultimate Suite, check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+          "timestamp": "2026-03-12T19:35:35.950895Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-213",
+            "ticket_status": "open",
+            "ticket_category": "room_booking",
+            "ticket_sub_category": "ultimate_suite",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-213",
+              "id": "LOCAL-213",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-213",
+                "ticket_id": "LOCAL-213",
+                "status": "open",
+                "issue": "Booking request for Ultimate Suite from 2024-02-01 to 2024-02-02 for 2 guests.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-12T19:35:35.919871+00:00",
+                "updated_at": "2026-03-12T19:35:35.919871+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Booking request for Ultimate Suite from 2024-02-01 to 2024-02-02 for 2 guests.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "room_booking",
+                  "sub_categorization": "ultimate_suite",
+                  "manager_notes": "",
+                  "created_at": "19:35:35 12-03-2026",
+                  "session_id": "session_1773343976637_7mr4bj639",
+                  "phase": "Pre Booking",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "room_booking",
+                  "sub_category": "ultimate_suite",
+                  "service_id": "room_booking"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T19:33:01.083598Z",
+      "updated_at": "2026-03-12T19:35:40.507726Z"
+    },
+    "session_1773344709188_9jgifznl7": {
+      "session_id": "session_1773344709188_9jgifznl7",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_room_booking_details",
+      "pending_data": {
+        "service_id": "hotel_enquiry",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is interested in making a reservation. They initially requested to book a spa at ICONIQA Hotel, which operates from 9:00 AM to 11:00 PM. The assistant asked for the preferred date, time, and number of guests for the spa booking. The user then expressed a need for a room, but has not yet provided the necessary details for either the spa or room booking, such as the preferred date, time, and number of guests. The assistant is awaiting this information to proceed with the bookings.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi book a spa",
+              "timestamp": "2026-03-12T19:45:20.105423+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "hi book a spa",
+              "timestamp": "2026-03-12T19:45:20.105752+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-12T19:47:14.621497+00:00",
+          "last_user_message": "bye who are you",
+          "last_assistant_message": "I'm here to assist you with information about ICONIQA Hotel and help with any pre-booking inquiries you might have. If you need assistance with booking a room or spa, please let me know the details such as your preferred date, time, and the number of guests."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_room_booking_details",
+            "pending_data": {
+              "service_id": "hotel_enquiry"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect room booking details flow",
+            "updated_at": "2026-03-12T19:47:14.621217+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T19:47:14.621238+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "297fa32f-16cb-4ad4-80fe-d107684ade8a",
+          "role": "user",
+          "content": "hi book a spa",
+          "timestamp": "2026-03-12T19:45:20.105354Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Hi, book a spa."
+          }
+        },
+        {
+          "id": "498520c9-108c-4016-add8-92ce144e7776",
+          "role": "assistant",
+          "content": "The spa at ICONIQA Hotel is open from 9:00 AM to 11:00 PM. Could you please provide the details for your spa booking: the preferred date, preferred time, and the number of guests?",
+          "timestamp": "2026-03-12T19:45:34.896320Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-da244a1a6002",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "bf59e7d2-c914-4b03-9eed-9688dfd57803",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T19:46:41.122338Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "769f2d3f-0e79-4534-9ea8-4efdec16ab3f",
+          "role": "assistant",
+          "content": "To assist you with booking a room, could you please provide the following details: your preferred date, preferred time, and the number of guests?",
+          "timestamp": "2026-03-12T19:46:44.624832Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "a3b0a509-f343-432d-9742-ff3f8ca26cb6",
+          "role": "user",
+          "content": "no",
+          "timestamp": "2026-03-12T19:46:58.117673Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "No."
+          }
+        },
+        {
+          "id": "e03db4b6-911b-41c2-b029-7c9c6f75a740",
+          "role": "assistant",
+          "content": "To proceed with your room booking, could you please provide the following details: your preferred date, preferred time, and the number of guests?",
+          "timestamp": "2026-03-12T19:47:02.169296Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "201cb61e-4d53-49b6-8fa4-f89d0b32a519",
+          "role": "user",
+          "content": "bye who are you",
+          "timestamp": "2026-03-12T19:47:09.098748Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Bye, who are you?"
+          }
+        },
+        {
+          "id": "77dd44cd-efc5-4187-8bf1-42469493d62c",
+          "role": "assistant",
+          "content": "I'm here to assist you with information about ICONIQA Hotel and help with any pre-booking inquiries you might have. If you need assistance with booking a room or spa, please let me know the details such as your preferred date, time, and the number of guests.",
+          "timestamp": "2026-03-12T19:47:14.621421Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T19:45:16.279956Z",
+      "updated_at": "2026-03-12T19:47:14.621514Z"
+    },
+    "session_1773344979851_8xadpbsb2": {
+      "session_id": "session_1773344979851_8xadpbsb2",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": "request_details",
+      "pending_data": {
+        "service_id": "room_booking",
+        "guest_name": "Sana",
+        "contact_number": "1234567898",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": "1",
+        "room_type": "Prestige Suite",
+        "request_details": "none",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "Sana has successfully booked a Prestige Suite at ICONIQA Hotel, which includes a bathtub, for one guest from February 1 to February 2, 2024. Her booking is confirmed with reference number #LOCAL-214, and there are no special requests. Sana's active goal is to inquire about hotel amenities, such as the pool, which is available from 7:00 AM to 7:00 PM for all guests. She also expressed interest in booking a spa appointment, but this is not available in the current pre-booking phase. There are no unresolved asks, but Sana's inquiry about immediate pool access remains unanswered due to insufficient context.",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "1",
+            "guest_name": "Sana",
+            "latest_ticket": {
+              "id": "LOCAL-214",
+              "status": "open",
+              "category": "request",
+              "sub_category": "room_booking",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-12T19:53:23.057361+00:00"
+            },
+            "last_ticket_id": "LOCAL-214",
+            "ticket_history": [
+              {
+                "id": "LOCAL-214",
+                "status": "open",
+                "category": "request",
+                "sub_category": "room_booking",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:53:23.057361+00:00"
+              }
+            ],
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need a room",
+              "timestamp": "2026-03-12T19:49:47.098532+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "1",
+              "change_type": "set",
+              "source_message": "sana, 1234567898, feb 1-2 for 1",
+              "timestamp": "2026-03-12T19:51:03.419134+00:00"
+            },
+            {
+              "key": "guest_name",
+              "old_value": null,
+              "new_value": "Sana",
+              "change_type": "set",
+              "source_message": "Sana, 1234567898, Feb 1-2 for 1",
+              "timestamp": "2026-03-12T19:51:09.140576+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-214",
+                "status": "open",
+                "category": "request",
+                "sub_category": "room_booking",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T19:53:23.057361+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-214)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:53:23.057381+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-214",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-214)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:53:23.057387+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-214",
+                  "status": "open",
+                  "category": "request",
+                  "sub_category": "room_booking",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-12T19:53:23.057361+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-214)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T19:53:23.057393+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a spa appointment",
+              "timestamp": "2026-03-12T19:53:36.886353+00:00"
+            }
+          ],
+          "last_summarized_count": 24,
+          "updated_at": "2026-03-12T19:55:15.445739+00:00",
+          "last_user_message": "pool",
+          "last_assistant_message": "The pool at ICONIQA Hotel is available for all guests from 7:00 AM to 7:00 PM. If you have a reservation at the Bombay Swim Club, you can use the pool until 11 PM. Since your stay is from February 1 to February 2, 2024, you will be able to access the pool during those hours on those dates."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "request_details",
+            "pending_data": {
+              "service_id": "room_booking",
+              "guest_name": "Sana",
+              "contact_number": "1234567898",
+              "check_in_date": "2024-02-01",
+              "check_out_date": "2024-02-02",
+              "guest_count": "1",
+              "room_type": "Prestige Suite",
+              "request_details": "none"
+            },
+            "state": "idle",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your request details flow",
+            "updated_at": "2026-03-12T19:55:15.445304+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T19:55:15.445332+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "1c5a8f74-58c5-4edc-a4f7-84a05d6b87f3",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-12T19:49:47.098404Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "5b13ca55-46e2-4fc8-9d70-7472a8c77b01",
+          "role": "assistant",
+          "content": "Welcome to ICONIQA Hotel Room Booking Service! We offer a variety of room types including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Could you please provide the following details to proceed with your booking: Request Details, Guest Name, Contact Number, Check-in Date, Check-out Date, and Guest Count?",
+          "timestamp": "2026-03-12T19:50:10.348288Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-be56b97c77f6",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6b96c58a-eaea-4662-801d-447ae98d1df3",
+          "role": "user",
+          "content": "sana, 1234567898, feb 1-2 for 1",
+          "timestamp": "2026-03-12T19:51:03.418914Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Sana, 1234567898, Feb 1-2 for 1"
+          }
+        },
+        {
+          "id": "2205f1bd-1d33-4b3b-9faf-6df2b248e985",
+          "role": "assistant",
+          "content": "Thank you for providing some details. Could you please specify the request details for your booking?",
+          "timestamp": "2026-03-12T19:51:09.141556Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "aeb6d2eb-a582-4851-a758-823536db8144",
+          "role": "user",
+          "content": "room",
+          "timestamp": "2026-03-12T19:51:23.578833Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "18d2d462-2307-4286-8b02-eac23892b237",
+          "role": "assistant",
+          "content": "Thank you, Sana. Could you please specify the type of room you would like to book? We have options like Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite.",
+          "timestamp": "2026-03-12T19:51:29.858659Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "bee75c0a-5504-41fd-93de-841e73370d8c",
+          "role": "user",
+          "content": "whihc room has balcony",
+          "timestamp": "2026-03-12T19:51:46.452024Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which room has balcony"
+          }
+        },
+        {
+          "id": "d22de2b1-b372-4470-a698-6f9b2a5f2402",
+          "role": "assistant",
+          "content": "Unfortunately, the information provided does not specify which rooms have a balcony. Could you please choose from the available room types: Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, or Ultimate Suite?",
+          "timestamp": "2026-03-12T19:51:51.825810Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "16f09afb-67ef-4904-b2f6-2cbd87868abf",
+          "role": "user",
+          "content": "bathtub",
+          "timestamp": "2026-03-12T19:52:04.995715Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "ae48915e-3fb2-40bb-8def-537f41de5a7b",
+          "role": "assistant",
+          "content": "The Prestige Suite includes a bathtub. Would you like to book the Prestige Suite for your stay?",
+          "timestamp": "2026-03-12T19:52:08.394161Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4527e89f-ec53-441f-961e-0663e62811fe",
+          "role": "user",
+          "content": "yes",
+          "timestamp": "2026-03-12T19:52:15.557718Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "9e70b276-8764-402f-9830-0308ac1b0443",
+          "role": "assistant",
+          "content": "Thank you for choosing the Prestige Suite, Sana. Could you please provide the request details for your booking?",
+          "timestamp": "2026-03-12T19:52:20.263129Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "139f1afb-b084-4f70-8b86-a6c417b2c983",
+          "role": "user",
+          "content": "what do u mean by request details",
+          "timestamp": "2026-03-12T19:52:41.126061Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What do you mean by request details?"
+          }
+        },
+        {
+          "id": "57922f82-856f-45a3-9293-a546b6d4a287",
+          "role": "assistant",
+          "content": "Request details typically refer to any specific preferences or requirements you might have for your stay, such as special requests for amenities, accessibility needs, or any other specific instructions you would like the hotel to be aware of. If you don't have any specific requests, you can simply let me know, and we can proceed with the booking.",
+          "timestamp": "2026-03-12T19:52:46.990551Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "cc0f1717-1901-4215-8354-0fe5ecbabfd5",
+          "role": "user",
+          "content": "none",
+          "timestamp": "2026-03-12T19:52:58.975289Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "4081e50a-8eb4-4cfb-aab6-783b4afbb886",
+          "role": "assistant",
+          "content": "Thank you for providing all the necessary details, Sana. Please confirm these details before execution:\n- Guest Name: Sana\n- Contact Number: 1234567898\n- Check-in Date: 2024-02-01\n- Check-out Date: 2024-02-02\n- Guest Count: 1\n- Room Type: Prestige Suite\n- Request Details: None\nReply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T19:53:02.350322Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "333ca949-bf53-4222-9cb4-097e18b8bfc9",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T19:53:15.733785Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "2cacac5d-6b26-4997-816c-7ea3ab8e6c19",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-214)! Details: Prestige Suite, check-in: 2024-02-01, check-out: 2024-02-02, 1 guest(s). Our team will follow up with you shortly.",
+          "timestamp": "2026-03-12T19:53:23.057336Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-214",
+            "ticket_status": "open",
+            "ticket_category": "request",
+            "ticket_sub_category": "room_booking",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-214",
+              "id": "LOCAL-214",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-214",
+                "ticket_id": "LOCAL-214",
+                "status": "open",
+                "issue": "Booking request for Prestige Suite from 2024-02-01 to 2024-02-02 for 1 guest, named Sana.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-12T19:53:23.028386+00:00",
+                "updated_at": "2026-03-12T19:53:23.028386+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Booking request for Prestige Suite from 2024-02-01 to 2024-02-02 for 1 guest, named Sana.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "request",
+                  "sub_categorization": "room_booking",
+                  "manager_notes": "",
+                  "created_at": "19:53:23 12-03-2026",
+                  "session_id": "session_1773344979851_8xadpbsb2",
+                  "phase": "Pre Booking",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "request",
+                  "sub_category": "room_booking",
+                  "service_id": "room_booking"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "215a7e76-6f00-4f4e-8af7-6a379c32e89c",
+          "role": "user",
+          "content": "book a spa appointment",
+          "timestamp": "2026-03-12T19:53:36.886171Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book a spa appointment."
+          }
+        },
+        {
+          "id": "44a35fc6-4e70-4518-8879-114a4e6782bb",
+          "role": "assistant",
+          "content": "Booking a spa appointment is not available in the current Pre Booking phase. The spa is open from 9:00 AM to 11:00 PM, and you can book an appointment directly with the hotel during your stay.",
+          "timestamp": "2026-03-12T19:53:56.134248Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-6dc2b91c10ca",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ffcc8dd8-e9b4-4c8d-99ab-2b7ba85b7ef5",
+          "role": "user",
+          "content": "do you have a pool",
+          "timestamp": "2026-03-12T19:54:11.421735Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a pool?"
+          }
+        },
+        {
+          "id": "408c5ebb-cbd3-45ca-bfde-c3f5a51743be",
+          "role": "assistant",
+          "content": "Yes, ICONIQA Hotel has a pool. The pool is open from 7:00 AM to 7:00 PM for all guests, and until 11 PM for those with reservations at the Bombay Swim Club.",
+          "timestamp": "2026-03-12T19:54:27.053270Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-3421a8692e44",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "b37dfb5a-4f0f-43a3-93c7-398c5b1b8503",
+          "role": "user",
+          "content": "can i use it now",
+          "timestamp": "2026-03-12T19:54:42.237841Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I use it now?"
+          }
+        },
+        {
+          "id": "b2565859-3070-4496-b99e-4ff49f16c977",
+          "role": "assistant",
+          "content": "I'm sorry, I need more information to answer your question. Could you please specify what you would like to use now?",
+          "timestamp": "2026-03-12T19:54:55.912806Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-21ed22e63ea7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "194e7ae7-e7bd-48a5-a854-cd34222bf0c6",
+          "role": "user",
+          "content": "pool",
+          "timestamp": "2026-03-12T19:55:10.613015Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "068c8945-2140-4590-b1f8-a706dd9866df",
+          "role": "assistant",
+          "content": "The pool at ICONIQA Hotel is available for all guests from 7:00 AM to 7:00 PM. If you have a reservation at the Bombay Swim Club, you can use the pool until 11 PM. Since your stay is from February 1 to February 2, 2024, you will be able to access the pool during those hours on those dates.",
+          "timestamp": "2026-03-12T19:55:15.445564Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T19:49:43.735661Z",
+      "updated_at": "2026-03-12T19:55:15.445755Z"
+    },
+    "session_1773345698740_2s4pqyrwu": {
+      "session_id": "session_1773345698740_2s4pqyrwu",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collecting_transfer_details",
+      "pending_data": {
+        "service_id": "airport_transfer",
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_checkin",
+            "last_user_topic": "transport"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need airport transfer",
+              "timestamp": "2026-03-12T20:01:51.359274+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "i need airport transfer",
+              "timestamp": "2026-03-12T20:01:51.359396+00:00"
+            },
+            {
+              "key": "phase",
+              "old_value": "pre_booking",
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "i need airpott trasnfer",
+              "timestamp": "2026-03-12T20:02:40.661241+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-12T20:02:55.601432+00:00",
+          "last_user_message": "i need airpott trasnfer",
+          "last_assistant_message": "To arrange your airport transfer, I'll need a few details: the request details, pickup location, drop location, travel date, travel time, and the number of passengers. Please provide these details so we can proceed."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collecting_transfer_details",
+            "pending_data": {
+              "service_id": "airport_transfer"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_checkin",
+            "phase_name": "Pre Checkin",
+            "summary": "your collecting transfer details flow",
+            "updated_at": "2026-03-12T20:02:55.600940+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T20:02:55.600973+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "27c7a7c6-4e33-40ee-823b-f199e4883aa9",
+          "role": "user",
+          "content": "i need airport transfer",
+          "timestamp": "2026-03-12T20:01:51.359130Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need airport transfer."
+          }
+        },
+        {
+          "id": "6029a696-0f9a-4ca0-8ef0-3fd47f0dc999",
+          "role": "assistant",
+          "content": "I'm sorry, but airport transfer services can only be arranged after your booking is confirmed. If you need help with booking a room or have other questions, feel free to ask.",
+          "timestamp": "2026-03-12T20:02:08.199680Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-751287c58118",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "52ce7e9b-fb07-497a-98c6-67df88bf6a4d",
+          "role": "user",
+          "content": "i need airpott trasnfer",
+          "timestamp": "2026-03-12T20:02:40.661162Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "i need airport transfer"
+          }
+        },
+        {
+          "id": "0feb260a-afc9-40ff-a5e7-15cfea71544a",
+          "role": "assistant",
+          "content": "To arrange your airport transfer, I'll need a few details: the request details, pickup location, drop location, travel date, travel time, and the number of passengers. Please provide these details so we can proceed.",
+          "timestamp": "2026-03-12T20:02:55.601294Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "airport transfer",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-93d1c14a3bd0",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T20:01:47.527420Z",
+      "updated_at": "2026-03-12T20:02:55.601517Z"
     }
   }
 }

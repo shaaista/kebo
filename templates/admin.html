@@ -494,7 +494,6 @@
             <div class="tab" data-tab="capabilities">FAQ &amp; Tools</div>
             <div class="tab" data-tab="services">Services</div>
             <div class="tab" data-tab="phases">Phases</div>
-            <div class="tab" data-tab="intents">Intents</div>
             <div class="tab" data-tab="rag">RAG & Agents</div>
             <div class="tab" data-tab="evaluation">Evaluation</div>
             <div class="tab" data-tab="escalation">Escalation</div>
@@ -953,21 +952,6 @@
             </div>
         </div>
 
-        <!-- Intents Tab -->
-        <div class="tab-content" id="tab-intents">
-            <div class="card">
-                <div class="card-header">
-                    <span>Manage Intents</span>
-                    <button class="btn btn-success btn-small" onclick="showAddIntentModal()">+ Add Intent</button>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <strong>Intents</strong> are the types of user requests the bot can recognize. Disable intents you don't want the bot to handle.
-                    </div>
-                    <div id="intents-list">Loading intents...</div>
-                </div>
-            </div>
-        </div>
 
         <!-- RAG & Agents Tab -->
         <div class="tab-content" id="tab-rag">
@@ -1480,50 +1464,6 @@
         </div>
     </div>
 
-    <!-- Add Intent Modal -->
-    <div class="modal" id="add-intent-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Add New Intent</h3>
-                <button class="btn btn-small" onclick="closeModal('add-intent-modal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Intent ID *</label>
-                    <input type="text" class="form-control" id="new-intent-id" placeholder="e.g., reservation_query">
-                    <small style="color: #666;">Use lowercase with underscores</small>
-                </div>
-                <div class="form-group">
-                    <label>Intent Label *</label>
-                    <input type="text" class="form-control" id="new-intent-label" placeholder="e.g., Reservation Query">
-                </div>
-                <div class="form-group">
-                    <label>Map To Core Runtime Intent</label>
-                    <select class="form-control" id="new-intent-maps-to">
-                        <option value="">No Mapping (metadata only)</option>
-                        <option value="greeting">greeting</option>
-                        <option value="order_food">order_food</option>
-                        <option value="order_status">order_status</option>
-                        <option value="table_booking">table_booking</option>
-                        <option value="room_service">room_service</option>
-                        <option value="complaint">complaint</option>
-                        <option value="faq">faq</option>
-                        <option value="human_request">human_request</option>
-                    </select>
-                    <small style="color: #666;">Map custom intents to a core flow so handlers can execute it.</small>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="new-intent-enabled" checked> Enabled by default
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('add-intent-modal')">Cancel</button>
-                <button class="btn btn-success" onclick="addIntent()">Add Intent</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Raw Config Modal -->
     <div class="modal" id="raw-config-modal">
@@ -1769,9 +1709,6 @@
             document.getElementById('add-service-modal').classList.add('active');
         }
 
-        function showAddIntentModal() {
-            document.getElementById('add-intent-modal').classList.add('active');
-        }
 
         function escapeHtml(value) {
             return String(value || '')
@@ -4265,105 +4202,6 @@
             }
         }
 
-        // Load intents
-        async function loadIntents() {
-            try {
-                const res = await fetch(`${API_BASE}/config/intents`);
-                const intents = await res.json();
-
-                let html = '';
-
-                if (!intents || intents.length === 0) {
-                    html = '<p style="color: #666;">No intents configured.</p>';
-                } else {
-                    intents.forEach(intent => {
-                        const mapsTo = intent.maps_to ? `<span class="badge badge-info">maps to ${intent.maps_to}</span>` : '';
-                        html += `
-                            <div class="service-item">
-                                <div class="info">
-                                    <div class="name">${intent.label || intent.id}</div>
-                                    <div class="type">
-                                        <span class="badge badge-info">${intent.id}</span>
-                                        ${mapsTo}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="toggle" style="margin-right: 12px;">
-                                        <input type="checkbox" ${intent.enabled ? 'checked' : ''} onchange="toggleIntent('${intent.id}', this.checked)">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <button class="btn btn-danger btn-small" onclick="deleteIntent('${intent.id}')">Delete</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    html += '<p style="margin-top: 12px; color: #666; font-size: 0.85rem;">Toggle to enable/disable. Use Add Intent for custom industry intents.</p>';
-                }
-
-                document.getElementById('intents-list').innerHTML = html;
-            } catch (error) {
-                document.getElementById('intents-list').innerHTML = '<p style="color: red;">Error loading intents</p>';
-            }
-        }
-
-        async function toggleIntent(id, enabled) {
-            try {
-                await fetch(`${API_BASE}/config/intents/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enabled })
-                });
-                showToast(`Intent ${enabled ? 'enabled' : 'disabled'}`);
-                loadIntents();
-            } catch (error) {
-                showToast('Error updating intent', 'error');
-            }
-        }
-
-        async function deleteIntent(id) {
-            if (!confirm(`Delete intent "${id}"?`)) return;
-
-            try {
-                await fetch(`${API_BASE}/config/intents/${id}`, { method: 'DELETE' });
-                showToast('Intent deleted');
-                loadIntents();
-            } catch (error) {
-                showToast('Error deleting intent', 'error');
-            }
-        }
-
-        async function addIntent() {
-            const id = document.getElementById('new-intent-id').value.trim().toLowerCase().replace(/\s+/g, '_');
-            const label = document.getElementById('new-intent-label').value.trim();
-            const maps_to = document.getElementById('new-intent-maps-to').value.trim();
-            const enabled = document.getElementById('new-intent-enabled').checked;
-
-            if (!id || !label) {
-                showToast('Please fill in intent ID and label', 'error');
-                return;
-            }
-
-            try {
-                const payload = { id, label, enabled };
-                if (maps_to) payload.maps_to = maps_to;
-
-                await fetch(`${API_BASE}/config/intents`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                showToast('Intent added');
-                closeModal('add-intent-modal');
-                document.getElementById('new-intent-id').value = '';
-                document.getElementById('new-intent-label').value = '';
-                document.getElementById('new-intent-maps-to').value = '';
-                document.getElementById('new-intent-enabled').checked = true;
-                loadIntents();
-            } catch (error) {
-                showToast('Error adding intent', 'error');
-            }
-        }
 
         // Load escalation config
         async function loadEscalationConfig() {
@@ -4593,11 +4431,7 @@
                             requires_confirmation: false
                         }
                     ],
-                    intents: [
-                        { id: 'greeting', label: 'Greeting', enabled: true },
-                        { id: 'faq', label: 'FAQ', enabled: true },
-                        { id: 'human_request', label: 'Human Request', enabled: true }
-                    ],
+                    intents: [],
                     escalation: {
                         confidence_threshold: 0.4,
                         max_clarification_attempts: 3,
@@ -4705,7 +4539,6 @@
             loadTools();
             loadServices();
             loadJourneyPhasesWorkspace(currentPhaseId);
-            loadIntents();
             loadEscalationConfig();
             loadRagStatus();
             loadRagJobs();
