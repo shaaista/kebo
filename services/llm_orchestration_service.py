@@ -1578,7 +1578,7 @@ class LLMOrchestrationService:
                 "phase_id": self._normalize_identifier(row.get("phase_id")),
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "knowledge_facts": row.get("knowledge_facts") or [],
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:2000],
+                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:8000],
                 "profile": str(row.get("profile") or "").strip(),
                 "required_slots": row.get("required_slots") or [],
             }
@@ -1600,6 +1600,26 @@ class LLMOrchestrationService:
             if isinstance(row, dict)
         ][:160]
         full_kb_text = config_service.get_full_kb_text(max_chars=60_000)
+        # Augment full_kb_text with extracted_knowledge from ALL service KB records.
+        # This ensures admin-entered KB content (stored in service_kb_records, not in flat files)
+        # is always visible to the orchestrator when it needs to answer directly.
+        service_kb_records = capabilities_summary.get("service_kb_records", [])
+        if isinstance(service_kb_records, list):
+            extracted_parts: list[str] = []
+            for rec in service_kb_records[:30]:
+                if not isinstance(rec, dict):
+                    continue
+                ek = str(rec.get("extracted_knowledge") or "").strip()
+                sid = str(rec.get("service_id") or "").strip()
+                if ek and sid:
+                    extracted_parts.append(f"[Service: {sid}]\n{ek}")
+            if extracted_parts:
+                combined_service_kb = "\n\n---\n\n".join(extracted_parts)
+                full_kb_text = (
+                    (full_kb_text + "\n\n" if full_kb_text else "")
+                    + "=== SERVICE KNOWLEDGE BASE ===\n\n"
+                    + combined_service_kb
+                )[:80_000]
         payload = {
             "trace_id": orchestration_trace_id,
             "timestamp": datetime.now(UTC).isoformat(),

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-13T06:02:14.056259+00:00",
+  "saved_at": "2026-03-13T06:27:03.950693+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -20489,6 +20489,184 @@
       ],
       "created_at": "2026-03-13T05:59:30.587641Z",
       "updated_at": "2026-03-13T06:02:14.034642Z"
+    },
+    "session_1773383123504_ko5rew27z": {
+      "session_id": "session_1773383123504_ko5rew27z",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is inquiring about amenities at ICONIQA Hotel. They are interested in the swimming pool and have confirmed that it is available for all guests, including children, from 7:00 AM to 7:00 PM. They have been advised to supervise toddlers while using the pool. The user also asked about a dress code, and it was clarified that there is no specific dress code mentioned, but appropriate attire is recommended, especially in dining areas and lounges. There are no unresolved asks at this time.",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "do you have a swimming pool",
+              "timestamp": "2026-03-13T06:25:35.058293+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-13T06:27:03.892701+00:00",
+          "last_user_message": "is there a dresscode",
+          "last_assistant_message": "ICONIQA Hotel does not have a specific dress code mentioned in the available information. However, it's generally advisable to dress appropriately for the setting, especially in dining areas and lounges."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T06:27:02.039656+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "a19e0023-f5c5-4efd-bb32-04a57e203d90",
+          "role": "user",
+          "content": "do you have a swimming pool",
+          "timestamp": "2026-03-13T06:25:35.058101Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a swimming pool?"
+          }
+        },
+        {
+          "id": "9bcd6274-be9f-4a35-8051-5107114d9731",
+          "role": "assistant",
+          "content": "Yes, ICONIQA Hotel has a swimming pool. The pool is open to all guests from 7:00 AM to 7:00 PM, and until 11 PM for those with reservations at the Bombay Swim Club.",
+          "timestamp": "2026-03-13T06:25:54.805069Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 1.0,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 1.0,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-4adc6f28ecae",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d482dd3e-9f49-4d84-997a-aa405f22b592",
+          "role": "user",
+          "content": "can my toddler use it",
+          "timestamp": "2026-03-13T06:26:00.608304Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can my toddler use it?"
+          }
+        },
+        {
+          "id": "d0e13658-8ccb-406a-b1b2-6871c80c78e1",
+          "role": "assistant",
+          "content": "The pool at ICONIQA Hotel is open to all guests, including children, from 7:00 AM to 7:00 PM. However, please ensure that toddlers are supervised by an adult at all times for their safety.",
+          "timestamp": "2026-03-13T06:26:16.237408Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-df4f3c064eaa",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "87c71598-28e9-488a-bfd8-81f539cddce1",
+          "role": "user",
+          "content": "is there a dresscode",
+          "timestamp": "2026-03-13T06:26:48.960904Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Is there a dress code?"
+          }
+        },
+        {
+          "id": "75db3a51-b3e0-4319-9e9c-b2cbdefcd7d9",
+          "role": "assistant",
+          "content": "ICONIQA Hotel does not have a specific dress code mentioned in the available information. However, it's generally advisable to dress appropriately for the setting, especially in dining areas and lounges.",
+          "timestamp": "2026-03-13T06:27:02.039986Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "hotel enquiry",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "hotel_enquiry",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-34c2a742d2dd",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T06:25:29.956169Z",
+      "updated_at": "2026-03-13T06:27:03.892885Z"
     }
   }
 }
