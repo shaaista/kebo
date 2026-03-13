@@ -293,6 +293,14 @@ class LLMOrchestrationService:
             confirmation_format = prompt_pack.get("confirmation_format", {})
             if not isinstance(confirmation_format, dict):
                 confirmation_format = {}
+            prompt_ticketing_policy = prompt_pack.get("ticketing_policy", {})
+            if not isinstance(prompt_ticketing_policy, dict):
+                prompt_ticketing_policy = {}
+            ticketing_conditions = str(prompt_pack.get("ticketing_conditions") or "").strip()
+            if not ticketing_conditions:
+                ticketing_conditions = str(prompt_ticketing_policy.get("policy") or "").strip()
+            if not ticketing_conditions:
+                ticketing_conditions = str(row.get("ticketing_policy") or "").strip()
             required_slots = prompt_pack.get("required_slots", [])
             normalized_slots: list[dict[str, Any]] = []
             if isinstance(required_slots, list):
@@ -317,6 +325,7 @@ class LLMOrchestrationService:
                     "phase_name": self._phase_label(self._normalize_identifier(row.get("phase_id")), capabilities_summary),
                     "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                     "ticketing_policy": str(row.get("ticketing_policy") or "").strip(),
+                    "ticketing_conditions": ticketing_conditions,
                     "required_slots": normalized_slots,
                     "profile": str(prompt_pack.get("profile") or "").strip().lower(),
                     "service_prompt_role": str(prompt_pack.get("role") or "").strip()[:300],
@@ -327,10 +336,11 @@ class LLMOrchestrationService:
                     "knowledge_facts": kb_map.get(sid, [])[:15],
                     # Prefer admin-pulled KB (service_prompt_pack.extracted_knowledge) when present;
                     # fall back to auto-enrichment from service_kb_records.
+                    # Kept short here (routing/brief context only); full knowledge passed on dispatch.
                     "extracted_knowledge": (
                         str(prompt_pack.get("extracted_knowledge") or "").strip()
                         or extracted_kb_map.get(sid, "")
-                    ),
+                    )[:600],
                     "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
                 }
@@ -497,6 +507,14 @@ class LLMOrchestrationService:
                 ],
                 model=model,
                 temperature=0.0,
+                trace_context={
+                    "responder_type": "main",
+                    "agent": "next_action_suggestion_agent",
+                    "session_id": str(getattr(context, "session_id", "")),
+                    "selected_phase_id": selected_phase_id,
+                    "selected_phase_name": selected_phase_name,
+                    "target_service_id": str(decision.target_service_id or ""),
+                },
             )
         except Exception:
             return []
@@ -649,6 +667,8 @@ class LLMOrchestrationService:
             "5) If answer is weak but context supports a better answer, provide revised_response_text.\n"
             "6) Never invent unsupported facts. If unknown, keep the response transparent.\n"
             "7) If recommended_action=collect_info, set recommended_pending_action to the best next slot prompt id.\n"
+            "8) If decision.target_service_id is empty, avoid recommended_action=collect_info.\n"
+            "9) For out-of-phase or unavailable-service situations, keep recommended_action=respond_only and provide a clearer response instead.\n"
         )
         model = (
             str(getattr(settings, "chat_llm_answer_first_guard_model", "") or "").strip()
@@ -665,6 +685,14 @@ class LLMOrchestrationService:
                 ],
                 model=model,
                 temperature=temperature,
+                trace_context={
+                    "responder_type": "main",
+                    "agent": "answer_first_guard",
+                    "session_id": str(getattr(context, "session_id", "")),
+                    "selected_phase_id": selected_phase_id,
+                    "selected_phase_name": selected_phase_name,
+                    "target_service_id": str(decision.target_service_id or ""),
+                },
             )
         except Exception:
             return {}
@@ -787,7 +815,8 @@ class LLMOrchestrationService:
             "You are a service router for a concierge assistant.\n"
             "Return STRICT JSON only.\n"
             "Pick exactly one in-phase service_id when the user asks for a service action.\n"
-            "For room stay/availability/booking asks, prefer services whose profile or keywords indicate room booking/discovery.\n"
+            "Route using service name and description first; treat profile as optional supporting context only.\n"
+            "Do not overfit to profile labels when the service name/description indicate a different intent.\n"
             "If the message is pure chit-chat/information not tied to a service, leave service_id empty.\n"
         )
         model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
@@ -799,6 +828,12 @@ class LLMOrchestrationService:
                 ],
                 model=model,
                 temperature=0.0,
+                trace_context={
+                    "responder_type": "main",
+                    "agent": "service_router",
+                    "selected_phase_id": selected_phase_id,
+                    "selected_phase_name": selected_phase_name,
+                },
             )
         except Exception:
             return "", ""
@@ -910,36 +945,115 @@ class LLMOrchestrationService:
     ) -> str:
         lines: list[str] = []
 
-        # ── PERSONA ──────────────────────────────────────────────────────────
-        lines.append(role)
-        if behavior:
-            lines.append(f"\nHow to behave:\n{behavior}")
+        # ══ SECTION 1: BEHAVIOR (from the Description field in the UI) ════════
+        # The description tells the agent exactly how to behave for this service.
+        lines.append(
+            f"You are the {service_name} specialist for this hotel.\n"
+            f"{description}" if description else f"You are the {service_name} specialist for this hotel."
+        )
 
-        # ── SERVICE KNOWLEDGE ─────────────────────────────────────────────────
-        knowledge_parts: list[str] = []
-        if description:
-            knowledge_parts.append(f"Description: {description}")
-        if service_knowledge:
-            knowledge_parts.append(f"Service knowledge summary:\n{service_knowledge}")
-        if knowledge_facts:
-            facts_text = "\n".join(f"- {f}" for f in knowledge_facts if str(f).strip())
-            if facts_text:
-                knowledge_parts.append(f"Service facts:\n{facts_text}")
-        if not knowledge_parts and full_kb_text:
-            knowledge_parts.append(f"Property knowledge base (use for service-specific info):\n{full_kb_text[:8000]}")
-        elif full_kb_text:
-            knowledge_parts.append(f"Full property knowledge base (fallback for anything not covered above):\n{full_kb_text[:4000]}")
-        if knowledge_parts:
-            lines.append("\n--- SERVICE KNOWLEDGE ---\n" + "\n\n".join(knowledge_parts))
-        lines.append("\nOnly use the knowledge provided above. Never invent facts, prices, options, or availability not stated here.")
+        # ══ SECTION 2: TICKET CREATION (only shown when ticketing is enabled) ═
+        # When ticket creation is on, the agent must collect the required info
+        # and trigger a ticket. When it is off, skip this section entirely.
+        _valid_slots: list[dict] = [s for s in required_slots if isinstance(s, dict)]
+        _already_collected_note = (
+            "Before asking for any field, check pending_data_collected AND memory_facts. "
+            "If a value is already known from either, do NOT ask for it again — use it directly."
+        )
+        _use_slot_list = ticketing_enabled and (slots_are_custom or (_valid_slots and not ticketing_conditions))
 
-        # ── OPERATING CONSTRAINTS ─────────────────────────────────────────────
+        if ticketing_enabled:
+            ticket_lines = ["\n=== TICKET CREATION ==="]
+            policy_text = str(ticketing_policy.get("policy") or "").strip()
+            if policy_text:
+                ticket_lines.append(f"Ticketing policy: {policy_text}")
+            if ticketing_conditions:
+                ticket_lines.append(
+                    "Admin ticketing condition text is the primary source of truth for required details. "
+                    "If slot lists conflict with that text, follow the admin ticketing condition text."
+                )
+
+            # What to collect
+            if ticketing_conditions:
+                ticket_lines.append(
+                    f"\nWhat to collect before raising a ticket:\n\"{ticketing_conditions}\"\n"
+                    "Collect every piece of information described above. "
+                    "Ask for ALL missing fields in one message — never one at a time."
+                )
+            elif _use_slot_list and _valid_slots:
+                required_s = [s for s in _valid_slots if bool(s.get("required", True))]
+                optional_s = [s for s in _valid_slots if not bool(s.get("required", True))]
+                if required_s:
+                    ticket_lines.append("\nRequired fields (collect ALL before confirming):")
+                    for s in required_s:
+                        ticket_lines.append(f"  - {s.get('label') or s.get('id')} (id: {s.get('id')})")
+                if optional_s:
+                    ticket_lines.append("Optional fields (collect only if the guest mentions them):")
+                    for s in optional_s:
+                        ticket_lines.append(f"  - {s.get('label') or s.get('id')} (id: {s.get('id')})")
+                ticket_lines.append(
+                    "\nAsk for ALL missing required fields in a single message — never one at a time.\n"
+                    "Do NOT move to confirmation until every required field has a value."
+                )
+
+            ticket_lines.append(_already_collected_note)
+            ticket_lines.append("Save each collected value in pending_data_updates using the exact field id as the key.")
+
+            # Confirmation step
+            if requires_confirmation_step:
+                confirm_template = str(confirmation_format.get("template") or "").strip()
+                ticket_lines.append(
+                    f"\nOnce all fields are collected, summarise everything clearly and ask the guest to confirm.\n"
+                    f"Confirmation phrase the guest must say: '{confirmation_phrase}'\n"
+                    f"Set pending_action='{confirmation_pending_action}' while waiting for confirmation.\n"
+                    f"When the guest confirms: set action=create_ticket, ticket.required=true, "
+                    f"ticket.ready_to_create=true, pending_action=null."
+                )
+                if confirm_template:
+                    ticket_lines.append(f"Confirmation template: {confirm_template}")
+
+            # Hard guard
+            if ticketing_conditions:
+                ticket_lines.append(f"\nDo NOT create a ticket until: {ticketing_conditions}")
+            elif _use_slot_list:
+                _req_names = [
+                    s.get("label") or s.get("id")
+                    for s in required_slots
+                    if isinstance(s, dict) and bool(s.get("required", True))
+                ]
+                if _req_names:
+                    ticket_lines.append(
+                        f"\nDo NOT create a ticket until ALL of these are collected: {', '.join(_req_names)}."
+                    )
+            ticket_lines.append("Set ticket.issue to a clear human-readable summary of what was requested.")
+            lines.extend(ticket_lines)
+
+        # ══ SECTION 3: KNOWLEDGE BASE ══════════════════════════════════════════
+        # This is the complete knowledge for this service, exactly as entered in the system.
+        # The agent must answer all questions from this knowledge and nothing else.
+        kb_content = service_knowledge or full_kb_text
+        if kb_content:
+            lines.append(
+                f"\n=== {service_name.upper()} — KNOWLEDGE BASE ===\n"
+                f"{kb_content}\n"
+                f"=== END OF KNOWLEDGE BASE ==="
+            )
+        elif description:
+            lines.append(f"\nService description (use as knowledge): {description}")
+
+        lines.append(
+            "\nRULE: Answer ONLY from the knowledge base above. "
+            "If something the guest asks is not covered there, say you do not have that detail "
+            "and offer to connect them with staff. Never guess, invent, or assume anything."
+        )
+
+        # ── Operating constraints (hours, zones, cuisine) ─────────────────────
         constraints: list[str] = []
         if service_hours.get("open") or service_hours.get("close"):
             open_t = str(service_hours.get("open") or "").strip()
             close_t = str(service_hours.get("close") or "").strip()
             hour_str = " – ".join(filter(None, [open_t, close_t]))
-            constraints.append(f"Operating hours: {hour_str}. If the guest's request is outside these hours, inform them.")
+            constraints.append(f"Operating hours: {hour_str}. Inform guest if their request is outside these hours.")
         if delivery_zones:
             constraints.append(f"Delivery zones: {', '.join(delivery_zones)}.")
         if cuisine:
@@ -947,147 +1061,15 @@ class LLMOrchestrationService:
         if constraints:
             lines.append("\n--- CONSTRAINTS ---\n" + "\n".join(constraints))
 
-        # ── WHAT TO COLLECT ───────────────────────────────────────────────────
-        # Priority order:
-        #   1. slots_are_custom=True  →  admin explicitly configured slots in the UI — use them.
-        #   2. ticketing_conditions   →  admin typed what fields are needed — use that text.
-        #   3. auto-generated slots   →  default template slots — use as fallback only when no
-        #                                 ticketing_conditions text is present.
-        #   4. nothing                →  vague "read description" fallback.
-        _valid_slots: list[dict] = [s for s in required_slots if isinstance(s, dict)]
-        _facts_note = (
-            "Before asking for any field, check pending_data_collected AND memory_facts. "
-            "If a field's value is already known from either source, do NOT ask for it — "
-            "treat it as already collected and use that value."
-        )
-        # Use slot list when: admin explicitly configured slots OR (auto-slots exist AND no ticketing_conditions)
-        _use_slot_list = slots_are_custom or (_valid_slots and not ticketing_conditions)
-        if _use_slot_list and _valid_slots:
-            required = [s for s in _valid_slots if bool(s.get("required", True))]
-            optional = [s for s in _valid_slots if not bool(s.get("required", True))]
-            slot_lines: list[str] = []
-            if required:
-                slot_lines.append("Required (must collect ALL of these before asking for confirmation):")
-                for s in required:
-                    slot_lines.append(f"  - {s.get('label') or s.get('id')} (id: {s.get('id')})")
-            if optional:
-                slot_lines.append("Optional (collect if the guest mentions them):")
-                for s in optional:
-                    slot_lines.append(f"  - {s.get('label') or s.get('id')} (id: {s.get('id')})")
-            lines.append("\n--- INFORMATION TO COLLECT ---\n" + "\n".join(slot_lines))
-            lines.append(_facts_note)
-            lines.append(
-                "Ask for ALL missing required fields together in a single message — never one at a time.\n"
-                "Do NOT proceed to confirmation until every required field above has a value.\n"
-                "Save each value the guest provides in pending_data_updates using the exact slot id as the key."
-            )
-        elif ticketing_conditions:
-            collect_lines = ["\n--- INFORMATION TO COLLECT ---"]
-            collect_lines.append(
-                f"The ticketing policy for this service states: \"{ticketing_conditions}\"\n"
-                "Every piece of information mentioned in that policy is a REQUIRED field you must collect "
-                "from the guest before you can confirm and create a ticket.\n"
-                "Identify each required field from the policy text above and ask for ALL missing ones "
-                "together in a single message — never one at a time."
-            )
-            collect_lines.append(_facts_note)
-            collect_lines.append(
-                "Save each value the guest provides in pending_data_updates using a short snake_case key.\n"
-                "Do not ask for fields already present in pending_data_collected."
-            )
-            lines.append("\n".join(collect_lines))
-        else:
-            collect_lines = ["\n--- INFORMATION TO COLLECT ---"]
-            collect_lines.append(
-                "Read the service description and knowledge above to identify what information must be collected "
-                "for this specific service request.\n"
-                "Ask for ALL missing fields together in one message, not one at a time."
-            )
-            collect_lines.append(_facts_note)
-            collect_lines.append(
-                "Save each value the guest provides in pending_data_updates using a short snake_case key.\n"
-                "Do not ask for fields already present in pending_data_collected."
-            )
-            lines.append("\n".join(collect_lines))
-        if validation_rules:
-            rule_lines = []
-            for r in validation_rules:
-                if not isinstance(r, dict):
-                    continue
-                msg = str(r.get("error_message") or "").strip()
-                slots_affected = ", ".join(r.get("slot_ids") or [])
-                if msg and slots_affected:
-                    rule_lines.append(f"  - {slots_affected}: {msg}")
-            if rule_lines:
-                lines.append("Validation rules:\n" + "\n".join(rule_lines))
-
-        # ── CONFIRMATION FORMAT ───────────────────────────────────────────────
-        if requires_confirmation_step:
-            confirm_template = str(confirmation_format.get("template") or "").strip()
-            confirm_style = str(confirmation_format.get("style") or "").strip()
-            confirm_section = [
-                f"\n--- CONFIRMATION FLOW ---",
-                f"After all required fields are collected, present a full summary of the details and ask the guest to confirm.",
-                f"Confirmation phrase the guest must say: '{confirmation_phrase}'",
-                f"Set pending_action='{confirmation_pending_action}' while waiting for confirmation.",
-                f"When the guest confirms with '{confirmation_phrase}': set action=create_ticket, ticket.required=true, ticket.ready_to_create=true, pending_action=null.",
-            ]
-            if confirm_style:
-                confirm_section.append(f"Confirmation style: {confirm_style}")
-            if confirm_template:
-                confirm_section.append(f"Use this template for the confirmation message: {confirm_template}")
-            lines.extend(confirm_section)
-
-        # ── TICKETING ─────────────────────────────────────────────────────────
-        if ticketing_enabled:
-            ticket_lines = ["\n--- TICKETING ---"]
-            policy_text = str(ticketing_policy.get("policy") or "").strip()
-            decision_template = str(ticketing_policy.get("decision_template") or "").strip()
-            if policy_text:
-                ticket_lines.append(f"Ticketing policy: {policy_text}")
-            if decision_template:
-                ticket_lines.append(f"When to create ticket: {decision_template}")
-            # Build hard "must collect" guard — source depends on what the admin configured
-            if ticketing_conditions:
-                # Admin explicitly described what conditions/fields are needed
-                ticket_lines.append(
-                    f"HARD RULE — Do NOT create a ticket until the following conditions are fully met: "
-                    f"{ticketing_conditions}"
-                )
-            elif _use_slot_list:
-                # Use the required slot names as the explicit list
-                _required_field_names = [
-                    s.get("label") or s.get("id")
-                    for s in required_slots
-                    if isinstance(s, dict) and bool(s.get("required", True))
-                ]
-                if _required_field_names:
-                    ticket_lines.append(
-                        f"HARD RULE — Do NOT create a ticket or move to confirmation unless ALL of the "
-                        f"following required fields have been collected from the guest: "
-                        f"{', '.join(_required_field_names)}. "
-                        "If any are missing, go back to collecting them first."
-                    )
-            ticket_lines.append("When creating a ticket: set ticket.issue to a clear human-readable summary of what was requested (never leave it empty).")
-            lines.extend(ticket_lines)
-
-        # ── STRUCTURAL LAYER (thin, non-negotiable) ───────────────────────────
+        # ── Scope and handoff ─────────────────────────────────────────────────
         lines.append(
-            "\n--- INSTRUCTIONS ---\n"
-            "Read the full conversation history before responding. Use it to resolve short replies "
-            "('yes', a date, a number) in context of what was last asked.\n"
-            "Read pending_data_collected to know which slots are already filled — do not ask for them again.\n"
-            "If is_first_turn=true and this service has options or prices in its knowledge, start with a brief overview of them before asking for details.\n"
-            "If the guest's message is clearly about a completely different topic outside this service's scope, "
-            "set context_switched=true in metadata and set action=respond_only — the system will re-route.\n"
-            "If the current phase does not match this service's phase, respond politely that the service is not available right now.\n"
-            "Set pending_action to a short descriptive string whenever you are still collecting required fields. "
-            "Never leave pending_action null while required fields are still missing.\n"
-            "If the guest reveals any useful personal facts (name, room number, number of guests, preferences, "
-            "dietary requirements, special occasions, language, nationality, loyalty tier, or anything worth "
-            "remembering for future turns), add them to new_facts_to_remember as key-value pairs using short "
-            "snake_case keys (e.g. guest_name, room_number, dietary_preference, occasion). Only include facts "
-            "that are genuinely new — skip anything already in memory_facts.\n"
+            f"\nYou only handle {service_name} topics. "
+            "If the guest asks about something completely outside this service, "
+            "acknowledge it briefly and set context_switched=true in metadata so the main assistant can take over.\n"
+            "Always read the full conversation history (last 10 messages) before responding. "
+            "Resolve short replies ('yes', a date, a number) against what was last asked.\n"
+            "Capture any useful guest details (name, room number, preferences, dietary needs, special occasion) "
+            "in new_facts_to_remember as snake_case key-value pairs.\n"
             "Return STRICT JSON only matching the response schema."
         )
 
@@ -1171,6 +1153,10 @@ class LLMOrchestrationService:
         if not isinstance(ticketing_policy, dict):
             ticketing_policy = {}
         ticketing_conditions = str(prompt_pack.get("ticketing_conditions") or "").strip()
+        if not ticketing_conditions:
+            ticketing_conditions = str(ticketing_policy.get("policy") or "").strip()
+        if not ticketing_conditions:
+            ticketing_conditions = str(service.get("ticketing_policy") or "").strip()
         service_hours = service.get("hours") or {}
         if not isinstance(service_hours, dict):
             service_hours = {}
@@ -1266,7 +1252,20 @@ class LLMOrchestrationService:
             system_prompt=system_prompt,
             payload=payload,
         )
-        raw = await llm_client.chat_with_json(messages, model=model, temperature=0.0)
+        raw = await llm_client.chat_with_json(
+            messages,
+            model=model,
+            temperature=0.0,
+            trace_context={
+                "responder_type": "service",
+                "agent": "service_agent",
+                "session_id": str(getattr(context, "session_id", "")),
+                "service_id": service_id,
+                "service_name": service_name,
+                "selected_phase_id": selected_phase_id,
+                "selected_phase_name": selected_phase_name,
+            },
+        )
         _log_llm_call(
             label=f"SERVICE AGENT [{service_id}] RESPONSE",
             session_id=str(getattr(context, "session_id", "")),
@@ -1565,6 +1564,11 @@ class LLMOrchestrationService:
                     "name": str(row.get("name") or sid).strip(),
                     "phase_id": phase_id,
                     "phase_name": str(row.get("phase_name") or self._phase_label(phase_id, capabilities_summary)).strip(),
+                    "description": str(row.get("description") or "").strip(),
+                    "profile": str(row.get("profile") or "").strip(),
+                    "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:2500],
+                    "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
+                    "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 }
             )
             if len(out_of_phase_services) >= 120:
@@ -1578,7 +1582,7 @@ class LLMOrchestrationService:
                 "phase_id": self._normalize_identifier(row.get("phase_id")),
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "knowledge_facts": row.get("knowledge_facts") or [],
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:8000],
+                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:5000],
                 "profile": str(row.get("profile") or "").strip(),
                 "required_slots": row.get("required_slots") or [],
             }
@@ -1591,6 +1595,11 @@ class LLMOrchestrationService:
                 "name": str(row.get("name") or "").strip(),
                 "phase_id": str(row.get("phase_id") or "").strip(),
                 "phase_name": str(row.get("phase_name") or "").strip(),
+                "description": str(row.get("description") or "").strip(),
+                "profile": str(row.get("profile") or "").strip(),
+                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:2500],
+                "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
+                "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 "availability_hint": self._phase_transition_timing_hint(
                     selected_phase_id,
                     str(row.get("phase_id") or "").strip(),
@@ -1702,49 +1711,43 @@ class LLMOrchestrationService:
         }
 
         system_prompt = (
-            "You are the top-level conversation orchestrator for a multi-service concierge assistant.\n"
-            "Your output controls routing and action selection.\n"
+            "You are the main concierge assistant for this hotel.\n"
+            "You see every guest message first. Your job is to understand what the guest needs, "
+            "check whether it fits the current phase, and either answer directly or hand off to the right service specialist.\n"
             "\n"
-            "BEFORE DOING ANYTHING: Read the full `history` array from oldest to newest. Resolve pronouns and references "
-            "('this', 'that', 'it', 'same', 'book this') using the last assistant message. Only then decide intent and routing.\n"
+            "=== STEP 1: READ HISTORY ===\n"
+            "Always read the full conversation history from oldest to newest before deciding anything. "
+            "Resolve pronouns ('it', 'that', 'same', 'this') against the last assistant message.\n"
             "\n"
-            "STEP 1 — PHASE-AWARE KNOWLEDGE CHECK (do this before routing):\n"
-            "When the user asks a question, check FIRST whether the answer exists in the knowledge of services that are "
-            "allowed in the current phase (policy_snapshot.phase_service_policy.allowed_services). Each allowed service "
-            "has `description`, `knowledge_facts`, and `extracted_knowledge` fields. Also check `full_knowledge_base`.\n"
-            "- If the answer IS available from in-phase service knowledge or full_knowledge_base: answer it directly.\n"
-            "- If the answer is NOT available from any in-phase service knowledge and NOT in full_knowledge_base: "
-            "respond that this information is not available or cannot be helped with in the current context. "
-            "Do NOT invent facts or information not present in the provided knowledge.\n"
+            "=== STEP 2: MID-FLOW CHECK ===\n"
+            "If pending_action is set OR pending_data_public contains a service_id, the guest is mid-flow in a service. "
+            "Stay on that service and route back to it immediately. "
+            "Only interrupt if the guest clearly and explicitly switches to a completely different topic.\n"
             "\n"
-            "STEP 2 — SERVICE ROUTING (after knowledge check):\n"
-            "Use only provided JSON context, never invent unsupported services or capabilities.\n"
+            "=== STEP 3: DECIDE WHAT THE GUEST NEEDS ===\n"
             "\n"
-            "Rules:\n"
-            "1) SERVICE-FIRST routing: decide target_service_id first; intent is secondary metadata.\n"
-            "2) target_service_id must exactly match one service.id when service work is needed.\n"
-            "3) CONTEXT CONTINUITY — CRITICAL: If pending_action is set (e.g. 'collecting_details', 'confirm_booking'), the user is mid-flow. You MUST route to the same service that owns the pending flow. To identify which service owns the pending flow, match pending_action against each service's confirmation_pending_action field in the services list, or use conversation history. Do NOT re-route to a different service or generate a generic response just because the user message is short (a date, a number, 'yes confirm', 'no').\n"
-            "4) STICKY SERVICE: If pending_data_public contains a service_id, that is the currently active service. Stay on it unless the user explicitly and clearly asks for something completely different.\n"
-            "5) First classify requested service against policy_snapshot.phase_service_policy.\n"
-            "5.1) For out-of-phase asks, set action=respond_only, use_handler=false, pending_action=null,\n"
-            "     ticket.required=false, and explain availability phase in response_text.\n"
-            "5.2) For in-phase asks, choose target_service_id from allowed_service_ids_in_current_phase and continue flow.\n"
-            "5.3) Never propose execution for services in blocked_out_of_phase_services.\n"
-            "6) Set interrupt_pending=true only when user CLEARLY switches to a completely different topic (not short answers, not clarifications).\n"
-            "7) Set resume_pending=true only when user explicitly asks to continue a previous pending flow.\n"
-            "8) Answer-first rule: always answer the user's current ask first when possible from in-phase service knowledge or full_knowledge_base.\n"
-            "   missing_fields must contain only fields blocking the current ask right now.\n"
-            "   If details are needed later (not now), put them in deferrable_fields and keep action=respond_only.\n"
-            "9) Ticketing: set action=create_ticket only when ticket.required=true AND ticket.ready_to_create=true.\n"
-            "   Keep ticket.ready_to_create=false while collecting missing details or waiting confirmation.\n"
-            "10) Set ticket.required=true only for actionable staff follow-up requests.\n"
-            "11) Operational issue reports (e.g., cockroach, dirty room, broken AC, no water, maintenance/housekeeping problems)\n"
-            "    must not be treated as FAQ. Use complaint/human_request style routing and response.\n"
-            "12) Keep response_text natural, concise, and phase-aware.\n"
-            "13) Use policy_snapshot as hard runtime boundaries.\n"
-            "14) STRICT GROUNDING: Never answer with facts, prices, options, or capabilities not present in "
-            "allowed service knowledge (description, knowledge_facts, extracted_knowledge) or full_knowledge_base. "
-            "If the user asks about something not covered, say it is not available or not something you can assist with.\n"
+            "A) INFORMATION QUESTION - the guest is asking about hotel facilities, timings, policies, menus, or general details.\n"
+            "   -> Answer directly using policy_snapshot.phase_service_policy.allowed_services[*].extracted_knowledge "
+            "and full_knowledge_base. Set action=respond_only.\n"
+            "   -> Never invent facts. If details are not present, explicitly say they are unavailable.\n"
+            "\n"
+            "B) SERVICE REQUEST - the guest wants to perform an action (book, order, request, escalate).\n"
+            "   -> Match service primarily using service name + description, then supporting metadata.\n"
+            "   -> If the matching service is in allowed_service_ids_in_current_phase: set action=dispatch_handler with exact target_service_id.\n"
+            "   -> If the matching service exists only in blocked_out_of_phase_services: set action=respond_only, "
+            "share available details from blocked_out_of_phase_services (description/extracted_knowledge), and clearly state target phase vs current phase.\n"
+            "   -> If no matching service exists at all: set action=respond_only and state the hotel does not offer that service.\n"
+            "\n"
+            "C) INFO-ONLY TOPIC WITH ACTION ASK - if user asks to execute an action for a topic that is informational only:\n"
+            "   -> Provide information from knowledge.\n"
+            "   -> Keep action=respond_only. Do not dispatch handler or create ticket.\n"
+            "\n"
+            "D) HUMAN / EMERGENCY - if user is distressed, in an emergency, or asks for a human: set requires_human_handoff=true.\n"
+            "\n"
+            "=== GROUNDING RULE ===\n"
+            "Use only provided policy + knowledge data. Never invent prices, timings, availability, or capabilities.\n"
+            "\n"
+            "=== OUTPUT ===\n"
             "Return strict JSON only."
         )
         model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
@@ -1759,7 +1762,19 @@ class LLMOrchestrationService:
             system_prompt=system_prompt,
             payload=payload,
         )
-        raw = await llm_client.chat_with_json(messages, model=model, temperature=0.0)
+        raw = await llm_client.chat_with_json(
+            messages,
+            model=model,
+            temperature=0.0,
+            trace_context={
+                "responder_type": "main",
+                "agent": "orchestrator",
+                "session_id": str(getattr(context, "session_id", "")),
+                "selected_phase_id": selected_phase_id,
+                "selected_phase_name": selected_phase_name,
+                "trace_id": orchestration_trace_id,
+            },
+        )
         _log_llm_call(
             label="ORCHESTRATOR RESPONSE",
             session_id=str(getattr(context, "session_id", "")),
@@ -1939,3 +1954,4 @@ class LLMOrchestrationService:
 
 
 llm_orchestration_service = LLMOrchestrationService()
+

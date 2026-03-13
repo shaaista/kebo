@@ -1263,24 +1263,43 @@ async def preview_extract_service_kb(payload: dict):
         from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="service_name is required")
 
-    full_kb_text = config_service.get_full_kb_text()
-    if not full_kb_text.strip():
+    library = config_service.get_structured_kb_library(rebuild_if_stale=True, max_sources=50)
+    pages = library.get("pages", []) if isinstance(library, dict) else []
+    if not isinstance(pages, list) or not pages:
         return {"extracted_knowledge": "", "reason": "no_kb_content"}
+
+    context_payload = config_service.build_service_library_context(
+        service_name=service_name,
+        service_description=service_description,
+        max_books=12,
+        max_pages=44,
+        max_chars=90000,
+    )
+    context_text = str(context_payload.get("context_text") or "").strip()
+    if not context_text:
+        return {"extracted_knowledge": "", "reason": "no_relevant_library_books"}
 
     try:
         extraction_prompt = await config_service._generate_service_extraction_prompt(
             service_name=service_name,
             service_description=service_description,
-            full_kb_text=full_kb_text,
+            full_kb_text=context_text,
         )
         if not extraction_prompt:
             return {"extracted_knowledge": "", "reason": "extraction_prompt_empty"}
 
         extracted_knowledge = await config_service._extract_service_knowledge_from_kb(
             extraction_prompt=extraction_prompt,
-            full_kb_text=full_kb_text,
+            full_kb_text="",
+            knowledge_context=context_text,
         )
-        return {"extracted_knowledge": extracted_knowledge or "", "reason": "ok"}
+        return {
+            "extracted_knowledge": extracted_knowledge or "",
+            "reason": "ok",
+            "library_books_used": int(context_payload.get("book_count") or 0),
+            "library_pages_used": int(context_payload.get("page_count") or 0),
+            "library_context_truncated": bool(context_payload.get("truncated", False)),
+        }
     except Exception as exc:
         return {"extracted_knowledge": "", "reason": str(exc)}
 

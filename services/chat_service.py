@@ -15381,6 +15381,40 @@ class ChatService:
                 if len(suggested_actions) >= 4:
                     break
 
+        service_catalog_context: list[dict[str, Any]] = []
+        catalog_rows = capabilities_summary.get("service_catalog", [])
+        if isinstance(catalog_rows, list):
+            for service in catalog_rows:
+                if not isinstance(service, dict):
+                    continue
+                if not bool(service.get("is_active", True)):
+                    continue
+                service_id = str(service.get("id") or "").strip()
+                service_name = str(service.get("name") or "").strip()
+                if not service_id and not service_name:
+                    continue
+                phase_row_id = self._normalize_phase_identifier(service.get("phase_id"))
+                phase_row_name = self._phase_label(phase_row_id) if phase_row_id else ""
+                prompt_pack = service.get("service_prompt_pack")
+                if not isinstance(prompt_pack, dict):
+                    prompt_pack = {}
+                knowledge_hint = str(prompt_pack.get("extracted_knowledge") or "").strip()
+                if not knowledge_hint:
+                    knowledge_hint = str(service.get("description") or service.get("cuisine") or "").strip()
+                service_catalog_context.append(
+                    {
+                        "id": service_id,
+                        "name": service_name or service_id,
+                        "phase_id": phase_row_id,
+                        "phase_name": phase_row_name,
+                        "description": str(service.get("description") or "").strip(),
+                        "ticketing_enabled": bool(service.get("ticketing_enabled", True)),
+                        "knowledge_hint": knowledge_hint[:500],
+                    }
+                )
+                if len(service_catalog_context) >= 80:
+                    break
+
         prompt_payload = {
             "intent": intent.value if isinstance(intent, IntentType) else str(intent),
             "user_message": str(user_message or "").strip(),
@@ -15404,6 +15438,7 @@ class ChatService:
             "phase_service_unavailable": bool(gate.get("phase_service_unavailable")),
             "available_services_now": available_now,
             "suggested_services_now": suggested_actions,
+            "service_catalog_context": service_catalog_context,
         }
 
         if not str(getattr(settings, "openai_api_key", "") or "").strip():
@@ -15415,6 +15450,9 @@ class ChatService:
             "Use only the supplied facts.\n"
             "Do not promise immediate booking/order/ticket actions when blocked.\n"
             "If service is out of phase, mention current phase and when it becomes available.\n"
+            "If requested_service.id is empty, infer likely service from user_message using service_catalog_context.\n"
+            "When a likely match exists in another phase, include brief details from that service's description/knowledge_hint.\n"
+            "For informational topics where execution is blocked, provide info-only response and clearly avoid transactional promises.\n"
             "Keep response concise, natural, and guest-friendly (2-4 short sentences).\n"
         )
         user_prompt = (

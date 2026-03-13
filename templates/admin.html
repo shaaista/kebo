@@ -3542,7 +3542,7 @@
                 document.getElementById('new-svc-desc').value = String(svc.description || svc.cuisine || '');
                 const existingKb = String((svc.service_prompt_pack || {}).extracted_knowledge || '');
                 document.getElementById('new-svc-kb-knowledge').value = existingKb;
-                const existingTc = String((svc.service_prompt_pack || {}).ticketing_conditions || '');
+                const existingTc = String((svc.service_prompt_pack || {}).ticketing_conditions || svc.ticketing_policy || '');
                 document.getElementById('new-svc-ticketing-conditions').value = existingTc;
                 updateServiceTicketingSectionVisibility();
                 document.getElementById('service-modal-title').textContent = 'Edit Service';
@@ -3587,6 +3587,9 @@
                 payload.service_prompt_pack = {};
                 if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
                 if (svcTicketingConditions) payload.service_prompt_pack.ticketing_conditions = svcTicketingConditions;
+            }
+            if (svcTicketingConditions) {
+                payload.ticketing_policy = svcTicketingConditions;
             }
 
             try {
@@ -4170,6 +4173,9 @@
                 payload.service_prompt_pack = {};
                 if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
                 if (ticketingConditions) payload.service_prompt_pack.ticketing_conditions = ticketingConditions;
+            }
+            if (ticketingConditions) {
+                payload.ticketing_policy = ticketingConditions;
             }
 
             try {

@@ -5,7 +5,13 @@ Handles all LLM calls with proper error handling and logging.
 """
 
 import json
-from typing import Optional
+import inspect
+import logging
+import time
+import uuid
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any, Optional
 from openai import AsyncOpenAI
 
 from config.settings import settings
@@ -20,6 +26,17 @@ class LLMClient:
         self.model = settings.openai_model
         self.max_tokens = settings.llm_max_tokens
         self.temperature = settings.llm_temperature
+        self.llm_trace_enabled = bool(getattr(settings, "llm_io_trace_enabled", True))
+        self.llm_trace_file = Path(str(getattr(settings, "llm_io_trace_file", "./logs/llm_io_trace.jsonl")))
+        self.llm_trace_max_chars = max(2000, int(getattr(settings, "llm_io_trace_max_chars", 300000) or 300000))
+        self._llm_trace_logger = logging.getLogger("llm_io_trace")
+        if not self._llm_trace_logger.handlers:
+            self.llm_trace_file.parent.mkdir(parents=True, exist_ok=True)
+            handler = logging.FileHandler(self.llm_trace_file, encoding="utf-8")
+            handler.setFormatter(logging.Formatter("%(message)s"))
+            self._llm_trace_logger.addHandler(handler)
+            self._llm_trace_logger.setLevel(logging.INFO)
+            self._llm_trace_logger.propagate = False
 
     @staticmethod
     def _render_admin_prompt(template: str, context: dict) -> str:
@@ -78,12 +95,297 @@ class LLMClient:
             return history
         return history[-max_chars:]
 
+    @staticmethod
+    def _coerce_json_safe(value: Any, depth: int = 0) -> Any:
+        if depth > 8:
+            return str(value)
+        if value is None or isinstance(value, (str, int, float, bool)):
+            return value
+        if isinstance(value, dict):
+            return {
+                str(k): LLMClient._coerce_json_safe(v, depth + 1)
+                for k, v in list(value.items())[:200]
+            }
+        if isinstance(value, list):
+            return [LLMClient._coerce_json_safe(item, depth + 1) for item in value[:200]]
+        if isinstance(value, tuple):
+            return [LLMClient._coerce_json_safe(item, depth + 1) for item in value[:200]]
+        return str(value)
+
+    @classmethod
+    def _message_content_to_text(cls, content: Any) -> str:
+        if isinstance(content, str):
+            return content
+        if isinstance(content, list):
+            parts: list[str] = []
+            for item in content:
+                if isinstance(item, dict):
+                    text = item.get("text")
+                    if isinstance(text, str) and text.strip():
+                        parts.append(text.strip())
+                        continue
+                    item_text = item.get("input_text")
+                    if isinstance(item_text, str) and item_text.strip():
+                        parts.append(item_text.strip())
+                        continue
+                    parts.append(json.dumps(cls._coerce_json_safe(item), ensure_ascii=False))
+                    continue
+                snippet = str(item or "").strip()
+                if snippet:
+                    parts.append(snippet)
+            return "\n".join(parts).strip()
+        if isinstance(content, dict):
+            text = content.get("text")
+            if isinstance(text, str):
+                return text
+            return json.dumps(cls._coerce_json_safe(content), ensure_ascii=False)
+        if content is None:
+            return ""
+        return str(content)
+
+    @staticmethod
+    def _try_parse_json_object(text: str, *, max_chars: int = 1_200_000) -> dict[str, Any]:
+        stripped = str(text or "").strip()
+        if not stripped:
+            return {}
+        if len(stripped) > max_chars:
+            return {}
+        if not (stripped.startswith("{") and stripped.endswith("}")):
+            return {}
+        try:
+            parsed = json.loads(stripped)
+        except Exception:
+            return {}
+        if isinstance(parsed, dict):
+            return parsed
+        return {}
+
+    @classmethod
+    def _extract_user_query(cls, messages: list[dict]) -> str:
+        for message in reversed(list(messages or [])):
+            if not isinstance(message, dict):
+                continue
+            role = str(message.get("role") or "").strip().lower()
+            if role != "user":
+                continue
+            text = cls._message_content_to_text(message.get("content")).strip()
+            if not text:
+                continue
+            candidate = text
+            payload = cls._try_parse_json_object(text, max_chars=1_200_000)
+            if payload:
+                for key in ("user_message", "query", "message", "input"):
+                    value = payload.get(key)
+                    if isinstance(value, str) and value.strip():
+                        candidate = value.strip()
+                        break
+            return candidate
+        return ""
+
+    @classmethod
+    def _extract_message_inputs(cls, messages: list[dict]) -> dict[str, Any]:
+        system_chunks: list[str] = []
+        last_user_message = ""
+        for message in list(messages or []):
+            if not isinstance(message, dict):
+                continue
+            role = str(message.get("role") or "").strip().lower()
+            content_text = cls._message_content_to_text(message.get("content")).strip()
+            if not content_text:
+                continue
+            if role == "system":
+                system_chunks.append(content_text)
+            elif role == "user":
+                last_user_message = content_text
+
+        parsed_payload = cls._try_parse_json_object(last_user_message, max_chars=1_200_000)
+        context_like_inputs: dict[str, Any] = {}
+        if parsed_payload:
+            for key, value in parsed_payload.items():
+                key_str = str(key or "")
+                key_lower = key_str.strip().lower()
+                if not key_lower:
+                    continue
+                if any(
+                    token in key_lower
+                    for token in (
+                        "state",
+                        "history",
+                        "context",
+                        "memory",
+                        "phase",
+                        "service",
+                        "knowledge",
+                        "kb",
+                        "policy",
+                        "pending",
+                        "ui",
+                        "tool",
+                    )
+                ):
+                    context_like_inputs[key_str] = value
+
+        return {
+            "system_prompt": "\n\n".join(system_chunks).strip(),
+            "last_user_message": last_user_message,
+            "parsed_user_payload": parsed_payload or {},
+            "parsed_payload_keys": sorted(str(key) for key in parsed_payload.keys()) if parsed_payload else [],
+            "context_like_inputs": context_like_inputs,
+            "messages": messages,
+        }
+
+    @staticmethod
+    def _caller_context() -> dict[str, Any]:
+        default = {
+            "caller_module": "",
+            "caller_function": "",
+            "caller_file": "",
+            "responder_type": "other",
+            "service_id": "",
+            "service_name": "",
+        }
+        stack = []
+        try:
+            stack = inspect.stack()
+            for frame_info in stack[2:]:
+                filename = str(frame_info.filename or "").replace("\\", "/")
+                if filename.endswith("/llm/client.py"):
+                    continue
+                module = str(frame_info.frame.f_globals.get("__name__", "") or "")
+                function = str(frame_info.function or "")
+                context = dict(default)
+                context["caller_module"] = module
+                context["caller_function"] = function
+                context["caller_file"] = filename
+
+                is_orchestrator = (
+                    filename.endswith("/services/llm_orchestration_service.py")
+                    or module.endswith("services.llm_orchestration_service")
+                )
+                if is_orchestrator:
+                    if function == "_run_service_agent":
+                        context["responder_type"] = "service"
+                        local_service_id = frame_info.frame.f_locals.get("service_id")
+                        local_service_name = frame_info.frame.f_locals.get("service_name")
+                        if local_service_id is not None:
+                            context["service_id"] = str(local_service_id)
+                        if local_service_name is not None:
+                            context["service_name"] = str(local_service_name)
+                    elif function == "orchestrate_turn":
+                        context["responder_type"] = "main"
+                    else:
+                        context["responder_type"] = "main"
+                    return context
+
+                if module.endswith("services.config_service"):
+                    if "enrich_service_kb_records" in function:
+                        context["responder_type"] = "service_enrichment"
+                    else:
+                        context["responder_type"] = "config"
+                    return context
+
+                if module.endswith("services.full_kb_llm_service"):
+                    context["responder_type"] = "full_kb_main"
+                    return context
+
+                if module.endswith("services.chat_service"):
+                    context["responder_type"] = "chat_runtime"
+                    return context
+
+                return context
+        except Exception:
+            return default
+        finally:
+            del stack
+        return default
+
+    @staticmethod
+    def _resolve_trace_actor(
+        caller: dict[str, Any],
+        trace_context: Optional[dict[str, Any]],
+    ) -> dict[str, Any]:
+        context = trace_context if isinstance(trace_context, dict) else {}
+        caller_type = str(caller.get("responder_type") or "").strip().lower()
+        requested_type = str(context.get("responder_type") or "").strip().lower()
+        base_type = requested_type or caller_type or "other"
+        scope_map = {
+            "main": "main",
+            "service": "service",
+            "service_enrichment": "service",
+            "full_kb_main": "main",
+            "chat_runtime": "main",
+            "config": "other",
+            "other": "other",
+        }
+        answered_by = scope_map.get(base_type, "other")
+        service_id = str(context.get("service_id") or caller.get("service_id") or "").strip()
+        service_name = str(context.get("service_name") or caller.get("service_name") or "").strip()
+        agent_name = str(
+            context.get("agent")
+            or context.get("agent_name")
+            or caller.get("caller_function")
+            or ""
+        ).strip()
+        return {
+            "answered_by": answered_by,
+            "responder_type": base_type,
+            "agent": agent_name,
+            "service_id": service_id,
+            "service_name": service_name,
+            "session_id": str(context.get("session_id") or "").strip(),
+        }
+
+    @staticmethod
+    def _truncate_large_strings(value: Any, max_chars: int, depth: int = 0) -> Any:
+        if depth > 12:
+            return str(value)
+        if isinstance(value, str):
+            if len(value) <= max_chars:
+                return value
+            omitted = len(value) - max_chars
+            return f"{value[:max_chars]}\n...[TRUNCATED {omitted} chars]"
+        if isinstance(value, dict):
+            return {
+                str(key): LLMClient._truncate_large_strings(item, max_chars=max_chars, depth=depth + 1)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [LLMClient._truncate_large_strings(item, max_chars=max_chars, depth=depth + 1) for item in value]
+        if isinstance(value, tuple):
+            return [LLMClient._truncate_large_strings(item, max_chars=max_chars, depth=depth + 1) for item in value]
+        return value
+
+    @staticmethod
+    def _response_usage(response: Any) -> dict[str, Any]:
+        usage = getattr(response, "usage", None)
+        if usage is None:
+            return {}
+        result: dict[str, Any] = {}
+        for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
+            value = getattr(usage, key, None)
+            if value is not None:
+                result[key] = int(value)
+        return result
+
+    def _log_llm_trace(self, payload: dict[str, Any]) -> None:
+        if not self.llm_trace_enabled:
+            return
+        try:
+            safe_payload = self._coerce_json_safe(payload)
+            safe_payload = self._truncate_large_strings(safe_payload, max_chars=self.llm_trace_max_chars)
+            self._llm_trace_logger.info(
+                json.dumps(safe_payload, ensure_ascii=False)
+            )
+        except Exception:
+            return
+
     async def chat(
         self,
         messages: list[dict],
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
+        trace_context: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Send chat completion request to OpenAI.
@@ -97,16 +399,75 @@ class LLMClient:
         Returns:
             Assistant's response text
         """
+        started = time.perf_counter()
+        request_id = uuid.uuid4().hex
+        caller = self._caller_context()
+        trace_meta = trace_context if isinstance(trace_context, dict) else {}
+        trace_actor = self._resolve_trace_actor(caller, trace_meta)
+        input_snapshot = self._extract_message_inputs(messages)
+        request_model = model or self.model
+        request_temperature = temperature if temperature is not None else self.temperature
+        request_max_tokens = max_tokens or self.max_tokens
+        user_query = self._extract_user_query(messages)
         try:
             response = await self.client.chat.completions.create(
-                model=model or self.model,
+                model=request_model,
                 messages=messages,
-                temperature=temperature if temperature is not None else self.temperature,
-                max_tokens=max_tokens or self.max_tokens,
+                temperature=request_temperature,
+                max_tokens=request_max_tokens,
             )
-            return response.choices[0].message.content or ""
+            output_text = response.choices[0].message.content or ""
+            self._log_llm_trace(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "request_id": request_id,
+                    "method": "chat",
+                    "status": "success",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "model": request_model,
+                    "temperature": request_temperature,
+                    "max_tokens": request_max_tokens,
+                    "user_query": user_query,
+                    "answered_by": trace_actor.get("answered_by"),
+                    "service_llm": {
+                        "id": trace_actor.get("service_id"),
+                        "name": trace_actor.get("service_name"),
+                    },
+                    "inputs": input_snapshot,
+                    "output": output_text,
+                    "usage": self._response_usage(response),
+                    "caller": caller,
+                    "trace_actor": trace_actor,
+                    "trace_context": trace_meta,
+                }
+            )
+            return output_text
         except Exception as e:
             print(f"LLM Chat Error: {e}")
+            self._log_llm_trace(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "request_id": request_id,
+                    "method": "chat",
+                    "status": "error",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "model": request_model,
+                    "temperature": request_temperature,
+                    "max_tokens": request_max_tokens,
+                    "user_query": user_query,
+                    "answered_by": trace_actor.get("answered_by"),
+                    "service_llm": {
+                        "id": trace_actor.get("service_id"),
+                        "name": trace_actor.get("service_name"),
+                    },
+                    "inputs": input_snapshot,
+                    "error": str(e),
+                    "fallback_output": "I'm having trouble processing that right now. Could you please try again?",
+                    "caller": caller,
+                    "trace_actor": trace_actor,
+                    "trace_context": trace_meta,
+                }
+            )
             return "I'm having trouble processing that right now. Could you please try again?"
 
     async def chat_with_json(
@@ -114,6 +475,7 @@ class LLMClient:
         messages: list[dict],
         model: Optional[str] = None,
         temperature: Optional[float] = None,
+        trace_context: Optional[dict[str, Any]] = None,
     ) -> dict:
         """
         Send chat request expecting JSON response.
@@ -121,21 +483,104 @@ class LLMClient:
         Returns:
             Parsed JSON dict
         """
+        started = time.perf_counter()
+        request_id = uuid.uuid4().hex
+        caller = self._caller_context()
+        trace_meta = trace_context if isinstance(trace_context, dict) else {}
+        trace_actor = self._resolve_trace_actor(caller, trace_meta)
+        input_snapshot = self._extract_message_inputs(messages)
+        request_model = model or self.model
+        request_temperature = temperature if temperature is not None else self.temperature
+        user_query = self._extract_user_query(messages)
         try:
             response = await self.client.chat.completions.create(
-                model=model or self.model,
+                model=request_model,
                 messages=messages,
-                temperature=temperature if temperature is not None else self.temperature,
+                temperature=request_temperature,
                 max_tokens=self.max_tokens,
                 response_format={"type": "json_object"},
             )
             content = response.choices[0].message.content or "{}"
-            return json.loads(content)
+            parsed = json.loads(content)
+            self._log_llm_trace(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "request_id": request_id,
+                    "method": "chat_with_json",
+                    "status": "success",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "model": request_model,
+                    "temperature": request_temperature,
+                    "max_tokens": self.max_tokens,
+                    "user_query": user_query,
+                    "answered_by": trace_actor.get("answered_by"),
+                    "service_llm": {
+                        "id": trace_actor.get("service_id"),
+                        "name": trace_actor.get("service_name"),
+                    },
+                    "inputs": input_snapshot,
+                    "output": parsed,
+                    "raw_output": content,
+                    "usage": self._response_usage(response),
+                    "caller": caller,
+                    "trace_actor": trace_actor,
+                    "trace_context": trace_meta,
+                }
+            )
+            return parsed
         except json.JSONDecodeError as e:
             print(f"JSON Parse Error: {e}")
+            self._log_llm_trace(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "request_id": request_id,
+                    "method": "chat_with_json",
+                    "status": "json_parse_error",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "model": request_model,
+                    "temperature": request_temperature,
+                    "max_tokens": self.max_tokens,
+                    "user_query": user_query,
+                    "answered_by": trace_actor.get("answered_by"),
+                    "service_llm": {
+                        "id": trace_actor.get("service_id"),
+                        "name": trace_actor.get("service_name"),
+                    },
+                    "inputs": input_snapshot,
+                    "error": str(e),
+                    "fallback_output": {"intent": "unclear", "confidence": 0.3, "entities": {}},
+                    "caller": caller,
+                    "trace_actor": trace_actor,
+                    "trace_context": trace_meta,
+                }
+            )
             return {"intent": "unclear", "confidence": 0.3, "entities": {}}
         except Exception as e:
             print(f"LLM Error: {e}")
+            self._log_llm_trace(
+                {
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "request_id": request_id,
+                    "method": "chat_with_json",
+                    "status": "error",
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "model": request_model,
+                    "temperature": request_temperature,
+                    "max_tokens": self.max_tokens,
+                    "user_query": user_query,
+                    "answered_by": trace_actor.get("answered_by"),
+                    "service_llm": {
+                        "id": trace_actor.get("service_id"),
+                        "name": trace_actor.get("service_name"),
+                    },
+                    "inputs": input_snapshot,
+                    "error": str(e),
+                    "fallback_output": {"intent": "unclear", "confidence": 0.3, "entities": {}},
+                    "caller": caller,
+                    "trace_actor": trace_actor,
+                    "trace_context": trace_meta,
+                }
+            )
             return {"intent": "unclear", "confidence": 0.3, "entities": {}}
 
     async def classify_intent(

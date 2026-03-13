@@ -9,6 +9,7 @@ import copy
 import hashlib
 import json
 import re
+from collections import defaultdict
 from datetime import UTC, datetime
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -58,6 +59,37 @@ _KB_CONFLICT_DINE_IN_ONLY_MARKERS = (
     "no room delivery",
     "dine in",
 )
+
+_LIBRARY_TOPIC_ALIASES: dict[str, tuple[str, ...]] = {
+    "swimming_pool": ("swimming pool", "pool", "swim club", "bombay swim club"),
+    "spa_wellness": ("spa", "wellness", "massage", "therapy"),
+    "jacuzzi": ("jacuzzi", "hot tub"),
+    "checkin_checkout": ("check in", "checkin", "check out", "checkout", "early checkin", "late checkout"),
+    "airport_transfer": ("airport transfer", "airport pickup", "terminal", "t1", "t2"),
+    "dining": ("restaurant", "menu", "in room dining", "ird", "aviator", "kadak", "food", "beverage"),
+    "rooms_suites": ("room", "suite", "amenities", "minibar"),
+    "policies": ("policy", "cancellation", "smoking", "rules"),
+}
+
+_LIBRARY_TOPIC_STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "from",
+    "this",
+    "that",
+    "your",
+    "hotel",
+    "guest",
+    "guests",
+    "service",
+    "services",
+    "section",
+    "info",
+    "information",
+    "details",
+}
 
 _PREBOOKING_TICKETING_CASES = [
     "Pre-booking guest asks for human sales callback or manual follow-up.",
@@ -349,6 +381,21 @@ class ConfigService:
                     "dos": [],
                     "donts": [],
                     "capability_constraints": {},
+                },
+                "library_index": {
+                    "version": "v1",
+                    "source_signature": "",
+                    "generated_at": "",
+                    "source_count": 0,
+                    "documents": [],
+                    "pages": [],
+                    "books": [],
+                    "coverage": {
+                        "total_pages": 0,
+                        "covered_pages": 0,
+                        "uncovered_pages": 0,
+                        "coverage_ratio": 0.0,
+                    },
                 },
             },
             "ui_settings": {
@@ -1541,6 +1588,13 @@ class ConfigService:
 
         knowledge = config.setdefault("knowledge_base", {})
         knowledge.setdefault("sources", [])
+        if not isinstance(knowledge.get("sources"), list):
+            knowledge["sources"] = []
+            changed = True
+        deduped_sources = self._dedupe_knowledge_sources(knowledge.get("sources", []))
+        if deduped_sources != knowledge.get("sources"):
+            knowledge["sources"] = deduped_sources
+            changed = True
         knowledge.setdefault("notes", "")
         nlu_policy = knowledge.setdefault("nlu_policy", {})
         for key in ("dos", "donts"):
@@ -1550,6 +1604,43 @@ class ConfigService:
         if not isinstance(nlu_policy.get("capability_constraints"), dict):
             nlu_policy["capability_constraints"] = {}
             changed = True
+        library_index = knowledge.setdefault("library_index", {})
+        if not isinstance(library_index, dict):
+            library_index = {}
+            knowledge["library_index"] = library_index
+            changed = True
+        library_defaults: dict[str, Any] = {
+            "version": "v1",
+            "source_signature": "",
+            "generated_at": "",
+            "source_count": 0,
+            "documents": [],
+            "pages": [],
+            "books": [],
+            "coverage": {
+                "total_pages": 0,
+                "covered_pages": 0,
+                "uncovered_pages": 0,
+                "coverage_ratio": 0.0,
+            },
+        }
+        for key, default_value in library_defaults.items():
+            if key not in library_index:
+                library_index[key] = copy.deepcopy(default_value)
+                changed = True
+        for key in ("documents", "pages", "books"):
+            if not isinstance(library_index.get(key), list):
+                library_index[key] = []
+                changed = True
+        coverage = library_index.get("coverage", {})
+        if not isinstance(coverage, dict):
+            coverage = {}
+            library_index["coverage"] = coverage
+            changed = True
+        for key, default_value in library_defaults["coverage"].items():
+            if key not in coverage:
+                coverage[key] = default_value
+                changed = True
 
         ui_settings = config.setdefault("ui_settings", {})
         theme = ui_settings.setdefault("theme", {})
@@ -3231,70 +3322,45 @@ class ConfigService:
     # LLM-based service knowledge enrichment
     # ------------------------------------------------------------------
 
-    def get_full_kb_text(self, max_chars: int = 180_000) -> str:
+    def get_full_kb_text(self, max_chars: int | None = None) -> str:
         """Return combined text of all knowledge sources (for LLM context)."""
         source_paths = self._resolve_knowledge_source_paths(max_sources=25)
         parts: list[str] = []
-        total = 0
         for path in source_paths:
-            text = self._load_knowledge_source_text(path, max_chars=max_chars)
+            text = self._load_knowledge_source_text(path)
             if text:
                 parts.append(text)
-                total += len(text)
-                if total >= max_chars:
-                    break
-        return "\n\n".join(parts)[:max_chars]
+        result = "\n\n".join(parts)
+        if max_chars is not None:
+            result = result[:max_chars]
+        return result
 
-    async def _generate_service_extraction_prompt(
+    async def _legacy_generate_service_extraction_prompt(
         self,
         *,
         service_name: str,
         service_description: str,
         full_kb_text: str,
     ) -> str:
-        """Ask LLM to generate a role-based extraction prompt for this service."""
-        from llm.client import llm_client  # local import to avoid circular dependency
+        """Returns the system prompt used in the extraction step — no LLM call needed here."""
+        return (
+            f"You are extracting a knowledge pack for a hotel chatbot service agent.\n\n"
+            f"SERVICE NAME: {service_name}\n"
+            f"SERVICE DESCRIPTION: {service_description}\n\n"
+            "Read the entire hotel knowledge base carefully. Understand what this service is and what "
+            "a guest would ever want to know about it. Then extract ALL of that information completely "
+            "and accurately — every detail, every fact, every number, every policy. "
+            "Do not summarize. Do not skip anything. The agent must be able to answer every possible "
+            "guest question about this service using only what you extract."
+        )
 
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You are a prompt engineer building knowledge packs for hotel chatbot service agents. "
-                    "Given a service name and description, write a detailed extraction instruction for an LLM agent. "
-                    "The instruction MUST:\n"
-                    "1. State the agent's exact role and what it does for hotel guests.\n"
-                    "2. Tell it to extract EXHAUSTIVE detail about this specific service: "
-                    "every pricing detail, policy, timing, option, restriction, process step, and contact info.\n"
-                    "3. Tell it to also extract a BRIEF summary of closely related services or facilities "
-                    "the agent may need to reference (e.g. a spa agent should know the hotel restaurant hours "
-                    "in case a guest asks about dining after a treatment).\n"
-                    "4. Tell it to flag any gaps where the KB seems incomplete for this service.\n"
-                    "Be direct and thorough — this instruction drives what the agent knows. "
-                    "Return only the instruction text, nothing else."
-                ),
-            },
-            {
-                "role": "user",
-                "content": json.dumps(
-                    {
-                        "service_name": service_name,
-                        "service_description": service_description,
-                        "knowledge_base_sample": full_kb_text[:4000],
-                    },
-                    ensure_ascii=False,
-                ),
-            },
-        ]
-        result = await llm_client.chat(messages, temperature=0.2, max_tokens=500)
-        return result.strip()
-
-    async def _extract_service_knowledge_from_kb(
+    async def _legacy_extract_service_knowledge_from_kb(
         self,
         *,
         extraction_prompt: str,
         full_kb_text: str,
     ) -> str:
-        """Use the generated extraction prompt to extract all relevant service knowledge from the KB."""
+        """Read the full KB and extract everything needed for this service — no limits."""
         from llm.client import llm_client  # local import to avoid circular dependency
 
         messages = [
@@ -3302,22 +3368,19 @@ class ConfigService:
             {
                 "role": "user",
                 "content": (
-                    f"Here is the complete knowledge base:\n\n{full_kb_text}\n\n"
-                    "---\n"
-                    "EXTRACTION INSTRUCTIONS:\n"
-                    "Extract ONLY information that is directly about this specific service. "
-                    "Include every detail: all options, prices, timings, policies, procedures, "
-                    "restrictions, staff contacts, booking steps, cancellation rules, and any other specifics.\n"
-                    "Do NOT include information about other services, facilities, or departments unless "
-                    "it is directly part of this service's offering.\n"
-                    "Format clearly with section headers. Be exhaustive and accurate."
+                    f"KNOWLEDGE BASE:\n\n{full_kb_text}\n\n"
+                    "---\n\n"
+                    "Read through the entire knowledge base above. Find and extract everything related to "
+                    "this service that a guest might ask about. Do not miss anything — pull it all out "
+                    "fully and accurately. Preserve all numbers, names, timings, prices, policies, and "
+                    "specific details exactly as they appear. Use section headers to organise the output."
                 ),
             },
         ]
-        result = await llm_client.chat(messages, temperature=0.1, max_tokens=5000)
+        result = await llm_client.chat(messages, temperature=0.1)
         return result.strip()
 
-    async def enrich_service_kb_records(
+    async def _legacy_enrich_service_kb_records(
         self,
         *,
         service_id: Optional[str] = None,
@@ -3378,7 +3441,17 @@ class ConfigService:
             if not normalized_service_id:
                 continue
             service_name = str(service.get("name") or normalized_service_id).strip()
-            service_description = str(service.get("description") or "").strip()
+            # Build a rich description from all available service fields
+            service_description_parts = []
+            if service.get("description"):
+                service_description_parts.append(str(service["description"]).strip())
+            if service.get("ticketing_policy"):
+                service_description_parts.append(f"Ticketing policy: {service['ticketing_policy']}")
+            if service.get("hours"):
+                service_description_parts.append(f"Hours: {service['hours']}")
+            if service.get("phase_id"):
+                service_description_parts.append(f"Journey phase: {service['phase_id']}")
+            service_description = "\n".join(service_description_parts)
 
             existing = self.get_service_kb_record(
                 service_id=normalized_service_id, active_only=False
@@ -3431,6 +3504,259 @@ class ConfigService:
             completeness["enrichment_signature"] = enrichment_sig
             completeness["enrichment_generated_at"] = now_iso
             completeness["kb_hash"] = kb_hash
+            current_record["completeness"] = completeness
+
+            saved = self.upsert_service_kb_record(current_record)
+            if saved:
+                enriched.append(normalized_service_id)
+
+        return {
+            "enriched_count": len(enriched),
+            "skipped_count": len(skipped),
+            "enriched_service_ids": enriched,
+            "skipped_service_ids": skipped,
+        }
+
+    @staticmethod
+    def _split_extraction_chunks(
+        text: str,
+        *,
+        chunk_chars: int = 28000,
+        overlap_chars: int = 1200,
+        max_chunks: int = 24,
+    ) -> list[str]:
+        content = str(text or "").strip()
+        if not content:
+            return []
+        if len(content) <= chunk_chars:
+            return [content]
+
+        chunks: list[str] = []
+        start = 0
+        step = max(1, chunk_chars - overlap_chars)
+        while start < len(content) and len(chunks) < max_chunks:
+            end = min(len(content), start + chunk_chars)
+            chunks.append(content[start:end])
+            if end >= len(content):
+                break
+            start += step
+        return chunks
+
+    async def _generate_service_extraction_prompt(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        full_kb_text: str,
+    ) -> str:
+        """Return stable extraction instructions for service knowledge generation."""
+        return (
+            f"You are extracting a knowledge pack for a hotel chatbot service agent.\n\n"
+            f"SERVICE NAME: {service_name}\n"
+            f"SERVICE DESCRIPTION: {service_description}\n\n"
+            "Extract only information explicitly present in provided KB evidence.\n"
+            "Do not invent or assume any missing detail.\n"
+            "Preserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\n"
+            "If a field is not present in evidence, state that it is not available in KB.\n"
+            "Organize output with clear section headers."
+        )
+
+    async def _extract_service_knowledge_from_kb(
+        self,
+        *,
+        extraction_prompt: str,
+        full_kb_text: str,
+        knowledge_context: str = "",
+    ) -> str:
+        """Extract service knowledge from bounded KB context using chunked map-reduce."""
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        kb_context = str(knowledge_context or "").strip() or str(full_kb_text or "").strip()
+        if not kb_context:
+            return ""
+
+        chunks = self._split_extraction_chunks(kb_context)
+        partials: list[str] = []
+
+        for idx, chunk in enumerate(chunks, start=1):
+            messages = [
+                {"role": "system", "content": extraction_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"KB EVIDENCE CHUNK {idx}/{len(chunks)}:\n\n{chunk}\n\n"
+                        "Extract only information relevant to the service from this chunk.\n"
+                        "If nothing is relevant, return exactly: NO_RELEVANT_INFO\n"
+                        "Do not invent missing values."
+                    ),
+                },
+            ]
+            result = await llm_client.chat(
+                messages,
+                temperature=0.0,
+                max_tokens=900,
+            )
+            extracted = str(result or "").strip()
+            if not extracted:
+                continue
+            if extracted.upper().startswith("NO_RELEVANT_INFO"):
+                continue
+            partials.append(extracted)
+
+        if not partials:
+            return ""
+        if len(partials) == 1:
+            return partials[0].strip()
+
+        consolidated = await llm_client.chat(
+            [
+                {"role": "system", "content": extraction_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        "Merge and deduplicate the extracted notes below into one final service knowledge pack.\n"
+                        "Keep only evidence-backed details. If contradictory, mention both variants and mark as conflicting.\n\n"
+                        + "\n\n---\n\n".join(partials)
+                    ),
+                },
+            ],
+            temperature=0.0,
+            max_tokens=1800,
+        )
+        return str(consolidated or "").strip() or "\n\n".join(partials).strip()
+
+    async def enrich_service_kb_records(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        force: bool = False,
+        published_by: str = "system",
+    ) -> dict[str, Any]:
+        """
+        LLM-based enrichment pipeline for service knowledge using structured KB library.
+        """
+        target_service_id = self._normalize_identifier(service_id)
+        service_rows = [
+            svc
+            for svc in self.get_services()
+            if isinstance(svc, dict) and bool(svc.get("is_active", True))
+        ]
+        if target_service_id:
+            service_rows = [
+                svc
+                for svc in service_rows
+                if self._normalize_identifier(svc.get("id")) == target_service_id
+            ]
+        if not service_rows:
+            return {
+                "enriched_count": 0,
+                "skipped_count": 0,
+                "enriched_service_ids": [],
+                "skipped_service_ids": [],
+                "reason": "no_matching_services",
+            }
+
+        library = self.get_structured_kb_library(rebuild_if_stale=True, max_sources=50)
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        if not isinstance(pages, list) or not pages:
+            return {
+                "enriched_count": 0,
+                "skipped_count": 0,
+                "enriched_service_ids": [],
+                "skipped_service_ids": [],
+                "reason": "no_kb_content",
+            }
+
+        library_signature = str(library.get("source_signature") or "").strip()
+        enriched: list[str] = []
+        skipped: list[str] = []
+        now_iso = datetime.now(UTC).isoformat()
+        published_by_clean = str(published_by or "system").strip() or "system"
+
+        for service in service_rows:
+            normalized_service_id = self._normalize_identifier(service.get("id"))
+            if not normalized_service_id:
+                continue
+            service_name = str(service.get("name") or normalized_service_id).strip()
+            service_description_parts = []
+            if service.get("description"):
+                service_description_parts.append(str(service["description"]).strip())
+            if service.get("ticketing_policy"):
+                service_description_parts.append(f"Ticketing policy: {service['ticketing_policy']}")
+            if service.get("hours"):
+                service_description_parts.append(f"Hours: {service['hours']}")
+            if service.get("phase_id"):
+                service_description_parts.append(f"Journey phase: {service['phase_id']}")
+            service_description = "\n".join(service_description_parts)
+
+            existing = self.get_service_kb_record(
+                service_id=normalized_service_id, active_only=False
+            )
+            existing_completeness = (existing or {}).get("completeness", {})
+            if not isinstance(existing_completeness, dict):
+                existing_completeness = {}
+
+            context_payload = self.build_service_library_context(
+                service_name=service_name,
+                service_description=service_description,
+                max_books=12,
+                max_pages=44,
+                max_chars=90000,
+            )
+            context_text = str(context_payload.get("context_text") or "").strip()
+            if not context_text:
+                skipped.append(normalized_service_id)
+                continue
+            context_page_ids = context_payload.get("page_ids", [])
+            if not isinstance(context_page_ids, list):
+                context_page_ids = []
+            context_fingerprint = hashlib.sha1(
+                "|".join(str(page_id) for page_id in context_page_ids).encode("utf-8")
+            ).hexdigest()[:16]
+
+            enrichment_sig = hashlib.sha1(
+                f"{service_name}|{service_description}|{library_signature}|{context_fingerprint}".encode("utf-8")
+            ).hexdigest()[:16]
+            existing_sig = str(existing_completeness.get("enrichment_signature") or "").strip()
+            if not force and existing and existing_sig and existing_sig == enrichment_sig:
+                skipped.append(normalized_service_id)
+                continue
+
+            extraction_prompt = await self._generate_service_extraction_prompt(
+                service_name=service_name,
+                service_description=service_description,
+                full_kb_text=context_text,
+            )
+            if not extraction_prompt:
+                skipped.append(normalized_service_id)
+                continue
+
+            extracted_knowledge = await self._extract_service_knowledge_from_kb(
+                extraction_prompt=extraction_prompt,
+                full_kb_text="",
+                knowledge_context=context_text,
+            )
+            if not extracted_knowledge:
+                skipped.append(normalized_service_id)
+                continue
+
+            current_record: dict[str, Any] = dict(existing or {})
+            if not current_record.get("id"):
+                current_record["id"] = f"{normalized_service_id}_kb"
+            current_record["service_id"] = normalized_service_id
+            current_record["generated_extraction_prompt"] = extraction_prompt
+            current_record["extracted_knowledge"] = extracted_knowledge
+            current_record["is_active"] = True
+            current_record["published_at"] = now_iso
+            current_record["published_by"] = published_by_clean
+
+            completeness = dict(current_record.get("completeness") or {})
+            completeness["enrichment_signature"] = enrichment_sig
+            completeness["enrichment_generated_at"] = now_iso
+            completeness["kb_hash"] = library_signature
+            completeness["library_book_ids"] = list(context_payload.get("book_ids") or [])
+            completeness["library_page_count"] = int(context_payload.get("page_count") or 0)
+            completeness["library_context_truncated"] = bool(context_payload.get("truncated", False))
             current_record["completeness"] = completeness
 
             saved = self.upsert_service_kb_record(current_record)
@@ -3888,6 +4214,584 @@ class ConfigService:
         config = self.load_config()
         return config.get("knowledge_base", {})
 
+    @staticmethod
+    def _knowledge_source_content_hash(path: Path) -> str:
+        try:
+            digest = hashlib.sha1()
+            with path.open("rb") as fh:
+                while True:
+                    chunk = fh.read(65536)
+                    if not chunk:
+                        break
+                    digest.update(chunk)
+            return digest.hexdigest()
+        except Exception:
+            return ""
+
+    def _dedupe_knowledge_sources(
+        self,
+        sources: list[Any],
+        *,
+        max_sources: int = 200,
+    ) -> list[str]:
+        deduped: list[str] = []
+        seen_paths: set[str] = set()
+        seen_hashes: set[str] = set()
+
+        for source in sources:
+            if len(deduped) >= max_sources:
+                break
+            source_value = str(source or "").strip()
+            if not source_value:
+                continue
+            path = Path(source_value)
+            if path.exists() and path.is_file():
+                resolved = str(path.resolve())
+                if resolved in seen_paths:
+                    continue
+                content_hash = self._knowledge_source_content_hash(path)
+                if content_hash and content_hash in seen_hashes:
+                    continue
+                deduped.append(resolved)
+                seen_paths.add(resolved)
+                if content_hash:
+                    seen_hashes.add(content_hash)
+                continue
+
+            marker = source_value
+            if marker in seen_paths:
+                continue
+            deduped.append(marker)
+            seen_paths.add(marker)
+
+        return deduped
+
+    @staticmethod
+    def _extract_structured_payload(raw_text: str) -> dict[str, Any]:
+        text = str(raw_text or "").strip()
+        if not text:
+            return {}
+        try:
+            payload = json.loads(text)
+        except Exception:
+            return {}
+        if not isinstance(payload, dict):
+            return {}
+
+        editable = payload.get("editable")
+        if isinstance(editable, dict):
+            return editable
+
+        inner_data = payload.get("data")
+        if isinstance(inner_data, str):
+            try:
+                inner_payload = json.loads(inner_data)
+            except Exception:
+                inner_payload = None
+            if isinstance(inner_payload, dict):
+                inner_editable = inner_payload.get("editable")
+                if isinstance(inner_editable, dict):
+                    return inner_editable
+                return inner_payload
+
+        reserved = {"data", "orgId", "org_id", "tenant_id", "business_type"}
+        editable_like = {k: v for k, v in payload.items() if k not in reserved}
+        return editable_like if isinstance(editable_like, dict) else {}
+
+    @staticmethod
+    def _render_library_value(value: Any) -> str:
+        if value is None:
+            return ""
+        if isinstance(value, (dict, list)):
+            rendered = json.dumps(value, ensure_ascii=False, indent=2)
+        else:
+            rendered = str(value)
+        rendered = str(rendered).replace("\r\n", "\n").replace("\\r\\n", "\n")
+        rendered = rendered.replace("\\n", "\n")
+        rendered = re.sub(r"[ \t]+", " ", rendered)
+        rendered = re.sub(r"\n{3,}", "\n\n", rendered)
+        return rendered.strip()
+
+    @staticmethod
+    def _split_plaintext_sections(text: str, *, max_chars: int = 1800) -> list[dict[str, Any]]:
+        clean_text = str(text or "").replace("\r\n", "\n")
+        paragraphs = [chunk.strip() for chunk in re.split(r"\n\s*\n+", clean_text) if str(chunk).strip()]
+        if not paragraphs:
+            compact = re.sub(r"\s+", " ", clean_text).strip()
+            if not compact:
+                return []
+            paragraphs = [compact]
+
+        sections: list[dict[str, Any]] = []
+        section_no = 0
+        for paragraph in paragraphs:
+            section_no += 1
+            chunk = paragraph.strip()
+            if not chunk:
+                continue
+            if len(chunk) <= max_chars:
+                sections.append(
+                    {
+                        "title": f"Section {section_no}",
+                        "location": f"text.section_{section_no}",
+                        "text": chunk,
+                    }
+                )
+                continue
+
+            sentence_parts = re.split(r"(?<=[.!?])\s+", chunk)
+            current = ""
+            split_no = 0
+            for sentence in sentence_parts:
+                sentence_clean = str(sentence or "").strip()
+                if not sentence_clean:
+                    continue
+                candidate = f"{current} {sentence_clean}".strip()
+                if current and len(candidate) > max_chars:
+                    split_no += 1
+                    sections.append(
+                        {
+                            "title": f"Section {section_no}.{split_no}",
+                            "location": f"text.section_{section_no}_{split_no}",
+                            "text": current.strip(),
+                        }
+                    )
+                    current = sentence_clean
+                else:
+                    current = candidate
+            if current.strip():
+                split_no += 1
+                sections.append(
+                    {
+                        "title": f"Section {section_no}.{split_no}",
+                        "location": f"text.section_{section_no}_{split_no}",
+                        "text": current.strip(),
+                    }
+                )
+        return sections
+
+    def _infer_library_topics(self, title: str, text: str) -> list[str]:
+        topic_candidates: list[str] = []
+        base = self._normalize_slug(title) or "general"
+        topic_candidates.append(base)
+
+        haystack = f"{title}\n{text[:3000]}".lower()
+        for topic_id, aliases in _LIBRARY_TOPIC_ALIASES.items():
+            if any(alias in haystack for alias in aliases):
+                topic_candidates.append(topic_id)
+
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for topic in topic_candidates:
+            normalized = self._normalize_slug(topic)
+            if not normalized:
+                continue
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            deduped.append(normalized)
+        return deduped or ["general"]
+
+    def _library_topic_aliases(self, topic_id: str) -> list[str]:
+        normalized = self._normalize_slug(topic_id)
+        aliases = list(_LIBRARY_TOPIC_ALIASES.get(normalized, ()))
+        human = re.sub(r"\s+", " ", normalized.replace("_", " ")).strip().title()
+        if human:
+            aliases.append(human)
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for alias in aliases:
+            key = str(alias or "").strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(str(alias).strip())
+        return deduped
+
+    def _structured_library_source_signature(self, source_paths: list[Path]) -> str:
+        parts: list[str] = []
+        for path in source_paths:
+            content_hash = self._knowledge_source_content_hash(path)
+            if content_hash:
+                parts.append(content_hash)
+                continue
+            try:
+                stat = path.stat()
+                parts.append(f"{path.resolve()}|{stat.st_mtime_ns}|{stat.st_size}")
+            except Exception:
+                parts.append(str(path))
+        if not parts:
+            return ""
+        raw = "|".join(parts)
+        return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
+    def _build_structured_kb_library(self, *, max_sources: int = 25) -> dict[str, Any]:
+        source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
+        source_signature = self._structured_library_source_signature(source_paths)
+        generated_at = datetime.now(UTC).isoformat()
+
+        documents: list[dict[str, Any]] = []
+        pages: list[dict[str, Any]] = []
+        seen_document_hashes: set[str] = set()
+        page_counter = 0
+
+        for path in source_paths:
+            try:
+                raw = path.read_text(encoding="utf-8", errors="ignore")
+            except Exception:
+                continue
+            if not str(raw or "").strip():
+                continue
+
+            doc_hash = hashlib.sha1(raw.encode("utf-8")).hexdigest()
+            if doc_hash in seen_document_hashes:
+                continue
+            seen_document_hashes.add(doc_hash)
+
+            document_id = f"doc_{len(documents) + 1:03d}_{doc_hash[:10]}"
+            source_name = str(path.name or "knowledge_source")
+            documents.append(
+                {
+                    "id": document_id,
+                    "source_name": source_name,
+                    "source_path": str(path),
+                    "content_hash": doc_hash,
+                    "char_count": len(raw),
+                }
+            )
+
+            structured = self._extract_structured_payload(raw)
+            if structured:
+                for key, value in structured.items():
+                    title = str(key or "").strip()
+                    text = self._render_library_value(value)
+                    if not title or not text:
+                        continue
+                    page_counter += 1
+                    page_id = f"page_{page_counter:05d}"
+                    topics = self._infer_library_topics(title, text)
+                    pages.append(
+                        {
+                            "id": page_id,
+                            "document_id": document_id,
+                            "source_name": source_name,
+                            "source_path": str(path),
+                            "location": f"editable.{title}",
+                            "title": title,
+                            "text": text,
+                            "topics": topics,
+                            "char_count": len(text),
+                        }
+                    )
+                continue
+
+            sections = self._split_plaintext_sections(raw)
+            for section in sections:
+                text = self._render_library_value(section.get("text"))
+                if not text:
+                    continue
+                title = str(section.get("title") or "Section").strip()
+                page_counter += 1
+                page_id = f"page_{page_counter:05d}"
+                topics = self._infer_library_topics(title, text)
+                pages.append(
+                    {
+                        "id": page_id,
+                        "document_id": document_id,
+                        "source_name": source_name,
+                        "source_path": str(path),
+                        "location": str(section.get("location") or f"text.section_{page_counter}"),
+                        "title": title,
+                        "text": text,
+                        "topics": topics,
+                        "char_count": len(text),
+                    }
+                )
+
+        book_pages: dict[str, list[str]] = defaultdict(list)
+        book_sources: dict[str, set[str]] = defaultdict(set)
+        book_keywords: dict[str, set[str]] = defaultdict(set)
+
+        for page in pages:
+            page_id = str(page.get("id") or "").strip()
+            if not page_id:
+                continue
+            source_name = str(page.get("source_name") or "").strip()
+            title = str(page.get("title") or "").strip()
+            text = str(page.get("text") or "")
+            title_tokens = self._tokenize_text(title)
+            body_tokens = self._tokenize_text(text[:2500])
+            token_candidates = {token for token in (title_tokens | body_tokens) if token not in _LIBRARY_TOPIC_STOPWORDS}
+            for topic in page.get("topics", []):
+                normalized_topic = self._normalize_slug(topic)
+                if not normalized_topic:
+                    continue
+                if page_id not in book_pages[normalized_topic]:
+                    book_pages[normalized_topic].append(page_id)
+                if source_name:
+                    book_sources[normalized_topic].add(source_name)
+                book_keywords[normalized_topic].update(token_candidates)
+
+        page_map = {str(page.get("id") or ""): page for page in pages}
+        books: list[dict[str, Any]] = []
+        for topic_id, page_ids in book_pages.items():
+            char_count = sum(int((page_map.get(page_id) or {}).get("char_count") or 0) for page_id in page_ids)
+            books.append(
+                {
+                    "id": topic_id,
+                    "title": re.sub(r"\s+", " ", topic_id.replace("_", " ")).strip().title(),
+                    "aliases": self._library_topic_aliases(topic_id),
+                    "keywords": sorted(book_keywords.get(topic_id, set())),
+                    "page_ids": list(page_ids),
+                    "page_count": len(page_ids),
+                    "char_count": char_count,
+                    "sources": sorted(book_sources.get(topic_id, set())),
+                }
+            )
+        books.sort(key=lambda row: (str(row.get("title") or "").lower(), str(row.get("id") or "")))
+
+        total_pages = len(pages)
+        covered_pages = sum(1 for page in pages if page.get("topics"))
+        uncovered_pages = max(0, total_pages - covered_pages)
+        coverage_ratio = 0.0 if total_pages <= 0 else round(covered_pages / total_pages, 4)
+
+        return {
+            "version": "v1",
+            "source_signature": source_signature,
+            "generated_at": generated_at,
+            "source_count": len(documents),
+            "documents": documents,
+            "pages": pages,
+            "books": books,
+            "coverage": {
+                "total_pages": total_pages,
+                "covered_pages": covered_pages,
+                "uncovered_pages": uncovered_pages,
+                "coverage_ratio": coverage_ratio,
+            },
+        }
+
+    def rebuild_structured_kb_library(
+        self,
+        *,
+        max_sources: int = 25,
+        save: bool = True,
+    ) -> dict[str, Any]:
+        library = self._build_structured_kb_library(max_sources=max_sources)
+        if not save:
+            return library
+
+        config = self.load_config()
+        knowledge = config.setdefault("knowledge_base", {})
+        knowledge["library_index"] = library
+        self.save_config(config)
+        return library
+
+    def get_structured_kb_library(
+        self,
+        *,
+        rebuild_if_stale: bool = True,
+        max_sources: int = 25,
+    ) -> dict[str, Any]:
+        config = self.load_config()
+        knowledge = config.setdefault("knowledge_base", {})
+        library = knowledge.get("library_index", {})
+        if not isinstance(library, dict):
+            library = {}
+
+        if not rebuild_if_stale:
+            return library
+
+        source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
+        current_signature = self._structured_library_source_signature(source_paths)
+        cached_signature = str(library.get("source_signature") or "").strip()
+        if library and cached_signature and cached_signature == current_signature:
+            return library
+        return self.rebuild_structured_kb_library(max_sources=max_sources, save=True)
+
+    def query_structured_kb_books(
+        self,
+        query: str,
+        *,
+        max_books: int = 8,
+        max_pages_per_book: int = 8,
+    ) -> list[dict[str, Any]]:
+        library = self.get_structured_kb_library(rebuild_if_stale=True)
+        books = library.get("books", [])
+        pages = library.get("pages", [])
+        if not isinstance(books, list) or not isinstance(pages, list):
+            return []
+
+        query_text = str(query or "").strip().lower()
+        query_tokens = self._tokenize_text(query_text)
+        if not query_tokens:
+            return []
+
+        page_map = {str(page.get("id") or ""): page for page in pages}
+        scored_books: list[tuple[float, dict[str, Any]]] = []
+        for book in books:
+            if not isinstance(book, dict):
+                continue
+            keyword_tokens = self._tokenize_text(" ".join(str(token) for token in book.get("keywords", [])))
+            alias_tokens = self._tokenize_text(" ".join(str(alias) for alias in book.get("aliases", [])))
+            title_tokens = self._tokenize_text(str(book.get("title") or ""))
+            book_tokens = keyword_tokens | alias_tokens | title_tokens
+            overlap = len(query_tokens & book_tokens) / max(1, len(query_tokens))
+
+            title_text = str(book.get("title") or "").strip().lower()
+            aliases_text = " ".join(str(alias or "").lower() for alias in book.get("aliases", []))
+            phrase_bonus = 0.0
+            if query_text and query_text in title_text:
+                phrase_bonus += 0.4
+            if query_text and query_text in aliases_text:
+                phrase_bonus += 0.3
+
+            score = overlap + phrase_bonus
+            if score <= 0.0:
+                continue
+            scored_books.append((score, book))
+
+        scored_books.sort(key=lambda row: (-row[0], -int(row[1].get("page_count") or 0)))
+        if not scored_books:
+            return []
+
+        selected: list[dict[str, Any]] = []
+        for score, book in scored_books[: max(1, max_books)]:
+            page_rows: list[tuple[float, dict[str, Any]]] = []
+            for page_id in book.get("page_ids", []):
+                page = page_map.get(str(page_id))
+                if not isinstance(page, dict):
+                    continue
+                title = str(page.get("title") or "")
+                text = str(page.get("text") or "")
+                page_tokens = self._tokenize_text(f"{title} {text[:2400]}")
+                page_overlap = len(query_tokens & page_tokens) / max(1, len(query_tokens))
+                if query_text and query_text in text.lower():
+                    page_overlap += 0.3
+                if page_overlap <= 0:
+                    continue
+                page_rows.append((page_overlap, page))
+
+            page_rows.sort(key=lambda row: (-row[0], -int(row[1].get("char_count") or 0)))
+            selected_pages = [row[1] for row in page_rows[: max(1, max_pages_per_book)]]
+            if not selected_pages:
+                continue
+
+            selected.append(
+                {
+                    "book_id": str(book.get("id") or ""),
+                    "book_title": str(book.get("title") or ""),
+                    "book_score": round(float(score), 4),
+                    "pages": selected_pages,
+                }
+            )
+        return selected
+
+    def build_service_library_context(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        max_books: int = 10,
+        max_pages: int = 40,
+        max_chars: int = 90000,
+    ) -> dict[str, Any]:
+        query = re.sub(r"\s+", " ", f"{service_name} {service_description}".strip())
+        book_hits = self.query_structured_kb_books(
+            query=query,
+            max_books=max_books,
+            max_pages_per_book=max(2, max_pages // max(1, max_books)),
+        )
+        library = self.get_structured_kb_library(rebuild_if_stale=True)
+        if not book_hits and isinstance(library, dict):
+            books = library.get("books", [])
+            pages = library.get("pages", [])
+            if isinstance(books, list) and isinstance(pages, list) and books and pages:
+                page_map = {str(page.get("id") or ""): page for page in pages if isinstance(page, dict)}
+                fallback_hits: list[dict[str, Any]] = []
+                for book in sorted(
+                    [row for row in books if isinstance(row, dict)],
+                    key=lambda row: int(row.get("page_count") or 0),
+                    reverse=True,
+                )[: max(1, max_books)]:
+                    selected_pages: list[dict[str, Any]] = []
+                    for page_id in book.get("page_ids", [])[: max(2, max_pages // max(1, max_books))]:
+                        page = page_map.get(str(page_id))
+                        if isinstance(page, dict):
+                            selected_pages.append(page)
+                    if selected_pages:
+                        fallback_hits.append(
+                            {
+                                "book_id": str(book.get("id") or ""),
+                                "book_title": str(book.get("title") or ""),
+                                "book_score": 0.0,
+                                "pages": selected_pages,
+                            }
+                        )
+                book_hits = fallback_hits
+
+        if not book_hits:
+            return {
+                "context_text": "",
+                "book_ids": [],
+                "page_ids": [],
+                "book_count": 0,
+                "page_count": 0,
+                "truncated": False,
+                "source_signature": str(library.get("source_signature") or "") if isinstance(library, dict) else "",
+            }
+
+        lines: list[str] = []
+        used_page_ids: list[str] = []
+        used_book_ids: list[str] = []
+        total_chars = 0
+        truncated = False
+        seen_pages: set[str] = set()
+
+        for hit in book_hits:
+            book_id = str(hit.get("book_id") or "").strip()
+            book_title = str(hit.get("book_title") or book_id).strip()
+            if book_id and book_id not in used_book_ids:
+                used_book_ids.append(book_id)
+            for page in hit.get("pages", []):
+                page_id = str((page or {}).get("id") or "").strip()
+                if not page_id or page_id in seen_pages:
+                    continue
+                seen_pages.add(page_id)
+                text = str((page or {}).get("text") or "").strip()
+                if not text:
+                    continue
+                page_title = str((page or {}).get("title") or "").strip()
+                source_name = str((page or {}).get("source_name") or "").strip()
+                location = str((page or {}).get("location") or "").strip()
+                block = (
+                    f"[BOOK:{book_title} | PAGE:{page_id} | SOURCE:{source_name} | LOCATION:{location}]\n"
+                    f"{page_title}\n{text}\n"
+                )
+                projected = total_chars + len(block) + 1
+                if projected > max_chars:
+                    truncated = True
+                    break
+                lines.append(block)
+                total_chars = projected
+                used_page_ids.append(page_id)
+                if len(used_page_ids) >= max_pages:
+                    truncated = True
+                    break
+            if truncated:
+                break
+
+        context_text = "\n".join(lines).strip()
+        return {
+            "context_text": context_text,
+            "book_ids": used_book_ids,
+            "page_ids": used_page_ids,
+            "book_count": len(used_book_ids),
+            "page_count": len(used_page_ids),
+            "truncated": truncated,
+            "source_signature": str(library.get("source_signature") or ""),
+        }
+
     def update_knowledge_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
         """Update knowledge sources and NLU policy."""
         config = self.load_config()
@@ -3895,13 +4799,24 @@ class ConfigService:
 
         for key in ("sources", "notes"):
             if key in updates:
-                knowledge[key] = updates[key]
+                if key == "sources":
+                    sources = updates.get("sources", [])
+                    if not isinstance(sources, list):
+                        sources = []
+                    knowledge["sources"] = self._dedupe_knowledge_sources(sources)
+                else:
+                    knowledge[key] = updates[key]
 
         if "nlu_policy" in updates and isinstance(updates["nlu_policy"], dict):
             knowledge.setdefault("nlu_policy", {}).update(updates["nlu_policy"])
 
         saved = self.save_config(config)
         if saved:
+            if "sources" in updates:
+                try:
+                    self.rebuild_structured_kb_library(max_sources=50, save=True)
+                except Exception:
+                    pass
             self._maybe_auto_compile_service_kb()
         return knowledge
 
@@ -3951,7 +4866,8 @@ class ConfigService:
                 resolved.append(path.resolve())
 
         if (
-            len(resolved) < max_sources
+            not resolved
+            and len(resolved) < max_sources
             and DEFAULT_BUNDLED_KB_FILE.exists()
             and DEFAULT_BUNDLED_KB_FILE.is_file()
         ):
@@ -3959,16 +4875,22 @@ class ConfigService:
 
         deduped: list[Path] = []
         seen: set[str] = set()
+        seen_hashes: set[str] = set()
         for path in resolved:
             marker = str(path)
             if marker in seen:
                 continue
+            content_hash = self._knowledge_source_content_hash(path)
+            if content_hash and content_hash in seen_hashes:
+                continue
             seen.add(marker)
+            if content_hash:
+                seen_hashes.add(content_hash)
             deduped.append(path)
         return deduped
 
-    @staticmethod
-    def _extract_structured_editable_text(raw: str) -> str:
+    @classmethod
+    def _extract_structured_editable_text(cls, raw: str) -> str:
         """
         Parse common uploaded JSON structures and extract business-editable text
         so conflict checks work across both raw txt and JSON knowledge files.
@@ -3976,34 +4898,12 @@ class ConfigService:
         text = str(raw or "").strip()
         if not text:
             return ""
-
-        try:
-            payload = json.loads(text)
-        except Exception:
-            return text
-
-        if not isinstance(payload, dict):
-            return text
-
-        editable = payload.get("editable")
-        if isinstance(editable, dict):
+        editable = cls._extract_structured_payload(text)
+        if editable:
             return json.dumps(editable, ensure_ascii=False)
-
-        inner_data = payload.get("data")
-        if isinstance(inner_data, str):
-            try:
-                inner_payload = json.loads(inner_data)
-            except Exception:
-                inner_payload = None
-            if isinstance(inner_payload, dict):
-                inner_editable = inner_payload.get("editable")
-                if isinstance(inner_editable, dict):
-                    return json.dumps(inner_editable, ensure_ascii=False)
-                return json.dumps(inner_payload, ensure_ascii=False)
-
         return text
 
-    def _load_knowledge_source_text(self, path: Path, max_chars: int = 350_000) -> str:
+    def _load_knowledge_source_text(self, path: Path, max_chars: int | None = None) -> str:
         try:
             raw = path.read_text(encoding="utf-8", errors="ignore")
         except Exception:
@@ -4012,7 +4912,9 @@ class ConfigService:
             return ""
         extracted = self._extract_structured_editable_text(raw)
         compact = re.sub(r"\s+", " ", str(extracted or "")).strip()
-        return compact[:max_chars]
+        if max_chars is not None and max_chars > 0:
+            compact = compact[: int(max_chars)]
+        return compact
 
     @staticmethod
     def _find_marker_evidence(

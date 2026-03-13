@@ -4,6 +4,97 @@
 **Purpose**: Build a new bot that fixes all Lumira problems and is fully PRD-compliant
 **Status**: Active Implementation Phase (~83% Core Complete)
 
+## Latest Update (March 13, 2026)
+
+### Bug Fixes: KB Enrichment Startup Error + Context Length Exceeded
+
+#### Fix 1 — `ConfigService.get_full_kb_text()` missing `max_chars` parameter
+**File**: `services/config_service.py` (line 3234)
+
+**Problem**: `get_full_kb_text()` had no `max_chars` parameter, but all callers in `main.py` and `llm_orchestration_service.py` were passing `max_chars=...`. This caused a `TypeError` on every call, silently caught and logged as:
+```
+⚠️  KB enrichment failed (non-fatal): ConfigService.get_full_kb_teext() got an unexpected keyword argument 'max_chars'
+```
+KB enrichment was completely non-functional as a result.
+
+**Fix**: Added `max_chars: int | None = None` to the signature, with truncation applied when provided.
+
+```python
+# Before
+def get_full_kb_text(self) -> str:
+
+# After
+def get_full_kb_text(self, max_chars: int | None = None) -> str:
+    ...
+    if max_chars is not None:
+        result = result[:max_chars]
+    return result
+```
+
+**Callers now working correctly**:
+- `main.py:37` — `max_chars=1000`
+- `llm_orchestration_service.py:414` — `max_chars=40_000`
+- `llm_orchestration_service.py:1148` — `max_chars=40_000`
+- `llm_orchestration_service.py:1544` — `max_chars=60_000`
+- `admin.py:1266` — no max_chars (full text, unchanged)
+
+---
+
+#### Fix 2 — Context length exceeded: 421k tokens (model limit: 128k)
+**Files**: `services/llm_orchestration_service.py`
+
+**Problem**: Every chat call to the orchestrator was failing with:
+```
+LLM Chat Error: Error code: 400 - This model's maximum context length is 128000 tokens.
+However, your messages resulted in 421175 tokens.
+```
+
+**Root cause**: `_service_snapshot()` included `extracted_knowledge` for up to 80 services with **no size limit**. After KB enrichment ran and populated each service's `extracted_knowledge` (potentially 10k–100k chars per service), the JSON payload sent as the user message exploded to 421k+ tokens.
+
+Example: 80 services × 20k chars each = 1.6M chars ≈ 400k tokens.
+
+**Fixes applied**:
+
+1. **`_service_snapshot()` — `extracted_knowledge` cap: unlimited → 600 chars**
+   This list is for routing/brief context only. The full knowledge is available separately when the service agent is dispatched.
+   ```python
+   # Before (no limit)
+   "extracted_knowledge": (
+       str(prompt_pack.get("extracted_knowledge") or "").strip()
+       or extracted_kb_map.get(sid, "")
+   ),
+
+   # After (600 char cap)
+   "extracted_knowledge": (
+       str(prompt_pack.get("extracted_knowledge") or "").strip()
+       or extracted_kb_map.get(sid, "")
+   )[:600],
+   ```
+
+2. **`allowed_services_detailed` — `extracted_knowledge` cap: 8000 → 5000 chars**
+   This is current-phase services only (typically 4–6 services), used by the orchestrator to answer information questions. 5000 chars per service is sufficient.
+   ```python
+   # Before
+   "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:8000],
+
+   # After
+   "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:5000],
+   ```
+
+**Token budget after fixes** (approximate):
+
+| Field | Before | After |
+|---|---|---|
+| `services` (80 svcs × extracted_knowledge) | ~400k tokens | ~12k tokens |
+| `allowed_services_detailed` (~5 svcs) | ~10k tokens | ~6k tokens |
+| `full_knowledge_base` (already capped) | ~20k tokens | ~20k tokens |
+| system prompt + other fields | ~3k tokens | ~3k tokens |
+| **Total** | **421k+ tokens** | **~41k tokens** |
+
+**No functional regression**: The full `extracted_knowledge` per service is still passed in full when that service's agent is actually dispatched (`_run_service_agent` → `_build_service_grounding_pack`), so answer quality is preserved.
+
+---
+
 ## Latest Update (March 5, 2026)
 
 ### Additive Integration Completed (No Replacement of Existing Flows)

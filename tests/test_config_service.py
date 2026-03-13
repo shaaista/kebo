@@ -1,3 +1,4 @@
+import json
 import importlib
 from pathlib import Path
 
@@ -595,3 +596,68 @@ def test_capability_summary_includes_service_kb_records(tmp_path, monkeypatch):
     summary = service.get_capability_summary()
     kb_records = summary.get("service_kb_records") or []
     assert any(str(item.get("service_id") or "") == "room_discovery" for item in kb_records)
+
+
+def test_knowledge_sources_deduped_by_content_hash(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    payload = {
+        "data": json.dumps(
+            {
+                "editable": {
+                    "pool_timings": "7:00 AM to 7:00 PM. Children not allowed after 7 PM.",
+                    "Restaurant Info": "Bombay Swim Club is open till late for reservations.",
+                }
+            }
+        ),
+        "orgId": "test",
+    }
+    source_a = tmp_path / "a.txt"
+    source_b = tmp_path / "b.txt"
+    body = json.dumps(payload)
+    source_a.write_text(body, encoding="utf-8")
+    source_b.write_text(body, encoding="utf-8")
+
+    service.update_knowledge_config({"sources": [str(source_a), str(source_b)]})
+    knowledge = service.get_knowledge_config()
+    sources = knowledge.get("sources", [])
+
+    assert isinstance(sources, list)
+    assert len(sources) == 1
+
+
+def test_structured_library_builds_books_and_context(tmp_path, monkeypatch):
+    service = _build_temp_config_service(tmp_path, monkeypatch)
+
+    payload = {
+        "data": json.dumps(
+            {
+                "editable": {
+                    "pool_timings": "Pool timings are 7:00 AM to 7:00 PM. No children after 7 PM.",
+                    "Bombay Swim Club Menu": "Guests with reservations may use the pool until 11 PM.",
+                    "airport_transfer": "Available. T1 INR 2000, T2 INR 1500.",
+                }
+            }
+        ),
+        "orgId": "test",
+    }
+    kb_file = tmp_path / "kb_structured.txt"
+    kb_file.write_text(json.dumps(payload), encoding="utf-8")
+    service.update_knowledge_config({"sources": [str(kb_file)]})
+
+    library = service.get_structured_kb_library(rebuild_if_stale=True)
+    assert int(library.get("source_count") or 0) == 1
+    assert int((library.get("coverage") or {}).get("total_pages") or 0) > 0
+    assert int((library.get("coverage") or {}).get("covered_pages") or 0) == int(
+        (library.get("coverage") or {}).get("total_pages") or 0
+    )
+    books = library.get("books", [])
+    assert any(str(book.get("id") or "") == "swimming_pool" for book in books)
+
+    context_payload = service.build_service_library_context(
+        service_name="Swimming Pool",
+        service_description="Need pool timings and restrictions",
+    )
+    context_text = str(context_payload.get("context_text") or "").lower()
+    assert context_payload.get("page_count", 0) > 0
+    assert "pool" in context_text

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-13T06:27:03.950693+00:00",
+  "saved_at": "2026-03-13T11:13:16.688361+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -20667,6 +20667,1236 @@
       ],
       "created_at": "2026-03-13T06:25:29.956169Z",
       "updated_at": "2026-03-13T06:27:03.892885Z"
+    },
+    "session_1773396187608_bctysoxq5": {
+      "session_id": "session_1773396187608_bctysoxq5",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_request_details",
+      "pending_data": {
+        "service_id": "airport_transfer",
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-checkin phase at ICONIQA and is interested in early check-in, room service, and airport transfer services. They have requested an early check-in at 9:00 AM, which is subject to availability and may incur additional charges. The user is also interested in booking airport transfer services for tomorrow and needs to provide details such as pickup and drop locations, travel date, time, and passenger count. They inquired about local cab services, which are not handled by the assistant, and were advised to contact hotel staff for assistance. There are no unresolved asks at this time.",
+          "facts": {
+            "phase": "pre_checkin",
+            "last_user_topic": "transport",
+            "mentioned_time": "9:00 am"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need food",
+              "timestamp": "2026-03-13T10:04:11.579562+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "menu_or_order",
+              "change_type": "set",
+              "source_message": "i need food",
+              "timestamp": "2026-03-13T10:04:11.584612+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "menu_or_order",
+              "new_value": "room_service",
+              "change_type": "set",
+              "source_message": "Are towels provided at the pool?",
+              "timestamp": "2026-03-13T10:05:14.205754+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "room_service",
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a table at aviator",
+              "timestamp": "2026-03-13T10:06:27.524007+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "reservation",
+              "new_value": "menu_or_order",
+              "change_type": "set",
+              "source_message": "What's on the menu?",
+              "timestamp": "2026-03-13T10:07:06.022842+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "menu_or_order",
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "will airport transfer be provided",
+              "timestamp": "2026-03-13T10:07:38.166071+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "transport",
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book one for tomoroow",
+              "timestamp": "2026-03-13T10:07:54.656917+00:00"
+            },
+            {
+              "key": "phase",
+              "old_value": "pre_booking",
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "can i get an early check in",
+              "timestamp": "2026-03-13T10:08:26.040295+00:00"
+            },
+            {
+              "key": "mentioned_time",
+              "old_value": null,
+              "new_value": "9:00 am",
+              "change_type": "set",
+              "source_message": "Is 9:00 AM possible?",
+              "timestamp": "2026-03-13T10:09:20.469245+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "reservation",
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "do you provde local cab services",
+              "timestamp": "2026-03-13T10:10:10.335483+00:00"
+            }
+          ],
+          "last_summarized_count": 30,
+          "updated_at": "2026-03-13T10:10:43.954328+00:00",
+          "last_user_message": "Yes confirm",
+          "last_assistant_message": "To proceed with your airport transfer booking, I need the following details:\n- Pickup Location\n- Drop Location\n- Travel Date\n- Travel Time\n- Passenger Count\nPlease provide this information so we can confirm your booking."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_request_details",
+            "pending_data": {
+              "service_id": "airport_transfer"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_checkin",
+            "phase_name": "Pre Checkin",
+            "summary": "your collect request details flow",
+            "updated_at": "2026-03-13T10:10:43.953144+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T10:10:43.953222+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "8308f84d-4a6d-416a-908c-8ea3eb940204",
+          "role": "user",
+          "content": "i need food",
+          "timestamp": "2026-03-13T10:04:11.577457Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need food."
+          }
+        },
+        {
+          "id": "0b8fe98a-d3e6-4570-8336-4d1a518c7fa6",
+          "role": "assistant",
+          "content": "I'm sorry, but I can't assist with food requests at the moment. Please let me know if there's anything else I can help with.",
+          "timestamp": "2026-03-13T10:04:28.278141Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-8deb2b52e52b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "dd2b8ebe-e005-4fbb-9b75-6dd78bb7bf97",
+          "role": "user",
+          "content": "order pizza right now",
+          "timestamp": "2026-03-13T10:04:36.864966Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Order pizza right now."
+          }
+        },
+        {
+          "id": "b3a0d238-1b32-4af1-97c7-ad075e670969",
+          "role": "assistant",
+          "content": "I'm sorry, but ordering pizza is not a service we offer at the moment. If you have any other requests or need information, feel free to ask!",
+          "timestamp": "2026-03-13T10:04:45.058286Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-cd7fc74eefe9",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3839242f-b959-446b-ba12-11c084f2fae1",
+          "role": "user",
+          "content": "do you have a pool",
+          "timestamp": "2026-03-13T10:04:50.846711Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a pool?"
+          }
+        },
+        {
+          "id": "15dd0f5e-9969-4bac-88d7-85f72d51ef02",
+          "role": "assistant",
+          "content": "Yes, ICONIQA has a pool. It is open from 7:00 AM to 7:00 PM for all guests. Please note that no children are allowed after 7:00 PM. Guests with reservations at the Bombay Swim Club may use the pool until 11 PM.",
+          "timestamp": "2026-03-13T10:05:00.474698Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-3dae3aba05ef",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4018e9cb-b38f-4309-b755-ce5c94384486",
+          "role": "user",
+          "content": "Are towels provided at the pool?",
+          "timestamp": "2026-03-13T10:05:14.205487Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "4e893622-4d01-4f02-a256-b7c9ba61caf6",
+          "role": "assistant",
+          "content": "Yes, towels are provided at the pool for guests to use.",
+          "timestamp": "2026-03-13T10:05:24.911308Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-59e240c956c4",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "bc922863-2d95-4ee3-8307-1bcd9af02664",
+          "role": "user",
+          "content": "do you offer spa services",
+          "timestamp": "2026-03-13T10:05:32.115041Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you offer spa services?"
+          }
+        },
+        {
+          "id": "31f9985a-aef7-4a05-b63f-35c9e8a17fa9",
+          "role": "assistant",
+          "content": "Yes, ICONIQA offers spa services. The spa is open from 9:00 AM to 11:00 PM.",
+          "timestamp": "2026-03-13T10:05:47.734908Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-e3b05de1f414",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "b2995e11-714f-4c5d-9a7b-c22c9b28064c",
+          "role": "user",
+          "content": "what resturatnts are available in ur hotel",
+          "timestamp": "2026-03-13T10:05:55.761832Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what restaurants are available in ur hotel"
+          }
+        },
+        {
+          "id": "ab4a5f78-2743-4ed0-be79-b57c3e8d1de7",
+          "role": "assistant",
+          "content": "ICONIQA offers a variety of dining options. The Aviator Lounge is a vibrant bar with a global small plates menu, perfect for meetings or enjoying a cocktail. Kadak Lab is our indoor-outdoor Pan-Indian restaurant with a Sweet Lab open 24x7, offering desserts and Indian-inspired snacks. The Bombay Swim Club will soon feature a Japanese-Mexican kitchen on the rooftop. Each venue provides a unique dining experience with a focus on bold flavors and premium ingredients.",
+          "timestamp": "2026-03-13T10:06:05.295240Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-e2ad5c7ba1d0",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3e2d5acf-3f77-4a2f-9da8-3d5bd36011ed",
+          "role": "user",
+          "content": "book a table at aviator",
+          "timestamp": "2026-03-13T10:06:27.523463Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book a table at Aviator."
+          }
+        },
+        {
+          "id": "62aab3fc-301b-43fa-962c-19c2a9d4fa42",
+          "role": "assistant",
+          "content": "The service for booking a table at Aviator is available during the 'During Stay' phase. You are currently in the 'Pre Booking' phase. You can make a reservation after you check in.",
+          "timestamp": "2026-03-13T10:06:36.375821Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-1ed5e5574847",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7c9313e2-4b05-41dc-992e-38b83fab0ff8",
+          "role": "user",
+          "content": "do you offer in room dining",
+          "timestamp": "2026-03-13T10:06:46.147442Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you offer in-room dining?"
+          }
+        },
+        {
+          "id": "4a68f729-3e3c-4e4f-9236-0a8bc1ba94f9",
+          "role": "assistant",
+          "content": "Yes, ICONIQA offers in-room dining. You can enjoy a variety of dishes from our in-room dining menu, available 24/7. If you have any specific requests or need more information, feel free to ask!",
+          "timestamp": "2026-03-13T10:06:54.761412Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-49e8848b5a41",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7ab7d8c7-713f-4079-934e-8fb3dac243c1",
+          "role": "user",
+          "content": "What's on the menu?",
+          "timestamp": "2026-03-13T10:07:06.022490Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "f9186a05-28ab-417c-b91d-c1bdc06daeaf",
+          "role": "assistant",
+          "content": "ICONIQA offers a variety of dining options with detailed menus. Here are some highlights:\n**Aviator Lounge Menu:**\n- **Snacks:** Golden Cashew Nuts with Lemongrass Dust, Russet Potato Croquettes with Truffle Mornay, Shrimp Katsu with Wasabi Aioli.\n- **Small Plates:** Edamame Hummus with Crisps, Charred Broccoli with Togarashi & Nuts, Chicken Thigh Karaage with Chilli Lime.\n- **Dim Sum:** Edamame & Water Chestnut, Chicken & Chives.\n- **Bowls:** Raw Papaya & Peanut Salad, Porcini & King Oyster Mushroom Rice.\n- **Sweet:** Darsaan with Vanilla Bean Ice Cream, 55% Chocolate Mousse with Cranberries.\n**Bombay Swim Club Menu:**\n- **Small Plates:** Russet Rockets, Green Room Dip, Shrimp Pop Star.\n- **Tacos:** Squash & Bean Taco, Pulled Pork, Charred Chicken Taco.\n- **Dim Sum:** Jade Dumpling, Porcini Silk Bloom.\n- **Ceviche & Sushi:** Green Line Roll, Yuzu Zen Roll, Citrus Current.\n- **Robata (Fire):** Brocco-Lit, The Sirloin of the Forest.\n- **Bowls:** Tofu Umami, Mushroom Mafia.\n- **Dessert:** Miso Doi, WTF Wasabi.\nFor more detailed information or specific dietary needs, please let me know!",
+          "timestamp": "2026-03-13T10:07:18.961215Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-e2e65ddfb680",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "73394c08-206e-4e56-bf3b-237c240e04be",
+          "role": "user",
+          "content": "will airport transfer be provided",
+          "timestamp": "2026-03-13T10:07:38.165822Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Will airport transfer be provided?"
+          }
+        },
+        {
+          "id": "b4ddbad6-acaf-43ab-9623-ce69e1090dd1",
+          "role": "assistant",
+          "content": "Airport transfer is available at ICONIQA, but this service is accessible during the 'Pre Checkin' phase. You are currently in the 'Pre Booking' phase. Once your booking is confirmed, you can request airport pickup and drop-off services.",
+          "timestamp": "2026-03-13T10:07:46.567744Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-34cf4eaabb2b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "bf0717f5-fcf1-4307-9868-f732db82edd6",
+          "role": "user",
+          "content": "book one for tomoroow",
+          "timestamp": "2026-03-13T10:07:54.656611Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "book one for tomorrow"
+          }
+        },
+        {
+          "id": "05ca172d-5dc8-4323-b6ed-7b78ec69a375",
+          "role": "assistant",
+          "content": "I'm sorry, but we can't book that service at the moment as it's not available in our current phase. We are currently in the Pre Booking phase. Please check back with us later for updates.",
+          "timestamp": "2026-03-13T10:08:05.722314Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-4d44356230ab",
+            "policy_blocked_reason": "unknown_target_service",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6ad5233c-6d64-444b-8707-af2e07e002c0",
+          "role": "user",
+          "content": "can i get an early check in",
+          "timestamp": "2026-03-13T10:08:26.040157Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I get an early check-in?"
+          }
+        },
+        {
+          "id": "8f8ab995-d8fb-481d-bd85-78283093fb07",
+          "role": "assistant",
+          "content": "Early check-in at ICONIQA is subject to availability and may incur additional charges. If you wish to check in before 7:00 AM, a fee of 50% of the room rate applies. Please let us know your preferred check-in time, and we will do our best to accommodate your request.",
+          "timestamp": "2026-03-13T10:08:35.686269Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5cea243ed1e3",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "5df9be80-c90c-4d9d-938e-84f02cf272bf",
+          "role": "user",
+          "content": "Is 9:00 AM possible?",
+          "timestamp": "2026-03-13T10:09:20.468787Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "b4c4be94-4a5d-413f-85e2-b4db79215f2f",
+          "role": "assistant",
+          "content": "Early check-in at 9:00 AM is possible, but it is subject to availability and may incur additional charges. Please let us know if you would like to proceed with this request, and we will do our best to accommodate you.",
+          "timestamp": "2026-03-13T10:09:30.419311Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-985b2c278121",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "fa5474ff-60f2-4b00-80fc-81dd3c715ddc",
+          "role": "user",
+          "content": "proceed",
+          "timestamp": "2026-03-13T10:09:46.371612Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "fa8af52d-dfc9-4e06-ae60-dfe96669bc17",
+          "role": "assistant",
+          "content": "To proceed with your airport transfer booking for tomorrow, I need a few details from you:\n- Pickup Location\n- Drop Location\n- Travel Date\n- Travel Time\n- Passenger Count\nPlease provide this information so we can confirm your booking.",
+          "timestamp": "2026-03-13T10:09:58.434041Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-3ba7d1289b44",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7f0214fa-97e6-45b0-b2fa-77b85b123483",
+          "role": "user",
+          "content": "do you provde local cab services",
+          "timestamp": "2026-03-13T10:10:10.335140Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "do you provide local cab services"
+          }
+        },
+        {
+          "id": "435327f7-876c-4de6-9cee-6df67b7802e8",
+          "role": "assistant",
+          "content": "I handle airport transfer services specifically. For local cab services, I recommend contacting the hotel staff directly, as they can provide more detailed assistance. Please reply 'yes confirm' to confirm.",
+          "timestamp": "2026-03-13T10:10:16.065748Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "87e620f3-e523-4937-88ff-f7601a216bf0",
+          "role": "user",
+          "content": "Yes confirm",
+          "timestamp": "2026-03-13T10:10:38.128500Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "d530c5b9-b00c-46d0-8cdb-618361ae95d4",
+          "role": "assistant",
+          "content": "To proceed with your airport transfer booking, I need the following details:\n- Pickup Location\n- Drop Location\n- Travel Date\n- Travel Time\n- Passenger Count\nPlease provide this information so we can confirm your booking.",
+          "timestamp": "2026-03-13T10:10:43.954058Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T10:04:07.077544Z",
+      "updated_at": "2026-03-13T10:10:43.954374Z"
+    },
+    "session_1773397991654_bom711io1": {
+      "session_id": "session_1773397991654_bom711io1",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_request_details",
+      "pending_data": {
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is currently in the pre-checkin phase and is focused on arranging transport. They have requested an airport pickup and need to provide additional details including the pickup location (terminal), drop location, travel date, travel time, and passenger count. Room reservations are not available at this time as the hotel is in the pre-booking phase. The user has not yet provided the necessary details for the airport pickup.",
+          "facts": {
+            "phase": "pre_checkin",
+            "last_user_topic": "transport"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi who arey ou",
+              "timestamp": "2026-03-13T10:33:20.978115+00:00"
+            },
+            {
+              "key": "phase",
+              "old_value": "pre_booking",
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "pick me up from airport",
+              "timestamp": "2026-03-13T10:34:16.128378+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "pick me up from airport",
+              "timestamp": "2026-03-13T10:34:16.128430+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-13T10:34:26.534997+00:00",
+          "last_user_message": "pick me up from airport",
+          "last_assistant_message": "To arrange your airport pickup, I'll need a few more details: Pickup Location (which terminal), Drop Location (hotel or another destination), Travel Date, Travel Time, and Passenger Count. Please provide these details so I can assist you further."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_request_details",
+            "pending_data": {
+              "service_id": "airport_transfer"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_checkin",
+            "phase_name": "Pre Checkin",
+            "summary": "your collect request details flow",
+            "updated_at": "2026-03-13T10:34:25.131588+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T10:34:25.131630+00:00"
+        },
+        "service_id": "airport_transfer"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "45bfdcd0-bf28-4a2d-b8fc-e23a6561d746",
+          "role": "user",
+          "content": "hi who arey ou",
+          "timestamp": "2026-03-13T10:33:20.978011Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "hi who are you"
+          }
+        },
+        {
+          "id": "236f16d7-8f38-49f2-9a04-4c8234de1f25",
+          "role": "assistant",
+          "content": "Hello! I am the virtual concierge assistant for ICONIQA Hotel. I'm here to help you with any questions or requests you might have about our hotel and services. How can I assist you today?",
+          "timestamp": "2026-03-13T10:33:29.426010Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-225a370f499b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c99a2a65-4f68-4463-a172-decf2b38c703",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-13T10:33:36.905274Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "21e9b610-3e0a-4ce3-879c-ee726baa15b0",
+          "role": "assistant",
+          "content": "Thank you for reaching out. We're currently in the Pre Booking phase, so room reservations aren't available just yet. Please check back later when booking opens.",
+          "timestamp": "2026-03-13T10:33:51.826127Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-7daa0d50e63f",
+            "policy_blocked_reason": "unknown_target_service",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "b56f7a5f-2e16-4aa3-93c8-15bcbd5af433",
+          "role": "user",
+          "content": "pick me up from airport",
+          "timestamp": "2026-03-13T10:34:16.128331Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Pick me up from the airport."
+          }
+        },
+        {
+          "id": "ee13beb8-a761-4416-b785-399b2a8f1e0c",
+          "role": "assistant",
+          "content": "To arrange your airport pickup, I'll need a few more details: Pickup Location (which terminal), Drop Location (hotel or another destination), Travel Date, Travel Time, and Passenger Count. Please provide these details so I can assist you further.",
+          "timestamp": "2026-03-13T10:34:25.131967Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-feb43606ce92",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T10:33:15.618300Z",
+      "updated_at": "2026-03-13T10:34:26.535014Z"
+    },
+    "session_1773400267014_piek2qqhl": {
+      "session_id": "session_1773400267014_piek2qqhl",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": "collect_request_details",
+      "pending_data": {
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is currently in the pre-checkin phase and is interested in transportation services, specifically airport transfers. They have inquired about room availability but were informed that room booking is not possible in the pre-booking phase. The user is now focused on arranging airport transfer services and needs to provide details such as request specifics, pickup and drop-off locations, travel date and time, and passenger count to proceed with the arrangement. There are no unresolved asks at this time.",
+          "facts": {
+            "phase": "pre_checkin",
+            "last_user_topic": "transport"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need a room",
+              "timestamp": "2026-03-13T11:11:22.655474+00:00"
+            },
+            {
+              "key": "phase",
+              "old_value": "pre_booking",
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "do u provide airport transfer",
+              "timestamp": "2026-03-13T11:13:05.175219+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "do u provide airport transfer",
+              "timestamp": "2026-03-13T11:13:05.175357+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-13T11:13:16.637350+00:00",
+          "last_user_message": "do u provide airport transfer",
+          "last_assistant_message": "Yes, we provide airport transfer services. If you would like to arrange a pickup or drop-off, please provide the following details: Request Details, Pickup Location, Drop Location, Travel Date, Travel Time, and Passenger Count."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_request_details",
+            "pending_data": {
+              "service_id": "airport_transfer"
+            },
+            "state": "idle",
+            "phase_id": "pre_checkin",
+            "phase_name": "Pre Checkin",
+            "summary": "your collect request details flow",
+            "updated_at": "2026-03-13T11:13:14.574131+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T11:13:14.574186+00:00"
+        },
+        "service_id": "airport_transfer"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "a0abe344-63ab-4b89-bd6d-44c500ae1786",
+          "role": "user",
+          "content": "i need a room",
+          "timestamp": "2026-03-13T11:11:22.655402Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a room."
+          }
+        },
+        {
+          "id": "08518028-8206-4a4e-b356-b0fc23d8bc7e",
+          "role": "assistant",
+          "content": "Room booking services are not available in the Pre Booking phase. Please wait until you enter the appropriate phase to book a room. If you have any other questions or need information, feel free to ask!",
+          "timestamp": "2026-03-13T11:11:38.047268Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-dd7dec646efa",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "83ae1416-8097-4fb7-85cb-ac62b48ea17e",
+          "role": "user",
+          "content": "what rooms do u privide \\",
+          "timestamp": "2026-03-13T11:12:04.121163Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what rooms do you provide?"
+          }
+        },
+        {
+          "id": "520340e3-be90-4018-a2c8-4c6017362506",
+          "role": "assistant",
+          "content": "ICONIQA offers a variety of room types to suit different preferences:\n1. **Premier King Room**: 134 rooms, with sizes ranging from 229 to 340 sq. ft. These rooms feature a calming palette, cloud-soft linens, and a versatile table-and-chair duo.\n2. **Premier Twin Room**: 48 rooms, with sizes ranging from 230 to 380 sq. ft. Designed for comfort and versatility, these rooms are ideal for both business and leisure travelers.\n3. **LUX Suite**: 79 rooms, with sizes ranging from 380 to 485 sq. ft. These suites offer luxury with a king-size bed, a separate seating area, and panoramic city views.\n4. **Reserve Suite**: 16 rooms, with sizes ranging from 375 to 415 sq. ft. These suites provide a sophisticated retreat with a king-size bed and a separate lounge area.\n5. **Prestige Suite**: 6 rooms, each 485 sq. ft., featuring a bathtub and a lavish king-size bed.\n6. **Ultimate Suite**: 8 rooms, each 603 sq. ft., offering the most spacious and opulent accommodation with a king-size bed, separate living and dining areas.\nAll rooms come with a range of amenities including an in-room smart laundry closet, complimentary non-alcoholic minibar, espresso machines, high-speed WiFi, and more.",
+          "timestamp": "2026-03-13T11:12:27.474147Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-2a8fc5990dac",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4473076c-3a12-4330-a4ca-d109fee564cf",
+          "role": "user",
+          "content": "do u provide airport transfer",
+          "timestamp": "2026-03-13T11:13:05.175083Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do u provide airport transfer?"
+          }
+        },
+        {
+          "id": "6678bfb5-b3ec-4d3e-aed5-706fb35b9150",
+          "role": "assistant",
+          "content": "Yes, we provide airport transfer services. If you would like to arrange a pickup or drop-off, please provide the following details: Request Details, Pickup Location, Drop Location, Travel Date, Travel Time, and Passenger Count.",
+          "timestamp": "2026-03-13T11:13:14.574537Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "airport_transfer",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-f51bc5edce39",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T11:11:17.363615Z",
+      "updated_at": "2026-03-13T11:13:16.637378Z"
     }
   }
 }

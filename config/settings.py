@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     llm_timeout: int = 30
     llm_history_max_messages: int = 0
     llm_history_max_chars: int = 12000
+    llm_io_trace_enabled: bool = True
+    llm_io_trace_file: str = "./logs/llm_io_trace.jsonl"
+    llm_io_trace_max_chars: int = 300000
 
     # RAG Settings
     rag_backend: str = "local"  # local | qdrant

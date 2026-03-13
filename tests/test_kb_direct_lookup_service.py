@@ -1,6 +1,7 @@
 import json
 
 from services.kb_direct_lookup_service import KBDirectLookupService
+import services.kb_direct_lookup_service as kb_lookup_module
 
 
 def _write_structured_kb(tmp_path):
@@ -78,3 +79,31 @@ def test_kb_direct_lookup_strips_context_noise(tmp_path):
 
     assert result.handled is True
     assert "bar" in result.answer.lower() or "alcohol" in result.answer.lower()
+
+
+def test_kb_direct_lookup_prefers_structured_library_index(monkeypatch):
+    library_payload = {
+        "source_signature": "sig_test",
+        "pages": [
+            {
+                "id": "page_00001",
+                "title": "pool_timings",
+                "location": "editable.pool_timings",
+                "text": "Pool timings are 7:00 AM to 7:00 PM. Children are not allowed after 7 PM.",
+                "source_name": "kb.txt",
+                "source_path": "kb.txt",
+            }
+        ],
+    }
+    monkeypatch.setattr(
+        kb_lookup_module.config_service,
+        "get_structured_kb_library",
+        lambda rebuild_if_stale=True, max_sources=50: library_payload,
+    )
+
+    service = KBDirectLookupService()
+    service.step_logs_enabled = False
+    result = service.answer_question(query="what are pool timings", tenant_id="default", source_paths=None)
+
+    assert result.handled is True
+    assert "pool" in result.answer.lower()

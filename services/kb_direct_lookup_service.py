@@ -357,6 +357,65 @@ class KBDirectLookupService:
             return editable_like
         return None
 
+    def _load_facts_from_structured_library(self) -> tuple[list[KBFact], dict[str, KBFact]]:
+        library = config_service.get_structured_kb_library(rebuild_if_stale=True, max_sources=50)
+        if not isinstance(library, dict):
+            return [], {}
+        pages = library.get("pages", [])
+        if not isinstance(pages, list) or not pages:
+            return [], {}
+
+        signature = f"library|{str(library.get('source_signature') or '').strip()}"
+        if signature and signature == self._cache_signature:
+            return self._cache_facts, self._cache_by_key
+
+        facts: list[KBFact] = []
+        by_key: dict[str, KBFact] = {}
+        seen_records: set[tuple[str, str]] = set()
+
+        for page in pages:
+            if not isinstance(page, dict):
+                continue
+            key_raw = (
+                str(page.get("title") or "").strip()
+                or str(page.get("location") or "").strip()
+                or str(page.get("id") or "").strip()
+            )
+            value_raw = str(page.get("text") or "").strip()
+            if not key_raw or not value_raw:
+                continue
+            normalized_key = self._normalize_key(key_raw)
+            rendered = self._coalesce_space(value_raw)
+            if not normalized_key or not rendered:
+                continue
+            record_signature = (normalized_key, rendered[:2200])
+            if record_signature in seen_records:
+                continue
+            seen_records.add(record_signature)
+
+            source_path = str(page.get("source_path") or page.get("source_name") or "").strip()
+            location = str(page.get("location") or "").strip()
+            source_ref = f"{source_path}#{location}" if source_path and location else (source_path or location or "library")
+
+            key_tokens = self._expand_tokens(self._tokenize(normalized_key.replace("_", " ")))
+            value_tokens = self._expand_tokens(self._tokenize(rendered[:4000]))
+            fact = KBFact(
+                key=normalized_key,
+                display_key=key_raw,
+                value=rendered,
+                source=source_ref,
+                key_tokens=key_tokens,
+                value_tokens=value_tokens,
+            )
+            facts.append(fact)
+            if normalized_key not in by_key:
+                by_key[normalized_key] = fact
+
+        self._cache_signature = signature
+        self._cache_facts = facts
+        self._cache_by_key = by_key
+        return facts, by_key
+
     def _load_facts(self, paths: list[Path]) -> tuple[list[KBFact], dict[str, KBFact]]:
         signature_parts: list[str] = []
         for path in paths:
@@ -682,33 +741,50 @@ class KBDirectLookupService:
             )
             return KBDirectLookupResult(handled=False, reason="empty_query", trace_id=trace_id), "empty_query"
 
-        paths = self._resolve_source_paths(tenant_id=tenant_id, source_paths=source_paths)
-        self._trace_step(
-            trace,
-            step="resolve_sources",
-            status="success",
-            output_data={
-                "sources_count": len(paths),
-                "sources_preview": [path.name for path in paths[:6]],
-            },
-        )
-
-        if not paths:
+        facts: list[KBFact] = []
+        by_key: dict[str, KBFact] = {}
+        if source_paths is None:
+            facts, by_key = self._load_facts_from_structured_library()
             self._trace_step(
                 trace,
-                step="match_decision",
-                status="failed",
-                output_data={"reason": "no_kb_sources"},
+                step="load_library_facts",
+                status="success" if facts else "skipped",
+                output_data={
+                    "facts_count": len(facts),
+                    "keys_count": len(by_key),
+                    "reason": "library_index_available" if facts else "library_index_empty",
+                },
             )
-            return KBDirectLookupResult(handled=False, reason="no_kb_sources", trace_id=trace_id), "no_sources"
 
-        facts, by_key = self._load_facts(paths)
-        self._trace_step(
-            trace,
-            step="load_facts",
-            status="success",
-            output_data={"facts_count": len(facts), "keys_count": len(by_key)},
-        )
+        if not facts:
+            paths = self._resolve_source_paths(tenant_id=tenant_id, source_paths=source_paths)
+            self._trace_step(
+                trace,
+                step="resolve_sources",
+                status="success",
+                output_data={
+                    "sources_count": len(paths),
+                    "sources_preview": [path.name for path in paths[:6]],
+                },
+            )
+
+            if not paths:
+                self._trace_step(
+                    trace,
+                    step="match_decision",
+                    status="failed",
+                    output_data={"reason": "no_kb_sources"},
+                )
+                return KBDirectLookupResult(handled=False, reason="no_kb_sources", trace_id=trace_id), "no_sources"
+
+            facts, by_key = self._load_facts(paths)
+            self._trace_step(
+                trace,
+                step="load_facts",
+                status="success",
+                output_data={"facts_count": len(facts), "keys_count": len(by_key)},
+            )
+
         if not facts:
             self._trace_step(
                 trace,
