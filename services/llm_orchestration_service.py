@@ -138,6 +138,132 @@ class LLMOrchestrationService:
         }
 
     @staticmethod
+    def _last_message_by_role(context: ConversationContext, role: str) -> str:
+        if not isinstance(getattr(context, "messages", None), list):
+            return ""
+        role_norm = str(role or "").strip().lower()
+        for msg in reversed(context.messages):
+            msg_role = str(getattr(getattr(msg, "role", None), "value", "") or "").strip().lower()
+            if msg_role != role_norm:
+                continue
+            return str(getattr(msg, "content", "") or "").strip()
+        return ""
+
+    def _build_history_bundle(
+        self,
+        *,
+        context: ConversationContext,
+        memory_snapshot: dict[str, Any],
+        last_window_messages: int = 10,
+        last_window_chars: int = 5000,
+        full_window_messages: int = 120,
+        full_window_chars: int = 12000,
+    ) -> dict[str, Any]:
+        # Last-10 raw messages are always included for short-term grounding.
+        last_10 = self._history_preview(
+            context,
+            max_messages=max(1, int(last_window_messages or 10)),
+            max_chars=max(1000, int(last_window_chars or 5000)),
+        )
+        # Wider tail context is included with bounded size.
+        full_tail = self._history_preview(
+            context,
+            max_messages=max(10, int(full_window_messages or 120)),
+            max_chars=max(2000, int(full_window_chars or 12000)),
+        )
+        return {
+            "history_last_10": last_10,
+            "full_history_context": {
+                "message_count_total": len(context.messages) if isinstance(context.messages, list) else 0,
+                "tail_messages": full_tail,
+                "older_context_summary": str((memory_snapshot or {}).get("summary") or "").strip()[:2400],
+            },
+            "last_user_message": self._last_message_by_role(context, "user"),
+            "last_assistant_message": self._last_message_by_role(context, "assistant"),
+        }
+
+    def _service_name_by_id(self, service_id: str, services_snapshot: list[dict[str, Any]]) -> str:
+        normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return ""
+        for row in services_snapshot:
+            if not isinstance(row, dict):
+                continue
+            if self._normalize_identifier(row.get("id")) != normalized_id:
+                continue
+            return str(row.get("name") or normalized_id).strip()
+        return normalized_id
+
+    def _suspend_active_service_task(
+        self,
+        *,
+        context: ConversationContext,
+        services_snapshot: list[dict[str, Any]],
+        next_service_id: str = "",
+        force: bool = False,
+    ) -> bool:
+        """
+        Park the current in-flight service task before a topic/service diversion.
+        Returns True when a task was suspended.
+        """
+        pending_public = self._coerce_public_pending(context.pending_data)
+        current_active_service = self._normalize_identifier(pending_public.get("service_id") or "")
+        pending_action = str(context.pending_action or "").strip()
+        normalized_next = self._normalize_identifier(next_service_id)
+
+        if not current_active_service or not pending_action:
+            return False
+        if not force and not normalized_next:
+            return False
+        if not force and normalized_next == current_active_service:
+            return False
+
+        has_collected_values = any(
+            str(value or "").strip()
+            for key, value in pending_public.items()
+            if key != "service_id"
+        )
+        if not has_collected_values:
+            return False
+
+        existing_rows = context.suspended_services if isinstance(context.suspended_services, list) else []
+        for existing in existing_rows:
+            if not isinstance(existing, dict):
+                continue
+            if (
+                self._normalize_identifier(existing.get("service_id")) == current_active_service
+                and str(existing.get("pending_action") or "").strip() == pending_action
+                and isinstance(existing.get("pending_data"), dict)
+                and existing.get("pending_data") == pending_public
+            ):
+                # Already parked; only clear active state.
+                internal = {
+                    key: value
+                    for key, value in (context.pending_data or {}).items()
+                    if isinstance(key, str) and key.startswith("_")
+                }
+                context.pending_data = internal
+                context.pending_action = None
+                return True
+
+        context.suspended_services.append(
+            {
+                "service_id": current_active_service,
+                "service_name": self._service_name_by_id(current_active_service, services_snapshot),
+                "pending_data": dict(pending_public),
+                "pending_action": pending_action,
+            }
+        )
+        internal = {
+            key: value
+            for key, value in (context.pending_data or {}).items()
+            if isinstance(key, str) and key.startswith("_")
+        }
+        context.pending_data = internal
+        context.pending_action = None
+        return True
+
+    @staticmethod
     def _phase_label(phase_id: str, capabilities_summary: dict[str, Any]) -> str:
         normalized = str(phase_id or "").strip().lower().replace(" ", "_")
         if not normalized:
@@ -1077,7 +1203,8 @@ class LLMOrchestrationService:
             f"\nYou only handle {service_name} topics. "
             "If the guest asks about something completely outside this service, "
             "acknowledge it briefly and set context_switched=true in metadata so the main assistant can take over.\n"
-            "Always read the full conversation history (last 10 messages) before responding. "
+            "Always read history_last_10 first, then full_history_context (including older_context_summary) before responding. "
+            "Use last_user_message and last_assistant_message as the strongest anchors for short replies.\n"
             "Resolve short replies ('yes', a date, a number) against what was last asked.\n"
             "Capture any useful guest details (name, room number, preferences, dietary needs, special occasion) "
             "in new_facts_to_remember as snake_case key-value pairs.\n"
@@ -1189,10 +1316,19 @@ class LLMOrchestrationService:
         confirmation_pending_action = "confirm_booking"
         # Confirmation is required whenever ticketing is enabled — the guest must confirm before a ticket is raised.
         requires_confirmation_step = ticketing_enabled
-        history_preview = self._history_preview(
-            context,
-            max_messages=max(20, int(getattr(settings, "llm_orchestration_history_messages", 20) or 20)),
-            max_chars=max(12000, int(getattr(settings, "llm_orchestration_history_chars", 12000) or 12000)),
+        history_bundle = self._build_history_bundle(
+            context=context,
+            memory_snapshot=memory_snapshot,
+            last_window_messages=10,
+            last_window_chars=max(4000, int(getattr(settings, "llm_orchestration_history_chars", 8000) or 8000)),
+            full_window_messages=max(
+                60,
+                int(getattr(settings, "llm_orchestration_full_history_messages", 120) or 120),
+            ),
+            full_window_chars=max(
+                7000,
+                int(getattr(settings, "llm_orchestration_full_history_chars", 12000) or 12000),
+            ),
         )
         pending_pub_pre = self._coerce_public_pending(context.pending_data)
         # First turn = no slot data collected yet for this service
@@ -1252,7 +1388,11 @@ class LLMOrchestrationService:
             "pending_action": str(context.pending_action or ""),
             "pending_data_collected": collected_labels,
             "pending_data_raw": self._sanitize_json(pending_pub),
-            "history": history_preview,
+            "history": history_bundle.get("history_last_10", []),
+            "history_last_10": history_bundle.get("history_last_10", []),
+            "full_history_context": history_bundle.get("full_history_context", {}),
+            "last_user_message": str(history_bundle.get("last_user_message") or ""),
+            "last_assistant_message": str(history_bundle.get("last_assistant_message") or ""),
             "memory_summary": str(memory_snapshot.get("summary") or "")[:1200],
             "memory_facts": self._sanitize_json(memory_snapshot.get("facts", {})),
             "confirmation_phrase": confirmation_phrase,
@@ -1299,13 +1439,8 @@ class LLMOrchestrationService:
         decision.metadata["service_agent_id"] = service_id
         decision.metadata["is_first_service_turn"] = is_first_service_turn
 
-        # Context-switch: if the service LLM flagged that the user left this service's scope,
-        # clear service routing state so the orchestrator re-routes on the next turn.
+        # Context-switch marker for immediate same-turn main-orchestrator re-route.
         if bool((decision.metadata or {}).get("context_switched")):
-            decision.action = "respond_only"
-            decision.pending_action = None
-            decision.use_handler = False
-            decision.target_service_id = ""
             decision.metadata["context_switched"] = True
 
         # Persist any new guest facts the service LLM discovered this turn.
@@ -1449,6 +1584,7 @@ class LLMOrchestrationService:
         capabilities_summary: dict[str, Any],
         memory_snapshot: dict[str, Any],
         selected_phase_context: dict[str, Any] | None = None,
+        _service_reroute_depth: int = 0,
     ) -> OrchestrationDecision | None:
         orchestration_mode_enabled = bool(getattr(settings, "chat_llm_orchestration_mode", False))
         no_template_mode_enabled = bool(getattr(settings, "chat_no_template_response_mode", False))
@@ -1481,64 +1617,6 @@ class LLMOrchestrationService:
                 context.suspended_services = []
         # ─────────────────────────────────────────────────────────────────────
 
-        # ── STICKY SERVICE SHORT-CIRCUIT ─────────────────────────────────────
-        # If a service is actively mid-collection (pending_action set + service_id
-        # known), skip the orchestrator LLM entirely and go straight to the
-        # service agent. This prevents short replies like "22", "yes", "no",
-        # "book this" from being mis-routed by the orchestrator.
-        _pub = self._coerce_public_pending(context.pending_data)
-        _active_service_id = self._normalize_identifier(_pub.get("service_id") or "")
-        _has_pending = bool(str(context.pending_action or "").strip())
-        if _active_service_id and _has_pending:
-            selected_phase_id, selected_phase_name = self._resolve_selected_phase(
-                context=context,
-                selected_phase_context=selected_phase_context,
-                capabilities_summary=capabilities_summary,
-            )
-            services_snapshot_sc = self._service_snapshot(capabilities_summary)
-            target_service_sc = None
-            for _svc in services_snapshot_sc:
-                if self._normalize_identifier(_svc.get("id")) == _active_service_id:
-                    target_service_sc = _svc
-                    break
-            if target_service_sc:
-                base_decision_sc = OrchestrationDecision(
-                    intent="continue_service",
-                    action="collect_info",
-                    target_service_id=_active_service_id,
-                    confidence=0.99,
-                )
-                base_decision_sc.metadata["source"] = "sticky_service"
-                service_decision_sc = await self._run_service_agent(
-                    user_message=user_message,
-                    context=context,
-                    memory_snapshot=memory_snapshot,
-                    service=target_service_sc,
-                    base_decision=base_decision_sc,
-                    selected_phase_id=selected_phase_id,
-                    selected_phase_name=selected_phase_name,
-                )
-                # Resume prompt check after sticky turn
-                if (
-                    context.suspended_services
-                    and not context.resume_prompt_sent
-                    and not str(service_decision_sc.pending_action or "").strip()
-                ):
-                    susp = context.suspended_services[0]
-                    service_decision_sc.response_text = (
-                        str(service_decision_sc.response_text or "").rstrip()
-                        + f"\n\nAlso, you were in the middle of **{susp.get('service_name', 'a previous request')}** — would you like to continue where you left off?"
-                    )
-                    context.resume_prompt_sent = True
-                return await self._ensure_suggested_actions(
-                    user_message=user_message,
-                    context=context,
-                    decision=service_decision_sc,
-                    selected_phase_id=selected_phase_id,
-                    selected_phase_name=selected_phase_name,
-                    target_service=target_service_sc,
-                )
-        # ─────────────────────────────────────────────────────────────────────
 
         selected_phase_id, selected_phase_name = self._resolve_selected_phase(
             context=context,
@@ -1648,6 +1726,20 @@ class LLMOrchestrationService:
                     + "=== SERVICE KNOWLEDGE BASE ===\n\n"
                     + combined_service_kb
                 )[:80_000]
+        history_bundle = self._build_history_bundle(
+            context=context,
+            memory_snapshot=memory_snapshot,
+            last_window_messages=10,
+            last_window_chars=max(3000, int(getattr(settings, "llm_orchestration_history_chars", 8000) or 8000)),
+            full_window_messages=max(
+                60,
+                int(getattr(settings, "llm_orchestration_full_history_messages", 120) or 120),
+            ),
+            full_window_chars=max(
+                7000,
+                int(getattr(settings, "llm_orchestration_full_history_chars", 12000) or 12000),
+            ),
+        )
         payload = {
             "trace_id": orchestration_trace_id,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -1666,11 +1758,11 @@ class LLMOrchestrationService:
                 for s in (context.suspended_services or [])
             ],
             "full_knowledge_base": full_kb_text or None,
-            "history": self._history_preview(
-                context,
-                max_messages=max(8, int(getattr(settings, "llm_orchestration_history_messages", 12) or 12)),
-                max_chars=max(1800, int(getattr(settings, "llm_orchestration_history_chars", 8000) or 8000)),
-            ),
+            "history": history_bundle.get("history_last_10", []),
+            "history_last_10": history_bundle.get("history_last_10", []),
+            "full_history_context": history_bundle.get("full_history_context", {}),
+            "last_user_message": str(history_bundle.get("last_user_message") or ""),
+            "last_assistant_message": str(history_bundle.get("last_assistant_message") or ""),
             "services": self._sanitize_json(services_snapshot),
             "policy_snapshot": {
                 "selected_phase_id": selected_phase_id,
@@ -1735,7 +1827,8 @@ class LLMOrchestrationService:
             "check whether it fits the current phase, and either answer directly or hand off to the right service specialist.\n"
             "\n"
             "=== STEP 1: READ HISTORY ===\n"
-            "Always read the full conversation history from oldest to newest before deciding anything. "
+            "Always read history_last_10 first, then full_history_context.tail_messages and full_history_context.older_context_summary before deciding anything. "
+            "Use last_user_message and last_assistant_message as high-priority anchors for continuity. "
             "Resolve pronouns ('it', 'that', 'same', 'this') against the last assistant message.\n"
             "\n"
             "=== STEP 2: MID-FLOW CHECK ===\n"
@@ -1848,39 +1941,12 @@ class LLMOrchestrationService:
                 target_service = service
                 break
 
-        # ── SUSPEND DETECTION ────────────────────────────────────────────────
-        # If routing to a NEW service while another service has partial data,
-        # save the old service to suspended_services instead of discarding it.
-        current_active_service = self._normalize_identifier(
-            self._coerce_public_pending(context.pending_data).get("service_id") or ""
+        # Park unfinished active task before dispatching to a different service.
+        self._suspend_active_service_task(
+            context=context,
+            services_snapshot=services_snapshot,
+            next_service_id=target_service_id,
         )
-        if (
-            current_active_service
-            and target_service_id
-            and current_active_service != target_service_id
-            and context.pending_action  # mid-collection signal
-        ):
-            pub = self._coerce_public_pending(context.pending_data)
-            has_slots = any(
-                v for k, v in pub.items()
-                if k != "service_id" and str(v or "").strip()
-            )
-            if has_slots:
-                susp_name = current_active_service
-                for row in services_snapshot:
-                    if self._normalize_identifier(row.get("id")) == current_active_service:
-                        susp_name = str(row.get("name") or current_active_service).strip()
-                        break
-                context.suspended_services.append({
-                    "service_id": current_active_service,
-                    "service_name": susp_name,
-                    "pending_data": dict(pub),
-                    "pending_action": context.pending_action,
-                })
-                # Clear current service state — new service starts fresh
-                _internal = {k: v for k, v in context.pending_data.items() if k.startswith("_")}
-                context.pending_data = _internal
-                context.pending_action = None
         # ─────────────────────────────────────────────────────────────────────
         if not service_agent_enabled or not target_service_id:
             fallback_decision = await self._enforce_answer_first_policy(
@@ -1928,6 +1994,39 @@ class LLMOrchestrationService:
             selected_phase_name=selected_phase_name,
         )
         service_decision.metadata.setdefault("orchestration_trace_id", orchestration_trace_id)
+        if bool((service_decision.metadata or {}).get("context_switched")):
+            # Preserve unfinished work from the current service before rerouting.
+            suspended = self._suspend_active_service_task(
+                context=context,
+                services_snapshot=services_snapshot,
+                next_service_id="",
+                force=True,
+            )
+            if not suspended:
+                # Even with no suspendable data, clear active service pin so main can re-route.
+                internal = {
+                    key: value
+                    for key, value in (context.pending_data or {}).items()
+                    if isinstance(key, str) and key.startswith("_")
+                }
+                context.pending_data = internal
+                context.pending_action = None
+            if _service_reroute_depth < 1:
+                rerouted_decision = await self.orchestrate_turn(
+                    user_message=user_message,
+                    context=context,
+                    capabilities_summary=capabilities_summary,
+                    memory_snapshot=memory_snapshot,
+                    selected_phase_context=selected_phase_context,
+                    _service_reroute_depth=_service_reroute_depth + 1,
+                )
+                if isinstance(rerouted_decision, OrchestrationDecision):
+                    rerouted_decision.metadata.setdefault(
+                        "context_switch_rerouted_from_service",
+                        target_service_id,
+                    )
+                    return rerouted_decision
+
         merged_decision = self._merge_decisions(decision, service_decision)
         # Skip answer-first enforcement for first-turn intros (it overwrites the room list)
         # and for confirmation overrides (already deterministically correct)
