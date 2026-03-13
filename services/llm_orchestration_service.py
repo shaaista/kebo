@@ -273,8 +273,6 @@ class LLMOrchestrationService:
         services = capabilities_summary.get("service_catalog", [])
         if not isinstance(services, list):
             return []
-        kb_map = self._service_kb_by_service(capabilities_summary)
-        extracted_kb_map = self._service_extracted_knowledge_by_service(capabilities_summary)
         result: list[dict[str, Any]] = []
         for row in services[:80]:
             if not isinstance(row, dict):
@@ -301,7 +299,12 @@ class LLMOrchestrationService:
                 ticketing_conditions = str(prompt_ticketing_policy.get("policy") or "").strip()
             if not ticketing_conditions:
                 ticketing_conditions = str(row.get("ticketing_policy") or "").strip()
-            required_slots = prompt_pack.get("required_slots", [])
+            prompt_pack_source = str(prompt_pack.get("source") or "").strip().lower()
+            pack_is_admin_managed = (
+                bool(row.get("service_prompt_pack_custom", False))
+                or prompt_pack_source in {"manual_override", "admin_ui", "admin_override", "db"}
+            )
+            required_slots = prompt_pack.get("required_slots", []) if pack_is_admin_managed else []
             normalized_slots: list[dict[str, Any]] = []
             if isinstance(required_slots, list):
                 for item in required_slots[:15]:
@@ -333,14 +336,10 @@ class LLMOrchestrationService:
                     "execution_guard": self._sanitize_json(execution_guard),
                     "confirmation_format": self._sanitize_json(confirmation_format),
                     "service_prompt_pack": self._sanitize_json(prompt_pack),
-                    "knowledge_facts": kb_map.get(sid, [])[:15],
-                    # Prefer admin-pulled KB (service_prompt_pack.extracted_knowledge) when present;
-                    # fall back to auto-enrichment from service_kb_records.
-                    # Kept short here (routing/brief context only); full knowledge passed on dispatch.
-                    "extracted_knowledge": (
-                        str(prompt_pack.get("extracted_knowledge") or "").strip()
-                        or extracted_kb_map.get(sid, "")
-                    )[:600],
+                    "knowledge_facts": [],
+                    # Runtime grounding for service agent should come from DB-backed
+                    # service_prompt_pack only (admin-entered/extracted values).
+                    "extracted_knowledge": str(prompt_pack.get("extracted_knowledge") or "").strip()[:600],
                     "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
                 }
@@ -960,7 +959,7 @@ class LLMOrchestrationService:
             "Before asking for any field, check pending_data_collected AND memory_facts. "
             "If a value is already known from either, do NOT ask for it again — use it directly."
         )
-        _use_slot_list = ticketing_enabled and (slots_are_custom or (_valid_slots and not ticketing_conditions))
+        _use_slot_list = ticketing_enabled and slots_are_custom and bool(_valid_slots)
 
         if ticketing_enabled:
             ticket_lines = ["\n=== TICKET CREATION ==="]
@@ -996,6 +995,13 @@ class LLMOrchestrationService:
                     "Do NOT move to confirmation until every required field has a value."
                 )
 
+            if not ticketing_conditions and not (_use_slot_list and _valid_slots):
+                ticket_lines.append(
+                    "\nNo structured slot schema is configured for this service.\n"
+                    "Derive needed details from admin ticketing policy text, service description, and user request.\n"
+                    "Ask concise clarifying questions only for missing details required for accurate execution.\n"
+                    "Do not invent or enforce fixed field names."
+                )
             ticket_lines.append(_already_collected_note)
             ticket_lines.append("Save each collected value in pending_data_updates using the exact field id as the key.")
 
@@ -1025,6 +1031,11 @@ class LLMOrchestrationService:
                     ticket_lines.append(
                         f"\nDo NOT create a ticket until ALL of these are collected: {', '.join(_req_names)}."
                     )
+            else:
+                ticket_lines.append(
+                    "\nDo NOT create a ticket until the guest has provided enough concrete details "
+                    "for staff to execute the request safely."
+                )
             ticket_lines.append("Set ticket.issue to a clear human-readable summary of what was requested.")
             lines.extend(ticket_lines)
 
@@ -1128,19 +1139,23 @@ class LLMOrchestrationService:
             service_facts_raw = []
         service_facts: list[str] = [str(f).strip() for f in service_facts_raw if str(f).strip()]
         extracted_knowledge = str(service.get("extracted_knowledge") or "").strip()
-        required_slots = prompt_pack.get("required_slots", [])
-        if not isinstance(required_slots, list):
-            required_slots = []
-        # Track whether the admin explicitly saved required_slots in the pack
-        # (vs auto-generated defaults injected during normalization).
-        # This decides whether the slot list or ticketing_conditions drives collection.
-        _raw_pack = service.get("service_prompt_pack") or {}
-        _pack_has_explicit_slots = (
-            isinstance(_raw_pack.get("required_slots"), list)
-            and bool(_raw_pack["required_slots"])
+        _raw_pack = service.get("service_prompt_pack")
+        if not isinstance(_raw_pack, dict):
+            _raw_pack = {}
+        _raw_pack_source = str(_raw_pack.get("source") or "").strip().lower()
+        _pack_is_admin_managed = (
+            bool(service.get("service_prompt_pack_custom", False))
+            or _raw_pack_source in {"manual_override", "admin_ui", "admin_override", "db"}
         )
-        validation_rules = prompt_pack.get("validation_rules", [])
-        if not isinstance(validation_rules, list):
+        required_slots_raw = prompt_pack.get("required_slots", [])
+        if _pack_is_admin_managed and isinstance(required_slots_raw, list):
+            required_slots = required_slots_raw
+        else:
+            required_slots = []
+        validation_rules_raw = prompt_pack.get("validation_rules", [])
+        if _pack_is_admin_managed and isinstance(validation_rules_raw, list):
+            validation_rules = validation_rules_raw
+        else:
             validation_rules = []
         confirmation_format = prompt_pack.get("confirmation_format", {})
         if not isinstance(confirmation_format, dict):
@@ -1165,11 +1180,12 @@ class LLMOrchestrationService:
             service_delivery_zones = []
         service_cuisine = str(service.get("cuisine") or "").strip()
         ticketing_enabled = bool(service.get("ticketing_enabled", True))
-        # slots_are_custom = True when admin explicitly configured slots (either via UI flag OR raw pack has them)
-        slots_are_custom = (bool(service.get("service_prompt_pack_custom", False)) or _pack_has_explicit_slots) and bool(required_slots)
+        slots_are_custom = _pack_is_admin_managed and bool(required_slots)
 
         model = str(getattr(settings, "llm_service_agent_model", "") or "").strip() or None
-        confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
+        confirmation_phrase = str(confirmation_format.get("required_phrase") or "").strip()
+        if not confirmation_phrase:
+            confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
         confirmation_pending_action = "confirm_booking"
         # Confirmation is required whenever ticketing is enabled — the guest must confirm before a ticket is raised.
         requires_confirmation_step = ticketing_enabled
@@ -1318,21 +1334,23 @@ class LLMOrchestrationService:
         user_compact = re.sub(r"\s+", " ", str(user_message or "").strip().lower())
         confirmation_compact = re.sub(r"\s+", " ", confirmation_phrase.lower())
         awaiting_confirmation = str(context.pending_action or "").strip().lower().startswith("confirm_")
+        strict_confirmation_enforced = bool(getattr(settings, "chat_require_strict_confirmation_phrase", False))
 
         # Deterministic confirmation override — if the user said the confirmation phrase
         # while we were in a confirm_* pending state (or last bot message asked for it),
         # force ticket creation regardless of what the LLM returned.
         last_bot_asked_confirmation = False
-        for _msg in reversed(context.messages):
-            _role = str(getattr(_msg, "role", "") or "").lower()
-            if "assistant" in _role:
-                _content = str(getattr(_msg, "content", "") or "").lower()
-                # Match if last bot message asked for confirmation (contains "confirm" broadly)
-                if "confirm" in _content or confirmation_compact in _content:
-                    last_bot_asked_confirmation = True
-                break
+        if strict_confirmation_enforced:
+            for _msg in reversed(context.messages):
+                _role = str(getattr(_msg, "role", "") or "").lower()
+                if "assistant" in _role:
+                    _content = str(getattr(_msg, "content", "") or "").lower()
+                    # Match if last bot message asked for confirmation (contains "confirm" broadly)
+                    if "confirm" in _content or confirmation_compact in _content:
+                        last_bot_asked_confirmation = True
+                    break
 
-        if (awaiting_confirmation or last_bot_asked_confirmation) and user_compact == confirmation_compact:
+        if strict_confirmation_enforced and (awaiting_confirmation or last_bot_asked_confirmation) and user_compact == confirmation_compact:
             pending_pub = self._coerce_public_pending(context.pending_data)
             # Build auto_issue from ALL collected pending data — no hardcoded slot names
             skip_keys = {"service_id", "service_name"}
@@ -1391,7 +1409,8 @@ class LLMOrchestrationService:
         if bool(base_decision.missing_fields):
             active_flow_signal = True
         if (
-            requires_confirmation_step
+            strict_confirmation_enforced
+            and requires_confirmation_step
             and active_flow_signal
             and not awaiting_confirmation
             and user_compact != confirmation_compact

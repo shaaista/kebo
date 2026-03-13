@@ -30,7 +30,6 @@ except Exception:  # pragma: no cover - optional dependency
 
 
 DEFAULT_KB_DIR = Path(__file__).parent.parent / "config" / "knowledge_base"
-DEFAULT_BUNDLED_KB_FILE = Path(__file__).parent.parent / "ROHL_Test_property.txt"
 _QUERY_STOPWORDS = {
     "a",
     "an",
@@ -755,10 +754,10 @@ class RAGService:
     def _iter_kb_files(self) -> list[Path]:
         self.kb_dir.mkdir(parents=True, exist_ok=True)
         files: list[Path] = []
-        for ext in ("*.md", "*.txt", "*.markdown", "*.rst", "*.json"):
-            files.extend(self.kb_dir.glob(ext))
-        if DEFAULT_BUNDLED_KB_FILE.exists() and DEFAULT_BUNDLED_KB_FILE.is_file():
-            files.append(DEFAULT_BUNDLED_KB_FILE)
+        uploads_root = self.kb_dir / "uploads"
+        if uploads_root.exists() and uploads_root.is_dir():
+            for ext in ("*.md", "*.txt", "*.markdown", "*.rst", "*.json"):
+                files.extend(uploads_root.rglob(ext))
         deduped: list[Path] = []
         seen: set[str] = set()
         for path in files:

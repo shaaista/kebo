@@ -581,6 +581,11 @@ async def reindex_rag(data: RAGReindexRequest):
         clear_existing=data.clear_existing,
         file_paths=file_paths,
     )
+    try:
+        config_service.rebuild_structured_kb_library(max_sources=50, save=True)
+        await config_service.ensure_structured_kb_llm_books(max_sources=50, force=True)
+    except Exception as exc:
+        report["library_reindex_warning"] = str(exc)
     return report
 
 
@@ -676,6 +681,7 @@ async def upload_rag_files(
                 sources.append(entry["path"])
                 existing.add(entry["path"])
         config_service.update_knowledge_config({"sources": sources})
+        asyncio.create_task(config_service.ensure_structured_kb_llm_books(max_sources=50, force=True))
 
     # Trigger LLM-based service knowledge enrichment after KB upload (non-blocking)
     asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
@@ -1268,12 +1274,12 @@ async def preview_extract_service_kb(payload: dict):
     if not isinstance(pages, list) or not pages:
         return {"extracted_knowledge": "", "reason": "no_kb_content"}
 
-    context_payload = config_service.build_service_library_context(
+    context_payload = await config_service.build_service_library_context_llm(
         service_name=service_name,
         service_description=service_description,
         max_books=12,
-        max_pages=44,
-        max_chars=90000,
+        max_pages=0,
+        max_chars=0,
     )
     context_text = str(context_payload.get("context_text") or "").strip()
     if not context_text:

@@ -3585,6 +3585,9 @@
             }
             if (kbKnowledge || svcTicketingConditions) {
                 payload.service_prompt_pack = {};
+                payload.service_prompt_pack.source = 'manual_override';
+                payload.service_prompt_pack.generator = 'admin_ui';
+                payload.service_prompt_pack.version = 1;
                 if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
                 if (svcTicketingConditions) payload.service_prompt_pack.ticketing_conditions = svcTicketingConditions;
             }
@@ -3734,7 +3737,7 @@
                                 <span class="toggle-slider"></span>
                             </label>
                             <button type="button" class="btn btn-outline btn-small" onclick="editService('${serviceId}')">Edit</button>
-                            <button type="button" class="btn btn-danger btn-small" onclick="removeServiceFromPhase('${serviceId}')">Remove</button>
+                            <button type="button" class="btn btn-danger btn-small" onclick="removeServiceFromPhase('${serviceId}')">Delete</button>
                         </div>
                     </div>
                 `;
@@ -3959,23 +3962,24 @@
         async function removeServiceFromPhase(serviceId) {
             const id = normalizeIdentifier(serviceId);
             if (!id) return;
-            if (!confirm('Remove this service from the current phase?')) return;
+            if (!confirm('Delete this service completely? It will be removed from all pages.')) return;
 
             try {
                 const res = await fetch(`${API_BASE}/config/services/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phase_id: '' })
+                    method: 'DELETE'
                 });
                 if (!res.ok) {
                     const payload = await res.json().catch(() => ({}));
                     throw new Error(payload.detail || `status ${res.status}`);
                 }
-                showToast('Service removed from phase');
+                showToast('Service deleted');
+                await Promise.all([loadPhaseServices(), loadPhaseAllServices()]);
+                renderPhaseExistingServiceOptions();
                 await loadJourneyPhasesWorkspace(currentPhaseId);
                 await loadServices(phaseAllServices);
+                loadTicketingAssociations(phaseAllServices);
             } catch (error) {
-                showToast(`Error removing service: ${error.message || error}`, 'error');
+                showToast(`Error deleting service: ${error.message || error}`, 'error');
             }
         }
 
@@ -4171,6 +4175,9 @@
             };
             if (kbKnowledge || ticketingConditions) {
                 payload.service_prompt_pack = {};
+                payload.service_prompt_pack.source = 'manual_override';
+                payload.service_prompt_pack.generator = 'admin_ui';
+                payload.service_prompt_pack.version = 1;
                 if (kbKnowledge) payload.service_prompt_pack.extracted_knowledge = kbKnowledge;
                 if (ticketingConditions) payload.service_prompt_pack.ticketing_conditions = ticketingConditions;
             }

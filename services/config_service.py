@@ -8,6 +8,7 @@ Supports multiple industries with template-based setup.
 import copy
 import hashlib
 import json
+import math
 import re
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -23,7 +24,6 @@ CONFIG_DIR = Path(__file__).parent.parent / "config"
 TEMPLATES_DIR = CONFIG_DIR / "templates"
 PROMPT_TEMPLATES_DIR = CONFIG_DIR / "prompt_templates"
 BUSINESS_CONFIG_FILE = CONFIG_DIR / "business_config.json"
-DEFAULT_BUNDLED_KB_FILE = CONFIG_DIR.parent / "ROHL_Test_property.txt"
 
 _KB_CONFLICT_AVAILABLE_MARKERS = (
     "available",
@@ -59,17 +59,6 @@ _KB_CONFLICT_DINE_IN_ONLY_MARKERS = (
     "no room delivery",
     "dine in",
 )
-
-_LIBRARY_TOPIC_ALIASES: dict[str, tuple[str, ...]] = {
-    "swimming_pool": ("swimming pool", "pool", "swim club", "bombay swim club"),
-    "spa_wellness": ("spa", "wellness", "massage", "therapy"),
-    "jacuzzi": ("jacuzzi", "hot tub"),
-    "checkin_checkout": ("check in", "checkin", "check out", "checkout", "early checkin", "late checkout"),
-    "airport_transfer": ("airport transfer", "airport pickup", "terminal", "t1", "t2"),
-    "dining": ("restaurant", "menu", "in room dining", "ird", "aviator", "kadak", "food", "beverage"),
-    "rooms_suites": ("room", "suite", "amenities", "minibar"),
-    "policies": ("policy", "cancellation", "smoking", "rules"),
-}
 
 _LIBRARY_TOPIC_STOPWORDS = {
     "the",
@@ -510,33 +499,7 @@ class ConfigService:
 
     @classmethod
     def _infer_service_prompt_profile(cls, service: Dict[str, Any]) -> str:
-        tokens = cls._service_prompt_profile_tokens(service)
-        booking_tokens = {"booking", "book", "reservation", "reserve", "appointment", "schedule"}
-        room_tokens = {"room", "suite", "stay", "checkin", "checkout", "check", "in", "out"}
-        transport_tokens = {"transport", "transfer", "pickup", "drop", "cab", "taxi", "shuttle", "chauffeur"}
-        complaint_tokens = {
-            "complaint",
-            "issue",
-            "problem",
-            "maintenance",
-            "broken",
-            "housekeeping",
-            "support",
-            "escalation",
-        }
-        dining_tokens = {"dining", "food", "menu", "restaurant", "order", "meal", "kitchen"}
-
-        if tokens & transport_tokens:
-            return "transport_request"
-        if tokens & room_tokens and tokens & booking_tokens:
-            return "room_booking"
-        if tokens & complaint_tokens:
-            return "issue_resolution"
-        if tokens & dining_tokens and ("order" in tokens or "dining" in tokens):
-            return "dining_request"
-        if tokens & booking_tokens:
-            return "general_booking"
-        return "general_service"
+        return cls._normalize_identifier(service.get("profile"))
 
     @classmethod
     def _coerce_service_prompt_slot(cls, slot: Any) -> Optional[Dict[str, Any]]:
@@ -570,60 +533,8 @@ class ConfigService:
 
     @classmethod
     def _default_service_prompt_slots(cls, profile: str) -> list[dict[str, Any]]:
-        def _slot(slot_id: str, label: str, prompt: str, *, required: bool = True, slot_type: str = "text") -> dict[str, Any]:
-            return {
-                "id": slot_id,
-                "label": label,
-                "prompt": prompt,
-                "required": required,
-                "type": slot_type,
-            }
-
-        base_slots = [
-            _slot(
-                "request_details",
-                "Request Details",
-                "Please share the request details so I can proceed correctly.",
-                required=True,
-                slot_type="text",
-            )
-        ]
-        profile_slots: dict[str, list[dict[str, Any]]] = {
-            "general_booking": [
-                _slot("preferred_date", "Preferred Date", "What date should this be arranged for?", slot_type="date"),
-                _slot("preferred_time", "Preferred Time", "What time works best for you?", slot_type="time"),
-                _slot("guest_count", "Guest Count", "How many guests should I include?", slot_type="number"),
-            ],
-            "room_booking": [
-                _slot("guest_name", "Guest Name", "May I have your full name?"),
-                _slot("contact_number", "Contact Number", "What is your contact number?"),
-                _slot("check_in_date", "Check-in Date", "What is your check-in date?", slot_type="date"),
-                _slot("check_out_date", "Check-out Date", "What is your check-out date?", slot_type="date"),
-                _slot("guest_count", "Guest Count", "How many guests will stay?", slot_type="number"),
-                _slot("room_type", "Room Type", "Which room type should I look for?", required=False),
-            ],
-            "transport_request": [
-                _slot("pickup_location", "Pickup Location", "Please share the pickup location."),
-                _slot("drop_location", "Drop Location", "Please share the drop location."),
-                _slot("travel_date", "Travel Date", "What is the travel date?", slot_type="date"),
-                _slot("travel_time", "Travel Time", "What is the pickup time?", slot_type="time"),
-                _slot("passenger_count", "Passenger Count", "How many passengers should be included?", slot_type="number"),
-            ],
-            "issue_resolution": [
-                _slot("issue_summary", "Issue Summary", "Please describe the issue clearly."),
-                _slot("issue_location", "Issue Location", "Where is this happening?", required=False),
-                _slot("room_number", "Room Number", "Please share your room number if applicable.", required=False),
-            ],
-            "dining_request": [
-                _slot("order_items", "Order Items", "What items would you like to order?"),
-                _slot("quantity", "Quantity", "Please share quantity details.", required=False, slot_type="number"),
-                _slot("delivery_time", "Delivery Time", "When should we deliver this?", required=False, slot_type="time"),
-                _slot("room_number", "Room Number", "Please share your room number for delivery."),
-            ],
-        }
-
-        selected = profile_slots.get(str(profile or "").strip().lower(), [])
-        return [*base_slots, *selected]
+        _ = profile
+        return []
 
     @classmethod
     def _default_service_prompt_validation_rules(cls, required_slots: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -669,25 +580,24 @@ class ConfigService:
     def _generate_service_prompt_pack(cls, service: Dict[str, Any]) -> Dict[str, Any]:
         service_name = str(service.get("name") or service.get("id") or "service").strip()
         phase_id = cls._normalize_phase_identifier(service.get("phase_id"))
-        profile = cls._infer_service_prompt_profile(service)
-        required_slots = cls._default_service_prompt_slots(profile)
-        validation_rules = cls._default_service_prompt_validation_rules(required_slots)
+        profile = str(service.get("profile") or "").strip().lower()
         ticketing_enabled = bool(service.get("ticketing_enabled", True))
         ticketing_policy = str(service.get("ticketing_policy") or "").strip()
 
         return {
-            "version": 1,
-            "generator": "service_prompt_pack_v1",
-            "source": "auto_generated",
+            "version": 2,
+            "generator": "service_prompt_pack_v2",
+            "source": "system_default",
             "profile": profile,
             "role": f"You are the dedicated assistant for {service_name}.",
             "professional_behavior": (
-                "Collect details clearly, ask one targeted question at a time, "
-                "validate required fields before confirmation, and avoid assumptions."
+                "Use only admin-configured policy and KB evidence. "
+                "Ask concise clarifying questions when required details are missing. "
+                "Do not invent fixed field schemas."
             ),
             "phase_id": phase_id,
-            "required_slots": required_slots,
-            "validation_rules": validation_rules,
+            "required_slots": [],
+            "validation_rules": [],
             "confirmation_format": {
                 "style": "summary_then_explicit_confirm",
                 "template": (
@@ -699,14 +609,9 @@ class ConfigService:
             "ticketing_policy": {
                 "enabled": ticketing_enabled,
                 "policy": ticketing_policy,
-                "decision_template": (
-                    "Create ticket only when ticketing is enabled for this service "
-                    "and policy criteria are satisfied."
-                ),
+                "decision_template": "",
             },
-            "execution_guard": {
-                "require_required_slots_before_confirm": True,
-            },
+            "execution_guard": {},
         }
 
     @classmethod
@@ -840,13 +745,8 @@ class ConfigService:
         if not isinstance(pack, dict):
             return False
         required_slots = pack.get("required_slots")
-        # A pack with ticketing_conditions is valid even without required_slots —
-        # the conditions text is the source of truth for what to collect.
-        has_ticketing_conditions = bool(str(pack.get("ticketing_conditions") or "").strip())
-        if not isinstance(required_slots, list) or not required_slots:
-            if not has_ticketing_conditions:
-                return False
-            required_slots = []  # ticketing_conditions present — slots optional
+        if not isinstance(required_slots, list):
+            return False
         for slot in required_slots:
             if not isinstance(slot, dict):
                 return False
@@ -924,7 +824,12 @@ class ConfigService:
         if isinstance(existing_prompt_pack, dict):
             existing_source = str(existing_prompt_pack.get("source") or "").strip().lower()
         existing_custom_flag = bool(service.get("service_prompt_pack_custom", False))
-        existing_manual = existing_custom_flag or existing_source == "manual_override"
+        existing_manual = existing_custom_flag or existing_source in {
+            "manual_override",
+            "admin_ui",
+            "admin_override",
+            "db",
+        }
 
         prompt_pack: Dict[str, Any]
         if manual_prompt_override and isinstance(existing_prompt_pack, dict):
@@ -1577,6 +1482,43 @@ class ConfigService:
         """Tokenize user/query text for lightweight FAQ matching."""
         return {token for token in re.findall(r"[a-z0-9]+", str(text).lower()) if len(token) > 1}
 
+    @staticmethod
+    def _expand_token_forms(tokens: set[str]) -> set[str]:
+        """
+        Expand simple singular/plural variants so retrieval is less brittle
+        (for example, room<->rooms, reservation<->reservations).
+        """
+        expanded = set(tokens)
+        for token in list(tokens):
+            value = str(token or "").strip().lower()
+            if len(value) <= 2:
+                continue
+            if value.endswith("ies") and len(value) > 4:
+                expanded.add(f"{value[:-3]}y")
+            if value.endswith("s") and len(value) > 3:
+                expanded.add(value[:-1])
+            else:
+                expanded.add(f"{value}s")
+        return {token for token in expanded if token}
+
+    @staticmethod
+    def _weighted_overlap(
+        query_tokens: set[str],
+        candidate_tokens: set[str],
+        *,
+        token_weights: dict[str, float],
+        total_query_weight: float,
+    ) -> float:
+        if not query_tokens or not candidate_tokens:
+            return 0.0
+        intersection = query_tokens & candidate_tokens
+        if not intersection:
+            return 0.0
+        if total_query_weight <= 0:
+            return len(intersection) / max(1, len(query_tokens))
+        matched_weight = sum(float(token_weights.get(token, 1.0)) for token in intersection)
+        return matched_weight / total_query_weight
+
     def _ensure_config_shape(self, config: Dict[str, Any]) -> bool:
         """Ensure old configs are transparently upgraded to latest schema."""
         changed = self._merge_defaults(config, self._default_config())
@@ -1613,6 +1555,8 @@ class ConfigService:
             "version": "v1",
             "source_signature": "",
             "generated_at": "",
+            "book_index_generator": "default_v1",
+            "book_index_generated_at": "",
             "source_count": 0,
             "documents": [],
             "pages": [],
@@ -2025,7 +1969,7 @@ class ConfigService:
     def get_service_prompt_pack(self, service_id: str) -> Dict[str, Any]:
         """
         Return normalized prompt pack for a service.
-        Falls back to auto-generated profile when not manually configured.
+        Falls back to a neutral system-default pack when not manually configured.
         """
         service = self.get_service(service_id)
         if not isinstance(service, dict):
@@ -2156,29 +2100,82 @@ class ConfigService:
                 return saved
         return False
 
-    def _prune_service_kb_records(self, config: Dict[str, Any], service_ids_to_remove: set) -> None:
-        """Remove service_kb records for deleted service IDs in-place."""
+    def _prune_agent_plugins_for_services(
+        self,
+        config: Dict[str, Any],
+        service_ids_to_remove: set[str],
+    ) -> set[str]:
+        """Remove agent_plugins entries linked to deleted service IDs in-place."""
+        removed_plugin_ids: set[str] = set()
+        if not service_ids_to_remove:
+            return removed_plugin_ids
+
+        plugins_cfg = config.get("agent_plugins")
+        if not isinstance(plugins_cfg, dict):
+            return removed_plugin_ids
+        plugin_rows = plugins_cfg.get("plugins")
+        if not isinstance(plugin_rows, list):
+            return removed_plugin_ids
+
+        kept_plugins: list[Any] = []
+        for plugin in plugin_rows:
+            if not isinstance(plugin, dict):
+                kept_plugins.append(plugin)
+                continue
+            plugin_service_id = self._normalize_identifier(plugin.get("service_id"))
+            plugin_id = self._normalize_identifier(plugin.get("id"))
+            if plugin_service_id and plugin_service_id in service_ids_to_remove:
+                if plugin_id:
+                    removed_plugin_ids.add(plugin_id)
+                continue
+            kept_plugins.append(plugin)
+
+        plugins_cfg["plugins"] = kept_plugins
+        return removed_plugin_ids
+
+    def _prune_service_kb_records(
+        self,
+        config: Dict[str, Any],
+        service_ids_to_remove: set[str],
+        plugin_ids_to_remove: Optional[set[str]] = None,
+    ) -> None:
+        """Remove service_kb records for deleted service/plugin IDs in-place."""
         service_kb = config.get("service_kb")
         if not isinstance(service_kb, dict):
             return
         records = service_kb.get("records")
         if not isinstance(records, list):
             return
-        service_kb["records"] = [
-            r for r in records
-            if self._normalize_identifier(r.get("service_id")) not in service_ids_to_remove
-        ]
+        removed_plugin_ids = plugin_ids_to_remove or set()
+        kept_records: list[Any] = []
+        for record in records:
+            if not isinstance(record, dict):
+                kept_records.append(record)
+                continue
+            if self._normalize_identifier(record.get("service_id")) in service_ids_to_remove:
+                continue
+            if self._normalize_identifier(record.get("plugin_id")) in removed_plugin_ids:
+                continue
+            kept_records.append(record)
+        service_kb["records"] = kept_records
 
     def delete_service(self, service_id: str) -> bool:
         """Delete a service and its KB records."""
         normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return False
         config = self.load_config()
         config["services"] = [
             s
             for s in config.get("services", [])
             if self._normalize_identifier(s.get("id")) != normalized_id
         ]
-        self._prune_service_kb_records(config, {normalized_id})
+        removed_plugin_ids = self._prune_agent_plugins_for_services(config, {normalized_id})
+        self._prune_service_kb_records(
+            config,
+            {normalized_id},
+            plugin_ids_to_remove=removed_plugin_ids,
+        )
         saved = self.save_config(config)
         if saved:
             self._maybe_auto_compile_service_kb()
@@ -2187,7 +2184,13 @@ class ConfigService:
     def clear_services(self) -> bool:
         """Delete all services and their KB records from config."""
         config = self.load_config()
+        service_ids_to_remove = {
+            self._normalize_identifier(s.get("id"))
+            for s in config.get("services", [])
+            if isinstance(s, dict) and self._normalize_identifier(s.get("id"))
+        }
         config["services"] = []
+        self._prune_agent_plugins_for_services(config, service_ids_to_remove)
         service_kb = config.get("service_kb")
         if isinstance(service_kb, dict):
             service_kb["records"] = []
@@ -3523,7 +3526,7 @@ class ConfigService:
         *,
         chunk_chars: int = 28000,
         overlap_chars: int = 1200,
-        max_chunks: int = 24,
+        max_chunks: int = 0,
     ) -> list[str]:
         content = str(text or "").strip()
         if not content:
@@ -3534,7 +3537,9 @@ class ConfigService:
         chunks: list[str] = []
         start = 0
         step = max(1, chunk_chars - overlap_chars)
-        while start < len(content) and len(chunks) < max_chunks:
+        while start < len(content):
+            if max_chunks > 0 and len(chunks) >= max_chunks:
+                break
             end = min(len(content), start + chunk_chars)
             chunks.append(content[start:end])
             if end >= len(content):
@@ -3556,6 +3561,7 @@ class ConfigService:
             f"SERVICE DESCRIPTION: {service_description}\n\n"
             "Extract only information explicitly present in provided KB evidence.\n"
             "Do not invent or assume any missing detail.\n"
+            "Do not omit relevant details from evidence chunks.\n"
             "Preserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\n"
             "If a field is not present in evidence, state that it is not available in KB.\n"
             "Organize output with clear section headers."
@@ -3607,23 +3613,8 @@ class ConfigService:
             return ""
         if len(partials) == 1:
             return partials[0].strip()
-
-        consolidated = await llm_client.chat(
-            [
-                {"role": "system", "content": extraction_prompt},
-                {
-                    "role": "user",
-                    "content": (
-                        "Merge and deduplicate the extracted notes below into one final service knowledge pack.\n"
-                        "Keep only evidence-backed details. If contradictory, mention both variants and mark as conflicting.\n\n"
-                        + "\n\n---\n\n".join(partials)
-                    ),
-                },
-            ],
-            temperature=0.0,
-            max_tokens=1800,
-        )
-        return str(consolidated or "").strip() or "\n\n".join(partials).strip()
+        # Preserve full evidence coverage: avoid aggressive compression that can drop details.
+        return "\n\n---\n\n".join(partials).strip()
 
     async def enrich_service_kb_records(
         self,
@@ -3696,12 +3687,12 @@ class ConfigService:
             if not isinstance(existing_completeness, dict):
                 existing_completeness = {}
 
-            context_payload = self.build_service_library_context(
+            context_payload = await self.build_service_library_context_llm(
                 service_name=service_name,
                 service_description=service_description,
                 max_books=12,
-                max_pages=44,
-                max_chars=90000,
+                max_pages=0,
+                max_chars=0,
             )
             context_text = str(context_payload.get("context_text") or "").strip()
             if not context_text:
@@ -4371,30 +4362,13 @@ class ConfigService:
         return sections
 
     def _infer_library_topics(self, title: str, text: str) -> list[str]:
-        topic_candidates: list[str] = []
-        base = self._normalize_slug(title) or "general"
-        topic_candidates.append(base)
-
-        haystack = f"{title}\n{text[:3000]}".lower()
-        for topic_id, aliases in _LIBRARY_TOPIC_ALIASES.items():
-            if any(alias in haystack for alias in aliases):
-                topic_candidates.append(topic_id)
-
-        deduped: list[str] = []
-        seen: set[str] = set()
-        for topic in topic_candidates:
-            normalized = self._normalize_slug(topic)
-            if not normalized:
-                continue
-            if normalized in seen:
-                continue
-            seen.add(normalized)
-            deduped.append(normalized)
-        return deduped or ["general"]
+        _ = text
+        base = self._normalize_slug(title)
+        return [base or "general"]
 
     def _library_topic_aliases(self, topic_id: str) -> list[str]:
         normalized = self._normalize_slug(topic_id)
-        aliases = list(_LIBRARY_TOPIC_ALIASES.get(normalized, ()))
+        aliases: list[str] = []
         human = re.sub(r"\s+", " ", normalized.replace("_", " ")).strip().title()
         if human:
             aliases.append(human)
@@ -4407,6 +4381,90 @@ class ConfigService:
             seen.add(key)
             deduped.append(str(alias).strip())
         return deduped
+
+    def _aggregate_books_from_pages(self, pages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        page_map = {str(page.get("id") or ""): page for page in pages if isinstance(page, dict)}
+        book_pages: dict[str, list[str]] = defaultdict(list)
+        book_sources: dict[str, set[str]] = defaultdict(set)
+        book_keywords: dict[str, set[str]] = defaultdict(set)
+        book_titles: dict[str, str] = {}
+        book_aliases: dict[str, set[str]] = defaultdict(set)
+
+        for page in pages:
+            if not isinstance(page, dict):
+                continue
+            page_id = str(page.get("id") or "").strip()
+            if not page_id:
+                continue
+            source_name = str(page.get("source_name") or "").strip()
+            title = str(page.get("title") or "").strip()
+            text = str(page.get("text") or "")
+            title_tokens = self._tokenize_text(title)
+            body_tokens = self._tokenize_text(text[:2500])
+            token_candidates = {
+                token for token in (title_tokens | body_tokens) if token not in _LIBRARY_TOPIC_STOPWORDS
+            }
+
+            raw_topics = page.get("topics", [])
+            if not isinstance(raw_topics, list):
+                raw_topics = []
+            topics: list[str] = []
+            for topic in raw_topics:
+                normalized = self._normalize_slug(topic)
+                if not normalized or normalized in topics:
+                    continue
+                topics.append(normalized)
+
+            if not topics:
+                topics = [self._normalize_slug(title) or "general"]
+
+            for idx, topic_id in enumerate(topics):
+                if page_id not in book_pages[topic_id]:
+                    book_pages[topic_id].append(page_id)
+                if source_name:
+                    book_sources[topic_id].add(source_name)
+                book_keywords[topic_id].update(token_candidates)
+
+                if idx == 0:
+                    primary_topic_name = str(page.get("primary_topic_name") or "").strip()
+                    if not primary_topic_name:
+                        primary_topic_name = re.sub(r"\s+", " ", topic_id.replace("_", " ")).strip().title()
+                    if primary_topic_name:
+                        book_titles[topic_id] = primary_topic_name
+
+                if idx < len(raw_topics):
+                    raw_topic_value = str(raw_topics[idx] or "").strip()
+                    if raw_topic_value:
+                        book_aliases[topic_id].add(raw_topic_value)
+                human_alias = re.sub(r"\s+", " ", topic_id.replace("_", " ")).strip().title()
+                if human_alias:
+                    book_aliases[topic_id].add(human_alias)
+
+        books: list[dict[str, Any]] = []
+        for topic_id, page_ids in book_pages.items():
+            char_count = sum(int((page_map.get(page_id) or {}).get("char_count") or 0) for page_id in page_ids)
+            title = str(book_titles.get(topic_id) or re.sub(r"\s+", " ", topic_id.replace("_", " ")).strip().title())
+            aliases = sorted(
+                {
+                    str(alias).strip()
+                    for alias in book_aliases.get(topic_id, set())
+                    if str(alias).strip() and str(alias).strip().lower() != title.lower()
+                }
+            )
+            books.append(
+                {
+                    "id": topic_id,
+                    "title": title,
+                    "aliases": aliases,
+                    "keywords": sorted(book_keywords.get(topic_id, set())),
+                    "page_ids": list(page_ids),
+                    "page_count": len(page_ids),
+                    "char_count": char_count,
+                    "sources": sorted(book_sources.get(topic_id, set())),
+                }
+            )
+        books.sort(key=lambda row: (str(row.get("title") or "").lower(), str(row.get("id") or "")))
+        return books
 
     def _structured_library_source_signature(self, source_paths: list[Path]) -> str:
         parts: list[str] = []
@@ -4508,47 +4566,7 @@ class ConfigService:
                     }
                 )
 
-        book_pages: dict[str, list[str]] = defaultdict(list)
-        book_sources: dict[str, set[str]] = defaultdict(set)
-        book_keywords: dict[str, set[str]] = defaultdict(set)
-
-        for page in pages:
-            page_id = str(page.get("id") or "").strip()
-            if not page_id:
-                continue
-            source_name = str(page.get("source_name") or "").strip()
-            title = str(page.get("title") or "").strip()
-            text = str(page.get("text") or "")
-            title_tokens = self._tokenize_text(title)
-            body_tokens = self._tokenize_text(text[:2500])
-            token_candidates = {token for token in (title_tokens | body_tokens) if token not in _LIBRARY_TOPIC_STOPWORDS}
-            for topic in page.get("topics", []):
-                normalized_topic = self._normalize_slug(topic)
-                if not normalized_topic:
-                    continue
-                if page_id not in book_pages[normalized_topic]:
-                    book_pages[normalized_topic].append(page_id)
-                if source_name:
-                    book_sources[normalized_topic].add(source_name)
-                book_keywords[normalized_topic].update(token_candidates)
-
-        page_map = {str(page.get("id") or ""): page for page in pages}
-        books: list[dict[str, Any]] = []
-        for topic_id, page_ids in book_pages.items():
-            char_count = sum(int((page_map.get(page_id) or {}).get("char_count") or 0) for page_id in page_ids)
-            books.append(
-                {
-                    "id": topic_id,
-                    "title": re.sub(r"\s+", " ", topic_id.replace("_", " ")).strip().title(),
-                    "aliases": self._library_topic_aliases(topic_id),
-                    "keywords": sorted(book_keywords.get(topic_id, set())),
-                    "page_ids": list(page_ids),
-                    "page_count": len(page_ids),
-                    "char_count": char_count,
-                    "sources": sorted(book_sources.get(topic_id, set())),
-                }
-            )
-        books.sort(key=lambda row: (str(row.get("title") or "").lower(), str(row.get("id") or "")))
+        books = self._aggregate_books_from_pages(pages)
 
         total_pages = len(pages)
         covered_pages = sum(1 for page in pages if page.get("topics"))
@@ -4559,6 +4577,8 @@ class ConfigService:
             "version": "v1",
             "source_signature": source_signature,
             "generated_at": generated_at,
+            "book_index_generator": "default_v1",
+            "book_index_generated_at": generated_at,
             "source_count": len(documents),
             "documents": documents,
             "pages": pages,
@@ -4609,6 +4629,271 @@ class ConfigService:
             return library
         return self.rebuild_structured_kb_library(max_sources=max_sources, save=True)
 
+    @staticmethod
+    def _extract_json_object(text: str) -> dict[str, Any]:
+        raw = str(text or "").strip()
+        if not raw:
+            return {}
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            parsed = None
+        if isinstance(parsed, dict):
+            return parsed
+
+        first = raw.find("{")
+        last = raw.rfind("}")
+        if first < 0 or last <= first:
+            return {}
+        candidate = raw[first : last + 1]
+        try:
+            parsed = json.loads(candidate)
+        except Exception:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+
+    @staticmethod
+    def _safe_page_preview(text: str, max_chars: int = 360) -> str:
+        value = re.sub(r"\s+", " ", str(text or "").strip())
+        if len(value) <= max_chars:
+            return value
+        return value[:max_chars].rstrip() + "..."
+
+    async def _assign_books_to_pages_with_llm(
+        self,
+        pages: list[dict[str, Any]],
+        *,
+        batch_size: int = 24,
+    ) -> dict[str, list[str]]:
+        from config.settings import settings
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        assignments: dict[str, list[str]] = {}
+        if not isinstance(pages, list) or not pages:
+            return assignments
+
+        cleaned_pages = [page for page in pages if isinstance(page, dict) and str(page.get("id") or "").strip()]
+        if not cleaned_pages:
+            return assignments
+        if not bool(getattr(settings, "openai_api_key", "").strip()):
+            for page in cleaned_pages:
+                page_id = str(page.get("id") or "").strip()
+                if not page_id:
+                    continue
+                fallback_title = str(page.get("title") or "").strip() or "General"
+                assignments[page_id] = [fallback_title]
+            return assignments
+
+        capped_batch = max(8, min(int(batch_size or 24), 32))
+        for start in range(0, len(cleaned_pages), capped_batch):
+            batch = cleaned_pages[start : start + capped_batch]
+            lines: list[str] = []
+            for page in batch:
+                page_id = str(page.get("id") or "").strip()
+                title = str(page.get("title") or "").strip()
+                location = str(page.get("location") or "").strip()
+                source = str(page.get("source_name") or "").strip()
+                preview = self._safe_page_preview(page.get("text") or "")
+                lines.append(
+                    f"PAGE_ID: {page_id}\nTITLE: {title}\nLOCATION: {location}\nSOURCE: {source}\nPREVIEW: {preview}"
+                )
+
+            prompt = (
+                "You are a KB librarian.\n"
+                "Group pages into semantic topic books.\n"
+                "Do not rewrite page content, do not add facts, do not remove facts.\n"
+                "For each PAGE_ID, return 1-3 concise book titles that best represent the page.\n"
+                "High recall: if a page can belong to multiple topics, include all relevant topics.\n"
+                "Return strict JSON only with this schema:\n"
+                "{\n"
+                '  "assignments": [\n'
+                '    {"page_id": "page_00001", "book_titles": ["Topic A", "Topic B"]}\n'
+                "  ]\n"
+                "}\n"
+            )
+            response = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": "\n\n".join(lines)},
+                ],
+                temperature=0.0,
+                max_tokens=2200,
+            )
+
+            payload = self._extract_json_object(response)
+            rows = payload.get("assignments", [])
+            if not isinstance(rows, list):
+                rows = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                page_id = str(row.get("page_id") or "").strip()
+                if not page_id:
+                    continue
+                raw_titles = row.get("book_titles", [])
+                if not isinstance(raw_titles, list):
+                    raw_titles = []
+                titles: list[str] = []
+                for title in raw_titles:
+                    text = str(title or "").strip()
+                    if not text or text in titles:
+                        continue
+                    titles.append(text)
+                if titles:
+                    assignments[page_id] = titles
+
+        for page in cleaned_pages:
+            page_id = str(page.get("id") or "").strip()
+            if not page_id or page_id in assignments:
+                continue
+            fallback_title = str(page.get("title") or "").strip() or "General"
+            assignments[page_id] = [fallback_title]
+        return assignments
+
+    async def ensure_structured_kb_llm_books(
+        self,
+        *,
+        max_sources: int = 50,
+        force: bool = False,
+    ) -> dict[str, Any]:
+        library = self.get_structured_kb_library(rebuild_if_stale=True, max_sources=max_sources)
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        books = library.get("books", []) if isinstance(library, dict) else []
+        if not isinstance(pages, list) or not pages:
+            return library
+
+        generator = str(library.get("book_index_generator") or "").strip().lower()
+        if not force and generator == "llm_v1" and isinstance(books, list) and books:
+            return library
+
+        assignments = await self._assign_books_to_pages_with_llm(pages)
+        if not assignments:
+            return library
+
+        pages_next = copy.deepcopy(pages)
+        for page in pages_next:
+            if not isinstance(page, dict):
+                continue
+            page_id = str(page.get("id") or "").strip()
+            if not page_id:
+                continue
+            titles = assignments.get(page_id, [])
+            if not isinstance(titles, list):
+                titles = []
+            normalized_topics: list[str] = []
+            clean_titles: list[str] = []
+            for raw in titles[:3]:
+                title = str(raw or "").strip()
+                if not title or title in clean_titles:
+                    continue
+                clean_titles.append(title)
+                topic_id = self._normalize_slug(title)
+                if topic_id and topic_id not in normalized_topics:
+                    normalized_topics.append(topic_id)
+            if not normalized_topics:
+                fallback_topic = self._normalize_slug(page.get("title")) or "general"
+                normalized_topics = [fallback_topic]
+            page["topics"] = normalized_topics
+            page["primary_topic_name"] = clean_titles[0] if clean_titles else str(page.get("title") or "").strip()
+
+        books_next = self._aggregate_books_from_pages(pages_next)
+        now_iso = datetime.now(UTC).isoformat()
+        total_pages = len([row for row in pages_next if isinstance(row, dict)])
+        covered_pages = sum(1 for page in pages_next if isinstance(page, dict) and page.get("topics"))
+        uncovered_pages = max(0, total_pages - covered_pages)
+        coverage_ratio = 0.0 if total_pages <= 0 else round(covered_pages / total_pages, 4)
+
+        updated_library = dict(library)
+        updated_library["pages"] = pages_next
+        updated_library["books"] = books_next
+        updated_library["book_index_generator"] = "llm_v1"
+        updated_library["book_index_generated_at"] = now_iso
+        updated_library["coverage"] = {
+            "total_pages": total_pages,
+            "covered_pages": covered_pages,
+            "uncovered_pages": uncovered_pages,
+            "coverage_ratio": coverage_ratio,
+        }
+
+        config = self.load_config()
+        knowledge = config.setdefault("knowledge_base", {})
+        knowledge["library_index"] = updated_library
+        self.save_config(config)
+        return updated_library
+
+    async def _select_relevant_book_ids_with_llm(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        books: list[dict[str, Any]],
+        max_books: int,
+    ) -> list[str]:
+        from config.settings import settings
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        if not isinstance(books, list) or not books:
+            return []
+        if not bool(getattr(settings, "openai_api_key", "").strip()):
+            return []
+
+        catalog_lines: list[str] = []
+        valid_ids: set[str] = set()
+        for book in books:
+            if not isinstance(book, dict):
+                continue
+            book_id = str(book.get("id") or "").strip()
+            if not book_id:
+                continue
+            valid_ids.add(book_id)
+            title = str(book.get("title") or "").strip()
+            aliases = ", ".join(str(alias).strip() for alias in list(book.get("aliases") or [])[:4] if str(alias).strip())
+            page_count = int(book.get("page_count") or 0)
+            catalog_lines.append(f"{book_id} | title={title} | aliases={aliases} | pages={page_count}")
+
+        if not catalog_lines:
+            return []
+
+        prompt = (
+            "You are selecting KB topic books for service-specific extraction.\n"
+            "Goal: maximize recall (do not miss relevant topics).\n"
+            "Choose all book IDs potentially relevant to the service request.\n"
+            "Return strict JSON only:\n"
+            '{ "book_ids": ["id1", "id2"] }\n'
+        )
+        response = await llm_client.chat(
+            messages=[
+                {"role": "system", "content": prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"SERVICE NAME: {service_name}\n"
+                        f"SERVICE DESCRIPTION: {service_description}\n\n"
+                        "BOOK CATALOG:\n"
+                        + "\n".join(catalog_lines)
+                    ),
+                },
+            ],
+            temperature=0.0,
+            max_tokens=900,
+        )
+
+        payload = self._extract_json_object(response)
+        raw_ids = payload.get("book_ids", [])
+        if not isinstance(raw_ids, list):
+            raw_ids = []
+
+        selected: list[str] = []
+        hard_cap = max(max_books, max_books * 2)
+        for value in raw_ids:
+            book_id = str(value or "").strip()
+            if not book_id or book_id not in valid_ids or book_id in selected:
+                continue
+            selected.append(book_id)
+            if len(selected) >= hard_cap:
+                break
+        return selected
+
     def query_structured_kb_books(
         self,
         query: str,
@@ -4624,19 +4909,79 @@ class ConfigService:
 
         query_text = str(query or "").strip().lower()
         query_tokens = self._tokenize_text(query_text)
+        query_tokens = {token for token in query_tokens if token not in _LIBRARY_TOPIC_STOPWORDS}
+        query_tokens = self._expand_token_forms(query_tokens)
         if not query_tokens:
             return []
 
         page_map = {str(page.get("id") or ""): page for page in pages}
-        scored_books: list[tuple[float, dict[str, Any]]] = []
+        book_rows: list[dict[str, Any]] = []
+        token_df: dict[str, int] = defaultdict(int)
         for book in books:
             if not isinstance(book, dict):
                 continue
-            keyword_tokens = self._tokenize_text(" ".join(str(token) for token in book.get("keywords", [])))
-            alias_tokens = self._tokenize_text(" ".join(str(alias) for alias in book.get("aliases", [])))
-            title_tokens = self._tokenize_text(str(book.get("title") or ""))
-            book_tokens = keyword_tokens | alias_tokens | title_tokens
-            overlap = len(query_tokens & book_tokens) / max(1, len(query_tokens))
+            keyword_tokens = self._expand_token_forms(
+                self._tokenize_text(" ".join(str(token) for token in book.get("keywords", [])))
+            )
+            alias_tokens = self._expand_token_forms(
+                self._tokenize_text(" ".join(str(alias) for alias in book.get("aliases", [])))
+            )
+            title_tokens = self._expand_token_forms(self._tokenize_text(str(book.get("title") or "")))
+            id_tokens = self._expand_token_forms(self._tokenize_text(str(book.get("id") or "").replace("_", " ")))
+            book_tokens = keyword_tokens | alias_tokens | title_tokens | id_tokens
+            if not book_tokens:
+                continue
+            for token in book_tokens:
+                token_df[token] = int(token_df.get(token, 0)) + 1
+            book_rows.append(
+                {
+                    "book": book,
+                    "keyword_tokens": keyword_tokens,
+                    "alias_tokens": alias_tokens,
+                    "title_tokens": title_tokens,
+                    "id_tokens": id_tokens,
+                    "book_tokens": book_tokens,
+                }
+            )
+        if not book_rows:
+            return []
+
+        known_query_tokens = {token for token in query_tokens if token in token_df}
+        query_tokens_for_score = known_query_tokens or query_tokens
+        total_books = max(1, len(book_rows))
+        token_weights: dict[str, float] = {}
+        for token in query_tokens_for_score:
+            doc_freq = int(token_df.get(token, 0))
+            token_weights[token] = 1.0 + math.log((total_books + 1) / (doc_freq + 1))
+        total_query_weight = sum(token_weights.values()) or float(len(query_tokens_for_score))
+
+        scored_books: list[tuple[float, dict[str, Any]]] = []
+        for row in book_rows:
+            book = row["book"]
+            overlap = self._weighted_overlap(
+                query_tokens_for_score,
+                row["book_tokens"],
+                token_weights=token_weights,
+                total_query_weight=total_query_weight,
+            )
+            title_overlap = self._weighted_overlap(
+                query_tokens_for_score,
+                row["title_tokens"],
+                token_weights=token_weights,
+                total_query_weight=total_query_weight,
+            )
+            alias_overlap = self._weighted_overlap(
+                query_tokens_for_score,
+                row["alias_tokens"],
+                token_weights=token_weights,
+                total_query_weight=total_query_weight,
+            )
+            id_overlap = self._weighted_overlap(
+                query_tokens_for_score,
+                row["id_tokens"],
+                token_weights=token_weights,
+                total_query_weight=total_query_weight,
+            )
 
             title_text = str(book.get("title") or "").strip().lower()
             aliases_text = " ".join(str(alias or "").lower() for alias in book.get("aliases", []))
@@ -4646,7 +4991,7 @@ class ConfigService:
             if query_text and query_text in aliases_text:
                 phrase_bonus += 0.3
 
-            score = overlap + phrase_bonus
+            score = overlap + (0.45 * title_overlap) + (0.3 * alias_overlap) + (0.35 * id_overlap) + phrase_bonus
             if score <= 0.0:
                 continue
             scored_books.append((score, book))
@@ -4664,15 +5009,43 @@ class ConfigService:
                     continue
                 title = str(page.get("title") or "")
                 text = str(page.get("text") or "")
-                page_tokens = self._tokenize_text(f"{title} {text[:2400]}")
-                page_overlap = len(query_tokens & page_tokens) / max(1, len(query_tokens))
+                page_tokens = self._expand_token_forms(self._tokenize_text(f"{title} {text[:2400]}"))
+                page_title_tokens = self._expand_token_forms(self._tokenize_text(title))
+                page_overlap = self._weighted_overlap(
+                    query_tokens_for_score,
+                    page_tokens,
+                    token_weights=token_weights,
+                    total_query_weight=total_query_weight,
+                )
+                title_overlap = self._weighted_overlap(
+                    query_tokens_for_score,
+                    page_title_tokens,
+                    token_weights=token_weights,
+                    total_query_weight=total_query_weight,
+                )
+                page_score = page_overlap + (0.35 * title_overlap)
                 if query_text and query_text in text.lower():
-                    page_overlap += 0.3
-                if page_overlap <= 0:
-                    continue
-                page_rows.append((page_overlap, page))
+                    page_score += 0.2
+                if query_text and query_text in title.lower():
+                    page_score += 0.25
 
-            page_rows.sort(key=lambda row: (-row[0], -int(row[1].get("char_count") or 0)))
+                page_topics = []
+                for topic in page.get("topics", []):
+                    normalized_topic = self._normalize_slug(topic)
+                    if normalized_topic:
+                        page_topics.append(normalized_topic)
+                primary_topic = page_topics[0] if page_topics else ""
+                book_id = self._normalize_slug(book.get("id"))
+                if book_id and primary_topic == book_id:
+                    page_score += 0.25
+                elif book_id and book_id in page_topics:
+                    page_score += 0.05
+
+                if page_score <= 0:
+                    continue
+                page_rows.append((page_score, page))
+
+            page_rows.sort(key=lambda row: (-row[0], int(row[1].get("char_count") or 0)))
             selected_pages = [row[1] for row in page_rows[: max(1, max_pages_per_book)]]
             if not selected_pages:
                 continue
@@ -4687,49 +5060,74 @@ class ConfigService:
             )
         return selected
 
-    def build_service_library_context(
+    def _book_hits_from_ids(
         self,
         *,
-        service_name: str,
-        service_description: str,
-        max_books: int = 10,
-        max_pages: int = 40,
-        max_chars: int = 90000,
-    ) -> dict[str, Any]:
-        query = re.sub(r"\s+", " ", f"{service_name} {service_description}".strip())
-        book_hits = self.query_structured_kb_books(
-            query=query,
-            max_books=max_books,
-            max_pages_per_book=max(2, max_pages // max(1, max_books)),
-        )
-        library = self.get_structured_kb_library(rebuild_if_stale=True)
-        if not book_hits and isinstance(library, dict):
-            books = library.get("books", [])
-            pages = library.get("pages", [])
-            if isinstance(books, list) and isinstance(pages, list) and books and pages:
-                page_map = {str(page.get("id") or ""): page for page in pages if isinstance(page, dict)}
-                fallback_hits: list[dict[str, Any]] = []
-                for book in sorted(
-                    [row for row in books if isinstance(row, dict)],
-                    key=lambda row: int(row.get("page_count") or 0),
-                    reverse=True,
-                )[: max(1, max_books)]:
-                    selected_pages: list[dict[str, Any]] = []
-                    for page_id in book.get("page_ids", [])[: max(2, max_pages // max(1, max_books))]:
-                        page = page_map.get(str(page_id))
-                        if isinstance(page, dict):
-                            selected_pages.append(page)
-                    if selected_pages:
-                        fallback_hits.append(
-                            {
-                                "book_id": str(book.get("id") or ""),
-                                "book_title": str(book.get("title") or ""),
-                                "book_score": 0.0,
-                                "pages": selected_pages,
-                            }
-                        )
-                book_hits = fallback_hits
+        library: dict[str, Any],
+        book_ids: list[str],
+        max_books: int,
+        max_pages: int,
+    ) -> list[dict[str, Any]]:
+        books = library.get("books", [])
+        pages = library.get("pages", [])
+        if not isinstance(books, list) or not isinstance(pages, list):
+            return []
+        page_map = {str(page.get("id") or ""): page for page in pages if isinstance(page, dict)}
+        book_map = {
+            str(book.get("id") or ""): book
+            for book in books
+            if isinstance(book, dict) and str(book.get("id") or "").strip()
+        }
+        if not book_map:
+            return []
 
+        ordered_ids: list[str] = []
+        for raw in book_ids:
+            book_id = str(raw or "").strip()
+            if not book_id or book_id not in book_map or book_id in ordered_ids:
+                continue
+            ordered_ids.append(book_id)
+
+        if not ordered_ids:
+            return []
+
+        if max_books > 0:
+            ordered_ids = ordered_ids[: max(1, max_books)]
+        per_book_limit = 0
+        if max_pages > 0:
+            per_book_limit = max(2, max_pages // max(1, len(ordered_ids)))
+
+        hits: list[dict[str, Any]] = []
+        for book_id in ordered_ids:
+            book = book_map.get(book_id) or {}
+            selected_pages: list[dict[str, Any]] = []
+            page_ids = list(book.get("page_ids") or [])
+            if per_book_limit > 0:
+                page_ids = page_ids[:per_book_limit]
+            for page_id in page_ids:
+                page = page_map.get(str(page_id))
+                if isinstance(page, dict):
+                    selected_pages.append(page)
+            if not selected_pages:
+                continue
+            hits.append(
+                {
+                    "book_id": book_id,
+                    "book_title": str(book.get("title") or book_id),
+                    "book_score": 1.0,
+                    "pages": selected_pages,
+                }
+            )
+        return hits
+
+    def _compose_library_context_from_hits(
+        self,
+        *,
+        library: dict[str, Any],
+        book_hits: list[dict[str, Any]],
+        max_pages: int,
+        max_chars: int,
+    ) -> dict[str, Any]:
         if not book_hits:
             return {
                 "context_text": "",
@@ -4741,6 +5139,8 @@ class ConfigService:
                 "source_signature": str(library.get("source_signature") or "") if isinstance(library, dict) else "",
             }
 
+        enforce_page_limit = max_pages > 0
+        enforce_char_limit = max_chars > 0
         lines: list[str] = []
         used_page_ids: list[str] = []
         used_book_ids: list[str] = []
@@ -4769,13 +5169,13 @@ class ConfigService:
                     f"{page_title}\n{text}\n"
                 )
                 projected = total_chars + len(block) + 1
-                if projected > max_chars:
+                if enforce_char_limit and projected > max_chars:
                     truncated = True
                     break
                 lines.append(block)
                 total_chars = projected
                 used_page_ids.append(page_id)
-                if len(used_page_ids) >= max_pages:
+                if enforce_page_limit and len(used_page_ids) >= max_pages:
                     truncated = True
                     break
             if truncated:
@@ -4791,6 +5191,108 @@ class ConfigService:
             "truncated": truncated,
             "source_signature": str(library.get("source_signature") or ""),
         }
+
+    async def build_service_library_context_llm(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        max_books: int = 12,
+        max_pages: int = 0,
+        max_chars: int = 0,
+    ) -> dict[str, Any]:
+        library = await self.ensure_structured_kb_llm_books(max_sources=50)
+        books = library.get("books", []) if isinstance(library, dict) else []
+        if not isinstance(books, list) or not books:
+            return self.build_service_library_context(
+                service_name=service_name,
+                service_description=service_description,
+                max_books=max_books,
+                max_pages=max_pages,
+                max_chars=max_chars,
+            )
+
+        selected_book_ids = await self._select_relevant_book_ids_with_llm(
+            service_name=service_name,
+            service_description=service_description,
+            books=books,
+            max_books=max(1, max_books),
+        )
+        if not selected_book_ids:
+            return self.build_service_library_context(
+                service_name=service_name,
+                service_description=service_description,
+                max_books=max_books,
+                max_pages=max_pages,
+                max_chars=max_chars,
+            )
+
+        book_hits = self._book_hits_from_ids(
+            library=library,
+            book_ids=selected_book_ids,
+            max_books=max_books,
+            max_pages=max_pages,
+        )
+        if not book_hits:
+            return self.build_service_library_context(
+                service_name=service_name,
+                service_description=service_description,
+                max_books=max_books,
+                max_pages=max_pages,
+                max_chars=max_chars,
+            )
+        return self._compose_library_context_from_hits(
+            library=library,
+            book_hits=book_hits,
+            max_pages=max_pages,
+            max_chars=max_chars,
+        )
+
+    def build_service_library_context(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        max_books: int = 10,
+        max_pages: int = 40,
+        max_chars: int = 90000,
+    ) -> dict[str, Any]:
+        query = re.sub(r"\s+", " ", f"{service_name} {service_description}".strip())
+        effective_max_books = max(1, int(max_books or 1))
+        per_book_pages = 8
+        if max_pages > 0:
+            per_book_pages = max(2, max_pages // max(1, effective_max_books))
+        book_hits = self.query_structured_kb_books(
+            query=query,
+            max_books=effective_max_books,
+            max_pages_per_book=per_book_pages,
+        )
+        library = self.get_structured_kb_library(rebuild_if_stale=True)
+        if not book_hits and isinstance(library, dict):
+            books = library.get("books", [])
+            if isinstance(books, list) and books:
+                fallback_ids = [
+                    str(book.get("id") or "").strip()
+                    for book in sorted(
+                        [row for row in books if isinstance(row, dict)],
+                        key=lambda row: int(row.get("page_count") or 0),
+                        reverse=True,
+                    )
+                    if str(book.get("id") or "").strip()
+                ][:effective_max_books]
+                book_hits = self._book_hits_from_ids(
+                    library=library,
+                    book_ids=fallback_ids,
+                    max_books=effective_max_books,
+                    max_pages=max_pages,
+                )
+
+        return self._compose_library_context_from_hits(
+            library=library if isinstance(library, dict) else {},
+            book_hits=book_hits,
+            max_pages=max_pages,
+            max_chars=max_chars,
+        )
 
     def update_knowledge_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
         """Update knowledge sources and NLU policy."""
@@ -4864,14 +5366,6 @@ class ConfigService:
             path = Path(source)
             if path.exists() and path.is_file():
                 resolved.append(path.resolve())
-
-        if (
-            not resolved
-            and len(resolved) < max_sources
-            and DEFAULT_BUNDLED_KB_FILE.exists()
-            and DEFAULT_BUNDLED_KB_FILE.is_file()
-        ):
-            resolved.append(DEFAULT_BUNDLED_KB_FILE.resolve())
 
         deduped: list[Path] = []
         seen: set[str] = set()

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-13T11:13:16.688361+00:00",
+  "saved_at": "2026-03-13T16:08:10.162321+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -21897,6 +21897,743 @@
       ],
       "created_at": "2026-03-13T11:11:17.363615Z",
       "updated_at": "2026-03-13T11:13:16.637378Z"
+    },
+    "session_1773417427287_vuup5glol": {
+      "session_id": "session_1773417427287_vuup5glol",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "airport_transfer_service",
+        "flight_details": "UA123",
+        "pick_up_time": "12pm",
+        "contact_information": "123736873648",
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-checkin phase and has successfully arranged airport transportation to ICONIQA Hotel at 12 PM, with flight details UA123 and contact number 123736873648. They have been informed about breakfast options and various room types, including the Premier King Room and Ultimate Suite. The user is interested in room options but cannot book until the booking phase. The pet policy and pool facilities information remain unresolved. The airport transfer request has been confirmed with reference #LOCAL-217, and the user awaits further follow-up from the team.",
+          "facts": {
+            "phase": "pre_checkin",
+            "mentioned_day": "today",
+            "last_user_topic": "transport",
+            "mentioned_time": "12pm",
+            "latest_ticket": {
+              "id": "LOCAL-217",
+              "status": "open",
+              "category": "airport_transfer",
+              "sub_category": "pick-up",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-13T16:08:07.594738+00:00"
+            },
+            "last_ticket_id": "LOCAL-217",
+            "ticket_history": [
+              {
+                "id": "LOCAL-217",
+                "status": "open",
+                "category": "airport_transfer",
+                "sub_category": "pick-up",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-13T16:08:07.594738+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-13T15:57:13.266506+00:00"
+            },
+            {
+              "key": "mentioned_day",
+              "old_value": null,
+              "new_value": "today",
+              "change_type": "set",
+              "source_message": "What's for breakfast today?",
+              "timestamp": "2026-03-13T15:59:16.590510+00:00"
+            },
+            {
+              "key": "phase",
+              "old_value": "pre_booking",
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "pick me up frm airport",
+              "timestamp": "2026-03-13T16:04:45.698726+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "transport",
+              "change_type": "set",
+              "source_message": "pick me up frm airport",
+              "timestamp": "2026-03-13T16:04:45.698896+00:00"
+            },
+            {
+              "key": "mentioned_time",
+              "old_value": null,
+              "new_value": "12pm",
+              "change_type": "set",
+              "source_message": "pick me up from airport at 12pm",
+              "timestamp": "2026-03-13T16:06:51.047939+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-217",
+                "status": "open",
+                "category": "airport_transfer",
+                "sub_category": "pick-up",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-13T16:08:07.594738+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-217)! Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T16:08:07.594845+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-217",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-217)! Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T16:08:07.594881+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-217",
+                  "status": "open",
+                  "category": "airport_transfer",
+                  "sub_category": "pick-up",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-13T16:08:07.594738+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-217)! Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T16:08:07.594912+00:00"
+            }
+          ],
+          "last_summarized_count": 24,
+          "updated_at": "2026-03-13T16:08:10.098351+00:00",
+          "last_user_message": "Yes, confirm",
+          "last_assistant_message": "Your booking has been confirmed (Reference: #LOCAL-217)! Our team will follow up with you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T16:08:07.594077+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "ba264764-4b22-4873-9a3e-1c02bdf97df7",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-13T15:57:13.265759Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "283b7dc7-6b41-4d98-b848-b76bc58a1150",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today with your stay at ICONIQA Hotel?",
+          "timestamp": "2026-03-13T15:57:38.976203Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5b5d6c3781c1",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "512dc895-080e-4c07-a9fc-09d8b84de147",
+          "role": "user",
+          "content": "who are you",
+          "timestamp": "2026-03-13T15:57:54.659217Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Who are you?"
+          }
+        },
+        {
+          "id": "ee39f660-6275-45bc-a38c-67ddf62cba75",
+          "role": "assistant",
+          "content": "I am the virtual concierge assistant for ICONIQA Hotel, here to help you with any questions or requests you may have regarding your stay. How can I assist you today?",
+          "timestamp": "2026-03-13T15:58:07.005191Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-56cb3d72f4e3",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "33908dfd-f5ad-4ef1-b1ec-ad93867fe94f",
+          "role": "user",
+          "content": "What's for breakfast today?",
+          "timestamp": "2026-03-13T15:59:16.590128Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "32c8f6a0-4988-409d-82ca-3daedb298a9b",
+          "role": "assistant",
+          "content": "Today's breakfast options at ICONIQA Hotel include an à la carte menu available from 6:30 AM to 10:30 AM. Some of the items you can enjoy are:\n- Viennoiserie Basket: Croissant, Danish, Pain Au Chocolat, Cinnamon Roll\n- Avocado Toast: Served on sourdough with Sriracha Aioli\n- Pancakes: Served with Nutella, Maple Syrup, and Raspberry Jam\nPlease note that all calorie counts are listed per 100 grams of the serving. If you need more details or have specific dietary requirements, feel free to ask!",
+          "timestamp": "2026-03-13T15:59:30.846663Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-31afcc96acf3",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "88f78f52-aaf7-4519-81b5-953273125b48",
+          "role": "user",
+          "content": "i want a room",
+          "timestamp": "2026-03-13T15:59:47.398474Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I want a room."
+          }
+        },
+        {
+          "id": "a9b11e3f-537b-42cf-ada7-388f0ba8c822",
+          "role": "assistant",
+          "content": "Currently, room bookings are not available in the pre-booking phase. You can explore our room options and amenities, but booking a room is possible only in the booking phase. Please let me know if you need more information about our rooms or any other services.",
+          "timestamp": "2026-03-13T16:00:07.887458Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-1c4e5fd9b95c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ee304d8b-1c25-4db4-a2fd-1890e3b10165",
+          "role": "user",
+          "content": "Tell me about room options.",
+          "timestamp": "2026-03-13T16:01:13.498235Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Tell me about the room options."
+          }
+        },
+        {
+          "id": "81ee643a-2eab-4390-a4a3-f5e2a69a410a",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a variety of room options to suit different preferences:\n1. **Premier King Room**:\n- Total of 134 rooms\n- Sizes range from 229–340 sq. ft.\n- Features include cloud-soft linens, a versatile table-and-chair duo, in-room smart laundry closet, complimentary non-alcoholic minibar, espresso machines, high-speed WiFi, and a power shower with Ayurvedic bath products.\n2. **Premier Twin Room**:\n- Total of 48 rooms\n- Sizes range from 230–380 sq. ft.\n- Includes two plush twin beds, similar amenities as the Premier King Room.\n3. **LUX Suite**:\n- Total of 79 rooms\n- Sizes range from 380–485 sq. ft.\n- Offers a king-size bed, separate seating area, and panoramic city views.\n4. **Reserve Suite**:\n- Total of 16 rooms\n- Sizes range from 375–415 sq. ft.\n- Features a king-size bed and a separate lounge area.\n5. **Prestige Suite**:\n- Total of 6 rooms\n- 485 sq. ft. with a bathtub\n- Includes a king-size bed and an elegant seating area.\n6. **Ultimate Suite**:\n- Total of 8 rooms\n- 603 sq. ft.\n- Features a king-size bed, separate living and dining area, and floor-to-ceiling windows.\nAll rooms come with a collection of thoughtful amenities designed for comfort and convenience. If you need more details or have specific preferences, feel free to ask!",
+          "timestamp": "2026-03-13T16:01:52.097577Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-36595343e840",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2b586418-d65d-4d20-a992-bad471288e9b",
+          "role": "user",
+          "content": "Are pets allowed?",
+          "timestamp": "2026-03-13T16:04:02.901006Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "c3e50202-5180-47f3-8dcb-f45d26b985b9",
+          "role": "assistant",
+          "content": "The pet policy for ICONIQA Hotel is not available in the current context. Please contact the hotel directly for accurate information.",
+          "timestamp": "2026-03-13T16:04:25.295690Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-f2a33e3fbbdb",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "25589684-5bd9-477a-9ed9-f50c57bfecf0",
+          "role": "user",
+          "content": "pick me up frm airport",
+          "timestamp": "2026-03-13T16:04:45.698581Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Pick me up from airport"
+          }
+        },
+        {
+          "id": "a6c7c7eb-be3f-4cce-bb2c-3d0092cb8b89",
+          "role": "assistant",
+          "content": "To arrange your airport pick-up, please provide the following details: your flight details, pick-up time, and contact information.",
+          "timestamp": "2026-03-13T16:05:10.912582Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-9e8ca234cc00",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": false,
+            "ticket_create_skipped": true,
+            "ticket_create_skip_reason": "ticket_action_not_create_ticket",
+            "ticket_source": "llm_orchestration",
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2af336bb-e2a5-4415-aa53-eebce74656b4",
+          "role": "user",
+          "content": "do you have a pool",
+          "timestamp": "2026-03-13T16:06:30.569226Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a pool?"
+          }
+        },
+        {
+          "id": "f935e748-c68b-4e4d-ab38-dc84d4d9a055",
+          "role": "assistant",
+          "content": "I do not have details about the pool facilities at ICONIQA Hotel. I recommend contacting the hotel staff directly for more information.",
+          "timestamp": "2026-03-13T16:06:38.357666Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "128a54ad-b749-48f6-8c99-7cdf59529769",
+          "role": "user",
+          "content": "pick me up from airport at 12pm",
+          "timestamp": "2026-03-13T16:06:51.047650Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Pick me up from the airport at 12 pm."
+          }
+        },
+        {
+          "id": "8f84ea7f-acb8-44de-aab1-540681000513",
+          "role": "assistant",
+          "content": "To arrange your airport pick-up, I need a few more details. Please provide your flight details and contact information.",
+          "timestamp": "2026-03-13T16:07:11.534579Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-054d42d0ae34",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "41ebb02b-dc15-45ea-a0b0-e2c824ebcef2",
+          "role": "user",
+          "content": "Flight is UA123",
+          "timestamp": "2026-03-13T16:07:38.391445Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Flight is UA123."
+          }
+        },
+        {
+          "id": "6e082891-316b-437a-910b-893512218a15",
+          "role": "assistant",
+          "content": "To complete your airport pick-up arrangement, please provide your contact information.",
+          "timestamp": "2026-03-13T16:07:43.680842Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "eaf78335-761e-4834-816d-1ba902787ad1",
+          "role": "user",
+          "content": "conatct me 123736873648",
+          "timestamp": "2026-03-13T16:07:48.939589Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "contact me 123736873648"
+          }
+        },
+        {
+          "id": "6217010a-ae5c-45f0-ac3d-54f6827db422",
+          "role": "assistant",
+          "content": "Thank you for providing your contact information. Here is a summary of your airport transfer request:\n- Flight Details: UA123\n- Pick-up Time: 12 PM\n- Contact Information: 123736873648\nPlease confirm these details before execution. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-13T16:07:54.337043Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "0aeb21d6-7927-4886-9b8b-ad46b91637da",
+          "role": "user",
+          "content": "Yes, confirm",
+          "timestamp": "2026-03-13T16:08:01.500360Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "ecea02c3-637d-4593-8cad-5f917c799d7a",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-217)! Our team will follow up with you shortly.",
+          "timestamp": "2026-03-13T16:08:07.594606Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "airport transfer service",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "airport_transfer_service",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-217",
+            "ticket_status": "open",
+            "ticket_category": "airport_transfer",
+            "ticket_sub_category": "pick-up",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-217",
+              "id": "LOCAL-217",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-217",
+                "ticket_id": "LOCAL-217",
+                "status": "open",
+                "issue": "Airport transfer service requested for pick-up from the airport at 12 PM with flight details UA123 and contact number 123736873648.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-13T16:08:07.471300+00:00",
+                "updated_at": "2026-03-13T16:08:07.471300+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Airport transfer service requested for pick-up from the airport at 12 PM with flight details UA123 and contact number 123736873648.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "airport_transfer",
+                  "sub_categorization": "pick-up",
+                  "manager_notes": "",
+                  "created_at": "16:08:07 13-03-2026",
+                  "session_id": "session_1773417427287_vuup5glol",
+                  "phase": "Pre Checkin",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "airport_transfer",
+                  "sub_category": "pick-up",
+                  "service_id": "airport_transfer_service"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T15:57:09.491367Z",
+      "updated_at": "2026-03-13T16:08:10.098393Z"
     }
   }
 }

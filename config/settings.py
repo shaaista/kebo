@@ -120,7 +120,7 @@ class Settings(BaseSettings):
     chat_multi_ask_max_items: int = 6
     chat_multi_ask_decompose_model: str = ""
     chat_multi_ask_compose_model: str = ""
-    chat_require_strict_confirmation_phrase: bool = True
+    chat_require_strict_confirmation_phrase: bool = False
     chat_confirmation_phrase: str = "yes confirm"
     chat_kb_only_mode: bool = False
     chat_phase_gate_llm_only: bool = True

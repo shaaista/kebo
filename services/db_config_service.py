@@ -69,6 +69,32 @@ class DBConfigService:
         lowered = str(value or "").strip().lower()
         return re.sub(r"[^a-z0-9]+", "_", lowered).strip("_")
 
+    @classmethod
+    def _normalize_service_prompt_pack_payload(cls, pack: Any) -> Optional[Dict[str, Any]]:
+        """
+        Normalize service_prompt_pack before persisting to DB so runtime prompt inputs
+        remain durable and admin-managed across JSON sync/normalization cycles.
+        """
+        payload = pack
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except Exception:
+                return None
+        if not isinstance(payload, dict):
+            return None
+
+        normalized: Dict[str, Any] = dict(payload)
+        source = str(normalized.get("source") or "").strip().lower()
+        if not source:
+            normalized["source"] = "manual_override"
+        if "version" not in normalized:
+            normalized["version"] = 1
+        if not str(normalized.get("generator") or "").strip():
+            normalized["generator"] = "admin_ui"
+
+        return normalized
+
     @staticmethod
     def _normalize_ticketing_cases(raw_cases: Any) -> list[str]:
         """Normalize ticketing cases from strings/object rows."""
@@ -345,7 +371,16 @@ class DBConfigService:
         if row.phase_id:
             result["phase_id"] = row.phase_id
         if row.service_prompt_pack:
-            result["service_prompt_pack"] = row.service_prompt_pack
+            prompt_pack = self._normalize_service_prompt_pack_payload(row.service_prompt_pack)
+            if isinstance(prompt_pack, dict):
+                result["service_prompt_pack"] = prompt_pack
+                source = str(prompt_pack.get("source") or "").strip().lower()
+                result["service_prompt_pack_custom"] = bool(
+                    source in {"manual_override", "admin_ui", "admin_override", "db"}
+                    or str(prompt_pack.get("ticketing_conditions") or "").strip()
+                    or str(prompt_pack.get("extracted_knowledge") or "").strip()
+                    or bool(prompt_pack.get("required_slots"))
+                )
         return result
 
     def _sync_services_to_json(self, services: List[Dict[str, Any]]) -> None:
@@ -356,6 +391,81 @@ class DBConfigService:
             self._save_json_config(json_config)
         except Exception as e:
             print(f"[JSON] Failed to sync services to JSON: {e}")
+
+    def _prune_json_service_artifacts(
+        self,
+        *,
+        service_ids_to_remove: set[str],
+        clear_service_kb_records: bool = False,
+    ) -> None:
+        """
+        Remove JSON artifacts linked to deleted services so runtime uses a clean state.
+        Prunes:
+        - agent_plugins.plugins rows linked by service_id
+        - service_kb.records linked by service_id or removed plugin_id
+        """
+        try:
+            normalized_service_ids = {
+                self._normalize_identifier(item)
+                for item in service_ids_to_remove
+                if self._normalize_identifier(item)
+            }
+            json_config = self._load_json_config()
+            changed = False
+
+            removed_plugin_ids: set[str] = set()
+            plugins_cfg = json_config.get("agent_plugins")
+            if isinstance(plugins_cfg, dict):
+                plugin_rows = plugins_cfg.get("plugins")
+                if isinstance(plugin_rows, list):
+                    kept_plugins: list[Any] = []
+                    for plugin in plugin_rows:
+                        if not isinstance(plugin, dict):
+                            kept_plugins.append(plugin)
+                            continue
+                        plugin_service_id = self._normalize_identifier(plugin.get("service_id"))
+                        plugin_id = self._normalize_identifier(plugin.get("id"))
+                        if plugin_service_id and plugin_service_id in normalized_service_ids:
+                            if plugin_id:
+                                removed_plugin_ids.add(plugin_id)
+                            continue
+                        kept_plugins.append(plugin)
+                    if kept_plugins != plugin_rows:
+                        plugins_cfg["plugins"] = kept_plugins
+                        changed = True
+
+            service_kb = json_config.get("service_kb")
+            if isinstance(service_kb, dict):
+                records = service_kb.get("records")
+                if clear_service_kb_records:
+                    if isinstance(records, list) and records:
+                        service_kb["records"] = []
+                        changed = True
+                elif isinstance(records, list):
+                    kept_records = []
+                    for record in records:
+                        if not isinstance(record, dict):
+                            kept_records.append(record)
+                            continue
+                        record_service_id = self._normalize_identifier(record.get("service_id"))
+                        record_plugin_id = self._normalize_identifier(record.get("plugin_id"))
+                        if record_service_id and record_service_id in normalized_service_ids:
+                            continue
+                        if record_plugin_id and record_plugin_id in removed_plugin_ids:
+                            continue
+                        kept_records.append(record)
+                    if kept_records != records:
+                        service_kb["records"] = kept_records
+                        changed = True
+
+            if changed:
+                self._save_json_config(json_config)
+                print(
+                    "[JSON] Pruned service artifacts "
+                    f"(services={sorted(normalized_service_ids)}, plugins={sorted(removed_plugin_ids)})"
+                )
+        except Exception as e:
+            print(f"[JSON] Service artifact prune failed: {e}")
 
     async def get_services(self) -> List[Dict[str, Any]]:
         """Load services from new_bot_services (DB-primary). Syncs JSON on load."""
@@ -384,12 +494,7 @@ class DBConfigService:
 
         hotel_id = await self.get_current_hotel_id()
         phase_id = self._normalize_phase_identifier(service.get("phase_id")) or None
-        prompt_pack = service.get("service_prompt_pack")
-        if isinstance(prompt_pack, str):
-            try:
-                prompt_pack = json.loads(prompt_pack)
-            except Exception:
-                prompt_pack = None
+        prompt_pack = self._normalize_service_prompt_pack_payload(service.get("service_prompt_pack"))
 
         try:
             async with AsyncSessionLocal() as session:
@@ -475,12 +580,7 @@ class DBConfigService:
                 if "ticketing_policy" in updates:
                     row.ticketing_policy = str(updates["ticketing_policy"] or "").strip() or None
                 if "service_prompt_pack" in updates:
-                    pack = updates["service_prompt_pack"]
-                    if isinstance(pack, str):
-                        try:
-                            pack = json.loads(pack)
-                        except Exception:
-                            pack = None
+                    pack = self._normalize_service_prompt_pack_payload(updates["service_prompt_pack"])
                     row.service_prompt_pack = pack
                 await session.commit()
                 print(f"[DB] Updated service {normalized_id}: {list(updates.keys())}")
@@ -495,16 +595,20 @@ class DBConfigService:
     async def delete_service(self, service_id: str) -> bool:
         """Hard-delete a service row from new_bot_services."""
         normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return False
         hotel_id = await self.get_current_hotel_id()
+        deleted_rows = 0
         try:
             async with AsyncSessionLocal() as session:
-                await session.execute(
+                result = await session.execute(
                     delete(BotService).where(
                         BotService.hotel_id == hotel_id,
                         BotService.service_id == normalized_id,
                     )
                 )
                 await session.commit()
+                deleted_rows = int(result.rowcount or 0)
                 print(f"[DB] Deleted service {normalized_id}")
         except Exception as e:
             print(f"[DB] delete_service failed for {normalized_id}: {e}")
@@ -512,26 +616,23 @@ class DBConfigService:
 
         all_services = await self.get_services()
         self._sync_services_to_json(all_services)
-        # Prune orphaned KB records for the deleted service.
-        try:
-            json_config = self._load_json_config()
-            service_kb = json_config.get("service_kb")
-            if isinstance(service_kb, dict) and isinstance(service_kb.get("records"), list):
-                service_kb["records"] = [
-                    r for r in service_kb["records"]
-                    if self._normalize_identifier(r.get("service_id")) != normalized_id
-                ]
-                self._save_json_config(json_config)
-                print(f"[JSON] Pruned KB records for deleted service {normalized_id}")
-        except Exception as e:
-            print(f"[JSON] KB record prune failed for {normalized_id}: {e}")
-        return True
+        self._prune_json_service_artifacts(service_ids_to_remove={normalized_id})
+        return deleted_rows > 0
 
     async def clear_services(self) -> bool:
         """Delete all services for this hotel."""
         hotel_id = await self.get_current_hotel_id()
+        service_ids_to_remove: set[str] = set()
         try:
             async with AsyncSessionLocal() as session:
+                existing_service_ids = await session.execute(
+                    select(BotService.service_id).where(BotService.hotel_id == hotel_id)
+                )
+                service_ids_to_remove = {
+                    self._normalize_identifier(item)
+                    for item in existing_service_ids.scalars().all()
+                    if self._normalize_identifier(item)
+                }
                 await session.execute(
                     delete(BotService).where(BotService.hotel_id == hotel_id)
                 )
@@ -542,16 +643,10 @@ class DBConfigService:
             return False
 
         self._sync_services_to_json([])
-        # Clear all KB records since no services remain.
-        try:
-            json_config = self._load_json_config()
-            service_kb = json_config.get("service_kb")
-            if isinstance(service_kb, dict):
-                service_kb["records"] = []
-                self._save_json_config(json_config)
-                print("[JSON] Cleared all service KB records")
-        except Exception as e:
-            print(f"[JSON] KB records clear failed: {e}")
+        self._prune_json_service_artifacts(
+            service_ids_to_remove=service_ids_to_remove,
+            clear_service_kb_records=True,
+        )
         return True
 
     # ==================== KB FILES (DB-PRIMARY) ====================
