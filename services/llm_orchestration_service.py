@@ -331,11 +331,7 @@ class LLMOrchestrationService:
                         str(prompt_pack.get("extracted_knowledge") or "").strip()
                         or extracted_kb_map.get(sid, "")
                     ),
-                    "confirmation_pending_action": (
-                        "confirm_room_booking"
-                        if str(prompt_pack.get("profile") or "").strip().lower() in {"room_booking", "stay_booking"}
-                        else "confirm_booking"
-                    ),
+                    "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
                 }
             )
@@ -1153,6 +1149,14 @@ class LLMOrchestrationService:
         required_slots = prompt_pack.get("required_slots", [])
         if not isinstance(required_slots, list):
             required_slots = []
+        # Track whether the admin explicitly saved required_slots in the pack
+        # (vs auto-generated defaults injected during normalization).
+        # This decides whether the slot list or ticketing_conditions drives collection.
+        _raw_pack = service.get("service_prompt_pack") or {}
+        _pack_has_explicit_slots = (
+            isinstance(_raw_pack.get("required_slots"), list)
+            and bool(_raw_pack["required_slots"])
+        )
         validation_rules = prompt_pack.get("validation_rules", [])
         if not isinstance(validation_rules, list):
             validation_rules = []
@@ -1175,8 +1179,8 @@ class LLMOrchestrationService:
             service_delivery_zones = []
         service_cuisine = str(service.get("cuisine") or "").strip()
         ticketing_enabled = bool(service.get("ticketing_enabled", True))
-        # slots_are_custom = True only when the admin explicitly configured slots in the UI
-        slots_are_custom = bool(service.get("service_prompt_pack_custom", False)) and bool(required_slots)
+        # slots_are_custom = True when admin explicitly configured slots (either via UI flag OR raw pack has them)
+        slots_are_custom = (bool(service.get("service_prompt_pack_custom", False)) or _pack_has_explicit_slots) and bool(required_slots)
 
         model = str(getattr(settings, "llm_service_agent_model", "") or "").strip() or None
         confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
@@ -1331,28 +1335,16 @@ class LLMOrchestrationService:
 
         if (awaiting_confirmation or last_bot_asked_confirmation) and user_compact == confirmation_compact:
             pending_pub = self._coerce_public_pending(context.pending_data)
-            room_type = str(
-                pending_pub.get("room_type") or pending_pub.get("room_name") or ""
-            ).strip()
-            checkin = str(
-                pending_pub.get("check_in_date") or pending_pub.get("checkin_date") or
-                pending_pub.get("stay_checkin_date") or ""
-            ).strip()
-            checkout = str(
-                pending_pub.get("check_out_date") or pending_pub.get("checkout_date") or
-                pending_pub.get("stay_checkout_date") or ""
-            ).strip()
-            guests = str(pending_pub.get("guest_count") or pending_pub.get("guests") or "").strip()
-            issue_parts = [service_name]
-            if room_type:
-                issue_parts.append(room_type)
-            if checkin:
-                issue_parts.append(f"check-in {checkin}")
-            if checkout:
-                issue_parts.append(f"check-out {checkout}")
-            if guests:
-                issue_parts.append(f"{guests} guests")
-            auto_issue = ", ".join(issue_parts)
+            # Build auto_issue from ALL collected pending data — no hardcoded slot names
+            skip_keys = {"service_id", "service_name"}
+            detail_parts = [
+                f"{k.replace('_', ' ')}: {v}"
+                for k, v in pending_pub.items()
+                if k not in skip_keys and str(v or "").strip()
+            ]
+            auto_issue = service_name
+            if detail_parts:
+                auto_issue = f"{service_name} — {', '.join(detail_parts)}"
             decision.action = "create_ticket"
             decision.pending_action = None
             decision.missing_fields = []
@@ -1711,7 +1703,7 @@ class LLMOrchestrationService:
             "Rules:\n"
             "1) SERVICE-FIRST routing: decide target_service_id first; intent is secondary metadata.\n"
             "2) target_service_id must exactly match one service.id when service work is needed.\n"
-            "3) CONTEXT CONTINUITY — CRITICAL: If pending_action is set (e.g. 'collect_checkin_date', 'collect_guest_count', 'confirm_room_booking'), the user is mid-flow. You MUST route to the same service that owns the pending flow. To identify which service owns the pending flow, match pending_action against each service's confirmation_pending_action field in the services list, or use conversation history. Do NOT re-route to a different service or generate a generic response just because the user message is short (a date, a number, 'yes confirm', 'no').\n"
+            "3) CONTEXT CONTINUITY — CRITICAL: If pending_action is set (e.g. 'collecting_details', 'confirm_booking'), the user is mid-flow. You MUST route to the same service that owns the pending flow. To identify which service owns the pending flow, match pending_action against each service's confirmation_pending_action field in the services list, or use conversation history. Do NOT re-route to a different service or generate a generic response just because the user message is short (a date, a number, 'yes confirm', 'no').\n"
             "4) STICKY SERVICE: If pending_data_public contains a service_id, that is the currently active service. Stay on it unless the user explicitly and clearly asks for something completely different.\n"
             "5) First classify requested service against policy_snapshot.phase_service_policy.\n"
             "5.1) For out-of-phase asks, set action=respond_only, use_handler=false, pending_action=null,\n"

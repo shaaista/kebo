@@ -168,8 +168,8 @@ async function sendMessage(message) {
         // Update session info
         updateSessionInfoFromResponse(data);
 
-        // Show suggested actions
-        showSuggestedActions(data.suggested_actions);
+        // Show contextual suggestion bubbles from LLM (non-blocking)
+        fetchAndShowSuggestions(data.message, message);
 
         // Update debug panel
         updateDebug(data);
@@ -354,6 +354,27 @@ function resolveCreatedTicketDetails(data) {
         fallback.ticket_api_response = apiResponse;
     }
     return Object.keys(fallback).length > 0 ? fallback : null;
+}
+
+// Fetch context-aware suggestions from LLM and display them
+async function fetchAndShowSuggestions(lastBotMessage, userMessage) {
+    elements.suggestedActions.innerHTML = '';
+    try {
+        const response = await fetch('/api/chat/suggestions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                last_bot_message: lastBotMessage,
+                user_message: userMessage,
+                hotel_code: state.hotelCode,
+            }),
+        });
+        if (!response.ok) return;
+        const data = await response.json();
+        showSuggestedActions(data.suggestions);
+    } catch (e) {
+        // silently fail — suggestions are optional UI
+    }
 }
 
 // Show suggested actions

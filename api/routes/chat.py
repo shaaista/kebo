@@ -5,9 +5,11 @@ Endpoints for chat functionality and testing.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Request
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
 
 from schemas.chat import ChatRequest, ChatResponse
+from llm.client import llm_client
 from services.chat_service import chat_service
 from services.evaluation_metrics_service import evaluation_metrics_service
 from services.observability_service import observability_service
@@ -307,3 +309,41 @@ async def reset_session(session_id: str, db: AsyncSession = Depends(get_db)):
         db_fallback = True
 
     return {"message": "Session reset", "state": "idle", "db_fallback": db_fallback}
+
+
+class SuggestionsRequest(BaseModel):
+    last_bot_message: str
+    user_message: Optional[str] = None
+    hotel_code: Optional[str] = "DEFAULT"
+
+
+@router.post("/suggestions")
+async def get_contextual_suggestions(request: SuggestionsRequest):
+    """
+    Generate context-aware follow-up suggestion bubbles based on the last bot message
+    and what the user said, using the LLM.
+    """
+    try:
+        user_turn = f"\nUser said: {request.user_message.strip()}" if request.user_message and request.user_message.strip() else ""
+        prompt = (
+            f"You are a hotel/hospitality chatbot assistant.{user_turn}\n"
+            f"The bot just replied: \"{request.last_bot_message.strip()}\"\n\n"
+            "Generate exactly 3 short, natural follow-up messages that a guest might want to send next, "
+            "based on the context of the bot's reply above. "
+            "Each suggestion should be 2-7 words, conversational, and directly relevant to what was just said. "
+            "Return ONLY a JSON object with key \"suggestions\" containing an array of 3 strings. "
+            "Example: {\"suggestions\": [\"Tell me more\", \"What are the options?\", \"How do I book?\"]}"
+        )
+        result = await llm_client.chat_with_json(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        suggestions = result.get("suggestions", [])
+        if not isinstance(suggestions, list):
+            suggestions = []
+        # Sanitize: keep only short string items
+        suggestions = [str(s).strip() for s in suggestions if s and len(str(s).strip()) <= 80][:4]
+        return {"suggestions": suggestions}
+    except Exception as e:
+        print(f"Suggestions endpoint error: {e}")
+        return {"suggestions": []}

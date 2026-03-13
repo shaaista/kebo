@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-12T20:02:55.626208+00:00",
+  "saved_at": "2026-03-13T06:02:14.056259+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -19454,6 +19454,1041 @@
       ],
       "created_at": "2026-03-12T20:01:47.527420Z",
       "updated_at": "2026-03-12T20:02:55.601517Z"
+    },
+    "session_1773350180675_fr5fgx8gp": {
+      "session_id": "session_1773350180675_fr5fgx8gp",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "booking_modification_support",
+        "guest_name": "Sana",
+        "contact_number": "1234567898",
+        "check_in_date": "2024-02-01",
+        "check_out_date": "2024-02-02",
+        "guest_count": "2",
+        "request_details": "123",
+        "_integration": {
+          "phase": "pre_checkin",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "Sana is in the pre-checkin phase and aims to cancel a reservation for two people. She has provided her name, contact number, and reservation dates (February 1-2, 2024). The assistant requested the booking reference number, which Sana provided as \"123\". The assistant confirmed the booking with reference #LOCAL-215 and stated that the team would follow up shortly. There are no unresolved asks, as the cancellation process is underway.",
+          "facts": {
+            "phase": "pre_checkin",
+            "last_user_topic": "reservation",
+            "party_size": "2",
+            "guest_name": "Sana",
+            "latest_ticket": {
+              "id": "LOCAL-215",
+              "status": "open",
+              "category": "booking_modification",
+              "sub_category": "cancellation",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-12T21:19:06.742413+00:00"
+            },
+            "last_ticket_id": "LOCAL-215",
+            "ticket_history": [
+              {
+                "id": "LOCAL-215",
+                "status": "open",
+                "category": "booking_modification",
+                "sub_category": "cancellation",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T21:19:06.742413+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_checkin",
+              "change_type": "set",
+              "source_message": "what servicevs do u offer",
+              "timestamp": "2026-03-12T21:16:35.020424+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "i wanna cancel my booking",
+              "timestamp": "2026-03-12T21:17:14.010428+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "sana, 1234567898, feb 1-2 for 2",
+              "timestamp": "2026-03-12T21:17:52.019680+00:00"
+            },
+            {
+              "key": "guest_name",
+              "old_value": null,
+              "new_value": "Sana",
+              "change_type": "set",
+              "source_message": "Sana, 1234567898, Feb 1-2 for 2.",
+              "timestamp": "2026-03-12T21:17:57.814598+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-215",
+                "status": "open",
+                "category": "booking_modification",
+                "sub_category": "cancellation",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-12T21:19:06.742413+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-215)! Details: check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T21:19:06.742446+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-215",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-215)! Details: check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T21:19:06.742455+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-215",
+                  "status": "open",
+                  "category": "booking_modification",
+                  "sub_category": "cancellation",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-12T21:19:06.742413+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-215)! Details: check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-12T21:19:06.742465+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-12T21:19:09.264771+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "Your booking has been confirmed (Reference: #LOCAL-215)! Details: check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-12T21:19:06.742170+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "d10bed0e-dbb5-4f59-b8af-5d383de6329b",
+          "role": "user",
+          "content": "what servicevs do u offer",
+          "timestamp": "2026-03-12T21:16:35.020354Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what services do u offer"
+          }
+        },
+        {
+          "id": "664f8283-a499-4ce2-b414-be7d174a7cf9",
+          "role": "assistant",
+          "content": "During the Pre Checkin phase, we offer the following services:\n1. **Airport Transfer**: Book an airport transfer from the airport to the hotel before check-in.\n2. **Booking Modification Support**: Request booking modifications such as early check-in, late checkout, or cancellations.\nPlease let me know if you need assistance with any of these services.",
+          "timestamp": "2026-03-12T21:16:58.518630Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-6c74555f62a1",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4aecd468-d588-40e2-8e53-8c1b11446096",
+          "role": "user",
+          "content": "i wanna cancel my booking",
+          "timestamp": "2026-03-12T21:17:14.010158Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I wanna cancel my booking."
+          }
+        },
+        {
+          "id": "e89b411a-c92e-4c4f-aecd-c6eeb311395f",
+          "role": "assistant",
+          "content": "To assist you with cancelling your booking, I'll need a few details. Please provide the following information: Request Details, Guest Name, Contact Number, Check-in Date, Check-out Date, and Guest Count.",
+          "timestamp": "2026-03-12T21:17:31.254470Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "booking modification support",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "booking_modification_support",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-bfef6ece0e9d",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "52253916-76af-46af-b1e0-4c3c895a9736",
+          "role": "user",
+          "content": "sana, 1234567898, feb 1-2 for 2",
+          "timestamp": "2026-03-12T21:17:52.019536Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Sana, 1234567898, Feb 1-2 for 2."
+          }
+        },
+        {
+          "id": "d3dbe459-fe82-46ed-8c82-a3993888e862",
+          "role": "assistant",
+          "content": "Thank you for providing some details. To proceed with your cancellation request, I need to confirm a few more details. Could you please provide the Request Details (such as booking reference number or any specific request you have)?",
+          "timestamp": "2026-03-12T21:17:57.816050Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "booking modification support",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "booking_modification_support",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "dcdfd475-6864-4fef-8f53-251365ac4d17",
+          "role": "user",
+          "content": "none",
+          "timestamp": "2026-03-12T21:18:11.579546Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "674da5ba-07e7-4d5c-9a6d-214b57172d65",
+          "role": "assistant",
+          "content": "To proceed with your cancellation request, I need the Request Details, such as your booking reference number. Could you please provide that information?",
+          "timestamp": "2026-03-12T21:18:15.906862Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "booking modification support",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "booking_modification_support",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "60c25eda-d952-4ee9-ab7f-455691b87192",
+          "role": "user",
+          "content": "123",
+          "timestamp": "2026-03-12T21:18:30.449437Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "1d236b09-4a3c-41e4-9ab5-4ad61d7d4b29",
+          "role": "assistant",
+          "content": "Thank you for providing the booking reference number. Please confirm these details before execution: Request to cancel the booking for Sana, contact number 1234567898, check-in on 2024-02-01, check-out on 2024-02-02, for 2 guests. Reply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-12T21:18:34.694687Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "booking modification support",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "booking_modification_support",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d6de9df5-796f-4a04-9b97-cd43d1325fe5",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-12T21:18:59.664259Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "a965bd65-a310-4aac-8111-702e7a61105f",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-215)! Details: check-in: 2024-02-01, check-out: 2024-02-02, 2 guest(s). Our team will follow up with you shortly.",
+          "timestamp": "2026-03-12T21:19:06.742377Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "booking modification support",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "booking_modification_support",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-215",
+            "ticket_status": "open",
+            "ticket_category": "booking_modification",
+            "ticket_sub_category": "cancellation",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-215",
+              "id": "LOCAL-215",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-215",
+                "ticket_id": "LOCAL-215",
+                "status": "open",
+                "issue": "Cancellation request for booking reference 123 for Sana, contact number 1234567898, check-in on 2024-02-01, check-out on 2024-02-02, for 2 guests.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-12T21:19:06.711040+00:00",
+                "updated_at": "2026-03-12T21:19:06.711040+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Cancellation request for booking reference 123 for Sana, contact number 1234567898, check-in on 2024-02-01, check-out on 2024-02-02, for 2 guests.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "booking_modification",
+                  "sub_categorization": "cancellation",
+                  "manager_notes": "",
+                  "created_at": "21:19:06 12-03-2026",
+                  "session_id": "session_1773350180675_fr5fgx8gp",
+                  "phase": "Pre Checkin",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "booking_modification",
+                  "sub_category": "cancellation",
+                  "service_id": "booking_modification_support"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-12T21:16:30.911226Z",
+      "updated_at": "2026-03-12T21:19:09.264804Z"
+    },
+    "session_1773381567257_40392tj9x": {
+      "session_id": "session_1773381567257_40392tj9x",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "check_in_date": "February 1",
+        "guest_name": "Sana",
+        "contact_number": "1234483648732",
+        "check_out_date": "February 2",
+        "guest_count": "1",
+        "request_details": "None",
+        "_integration": {
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "organisation_id": "3"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and aims to make a reservation for tomorrow at ICONIQA Hotel. They have provided some details: the guest name is Sana, the contact number is 1234483648732, the check-in date is February 1, the check-out date is February 2, and the guest count is 1. The user has indicated that there are no special request details for the booking. The assistant is awaiting confirmation of the absence of request details to proceed with the reservation.",
+          "facts": {
+            "phase": "pre_booking",
+            "booking_day": "tomorrow",
+            "last_user_topic": "reservation",
+            "party_size": "1",
+            "guest_name": "Sana",
+            "latest_ticket": {
+              "id": "LOCAL-216",
+              "status": "open",
+              "category": "room_booking",
+              "sub_category": "pre_booking",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-13T06:02:14.034579+00:00"
+            },
+            "last_ticket_id": "LOCAL-216",
+            "ticket_history": [
+              {
+                "id": "LOCAL-216",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "pre_booking",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-13T06:02:14.034579+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-13T05:59:35.521889+00:00"
+            },
+            {
+              "key": "booking_day",
+              "old_value": null,
+              "new_value": "tomorrow",
+              "change_type": "set",
+              "source_message": "Can I book for tomorrow?",
+              "timestamp": "2026-03-13T06:00:21.776859+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "Can I book for tomorrow?",
+              "timestamp": "2026-03-13T06:00:21.776883+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "1",
+              "change_type": "set",
+              "source_message": "sana, 1234483648732, feb 1-2 for 1",
+              "timestamp": "2026-03-13T06:00:51.096473+00:00"
+            },
+            {
+              "key": "guest_name",
+              "old_value": null,
+              "new_value": "Sana",
+              "change_type": "set",
+              "source_message": "Sana, 1234483648732, Feb 1-2 for 1",
+              "timestamp": "2026-03-13T06:00:58.374277+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "LOCAL-216",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "pre_booking",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-13T06:02:14.034579+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-216)! Details: check-in: February 1, check-out: February 2, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T06:02:14.034608+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "LOCAL-216",
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-216)! Details: check-in: February 1, check-out: February 2, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T06:02:14.034615+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "LOCAL-216",
+                  "status": "open",
+                  "category": "room_booking",
+                  "sub_category": "pre_booking",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-13T06:02:14.034579+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking has been confirmed (Reference: #LOCAL-216)! Details: check-in: February 1, check-out: February 2, 1 guest(s). Our team will follow up with you shortly.",
+              "timestamp": "2026-03-13T06:02:14.034623+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-13T06:02:14.034633+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "Your booking has been confirmed (Reference: #LOCAL-216)! Details: check-in: February 1, check-out: February 2, 1 guest(s). Our team will follow up with you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-13T06:02:14.034424+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "43914fcd-b255-4887-b807-e2e5c47faa6d",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-13T05:59:35.521714Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "22a46855-fa0c-4c18-bab9-814d9ce660a7",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today with your pre-booking inquiries or hotel information?",
+          "timestamp": "2026-03-13T05:59:48.069931Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.9,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.9,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-0de6af9758f0",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2f2d8ba1-99c6-4837-93d8-14308406095c",
+          "role": "user",
+          "content": "Are any rooms available?",
+          "timestamp": "2026-03-13T05:59:58.946520Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "395741f2-2054-4552-a1d0-f6ff6ae15d2a",
+          "role": "assistant",
+          "content": "We have several room types available at ICONIQA Hotel, including Premier King Room, Premier Twin Room, Lux Suite, Reserve Suite, Prestige Suite, and Ultimate Suite. Could you please provide the following details to check availability: Request Details, Guest Name, Contact Number, Check-in Date, Check-out Date, and Guest Count?",
+          "timestamp": "2026-03-13T06:00:13.532949Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-85ca527dc01e",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "0ecba30b-18b2-4190-a69a-4909ddd41cc5",
+          "role": "user",
+          "content": "Can I book for tomorrow?",
+          "timestamp": "2026-03-13T06:00:21.776770Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "b7285eb5-55fa-492c-a56c-81f86caab3e9",
+          "role": "assistant",
+          "content": "To proceed with your booking for tomorrow, could you please provide the following details: Request Details, Guest Name, Contact Number, Check-out Date, and Guest Count?",
+          "timestamp": "2026-03-13T06:00:26.099762Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "714cbf11-921a-4463-a76c-b5bf4996ef66",
+          "role": "user",
+          "content": "sana, 1234483648732, feb 1-2 for 1",
+          "timestamp": "2026-03-13T06:00:51.096030Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Sana, 1234483648732, Feb 1-2 for 1"
+          }
+        },
+        {
+          "id": "5cd76591-b71f-46ed-9e12-0cfe35863d01",
+          "role": "assistant",
+          "content": "Thank you for providing some details. To proceed, I need to confirm the following information:\n- Request Details\n- Guest Name: Sana\n- Contact Number: 1234483648732\n- Check-in Date: February 1\n- Check-out Date: February 2\n- Guest Count: 1\nCould you please provide the Request Details?",
+          "timestamp": "2026-03-13T06:00:58.375659Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "533a2f07-fcc1-4af5-92d3-2383b8a34520",
+          "role": "user",
+          "content": "none",
+          "timestamp": "2026-03-13T06:01:16.813409Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "33647e0e-07ca-49ad-80b2-f8eec6ddad52",
+          "role": "assistant",
+          "content": "Thank you for the information provided so far. Could you please specify the Request Details for your booking? This will help us proceed with your reservation.",
+          "timestamp": "2026-03-13T06:01:21.075840Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "f585dd87-c9b9-4371-9ff6-53e480832ff7",
+          "role": "user",
+          "content": "no request details",
+          "timestamp": "2026-03-13T06:01:37.653895Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "No request details."
+          }
+        },
+        {
+          "id": "f6cf75d8-2810-4748-9f41-152cd5533782",
+          "role": "assistant",
+          "content": "To proceed with your booking, I need to confirm the following information:\n- Request Details: Please specify any special requests or requirements you might have for your stay.\n- Guest Name: Sana\n- Contact Number: 1234483648732\n- Check-in Date: February 1\n- Check-out Date: February 2\n- Guest Count: 1\nCould you please provide any specific request details or confirm if there are none?",
+          "timestamp": "2026-03-13T06:01:42.129664Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "473649ac-fd84-4c41-8870-f56b05b37455",
+          "role": "user",
+          "content": "confirm",
+          "timestamp": "2026-03-13T06:01:56.585460Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Confirm."
+          }
+        },
+        {
+          "id": "8e24e973-6e7e-4436-a345-4b00fb615253",
+          "role": "assistant",
+          "content": "Please confirm these details before execution:\n- Guest Name: Sana\n- Contact Number: 1234483648732\n- Check-in Date: February 1\n- Check-out Date: February 2\n- Guest Count: 1\n- Request Details: None\nReply 'yes confirm' to proceed or share corrections.",
+          "timestamp": "2026-03-13T06:02:00.907824Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "e423bca7-fdc0-4678-98d3-16e8d4d5c592",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-13T06:02:08.977397Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "4b855ed4-b3fe-4e96-a561-542ff17d72f6",
+          "role": "assistant",
+          "content": "Your booking has been confirmed (Reference: #LOCAL-216)! Details: check-in: February 1, check-out: February 2, 1 guest(s). Our team will follow up with you shortly.",
+          "timestamp": "2026-03-13T06:02:14.034548Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "LOCAL-216",
+            "ticket_status": "open",
+            "ticket_category": "room_booking",
+            "ticket_sub_category": "pre_booking",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "status": "success",
+              "ticket_id": "LOCAL-216",
+              "id": "LOCAL-216",
+              "mode": "local_simulation",
+              "ticket_record": {
+                "id": "LOCAL-216",
+                "ticket_id": "LOCAL-216",
+                "status": "open",
+                "issue": "Booking request for Sana from February 1 to February 2 for 1 guest with no special requests.",
+                "manager_notes": "",
+                "room_number": "",
+                "guest_id": "",
+                "assigned_id": "",
+                "created_at": "2026-03-13T06:02:13.993614+00:00",
+                "updated_at": "2026-03-13T06:02:13.993614+00:00",
+                "payload": {
+                  "guest_id": "",
+                  "room_number": "",
+                  "organisation_id": "3",
+                  "issue": "Booking request for Sana from February 1 to February 2 for 1 guest with no special requests.",
+                  "message": "Yes, confirm.",
+                  "sentiment_score": "",
+                  "department_allocated": "",
+                  "department_manager": "",
+                  "assigned_to": "",
+                  "priority": "MEDIUM",
+                  "categorization": "room_booking",
+                  "sub_categorization": "pre_booking",
+                  "manager_notes": "",
+                  "created_at": "06:02:13 13-03-2026",
+                  "session_id": "session_1773381567257_40392tj9x",
+                  "phase": "Pre Booking",
+                  "ticket_status": "open",
+                  "chatBot": "yes",
+                  "sla_due_time": "",
+                  "outlet_id": "",
+                  "source": "manual",
+                  "department_id": "",
+                  "category": "room_booking",
+                  "sub_category": "pre_booking",
+                  "service_id": "room_booking"
+                },
+                "mode": "local_simulation"
+              },
+              "csv_written": true,
+              "csv_primary_synced": true,
+              "csv_path": "data\\ticketing\\local_tickets.csv"
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-13T05:59:30.587641Z",
+      "updated_at": "2026-03-13T06:02:14.034642Z"
     }
   }
 }

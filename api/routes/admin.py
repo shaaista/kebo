@@ -343,17 +343,8 @@ def _normalize_identifier(value: Any) -> str:
 
 
 def _normalize_phase_identifier(value: Any) -> str:
-    normalized = _normalize_identifier(value)
-    aliases = {
-        "prebooking": "pre_booking",
-        "booking": "pre_checkin",
-        "precheckin": "pre_checkin",
-        "duringstay": "during_stay",
-        "instay": "during_stay",
-        "in_stay": "during_stay",
-        "postcheckout": "post_checkout",
-    }
-    return aliases.get(normalized, normalized)
+    from services.config_service import config_service as _cs
+    return _cs._normalize_phase_identifier(value)
 
 
 def _safe_filename(filename: str) -> str:
@@ -366,17 +357,7 @@ def _fallback_phase_service_description(service_name: str, phase_id: str = "") -
     clean_name = str(service_name or "").strip()
     if not clean_name:
         return "Provide guest support for this service."
-    phase_key = _normalize_identifier(phase_id)
-    lowered_name = clean_name.lower()
-    if phase_key == "pre_booking":
-        return f"Handle guest enquiries and support {lowered_name} before booking confirmation."
-    if phase_key == "pre_checkin":
-        return f"Assist guests with {lowered_name} before arrival after booking confirmation."
-    if phase_key == "during_stay":
-        return f"Support in-stay guest requests for {lowered_name} with clear operational guidance."
-    if phase_key == "post_checkout":
-        return f"Handle post-checkout follow-up requests for {lowered_name} and route unresolved cases."
-    return f"Provide guest support for {lowered_name} requests."
+    return f"Provide guest support for {clean_name.lower()} requests."
 
 
 # ============ Business Config API (Database-backed) ============

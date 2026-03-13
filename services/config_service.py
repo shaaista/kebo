@@ -680,6 +680,12 @@ class ConfigService:
             if value:
                 normalized[key] = value
 
+        # If the saved pack has ticketing_conditions, the admin has explicitly defined
+        # what to collect via that text. Wipe the auto-generated default slots so they
+        # don't override the admin's intent.
+        if str(pack.get("ticketing_conditions") or "").strip():
+            normalized["required_slots"] = []
+
         required_slots_raw = pack.get("required_slots")
         if isinstance(required_slots_raw, list):
             normalized_slots: list[dict[str, Any]] = []
@@ -787,8 +793,13 @@ class ConfigService:
         if not isinstance(pack, dict):
             return False
         required_slots = pack.get("required_slots")
+        # A pack with ticketing_conditions is valid even without required_slots —
+        # the conditions text is the source of truth for what to collect.
+        has_ticketing_conditions = bool(str(pack.get("ticketing_conditions") or "").strip())
         if not isinstance(required_slots, list) or not required_slots:
-            return False
+            if not has_ticketing_conditions:
+                return False
+            required_slots = []  # ticketing_conditions present — slots optional
         for slot in required_slots:
             if not isinstance(slot, dict):
                 return False

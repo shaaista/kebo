@@ -304,58 +304,50 @@
         "source": "auto_generated",
         "profile": "transport_request",
         "role": "You are the dedicated assistant for airport transfer.",
-        "professional_behavior": "Collect details clearly, validate required fields before confirmation, and avoid assumptions.",
+        "professional_behavior": "Collect details clearly, ask one targeted question at a time, validate required fields before confirmation, and avoid assumptions.",
         "phase_id": "pre_checkin",
-        "ticketing_conditions": "Create a backend ticket for an airport transfer service when the guest confirms their booking by providing their flight number, arrival date, and time, and the number of passengers.",
         "required_slots": [
           {
-            "id": "guest_name",
-            "label": "Guest Name",
-            "prompt": "May I have your full name?",
+            "id": "request_details",
+            "label": "Request Details",
+            "prompt": "Please share the request details so I can proceed correctly.",
             "required": true,
             "type": "text"
           },
           {
-            "id": "contact_number",
-            "label": "Contact Number",
-            "prompt": "What is your contact number?",
+            "id": "pickup_location",
+            "label": "Pickup Location",
+            "prompt": "Please share the pickup location.",
             "required": true,
             "type": "text"
           },
           {
-            "id": "flight_number",
-            "label": "Flight Number",
-            "prompt": "What is your flight number?",
+            "id": "drop_location",
+            "label": "Drop Location",
+            "prompt": "Please share the drop location.",
             "required": true,
             "type": "text"
           },
           {
-            "id": "arrival_date",
-            "label": "Arrival Date",
-            "prompt": "What is your arrival date?",
+            "id": "travel_date",
+            "label": "Travel Date",
+            "prompt": "What is the travel date?",
             "required": true,
             "type": "date"
           },
           {
-            "id": "arrival_time",
-            "label": "Arrival Time",
-            "prompt": "What time does your flight arrive?",
+            "id": "travel_time",
+            "label": "Travel Time",
+            "prompt": "What is the pickup time?",
             "required": true,
             "type": "time"
           },
           {
             "id": "passenger_count",
-            "label": "Number of Passengers",
-            "prompt": "How many passengers will need the transfer?",
+            "label": "Passenger Count",
+            "prompt": "How many passengers should be included?",
             "required": true,
             "type": "number"
-          },
-          {
-            "id": "terminal",
-            "label": "Terminal",
-            "prompt": "Which terminal will you be arriving at (T1 or T2)?",
-            "required": false,
-            "type": "text"
           }
         ],
         "validation_rules": [
@@ -363,11 +355,11 @@
             "id": "required_slots_complete",
             "type": "required",
             "slot_ids": [
-              "guest_name",
-              "contact_number",
-              "flight_number",
-              "arrival_date",
-              "arrival_time",
+              "request_details",
+              "pickup_location",
+              "drop_location",
+              "travel_date",
+              "travel_time",
               "passenger_count"
             ],
             "error_message": "Please complete all required details before confirmation."
@@ -536,8 +528,8 @@
   },
   "prompts": {
     "template_id": "hotel_concierge",
-    "system_prompt": "You are {bot_name}, a concierge assistant for {business_name} in {city}. Be warm and efficient. Confirm service, booking, and transport details clearly, and avoid committing to services that are not enabled.",
-    "classifier_prompt": "Prefer hospitality intents such as faq, order_food, room_service, table_booking, and transport when user intent is clear.",
+    "system_prompt": "You are {bot_name}, a concierge assistant for {business_name} in {city}. Be warm and efficient. Confirm service details clearly, and avoid committing to services that are not enabled.",
+    "classifier_prompt": "",
     "response_style": "Warm, premium hospitality tone with concise confirmations."
   },
   "knowledge_base": {
@@ -1819,6 +1811,189 @@
         },
         "extracted_knowledge": "### Booking Modification Details for ICONIQA Hotel, Mumbai\n\n#### 1. Pricing Details\n- **Early Check-in Charges**: \n  - Before 07:00 AM: 50% of the room rate, subject to availability.\n- **Late Checkout Charges**:\n  - Complimentary until 12 noon.\n  - 50% of the room rate until 4 PM.\n  - Full night charges applicable post 4 PM, subject to availability.\n- **Cancellation Fees**:\n  - On BAR: Cancellations must be made 48 hours prior to the arrival date.\n  - Advance Purchase: Non-refundable, non-amendable, non-cancellable. Charges apply on the same day of booking.\n  - Corporate/TA: As per the cancellation policy mentioned in the signed contract.\n\n#### 2. Policies\n- **Modification Eligibility**: Subject to room availability and hotel discretion.\n- **Cancellation Policy**:\n  - On BAR: 48 hours prior to arrival.\n  - Advance Purchase: Non-refundable, non-amendable, non-cancellable.\n  - Corporate/TA: As per contract terms.\n\n#### 3. Timing\n- **Check-in Time**: 14:00 hrs\n- **Checkout Time**: 11:00 hrs\n- **Early Check-in**: Available before 07:00 AM with charges.\n- **Late Checkout**: Available until 4 PM with charges, subject to availability.\n\n#### 4. Options\n- **Room Type Changes**: Possible subject to availability and may incur additional charges.\n- **Stay Extensions**: Possible subject to availability and may incur additional charges.\n\n#### 5. Restrictions\n- **Non-refundable Bookings**: Advance Purchase bookings cannot be modified or cancelled.\n- **Room Type Limitations**: Certain room types may not be eligible for modifications based on availability.\n\n#### 6. Process Steps\n1. **Contact the Hotel**: Reach out to the hotel directly via phone or email to request modifications.\n2. **Provide Booking Details**: Share your booking reference number and desired changes.\n3. **Await Confirmation**: The hotel will confirm availability and any applicable charges.\n4. **Payment**: If applicable, settle any additional charges for modifications.\n\n#### 7. Contact Information\n- **Booking Modifications Department**:\n  - **Phone**: [Hotel's main contact number]\n  - **Email**: [Hotel's booking email]\n  - **Operating Hours**: Typically 24/7, but confirm with the hotel directly.\n\n### Related Services\n- **Check-in and Checkout Times**: Standard check-in at 14:00 hrs and checkout at 11:00 hrs.\n- **Room Upgrade Options**: Available subject to availability and may incur additional charges.\n- **Special Packages**: May affect booking changes; inquire directly with the hotel for details.\n\n### Gaps and Missing Information\n- **Contact Details**: Specific phone number and email for booking modifications are not provided.\n- **Waiver Conditions**: No information on conditions under which fees might be waived.\n- **Blackout Dates**: No details on any blackout dates for modifications.\n\nThis comprehensive guide ensures you have all necessary details to assist guests with booking modifications at ICONIQA Hotel, Mumbai.",
         "generated_extraction_prompt": "As a Booking Modification Support Agent for hotel guests, your role is to assist guests in requesting modifications to their bookings, such as early check-in, late checkout, or cancellations. Your task is to extract exhaustive details about this service, ensuring you have comprehensive knowledge of every aspect related to booking modifications. This includes:\n\n1. **Pricing Details**: Gather information on any fees associated with booking modifications, such as charges for early check-in or late checkout, and cancellation fees. Determine if there are any conditions under which these fees might be waived.\n\n2. **Policies**: Extract all policies related to booking modifications, including deadlines for making changes, eligibility criteria for modifications, and any restrictions or blackout dates.\n\n3. **Timing**: Identify the time frames within which guests can request modifications, including the earliest and latest times for early check-in and late checkout.\n\n4. **Options**: Document all available options for booking modifications, such as the possibility of changing room types or extending stays.\n\n5. **Restrictions**: Note any restrictions on booking modifications, such as limitations on the number of times a booking can be modified or specific room types that are not eligible for changes.\n\n6. **Process Steps**: Outline the step-by-step process guests need to follow to request a booking modification, including any forms that need to be filled out or specific contact points within the hotel.\n\n7. **Contact Information**: Provide detailed contact information for the department or staff responsible for handling booking modifications, including phone numbers, email addresses, and operating hours.\n\nAdditionally, extract a brief summary of closely related services or facilities that may be relevant to guests seeking booking modifications. For example, be aware of the hotel's check-in and check-out times, room upgrade options, and any special packages that might affect booking changes.\n\nFinally, flag any gaps where the knowledge base seems incomplete for this service. This includes missing information on fees, unclear policies, or lack of contact details, ensuring that all necessary information is available to provide seamless support to guests."
+      },
+      {
+        "id": "housekeeping_kb",
+        "service_id": "housekeeping",
+        "plugin_id": "housekeeping_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_0be6a01087",
+            "text": "housekeeping is configured as an active service for During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:51.665466+00:00",
+            "created_at": "2026-03-13T04:29:51.665466+00:00",
+            "updated_at": "2026-03-13T04:29:51.665466+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_fd803922c2",
+            "text": "housekeeping: Housekeeping services allow guests to request room amenities or cleaning during their stay.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:51.666971+00:00",
+            "created_at": "2026-03-13T04:29:51.666971+00:00",
+            "updated_at": "2026-03-13T04:29:51.666971+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_12b6942d34",
+            "text": "Ticketing is enabled for housekeeping in During Stay phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:51.667786+00:00",
+            "created_at": "2026-03-13T04:29:51.667786+00:00",
+            "updated_at": "2026-03-13T04:29:51.667786+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_33f5a05884",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:52.184251+00:00",
+            "created_at": "2026-03-13T04:29:52.184251+00:00",
+            "updated_at": "2026-03-13T04:29:52.184251+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_c5602ef27f",
+            "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:52.184397+00:00",
+            "created_at": "2026-03-13T04:29:52.184397+00:00",
+            "updated_at": "2026-03-13T04:29:52.184397+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_61ab1b1cbc",
+            "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:52.184470+00:00",
+            "created_at": "2026-03-13T04:29:52.184470+00:00",
+            "updated_at": "2026-03-13T04:29:52.184470+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_c7c4ac26ba",
+            "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:52.184523+00:00",
+            "created_at": "2026-03-13T04:29:52.184523+00:00",
+            "updated_at": "2026-03-13T04:29:52.184523+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_664212e01c",
+            "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
+            "source": "kb_source:229dddd6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "housekeeping",
+              "during_stay",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-13T04:29:52.184574+00:00",
+            "created_at": "2026-03-13T04:29:52.184574+00:00",
+            "updated_at": "2026-03-13T04:29:52.184574+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-13T04:29:52.236524+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-13T04:29:51.664037+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-13T04:29:51.664037+00:00",
+          "compiler_version": "v1",
+          "service_signature": "12aef6e11ee00aa8d9834f2cfbe524692ea03ced",
+          "source_signature": "bb472f15547b75230f00bb15f0c61c8fe424171a",
+          "source_count": 15,
+          "manual_fact_count": 0,
+          "auto_fact_count": 8,
+          "total_fact_count": 8,
+          "enrichment_signature": "4059d28858979d67",
+          "enrichment_generated_at": "2026-03-13T04:29:52.236524+00:00",
+          "kb_hash": "92817bb7103d1afc"
+        },
+        "extracted_knowledge": "**Housekeeping Services at ICONIQA Hotel**\n\nUnfortunately, the provided knowledge base does not contain specific information about the housekeeping services at ICONIQA Hotel. Below are the details that are typically required for a comprehensive understanding of housekeeping services, but these details are missing from the current knowledge base:\n\n1. **Pricing Details**: \n   - There is no information on any costs associated with housekeeping services, such as fees for additional cleaning or special requests.\n\n2. **Policies**: \n   - Details on housekeeping policies, including frequency of cleaning, guest preferences for cleaning times, and any restrictions or guidelines guests must follow, are not provided.\n\n3. **Timing**: \n   - Information on the hours of operation for housekeeping services, including any specific time frames for requesting services or when cleaning is typically performed, is not available.\n\n4. **Options**: \n   - There is no mention of available housekeeping options, such as types of cleaning services (e.g., full cleaning, turndown service), and any special amenities that can be requested.\n\n5. **Restrictions**: \n   - Any restrictions related to housekeeping services, such as limitations on the number of requests per day or specific items that cannot be provided, are not noted.\n\n6. **Process Steps**: \n   - The process for guests to request housekeeping services, including how to contact housekeeping, any forms or systems used for requests, and expected response times, is not outlined.\n\n7. **Contact Information**: \n   - Contact details for the housekeeping department, including phone numbers, email addresses, or in-room service buttons, are not provided.\n\n**Related Services or Facilities**:\n- While the knowledge base includes extensive information on other hotel services such as dining, spa, and wellness, there is no direct mention of related services like laundry or maintenance that are typically associated with housekeeping.\n\n**Gaps Identified**:\n- The knowledge base lacks comprehensive details on housekeeping services, including pricing, policies, timing, options, restrictions, process steps, and contact information. This information is crucial for providing well-rounded assistance to guests regarding housekeeping services.\n\nFor a complete understanding and to provide accurate assistance, it is recommended to obtain detailed information about the housekeeping services from the hotel management or relevant department.",
+        "generated_extraction_prompt": "As a hotel chatbot service agent specializing in housekeeping services, your primary role is to assist hotel guests by providing comprehensive information and support related to housekeeping requests. Your responsibilities include facilitating requests for room amenities, scheduling cleaning services, and addressing any housekeeping-related inquiries guests may have during their stay.\n\nTo effectively perform your role, extract exhaustive details about the housekeeping service, including:\n\n1. **Pricing Details**: Gather information on any costs associated with housekeeping services, such as fees for additional cleaning or special requests.\n\n2. **Policies**: Extract details on housekeeping policies, including frequency of cleaning, guest preferences for cleaning times, and any restrictions or guidelines guests must follow.\n\n3. **Timing**: Obtain information on the hours of operation for housekeeping services, including any specific time frames for requesting services or when cleaning is typically performed.\n\n4. **Options**: Identify all available housekeeping options, such as types of cleaning services (e.g., full cleaning, turndown service), and any special amenities that can be requested.\n\n5. **Restrictions**: Note any restrictions related to housekeeping services, such as limitations on the number of requests per day or specific items that cannot be provided.\n\n6. **Process Steps**: Outline the process for guests to request housekeeping services, including how to contact housekeeping, any forms or systems used for requests, and expected response times.\n\n7. **Contact Information**: Provide contact details for the housekeeping department, including phone numbers, email addresses, or in-room service buttons.\n\nAdditionally, extract a brief summary of closely related services or facilities that may be relevant to housekeeping, such as laundry services, in-room dining options, or maintenance services, to ensure you can provide well-rounded assistance to guests.\n\nFinally, flag any gaps where the knowledge base seems incomplete for housekeeping services, such as missing pricing information, unclear policies, or lack of contact details, to ensure comprehensive support for hotel guests."
       }
     ],
     "compiler": {
