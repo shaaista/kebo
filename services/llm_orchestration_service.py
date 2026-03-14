@@ -138,6 +138,32 @@ class LLMOrchestrationService:
         }
 
     @staticmethod
+    async def _chat_with_json(
+        *,
+        messages: list[dict[str, Any]],
+        model: str | None,
+        temperature: float | None,
+        trace_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        try:
+            return await llm_client.chat_with_json(
+                messages=messages,
+                model=model,
+                temperature=temperature,
+                trace_context=trace_context,
+            )
+        except TypeError as exc:
+            # Backward compatibility for tests/mocks that still expose the older
+            # chat_with_json(messages, model=None, temperature=None) signature.
+            if "trace_context" not in str(exc):
+                raise
+            return await llm_client.chat_with_json(
+                messages=messages,
+                model=model,
+                temperature=temperature,
+            )
+
+    @staticmethod
     def _last_message_by_role(context: ConversationContext, role: str) -> str:
         if not isinstance(getattr(context, "messages", None), list):
             return ""
@@ -465,7 +491,8 @@ class LLMOrchestrationService:
                     "knowledge_facts": [],
                     # Runtime grounding for service agent should come from DB-backed
                     # service_prompt_pack only (admin-entered/extracted values).
-                    "extracted_knowledge": str(prompt_pack.get("extracted_knowledge") or "").strip()[:600],
+                    # Keep full extracted knowledge; do not trim here.
+                    "extracted_knowledge": str(prompt_pack.get("extracted_knowledge") or "").strip(),
                     "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
                 }
@@ -625,7 +652,7 @@ class LLMOrchestrationService:
             or None
         )
         try:
-            raw = await llm_client.chat_with_json(
+            raw = await self._chat_with_json(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
@@ -803,7 +830,7 @@ class LLMOrchestrationService:
         )
         temperature = float(getattr(settings, "chat_llm_answer_first_guard_temperature", 0.0) or 0.0)
         try:
-            raw = await llm_client.chat_with_json(
+            raw = await self._chat_with_json(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
@@ -946,7 +973,7 @@ class LLMOrchestrationService:
         )
         model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
         try:
-            raw = await llm_client.chat_with_json(
+            raw = await self._chat_with_json(
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": json.dumps(prompt_payload, ensure_ascii=False)},
@@ -1408,8 +1435,8 @@ class LLMOrchestrationService:
             system_prompt=system_prompt,
             payload=payload,
         )
-        raw = await llm_client.chat_with_json(
-            messages,
+        raw = await self._chat_with_json(
+            messages=messages,
             model=model,
             temperature=0.0,
             trace_context={
@@ -1874,8 +1901,8 @@ class LLMOrchestrationService:
             system_prompt=system_prompt,
             payload=payload,
         )
-        raw = await llm_client.chat_with_json(
-            messages,
+        raw = await self._chat_with_json(
+            messages=messages,
             model=model,
             temperature=0.0,
             trace_context={
@@ -2028,12 +2055,21 @@ class LLMOrchestrationService:
                     return rerouted_decision
 
         merged_decision = self._merge_decisions(decision, service_decision)
-        # Skip answer-first enforcement for first-turn intros (it overwrites the room list)
-        # and for confirmation overrides (already deterministically correct)
+        # Skip answer-first enforcement for first-turn intros (it overwrites the room list),
+        # for confirmation overrides (already deterministically correct),
+        # and for ready-to-create ticket confirmations.
+        ticket_creation_ready = bool(
+            str(merged_decision.action or "").strip().lower() == "create_ticket"
+            and bool(merged_decision.ticket.required)
+            and bool(merged_decision.ticket.ready_to_create)
+        )
         _skip_answer_first = bool(
             merged_decision.metadata.get("is_first_service_turn")
             or merged_decision.metadata.get("confirmation_override")
+            or ticket_creation_ready
         )
+        if ticket_creation_ready:
+            merged_decision.metadata.setdefault("answer_first_guard_skipped_reason", "ticket_creation_ready")
         if not _skip_answer_first:
             merged_decision = await self._enforce_answer_first_policy(
                 user_message=user_message,

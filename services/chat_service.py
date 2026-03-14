@@ -2719,8 +2719,9 @@ class ChatService:
             return False, "ticket_not_required"
         if not bool(getattr(policy_result, "ticket_create_allowed", False)):
             return False, str(getattr(policy_result, "ticket_skip_reason", "") or "ticket_policy_gate_blocked")
-        if str(decision.action or "").strip().lower() != "create_ticket":
-            return False, "ticket_action_not_create_ticket"
+        # Do not require final action text to remain "create_ticket" here.
+        # Downstream quality guards can rephrase action while ticket intent
+        # remains explicitly ready via decision.ticket fields.
         if not bool(decision.ticket.ready_to_create):
             return False, "ticket_not_ready_to_create"
         if bool(decision.missing_fields):
@@ -3094,6 +3095,15 @@ class ChatService:
         effective_intent = IntentType.GENERAL_SERVICE
         if bool(decision.requires_human_handoff):
             effective_intent = IntentType.HUMAN_REQUEST
+        else:
+            # Preserve explicit yes/no confirmation intent for in-flight
+            # transactional continuations so handler dispatch gets the right signal.
+            parsed_intent = self._parse_orchestration_intent(
+                str(decision.handler_intent or decision.intent or ""),
+                fallback=IntentType.GENERAL_SERVICE,
+            )
+            if parsed_intent in {IntentType.CONFIRMATION_YES, IntentType.CONFIRMATION_NO}:
+                effective_intent = parsed_intent
         message_lower = str(effective_user_message or "").strip().lower()
         complaint_signal = (
             self._looks_like_operational_issue_for_ticketing(message_lower)
@@ -3296,6 +3306,35 @@ class ChatService:
                                 f"Your booking has been confirmed{ticket_ref}! "
                                 + (f"Details: {_summary}. " if _summary else "")
                                 + "Our team will follow up with you shortly."
+                            )
+                            # Booking/ticket is completed: clear active pending flow
+                            # and remove stale service carry-over data.
+                            completed_service_id = self._normalize_service_identifier(
+                                decision.target_service_id
+                                or (
+                                    context.pending_data.get("service_id")
+                                    if isinstance(context.pending_data, dict)
+                                    else ""
+                                )
+                                or ""
+                            )
+                            context.pending_action = None
+                            context.pending_data = conversation_memory_service.merge_with_internal(
+                                {},
+                                internal_pending_entries,
+                            )
+                            context.pending_data.pop("_clarification_attempts", None)
+                            if completed_service_id and isinstance(context.suspended_services, list):
+                                context.suspended_services = [
+                                    row
+                                    for row in context.suspended_services
+                                    if self._normalize_service_identifier((row or {}).get("service_id")) != completed_service_id
+                                ]
+                            if isinstance(context.suspended_services, list) and not context.suspended_services:
+                                context.resume_prompt_sent = False
+                            self._sync_active_task_snapshot(
+                                context=context,
+                                selected_phase_context=selected_phase_context or {},
                             )
                         else:
                             ticket_meta = {
@@ -15837,9 +15876,11 @@ class ChatService:
         compact_msg = re.sub(r"\s+", " ", str(msg_lower or "").strip().lower())
         yes_tokens = {"yes", "yeah", "yep", "sure", "ok", "okay", "confirm", "proceed", "y", "ys", "ye", "yess"}
         no_tokens = {"no", "nope", "cancel", "n", "stop", "dont", "don't", "nah"}
+        # Always treat the configured phrase as a valid confirmation,
+        # even when strict mode is disabled.
+        if compact_msg == confirmation_phrase:
+            return IntentType.CONFIRMATION_YES
         if strict_mode:
-            if compact_msg == confirmation_phrase:
-                return IntentType.CONFIRMATION_YES
             if compact_msg in no_tokens:
                 return IntentType.CONFIRMATION_NO
             return None
