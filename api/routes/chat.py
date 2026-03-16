@@ -4,6 +4,7 @@ Chat API Routes
 Endpoints for chat functionality and testing.
 """
 
+import json
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Optional, List
 from pydantic import BaseModel
@@ -315,33 +316,153 @@ class SuggestionsRequest(BaseModel):
     last_bot_message: str
     user_message: Optional[str] = None
     hotel_code: Optional[str] = "DEFAULT"
+    current_phase: Optional[str] = "pre_booking"
+    session_id: Optional[str] = None
 
 
 @router.post("/suggestions")
 async def get_contextual_suggestions(request: SuggestionsRequest):
     """
-    Generate context-aware follow-up suggestion bubbles based on the last bot message
-    and what the user said, using the LLM.
+    Fallback suggestion endpoint. Loads live session context (active service,
+    conversation state, pending data, phase) and the knowledge base, then asks
+    the LLM to generate grounded follow-up suggestions.
     """
     try:
-        user_turn = f"\nUser said: {request.user_message.strip()}" if request.user_message and request.user_message.strip() else ""
-        prompt = (
-            f"You are a hotel/hospitality chatbot assistant.{user_turn}\n"
-            f"The bot just replied: \"{request.last_bot_message.strip()}\"\n\n"
-            "Generate exactly 3 short, natural follow-up messages that a guest might want to send next, "
-            "based on the context of the bot's reply above. "
-            "Each suggestion should be 2-7 words, conversational, and directly relevant to what was just said. "
-            "Return ONLY a JSON object with key \"suggestions\" containing an array of 3 strings. "
-            "Example: {\"suggestions\": [\"Tell me more\", \"What are the options?\", \"How do I book?\"]}"
+        from services.config_service import config_service
+
+        phase_id = request.current_phase or "pre_booking"
+        active_service: dict = {}
+        conversation_state: str = ""
+        conversation_history: list = []
+
+        # Load live session context when session_id is available
+        if request.session_id:
+            try:
+                context = await context_manager.get_context(request.session_id)
+                if context:
+                    conversation_state = context.state.value if context.state else ""
+                    pending_action = str(context.pending_action or "")
+
+                    # Phase from session context is more reliable than frontend-reported phase
+                    ctx_phase = None
+                    if context.pending_data:
+                        ctx_phase = (
+                            context.pending_data.get("phase")
+                            or (context.pending_data.get("_integration") or {}).get("phase")
+                        )
+                    if ctx_phase:
+                        phase_id = str(ctx_phase)
+
+                    # Look up the currently active service
+                    if pending_action:
+                        svc = config_service.get_service(pending_action)
+                        if svc:
+                            active_service = {
+                                "id": svc.get("id", ""),
+                                "name": svc.get("name", ""),
+                                "profile": svc.get("profile", ""),
+                            }
+
+                    # Extract recent conversation history for grounding
+                    if hasattr(context, "get_recent_messages"):
+                        total_chars = 0
+                        for msg in context.get_recent_messages(6):
+                            content = str(msg.content or "").strip()
+                            if not content or total_chars >= 2000:
+                                break
+                            clipped = content[: min(2000 - total_chars, 600)]
+                            conversation_history.append({"role": msg.role.value, "content": clipped})
+                            total_chars += len(clipped)
+            except Exception:
+                pass  # context load failure is non-fatal
+
+        # Phase description from config — not hardcoded
+        phases = config_service.get_journey_phases()
+        phase_obj = next((p for p in phases if p.get("id") == phase_id), None)
+        phase_name = phase_obj.get("name", phase_id) if phase_obj else phase_id
+        phase_description = phase_obj.get("description", "") if phase_obj else ""
+
+        # Services active in this phase from config
+        phase_services = config_service.get_phase_services(phase_id)
+        available_phase_services = [
+            {"name": s.get("name", ""), "profile": s.get("profile", "")}
+            for s in phase_services
+            if s.get("is_active", True) and s.get("name", "")
+        ]
+
+        # Knowledge base text — let the LLM infer topics itself, no hardcoded list
+        kb_text = config_service.get_full_kb_text(max_chars=5000)
+
+        # Build bot delivery boundary from live config — fully dynamic per property
+        try:
+            cap_summary = config_service.get_capability_summary(request.hotel_code or "DEFAULT")
+            raw_caps = cap_summary.get("capabilities", {})
+            enabled_capabilities = [
+                cap_id
+                for cap_id, cap_data in raw_caps.items()
+                if isinstance(cap_data, dict) and cap_data.get("enabled", False)
+            ]
+            nlu_policy = cap_summary.get("nlu_policy", {})
+            property_constraints = [
+                str(d).strip()
+                for d in (nlu_policy.get("donts", []) if isinstance(nlu_policy, dict) else [])
+                if str(d).strip()
+            ]
+        except Exception:
+            enabled_capabilities = []
+            property_constraints = []
+
+        bot_delivery_boundary = {
+            "medium": "text only — cannot show images, photos, videos, or visual media; cannot provide real-time availability, live pricing, or data from external systems not listed as active services",
+            "enabled_capabilities": enabled_capabilities,
+            "property_constraints": property_constraints,
+        }
+
+        context_payload = {
+            "last_bot_message": request.last_bot_message.strip(),
+            "user_message": request.user_message.strip() if request.user_message else "",
+            "conversation_history": conversation_history,
+            "conversation_state": conversation_state,
+            "journey_phase": {
+                "id": phase_id,
+                "name": phase_name,
+                "description": phase_description,
+            },
+            "active_service": active_service,
+            "available_phase_services": available_phase_services,
+            "knowledge_base_excerpt": kb_text,
+            "bot_delivery_boundary": bot_delivery_boundary,
+        }
+
+        system_prompt = (
+            "You are a suggestion chip generator for a hotel concierge chatbot.\n"
+            "Generate 3 suggestions representing what the guest would most likely send next.\n\n"
+            "Work through the payload in this order:\n"
+            "0. Read `bot_delivery_boundary` first — this defines the hard limits of what this bot can actually deliver. If a suggestion requires the bot to show images or media, provide real-time data, or use a capability not listed in `enabled_capabilities` — discard it. `property_constraints` lists explicit rules for this property that must also be respected.\n"
+            "1. Read `last_bot_message` — this is what the bot just said. Suggestions must be a natural direct response to that specific message.\n"
+            "2. Read `conversation_history` — understand the thread and do not suggest anything already discussed or resolved.\n"
+            "3. Read `active_service` — if a service is in progress, suggest messages that continue or complete that flow.\n"
+            "4. Read `knowledge_base_excerpt` to understand what topics the bot can answer as text. If no service is active, only suggest from those topics as relevant to the current phase.\n\n"
+            "Voice — strictly enforced:\n"
+            "Every suggestion must be a natural first-person guest message, exactly what they would type into the chat.\n"
+            "Bad: 'Ask about room types', 'View services', 'Show options', 'Share details'\n"
+            "Good: 'What room types do you have?', 'What services are available?', 'Can I see the menu?'\n\n"
+            "Never suggest any value that is unique to the individual guest — this includes names, room numbers, phone numbers, email addresses, flight numbers, dates, times, booking references, order quantities, party sizes, prices, or any other personal or context-specific data. The guest is the only one who knows these — they must type them.\n"
+            "Also never suggest a message where the guest is offering or providing their personal information, even without stating the actual value. Messages like 'Here's my full name and details', 'I'll share my details', 'Here is my information', 'Let me provide my info' are all forbidden — they imply the guest is about to hand over unique personal data.\n"
+            "Suggestions must only be questions the guest wants to ask, or service actions they want to request — never data submissions.\n\n"
+            "Each suggestion: 2-8 words. Return ONLY strict JSON: {\"suggestions\": [\"...\", \"...\", \"...\"]}"
         )
+
         result = await llm_client.chat_with_json(
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(context_payload, ensure_ascii=False)},
+            ],
+            temperature=0.3,
         )
         suggestions = result.get("suggestions", [])
         if not isinstance(suggestions, list):
             suggestions = []
-        # Sanitize: keep only short string items
         suggestions = [str(s).strip() for s in suggestions if s and len(str(s).strip()) <= 80][:4]
         return {"suggestions": suggestions}
     except Exception as e:

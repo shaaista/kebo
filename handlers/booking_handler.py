@@ -160,7 +160,7 @@ class BookingHandler(BaseHandler):
                         next_state=ConversationState.AWAITING_INFO,
                         pending_action="select_service",
                         pending_data=booking_data,
-                        suggested_actions=["Kadak", "In-Room Dining"],
+                        suggested_actions=["cancel"],
                     )
 
         if action == "collect_booking_party_size":
@@ -171,7 +171,7 @@ class BookingHandler(BaseHandler):
                     next_state=ConversationState.AWAITING_INFO,
                     pending_action="collect_booking_party_size",
                     pending_data=booking_data,
-                    suggested_actions=["2", "4", "6"],
+                    suggested_actions=["cancel"],
                 )
             booking_data["party_size"] = party_size
 
@@ -183,7 +183,7 @@ class BookingHandler(BaseHandler):
                     next_state=ConversationState.AWAITING_INFO,
                     pending_action="collect_booking_time",
                     pending_data=booking_data,
-                    suggested_actions=["7 PM", "8 PM", "9 PM"],
+                    suggested_actions=["cancel"],
                 )
             booking_data["time"] = booking_time
             booking_data["date"] = str(

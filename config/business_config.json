@@ -155,6 +155,83 @@
       "cuisine": null,
       "hours": {},
       "delivery_zones": []
+    },
+    {
+      "id": "room_booking_support",
+      "name": "room booking support",
+      "type": "service",
+      "description": "Assists guests in exploring room options, booking through chat and resolving booking issues on the website during the pre-booking phase.",
+      "is_active": true,
+      "is_builtin": false,
+      "ticketing_enabled": true,
+      "ticketing_policy": "",
+      "phase_id": "pre_booking",
+      "service_prompt_pack": {
+        "version": 1,
+        "generator": "service_prompt_pack_v2",
+        "source": "manual_override",
+        "profile": "",
+        "role": "You are the dedicated assistant for room booking support.",
+        "professional_behavior": "Use only admin-configured policy and KB evidence. Ask concise clarifying questions when required details are missing. Do not invent fixed field schemas.",
+        "phase_id": "pre_booking",
+        "required_slots": [],
+        "validation_rules": [],
+        "confirmation_format": {
+          "style": "summary_then_explicit_confirm",
+          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
+          "required_phrase": "yes confirm"
+        },
+        "ticketing_policy": {
+          "enabled": true,
+          "policy": "",
+          "decision_template": ""
+        },
+        "execution_guard": {},
+        "extracted_knowledge": "# Room Booking Support Knowledge Pack\n\n## Hotel Information\n- **Hotel Name:** ICONIQA\n- **Location:** Near Terminal 2, Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099\n- **City:** Mumbai\n- **Total Rooms:** 291\n- **Room Types and Distribution:**\n  - **Premier King Room:** 134 rooms (109 rooms are 229–285 sq. ft., 25 rooms are 300 - 340 sq. ft.)\n  - **Premier Twin Room:** 48 rooms (31 rooms are 230–310 sq. ft., 17 rooms are 310 to 380 sq. ft.)\n  - **Lux Suite:** 79 rooms (15 rooms are 380-425 sq.ft with King bed, 64 rooms are 430 - 485 sq. ft with Twin bed)\n  - **Reserve Suite:** 16 rooms, 375–415 sq. ft.\n  - **Prestige Suite:** 6 rooms, 485 sq. ft., includes bathtub\n  - **Ultimate Suite:** 8 rooms, 603 sq. ft.\n\n## Check-In and Check-Out Policies\n- **Check-In Time:** 14:00 hrs\n- **Check-Out Time:** 11:00 hrs\n- **Early Check-In Policy:** Before 07:00 AM → 50% of room rate, subject to availability\n- **Late Check-Out Policy:** Complimentary till 12 noon, 50% of the room rate till 4 PM, post 4 PM full night charges are applicable, subject to availability\n\n## Cancellation Policy\n- **BAR (Best Available Rate):** 48 hrs prior to the arrival date\n- **Advance Purchase:** Non-refundable, Non-amendable, Non-cancellable (charged on the same day of booking)\n- **Corporate / TA:** As per the cancellation policy mentioned in the signed contract\n\n## In-Room Amenities\n- In-room smart laundry closet\n- Complimentary well-stocked non-alcoholic minibar\n- Custom created \"Bed of Dreams\" with traceable cotton linen\n- Espresso Machines + coffee pods with ICONIQA's single origin coffees\n- High-speed WiFi with unlimited device usage\n- Power shower with Indian Ayurvedic influenced bath products\n- Sustainable and recyclable bathroom amenities\n- Tea Maker with multiple flavours and options\n- ICONIQA's custom label water bottling plant with Still and Sparkling Water\n- Smart TVs with streaming options\n\n## Additional Services\n- **Airport Transfer:** Available, Toyota Innova Hycross 5 seater. ₹2000 for T1, ₹1500 for T2\n\n## Smoking Policy\n- All rooms are non-smoking, designated smoking zones are available on the rooftop and outside the main porch.",
+        "ticketing_conditions": "Create a backend ticket for room booking support when a guest confirms they are unable to complete a booking due to a technical issue on the website, and ensure to collect the guest's contact information, the specific error message encountered, and the desired booking details.\nif guest is booking a room then collect all their info like name, phone number, room type, check in check out date and number of guests"
+      },
+      "service_prompt_pack_custom": true,
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": []
+    },
+    {
+      "id": "lost_and_found",
+      "name": "lost and found",
+      "type": "service",
+      "description": "Assist guests in locating and retrieving items they may have lost after checking out.",
+      "is_active": true,
+      "is_builtin": false,
+      "ticketing_enabled": true,
+      "ticketing_policy": "",
+      "phase_id": "post_checkout",
+      "service_prompt_pack": {
+        "version": 1,
+        "generator": "service_prompt_pack_v2",
+        "source": "manual_override",
+        "profile": "",
+        "role": "You are the dedicated assistant for lost and found.",
+        "professional_behavior": "Use only admin-configured policy and KB evidence. Ask concise clarifying questions when required details are missing. Do not invent fixed field schemas.",
+        "phase_id": "post_checkout",
+        "required_slots": [],
+        "validation_rules": [],
+        "confirmation_format": {
+          "style": "summary_then_explicit_confirm",
+          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
+          "required_phrase": "yes confirm"
+        },
+        "ticketing_policy": {
+          "enabled": true,
+          "policy": "",
+          "decision_template": ""
+        },
+        "execution_guard": {},
+        "ticketing_conditions": "Create a backend ticket for lost and found service when a guest confirms they have checked out and provides a detailed description of the lost item, including the date and location it was last seen, along with their contact information."
+      },
+      "service_prompt_pack_custom": true,
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": []
     }
   ],
   "intents": [],
@@ -196,9 +273,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
-      "generated_at": "2026-03-14T15:15:10.275184+00:00",
+      "generated_at": "2026-03-16T15:21:21.144463+00:00",
       "book_index_generator": "llm_v1",
-      "book_index_generated_at": "2026-03-14T15:15:28.569613+00:00",
+      "book_index_generated_at": "2026-03-16T15:21:44.674401+00:00",
       "source_count": 1,
       "documents": [
         {
@@ -460,7 +537,7 @@
           "text": "7:00 AM to 7:00PM open to all.\nNo children allowed after 7:00pm \n\nGuests with reservations at Bombay Swim Club may use the pool until 11 PM",
           "topics": [
             "guest_amenities",
-            "pool_information"
+            "pool_and_recreation"
           ],
           "char_count": 139,
           "primary_topic_name": "Guest Amenities"
@@ -520,7 +597,7 @@
           "text": "14:00 hrs",
           "topics": [
             "guest_services",
-            "check_in_check_out_policies"
+            "check_in_and_check_out"
           ],
           "char_count": 9,
           "primary_topic_name": "Guest Services"
@@ -535,7 +612,7 @@
           "text": "11:00 hrs",
           "topics": [
             "guest_services",
-            "check_in_check_out_policies"
+            "check_in_and_check_out"
           ],
           "char_count": 9,
           "primary_topic_name": "Guest Services"
@@ -550,7 +627,7 @@
           "text": "Before 07:00 AM → 50% of room rate, subject to availability",
           "topics": [
             "guest_services",
-            "check_in_check_out_policies"
+            "check_in_and_check_out"
           ],
           "char_count": 59,
           "primary_topic_name": "Guest Services"
@@ -565,7 +642,7 @@
           "text": "Complimentary till 12 noon, 50% of the room rate till 4 PM, post 4 PM full night charges are applicable , subject to availability",
           "topics": [
             "guest_services",
-            "check_in_check_out_policies"
+            "check_in_and_check_out"
           ],
           "char_count": 129,
           "primary_topic_name": "Guest Services"
@@ -580,7 +657,7 @@
           "text": "Yes, Dr. Deepak Tiwari M.B.S(BOM), 24x7, ₹2500 consultation",
           "topics": [
             "hotel_services",
-            "medical_services"
+            "medical_assistance"
           ],
           "char_count": 59,
           "primary_topic_name": "Hotel Services"
@@ -610,7 +687,7 @@
           "text": "All rooms non-smoking, designated zones: Roof top, Outside the main porch,",
           "topics": [
             "hotel_policies",
-            "smoking_policies"
+            "smoking_regulations"
           ],
           "char_count": 74,
           "primary_topic_name": "Hotel Policies"
@@ -640,7 +717,7 @@
           "text": "SevenHills, Mukund, Holy Spirit",
           "topics": [
             "nearby_facilities",
-            "medical_services"
+            "medical_assistance"
           ],
           "char_count": 31,
           "primary_topic_name": "Nearby Facilities"
@@ -699,11 +776,11 @@
           "title": "Hotel Sales Script",
           "text": "Starting in the Lobby – First Impressions\n\nWelcome to ICONIQA Hotel – Mumbai International Airport. \nWe are trying to reimagine the traditional airport hotel, and on this walk I will show you how.\nWe’re just 300 meters from Terminal 2, but the moment you step inside, it feels more like a lifestyle destination than a boring hotel stop.\nThat’s the whole idea: just because you're between flights-or meetings-doesn’t mean your experience should feel \"in between.\"\nUnlike the norm, when you enter the hotel, you enter a vibrant bar - the Aviator Lounge.\nAt Aviator, we focus on a global small plates menu – non-messy, all day, and really cool. This has been designed as a space for you to have a meeting or enjoy a cocktail, as it seamlessly blends business and pleasure. Its not your usual lobby lounge, but the heart of the ground floor. Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be. The idea is to make the lobby a place you actually want to hang out in.\nFrom a sensory perspective – we have kinetic sculptures, incredible AI generated digital art, a beautiful Japanese hand crushed paper sculpture as if it’s fabric billowing in the wind, music to match the mood and a just every small through to ensure this space goes from work to play seamlessly \nIt’s more than just the heart of the lobby-it’s your anytime-anywhere hangout zone.\nKey Talking Points:\nEntrance – Enter a bar and not the lobby. \nBar is multi-purpose. Cocktails. Global menu.\nMulti-sensory experience – interactive art, ICONIQA playlist on Spotify.\nSo where do we check in… That’s to the right. \n \nLets talk about design a little bit. \nBaccarat inspired chandeliers dot the entrance foyer, and then you go towards the reception that is crowned with an incredible black crystal chandelier. The counter is made with little Bisazza tiles – and the pattern is from an antique Kashmiri rug. But instead of putting the Kashmiri rug in the lobby, we decided to get one made to mimic the pixelation of the Bisazza tiles. Lights are by Roche Bobois and Baccarat. Design is at the heart of everything we do, and hence I’m spending this time to tell you about it\nA reception counter is a reception counter as with all hotels, but this hotel is completely enabled by Whatsapp. You don’t have to check in using the desk! If you want, you can go the entire stay glued to your screen on whatsapp.\nKey Talking Points\nDesign is at the heart of everything we do.\nThe Kashmiri rug became the Bisazza tile counter. The Bisazza tile counter became the handmade rug.\nWhatsapp powers the entire guest experience\nSo what can you do on Whatsapp with the hotel? (You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\nPretty much everything. From Checkin in, ordering a car, linen, or booking a massage – its all available seamless. No app downloads, no waiting. Just seamless, instant hospitality.\n\nTHE ICONIQA ROOM – Work, Celebrate, Create\nNow this is The ICONIQA Room-approximately 3000 square feet of modular, sunlit space, designed for anything from brand pitches to brainstorming retreats, from stylish socials to intimate gatherings.\nThe hall can be split into 2, with each area getting its own private outdoor patio. We could easily do a social for 300+ people and a sit down dinner for 150 with space for a dance floor. It is fully kitted out, with its own sound system, mood lighting, projections systems and the like. \nKey Talking Points\nFlexible modern banquet room\nFully kitted out\nGreat pre-function space and outdoor spaces\n\nLets go to the first floor\n \nAll hotels have a bigger larger fancier coffee shop, with mundane food. We decided to do away with the idea of the coffee shop. \nWelcome to Kadak Lab: our indoor-outdoor modern bazaar inspired Pan-Indian restaurant that is multi-sensory and multi-functional\nAgain,we’ve done things differently.\nThe first bit is the Sweet Lab that’s open 24x7. Think of this as a cute café with incredible desserts and Indian inspired snacks all day. This isn’t your typical Indian dining space. Kadak brings together the heart of regional Indian cuisine, elevated with global inspiration.\nHere, you'll experience bold flavours crafted from premium ingredients sourced from around the world—where every dish feels familiar yet new.\nA few highlights to notice:\n• Kadak Restaurant, a vibrant, open live kitchen brings the energy of the restaurant to life.\n• Kadak Garden - Step outdoors and you’ll find two live counters—a South Indian street food spot, Cocktail Bar and Snack Bar.\n• Kadak Parlour - with floor to ceiling window, the space can be used for breakfast, meetings, or even hired privately for parties and events. \n\nThe Garden bar vibe is niche, casual, and experiential—with a signature bar offering house-crafted cocktails crafted exclusively for the space.\n• The immersive ambience, complemented by atmospheric lighting and curated soundscapes, sets the tone for every meal.\n• And every dish arrives on handcrafted crockery—with custom presentation that’s as considered as the flavours themselves.\n\nKadak Lab serves a buffet breakfast exclusively for in-house guests, while lunch and dinner are à la carte, crafted to offer a more personalized, plate-by-plate experience.\nIt’s comfort food—but designed to surprise you.\n\nKadak Cafe – Sweet, Progressive, Open 24/7\nKadak Cafe—a lively, all-day, all-night space where bold flavours meet artistic presentation.\nA few highlights to savour:\n• Elegant, flavour-forward plated desserts with a modern, creative edge.\n• A progressive pastry counter offering inventive takes on nostalgic favourites.\n• Signature handcrafted coffees—perfect for pairing with your sweet fix at any hour.\nAnd because sweet cravings don’t follow a clock, the 24/7 menu keeps things flowing-with pastries, quick bites, and coffee available for dine-in or takeaway.\nThe Cafe is where creativity, nostalgia, and everyday indulgence come together-with moments that taste as good as they look.\n\nGENIUS SPACES – Small, Smart, Purposeful\nJust alongside, we have our Genius Spaces.\nThese are smaller, but equally impressive rooms-perfect for brainstorming sessions, creative workshops, or intimate meetings that need a touch of polish.\nEach space comes equipped with state-of-the-art technology and seamless professional support-because great ideas deserve a great setting.\n\nROOM - Where Calm Meets Character\nLet’s step into our rooms, designed not just for a stay, but to elevate your mood.\nAcross our 291 rooms, you’ll find a soothing blend of light pastels, soft blues and greens, and warm wood textures-spaces that instantly calm you after a journey. Every detail here has been thoughtfully curated to create an experience that feels both welcoming and refreshing.\nYou’ll notice:\n• Mumbai’s spirit reflected in the curated art-hot air balloons, intricate cityscapes, and local motifs, weaving quiet stories on the walls.\n• A Blue Tokai <Not sure if we need to consider mentioning the brand names>espresso machine in every room, unlike other hotels with ICONIQA’s unique blends-because airport coffee just doesn’t cut it.\n<else>\nAn espresso machine in every room, serving ICONIQA’s unique coffee blends-because airport coffee just doesn’t cut it.\n• Hypoallergenic linen for a truly cloud-like sleep experience.\n• An indulgent, non-alcoholic minibar, included as part of your stay—because meaningful touches should simply be a given.\nAnd this-this is something you won’t find anywhere else:\n\nICONIQA Hotel Mumbai is the world’s first hotel to feature an in-room Smart Laundry Closet. Refresh your garments at your convenience-no waiting, no calls, just seamless comfort built into your space.\nThese rooms aren’t just where you stay.\nThey’re where your mood resets, and your journey finds its pause.\n\nTHE BOMBAY SWIM CLUB + SCARLETTA - The Rooftop Escape\n\"Now let’s head upstairs-where the energy shifts and the city skyline become part of your experience.\nWelcome to The Bombay Swim Club-Mumbai’s first true day club.\nIt’s a rooftop playground with splash pools, an infinity jacuzzi, a spa, and a fully equipped gym.\nAnd soon, it will also be home to an exciting Japanese-Mexican kitchen-where sushi meets tacos, served with uninterrupted skyline views.\nBombay Swim Club is open to everyone with a minimum spend of Rs. 2500 per head. \nUp here, it’s not just about being above the city.\nIt’s about feeling a little beyond it.\n\nHidden from public view, and open to those who know is Scarletta-our invitation-only speakeasy\nUnapologetically bold, Scarletta is the space for exclusive gatherings, after-parties, or simply soaking in private time with friends. \n\nClosing lines\nAt ICONIQA, it’s not about ticking boxes — it’s about tuning into how you feel. Whether it’s a quick pitstop, a rooftop escape, or a sweet moment at midnight — you’ll always find a space that fits your vibe. Hope you enjoyed the walk — and even more, we hope you come back to live it for real.\n\n****",
           "topics": [
-            "hotel_information",
+            "hotel_overview",
             "marketing_and_sales"
           ],
           "char_count": 8960,
-          "primary_topic_name": "Hotel Information"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00034",
@@ -1636,10 +1713,10 @@
           ]
         },
         {
-          "id": "check_in_check_out_policies",
-          "title": "Check In Check Out Policies",
+          "id": "check_in_and_check_out",
+          "title": "Check In And Check Out",
           "aliases": [
-            "check_in_check_out_policies"
+            "check_in_and_check_out"
           ],
           "keywords": [
             "00",
@@ -2935,20 +3012,58 @@
             "hotel_information"
           ],
           "keywords": [
-            "300",
             "400099",
+            "address",
+            "andheri",
+            "app",
+            "city",
+            "gl",
+            "goo",
+            "google",
+            "hasan",
+            "https",
+            "iconiqa",
+            "location",
+            "maharashtra",
+            "maps",
+            "mumbai",
+            "name",
+            "near",
+            "on",
+            "pada",
+            "road",
+            "terminal",
+            "zvgw4dqf5prhpexm6"
+          ],
+          "page_ids": [
+            "page_00001",
+            "page_00002",
+            "page_00034",
+            "page_00038"
+          ],
+          "page_count": 4,
+          "char_count": 159,
+          "sources": [
+            "0c7ad8f6_ROHL_Test_property.txt"
+          ]
+        },
+        {
+          "id": "hotel_overview",
+          "title": "Hotel Overview",
+          "aliases": [
+            "hotel_overview"
+          ],
+          "keywords": [
+            "300",
             "about",
             "actually",
-            "address",
             "ai",
             "airport",
             "all",
             "an",
-            "andheri",
             "antique",
             "anytime",
             "anywhere",
-            "app",
             "are",
             "art",
             "as",
@@ -2976,7 +3091,6 @@
             "chandelier",
             "chandeliers",
             "check",
-            "city",
             "cocktail",
             "cocktails",
             "coffee",
@@ -3017,25 +3131,20 @@
             "foyer",
             "generated",
             "get",
-            "gl",
             "global",
             "glued",
             "go",
             "goes",
-            "goo",
-            "google",
             "ground",
             "hand",
             "hang",
             "hangout",
             "has",
-            "hasan",
             "have",
             "heart",
             "hence",
             "hotels",
             "how",
-            "https",
             "iconiqa",
             "idea",
             "if",
@@ -3062,12 +3171,9 @@
             "like",
             "little",
             "lobby",
-            "location",
             "lounge",
             "made",
-            "maharashtra",
             "make",
-            "maps",
             "match",
             "mean",
             "meeting",
@@ -3083,8 +3189,6 @@
             "multi",
             "mumbai",
             "music",
-            "name",
-            "near",
             "night",
             "non",
             "norm",
@@ -3094,7 +3198,6 @@
             "one",
             "or",
             "out",
-            "pada",
             "paper",
             "pattern",
             "perspective",
@@ -3113,7 +3216,6 @@
             "reception",
             "reimagine",
             "right",
-            "road",
             "roche",
             "rug",
             "sales",
@@ -3164,18 +3266,13 @@
             "wind",
             "work",
             "you",
-            "zone",
-            "zvgw4dqf5prhpexm6"
+            "zone"
           ],
           "page_ids": [
-            "page_00001",
-            "page_00002",
-            "page_00033",
-            "page_00034",
-            "page_00038"
+            "page_00033"
           ],
-          "page_count": 5,
-          "char_count": 9119,
+          "page_count": 1,
+          "char_count": 8960,
           "sources": [
             "0c7ad8f6_ROHL_Test_property.txt"
           ]
@@ -4349,10 +4446,10 @@
           ]
         },
         {
-          "id": "medical_services",
-          "title": "Medical Services",
+          "id": "medical_assistance",
+          "title": "Medical Assistance",
           "aliases": [
-            "medical_services"
+            "medical_assistance"
           ],
           "keywords": [
             "24x7",
@@ -4507,10 +4604,10 @@
           ]
         },
         {
-          "id": "pool_information",
-          "title": "Pool Information",
+          "id": "pool_and_recreation",
+          "title": "Pool And Recreation",
           "aliases": [
-            "pool_information"
+            "pool_and_recreation"
           ],
           "keywords": [
             "00",
@@ -5226,10 +5323,10 @@
           ]
         },
         {
-          "id": "smoking_policies",
-          "title": "Smoking Policies",
+          "id": "smoking_regulations",
+          "title": "Smoking Regulations",
           "aliases": [
-            "smoking_policies"
+            "smoking_regulations"
           ],
           "keywords": [
             "all",
@@ -5716,7 +5813,7 @@
         "strict_mode": true,
         "facts": [
           {
-            "id": "fact_2b0b6cb63a",
+            "id": "fact_3f48ddb287",
             "text": "airport transfer service is configured as an active service for Pre Checkin phase.",
             "source": "admin_config",
             "origin": "auto",
@@ -5728,14 +5825,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.194156+00:00",
-            "created_at": "2026-03-13T15:54:04.194156+00:00",
-            "updated_at": "2026-03-13T15:54:04.194156+00:00",
+            "approved_at": "2026-03-16T14:57:41.720275+00:00",
+            "created_at": "2026-03-16T14:57:41.720275+00:00",
+            "updated_at": "2026-03-16T14:57:41.720275+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_079f90ac14",
+            "id": "fact_f0fc21690a",
             "text": "airport transfer service: Guests can book airport transfers for pick-up from the airport and drop-off to the airport from the hotel.",
             "source": "admin_config",
             "origin": "auto",
@@ -5748,14 +5845,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.194300+00:00",
-            "created_at": "2026-03-13T15:54:04.194300+00:00",
-            "updated_at": "2026-03-13T15:54:04.194300+00:00",
+            "approved_at": "2026-03-16T14:57:41.720351+00:00",
+            "created_at": "2026-03-16T14:57:41.720351+00:00",
+            "updated_at": "2026-03-16T14:57:41.720351+00:00",
             "confidence": 0.98,
             "evidence": null
           },
           {
-            "id": "fact_fd0b573fed",
+            "id": "fact_264152f904",
             "text": "Ticketing is enabled for airport transfer service in Pre Checkin phase.",
             "source": "admin_config",
             "origin": "auto",
@@ -5768,14 +5865,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.194444+00:00",
-            "created_at": "2026-03-13T15:54:04.194444+00:00",
-            "updated_at": "2026-03-13T15:54:04.194444+00:00",
+            "approved_at": "2026-03-16T14:57:41.720398+00:00",
+            "created_at": "2026-03-16T14:57:41.720398+00:00",
+            "updated_at": "2026-03-16T14:57:41.720398+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_4f28506590",
+            "id": "fact_026d2df5fb",
             "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5787,14 +5884,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.224977+00:00",
-            "created_at": "2026-03-13T15:54:04.224977+00:00",
-            "updated_at": "2026-03-13T15:54:04.224977+00:00",
+            "approved_at": "2026-03-16T14:57:41.731243+00:00",
+            "created_at": "2026-03-16T14:57:41.731243+00:00",
+            "updated_at": "2026-03-16T14:57:41.731243+00:00",
             "confidence": 0.67,
             "evidence": null
           },
           {
-            "id": "fact_cb04951f3b",
+            "id": "fact_d7e7f41569",
             "text": "ft\\n\\nThe hotel has multiple spaces at Aviator, Kadak or Bombay Swim Club that can be taken out for private-hire from 10 to 300 people.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5806,14 +5903,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.225244+00:00",
-            "created_at": "2026-03-13T15:54:04.225244+00:00",
-            "updated_at": "2026-03-13T15:54:04.225244+00:00",
+            "approved_at": "2026-03-16T14:57:41.731295+00:00",
+            "created_at": "2026-03-16T14:57:41.731295+00:00",
+            "updated_at": "2026-03-16T14:57:41.731295+00:00",
             "confidence": 0.61,
             "evidence": null
           },
           {
-            "id": "fact_0ae71df00e",
+            "id": "fact_5727521807",
             "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5825,14 +5922,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.225379+00:00",
-            "created_at": "2026-03-13T15:54:04.225379+00:00",
-            "updated_at": "2026-03-13T15:54:04.225379+00:00",
+            "approved_at": "2026-03-16T14:57:41.731324+00:00",
+            "created_at": "2026-03-16T14:57:41.731324+00:00",
+            "updated_at": "2026-03-16T14:57:41.731324+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_647861dff0",
+            "id": "fact_ebd10daea7",
             "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5844,14 +5941,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.225492+00:00",
-            "created_at": "2026-03-13T15:54:04.225492+00:00",
-            "updated_at": "2026-03-13T15:54:04.225492+00:00",
+            "approved_at": "2026-03-16T14:57:41.731352+00:00",
+            "created_at": "2026-03-16T14:57:41.731352+00:00",
+            "updated_at": "2026-03-16T14:57:41.731352+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_614db92b99",
+            "id": "fact_8a2887b489",
             "text": "The Bisazza tile counter became the handmade rug.\\nWhatsapp powers the entire guest experience\\nSo what can you do on Whatsapp with the hotel?",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5863,14 +5960,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.227490+00:00",
-            "created_at": "2026-03-13T15:54:04.227490+00:00",
-            "updated_at": "2026-03-13T15:54:04.227490+00:00",
+            "approved_at": "2026-03-16T14:57:41.731378+00:00",
+            "created_at": "2026-03-16T14:57:41.731378+00:00",
+            "updated_at": "2026-03-16T14:57:41.731378+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_5ff0fbd6c4",
+            "id": "fact_2187f200a4",
             "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5882,14 +5979,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.227665+00:00",
-            "created_at": "2026-03-13T15:54:04.227665+00:00",
-            "updated_at": "2026-03-13T15:54:04.227665+00:00",
+            "approved_at": "2026-03-16T14:57:41.731401+00:00",
+            "created_at": "2026-03-16T14:57:41.731401+00:00",
+            "updated_at": "2026-03-16T14:57:41.731401+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_db4947f4b0",
+            "id": "fact_2b736fd59a",
             "text": "The counter is made with little Bisazza tiles – and the pattern is from an antique Kashmiri rug.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5901,14 +5998,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.227771+00:00",
-            "created_at": "2026-03-13T15:54:04.227771+00:00",
-            "updated_at": "2026-03-13T15:54:04.227771+00:00",
+            "approved_at": "2026-03-16T14:57:41.731422+00:00",
+            "created_at": "2026-03-16T14:57:41.731422+00:00",
+            "updated_at": "2026-03-16T14:57:41.731422+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_51a3b4c30b",
+            "id": "fact_2d6984c859",
             "text": "The space can be used for private gatherings or conferences.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -5920,21 +6017,21 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.227879+00:00",
-            "created_at": "2026-03-13T15:54:04.227879+00:00",
-            "updated_at": "2026-03-13T15:54:04.227879+00:00",
+            "approved_at": "2026-03-16T14:57:41.731445+00:00",
+            "created_at": "2026-03-16T14:57:41.731445+00:00",
+            "updated_at": "2026-03-16T14:57:41.731445+00:00",
             "confidence": 0.53,
             "evidence": null
           }
         ],
         "menu_documents": [],
-        "version": 2,
+        "version": 9,
         "is_active": true,
-        "published_at": "2026-03-14T15:15:11.419779+00:00",
+        "published_at": "2026-03-16T15:21:22.463489+00:00",
         "published_by": "system",
-        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-13T15:54:04.134400+00:00.",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-16T14:57:41.719870+00:00.",
         "completeness": {
-          "generated_at": "2026-03-13T15:54:04.134400+00:00",
+          "generated_at": "2026-03-16T14:57:41.719870+00:00",
           "compiler_version": "v1",
           "service_signature": "3f1d6e3540f596b92d1b0bc2bbb982da7d5c8e30",
           "source_signature": "60e490d7c0e70330997ba526493978561587c8b9",
@@ -5942,19 +6039,21 @@
           "manual_fact_count": 0,
           "auto_fact_count": 11,
           "total_fact_count": 11,
-          "enrichment_signature": "acac9a7a3f21dc5a",
-          "enrichment_generated_at": "2026-03-14T15:15:11.419779+00:00",
+          "enrichment_signature": "7111e034f63e7007",
+          "enrichment_generated_at": "2026-03-16T15:21:22.463489+00:00",
           "kb_hash": "b00631b22169b5f61685010fff3cf496f4dda391",
           "library_book_ids": [
+            "booking_and_cancellation",
             "concierge_services",
             "guest_services",
             "hotel_services",
+            "location_details",
             "transportation"
           ],
-          "library_page_count": 12,
+          "library_page_count": 16,
           "library_context_truncated": false
         },
-        "extracted_knowledge": "# Airport Transfer Service Information\n\n- **Vehicle Available**: Toyota Innova Hycross 5 seater\n- **Price for Terminal 1 (T1)**: ₹2000\n- **Price for Terminal 2 (T2)**: ₹1500",
+        "extracted_knowledge": "# Airport Transfer Service Information\n\n- **Vehicle Available**: Toyota Innova Hycross 5 seater\n- **Price**: ₹2000 for Terminal 1 (T1), ₹1500 for Terminal 2 (T2)",
         "generated_extraction_prompt": "You are extracting a knowledge pack for a hotel chatbot service agent.\n\nSERVICE NAME: airport transfer service\nSERVICE DESCRIPTION: Guests can book airport transfers for pick-up from the airport and drop-off to the airport from the hotel.\nJourney phase: pre_checkin\n\nExtract only information explicitly present in provided KB evidence.\nDo not invent or assume any missing detail.\nDo not omit relevant details from evidence chunks.\nPreserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\nIf a field is not present in evidence, state that it is not available in KB.\nOrganize output with clear section headers."
       },
       {
@@ -5964,7 +6063,7 @@
         "strict_mode": true,
         "facts": [
           {
-            "id": "fact_5182eb6c0c",
+            "id": "fact_554a0c7993",
             "text": "restaurant table booking is configured as an active service for During Stay phase.",
             "source": "admin_config",
             "origin": "auto",
@@ -5976,14 +6075,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.267928+00:00",
-            "created_at": "2026-03-13T15:54:04.267928+00:00",
-            "updated_at": "2026-03-13T15:54:04.267928+00:00",
+            "approved_at": "2026-03-16T14:57:41.740726+00:00",
+            "created_at": "2026-03-16T14:57:41.740726+00:00",
+            "updated_at": "2026-03-16T14:57:41.740726+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_cd1f02c1d6",
+            "id": "fact_d1d9a65b59",
             "text": "restaurant table booking: Allows guests to view detailed information about all restaurant options and reserve a table during their stay.",
             "source": "admin_config",
             "origin": "auto",
@@ -5996,14 +6095,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.268045+00:00",
-            "created_at": "2026-03-13T15:54:04.268045+00:00",
-            "updated_at": "2026-03-13T15:54:04.268045+00:00",
+            "approved_at": "2026-03-16T14:57:41.740764+00:00",
+            "created_at": "2026-03-16T14:57:41.740764+00:00",
+            "updated_at": "2026-03-16T14:57:41.740764+00:00",
             "confidence": 0.98,
             "evidence": null
           },
           {
-            "id": "fact_2bedbb88a5",
+            "id": "fact_8defda9a65",
             "text": "Ticketing is enabled for restaurant table booking in During Stay phase.",
             "source": "admin_config",
             "origin": "auto",
@@ -6016,14 +6115,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.268140+00:00",
-            "created_at": "2026-03-13T15:54:04.268140+00:00",
-            "updated_at": "2026-03-13T15:54:04.268140+00:00",
+            "approved_at": "2026-03-16T14:57:41.740792+00:00",
+            "created_at": "2026-03-16T14:57:41.740792+00:00",
+            "updated_at": "2026-03-16T14:57:41.740792+00:00",
             "confidence": 0.99,
             "evidence": null
           },
           {
-            "id": "fact_e1aedb1ae0",
+            "id": "fact_352068e499",
             "text": "Design is at the heart of everything we do, and hence I’m spending this time to tell you about it\\nA reception counter is a reception counter as with all hotels, but this hotel is completely enabled by Whatsapp.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6035,14 +6134,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.292519+00:00",
-            "created_at": "2026-03-13T15:54:04.292519+00:00",
-            "updated_at": "2026-03-13T15:54:04.292519+00:00",
+            "approved_at": "2026-03-16T14:57:41.749044+00:00",
+            "created_at": "2026-03-16T14:57:41.749044+00:00",
+            "updated_at": "2026-03-16T14:57:41.749044+00:00",
             "confidence": 0.67,
             "evidence": null
           },
           {
-            "id": "fact_e9ca057696",
+            "id": "fact_695e8a5953",
             "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6054,14 +6153,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.292709+00:00",
-            "created_at": "2026-03-13T15:54:04.292709+00:00",
-            "updated_at": "2026-03-13T15:54:04.292709+00:00",
+            "approved_at": "2026-03-16T14:57:41.749093+00:00",
+            "created_at": "2026-03-16T14:57:41.749093+00:00",
+            "updated_at": "2026-03-16T14:57:41.749093+00:00",
             "confidence": 0.67,
             "evidence": null
           },
           {
-            "id": "fact_618054a071",
+            "id": "fact_e5a1b81ae2",
             "text": "\\nWelcome to Kadak Lab: our indoor-outdoor modern bazaar inspired Pan-Indian restaurant that is multi-sensory and multi-functional\\nAgain,we’ve done things differently.\\nThe first bit is the Sweet Lab that’s open 24x7.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6073,14 +6172,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.292798+00:00",
-            "created_at": "2026-03-13T15:54:04.292798+00:00",
-            "updated_at": "2026-03-13T15:54:04.292798+00:00",
+            "approved_at": "2026-03-16T14:57:41.749116+00:00",
+            "created_at": "2026-03-16T14:57:41.749116+00:00",
+            "updated_at": "2026-03-16T14:57:41.749116+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_46d1384d01",
+            "id": "fact_316a696378",
             "text": "If you want, you can go the entire stay glued to your screen on whatsapp.\\nKey Talking Points\\nDesign is at the heart of everything we do.\\nThe Kashmiri rug became the Bisazza tile counter.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6092,14 +6191,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.292896+00:00",
-            "created_at": "2026-03-13T15:54:04.292896+00:00",
-            "updated_at": "2026-03-13T15:54:04.292896+00:00",
+            "approved_at": "2026-03-16T14:57:41.749142+00:00",
+            "created_at": "2026-03-16T14:57:41.749142+00:00",
+            "updated_at": "2026-03-16T14:57:41.749142+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_539942e53e",
+            "id": "fact_4412dd2db1",
             "text": "\\n\\nClosing lines\\nAt ICONIQA, it’s not about ticking boxes — it’s about tuning into how you feel.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6111,14 +6210,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.292987+00:00",
-            "created_at": "2026-03-13T15:54:04.292987+00:00",
-            "updated_at": "2026-03-13T15:54:04.292987+00:00",
+            "approved_at": "2026-03-16T14:57:41.749163+00:00",
+            "created_at": "2026-03-16T14:57:41.749163+00:00",
+            "updated_at": "2026-03-16T14:57:41.749163+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_1a1ce36b09",
+            "id": "fact_003819df6f",
             "text": "Think of this as a cute café with incredible desserts and Indian inspired snacks all day.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6130,14 +6229,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.293088+00:00",
-            "created_at": "2026-03-13T15:54:04.293088+00:00",
-            "updated_at": "2026-03-13T15:54:04.293088+00:00",
+            "approved_at": "2026-03-16T14:57:41.749181+00:00",
+            "created_at": "2026-03-16T14:57:41.749181+00:00",
+            "updated_at": "2026-03-16T14:57:41.749181+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_362f6932be",
+            "id": "fact_eae3fa4a08",
             "text": "\\n\\nKadak Lab on Level 1 has a lovely space of about 1000 sqft that is divisible.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6149,14 +6248,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.293169+00:00",
-            "created_at": "2026-03-13T15:54:04.293169+00:00",
-            "updated_at": "2026-03-13T15:54:04.293169+00:00",
+            "approved_at": "2026-03-16T14:57:41.749200+00:00",
+            "created_at": "2026-03-16T14:57:41.749200+00:00",
+            "updated_at": "2026-03-16T14:57:41.749200+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_89c2bb11fe",
+            "id": "fact_002a296e16",
             "text": "ft.\\n\\nA sophisticated retreat, the Reserve Suite offers 375 or 415 sq.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6168,14 +6267,14 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.293251+00:00",
-            "created_at": "2026-03-13T15:54:04.293251+00:00",
-            "updated_at": "2026-03-13T15:54:04.293251+00:00",
+            "approved_at": "2026-03-16T14:57:41.749216+00:00",
+            "created_at": "2026-03-16T14:57:41.749216+00:00",
+            "updated_at": "2026-03-16T14:57:41.749216+00:00",
             "confidence": 0.53,
             "evidence": null
           },
           {
-            "id": "fact_6c932a65b8",
+            "id": "fact_832f056bcf",
             "text": "\\n \\nLets talk about design a little bit.",
             "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
             "origin": "auto",
@@ -6187,21 +6286,21 @@
             ],
             "status": "approved",
             "approved_by": "system",
-            "approved_at": "2026-03-13T15:54:04.293338+00:00",
-            "created_at": "2026-03-13T15:54:04.293338+00:00",
-            "updated_at": "2026-03-13T15:54:04.293338+00:00",
+            "approved_at": "2026-03-16T14:57:41.749232+00:00",
+            "created_at": "2026-03-16T14:57:41.749232+00:00",
+            "updated_at": "2026-03-16T14:57:41.749232+00:00",
             "confidence": 0.53,
             "evidence": null
           }
         ],
         "menu_documents": [],
-        "version": 2,
+        "version": 9,
         "is_active": true,
-        "published_at": "2026-03-13T16:40:20.620515+00:00",
+        "published_at": "2026-03-16T14:57:43.073211+00:00",
         "published_by": "system",
-        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-13T15:54:04.134400+00:00.",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-16T14:57:41.719870+00:00.",
         "completeness": {
-          "generated_at": "2026-03-13T15:54:04.134400+00:00",
+          "generated_at": "2026-03-16T14:57:41.719870+00:00",
           "compiler_version": "v1",
           "service_signature": "f5f1903cc73ae19feedc1e05414acb6e6ae68ccc",
           "source_signature": "60e490d7c0e70330997ba526493978561587c8b9",
@@ -6210,20 +6309,817 @@
           "auto_fact_count": 12,
           "total_fact_count": 12,
           "enrichment_signature": "511a0059d42716b5",
-          "enrichment_generated_at": "2026-03-13T16:40:20.620515+00:00",
+          "enrichment_generated_at": "2026-03-16T14:57:43.073211+00:00",
           "kb_hash": "b00631b22169b5f61685010fff3cf496f4dda391",
           "library_book_ids": [
             "aviator_restaurant_menu",
             "dining_options",
+            "food_and_beverage",
+            "in_room_dining",
             "kadak_restaurant_menu",
-            "restaurant_information",
-            "restaurant_menus"
+            "la_carte_menu",
+            "restaurant_information"
           ],
           "library_page_count": 14,
           "library_context_truncated": false
         },
-        "extracted_knowledge": "# Restaurant Table Booking Service Information\n\n## Service Time\n- **Service Time:** 12:00 PM to 11:30 PM\n\n## Menu Sections and Items\n\n### Soups\n- **Minestrone Alla Genovese Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 48 Kcal per 100g\n  - Ingredients: Beans, Potato, Cheese, Tomato\n  - Allergen Details: Milk, Celery\n\n- **Homemade Mushroom Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 46 Kcal per 100g\n  - Ingredients: Mushroom, Cream, Aromatic Vegetables\n  - Allergen Details: Milk, Celery\n\n- **Vegetable Wonton Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 48 Kcal per 100g\n  - Ingredients: Vegetable Wonton, Clear Soup, Scallion\n  - Allergen Details: Gluten, Soybeans\n\n- **Sweet Corn Chicken Soup**\n  - Categorization: Non-Vegetarian\n  - Price: INR 550\n  - Calorie Count: 60 Kcal per 100g\n  - Ingredients: Creamy Corn, Chicken, Scallion\n  - Allergen Details: Milk\n\n### Salads\n- **Baby Spinach Salad**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 176 Kcal per 100g\n  - Ingredients: Spinach, Date, Walnut, Sumac Lemon\n  - Allergen Details: Gluten, Tree Nuts, Milk\n\n- **Burrata Salad**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 129 Kcal per 100g\n  - Ingredients: Fresh Burrata, Tomato, Olive Oil\n  - Allergen Details: Gluten, Tree Nuts, Milk\n\n- **Classic Caesar Salad**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 124 Kcal per 100g\n  - Ingredients: Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg\n  - Allergen Details: Gluten, Mustard, Milk, Eggs, Fish\n\n### Small Plates\n- **Korean Chicken Bao**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 241 Kcal per 100g\n  - Ingredients: Steam Bao, Crispy Chicken\n  - Allergen Details: Gluten, Celery, Milk, Sesame, Soybeans\n\n- **General Tso’s Chicken**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 275 Kcal per 100g\n  - Ingredients: Chicken Tossed With Soy, Ginger, Hoisin\n  - Allergen Details: Soybeans, Sesame\n\n- **Banno Kebab**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 138 Kcal per 100g\n  - Ingredients: Saffron Scented Chicken, Egg Coated Tandoor Cooked\n  - Allergen Details: Milk, Eggs\n\n- **Baked Bruschetta**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 156 Kcal per 100g\n  - Ingredients: Sliced Baked, Mozzarella, Marinated Cherry Tomato\n  - Allergen Details: Milk, Gluten\n\n- **Ultimate Veggie Nachos**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 142 Kcal per 100g\n  - Ingredients: Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked\n  - Allergen Details: Milk\n\n- **Hummus**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 99 Kcal per 100g\n  - Ingredients: Chickpeas, Tahini, Lemon, Olive Oil, P\n\n---\n\n# Restaurant Table Booking Service Information\n\n## Restaurant Options and Timings\n\n### The Aviation Bar\n- **Food Menu Availability**: 11am to 11pm\n- **Bar Hours**: Open until 1am\n- **Coffee, Tea & Desserts**: Available 24/7\n\n### Kadak\n- **Lunch/Dinner Hours**: 12pm to 3:30pm, 6:30pm to 11:30pm\n- **Breakfast Hours**: 6:30am to 10:30am (Monday to Friday), until 11am (Saturday & Sunday)\n- **Dessert Lounge**: Open 24/7\n\n### Scarletta\n- **Access**: Members only\n- **Membership Inquiry**: Guests should speak to the front office for inquiries or applications.\n\n### Bombay Swim Club\n- **Operating Hours**: 4pm to 1am (Monday to Friday), 12pm to 12am (Saturday & Sunday)\n\n## Reservation Information\n- Reservation details such as how to book a table, contact information, or reservation policies are not available in the provided KB evidence.",
+        "extracted_knowledge": "# Restaurant Table Booking Service Information\n\n## Service Time\n- **Service Time:** 12:00 PM to 11:30 PM\n\n## Menu Sections and Items\n\n### Soups\n- **Minestrone Alla Genovese Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 48 Kcal per 100g\n  - Ingredients: Beans, Potato, Cheese, Tomato\n  - Allergen Details: Milk, Celery\n\n- **Homemade Mushroom Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 46 Kcal per 100g\n  - Ingredients: Mushroom, Cream, Aromatic Vegetables\n  - Allergen Details: Milk, Celery\n\n- **Vegetable Wonton Soup**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 48 Kcal per 100g\n  - Ingredients: Vegetable Wonton, Clear Soup, Scallion\n  - Allergen Details: Gluten, Soybeans\n\n- **Sweet Corn Chicken Soup**\n  - Categorization: Non-Vegetarian\n  - Price: INR 550\n  - Calorie Count: 60 Kcal per 100g\n  - Ingredients: Creamy Corn, Chicken, Scallion\n  - Allergen Details: Milk\n\n### Salads\n- **Baby Spinach Salad**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 176 Kcal per 100g\n  - Ingredients: Spinach, Date, Walnut, Sumac Lemon\n  - Allergen Details: Gluten, Tree Nuts, Milk\n\n- **Burrata Salad**\n  - Categorization: Vegetarian\n  - Price: INR 500\n  - Calorie Count: 129 Kcal per 100g\n  - Ingredients: Fresh Burrata, Tomato, Olive Oil\n  - Allergen Details: Gluten, Tree Nuts, Milk\n\n- **Classic Caesar Salad**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 124 Kcal per 100g\n  - Ingredients: Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg\n  - Allergen Details: Gluten, Mustard, Milk, Eggs, Fish\n\n### Small Plates\n- **Korean Chicken Bao**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 241 Kcal per 100g\n  - Ingredients: Steam Bao, Crispy Chicken\n  - Allergen Details: Gluten, Celery, Milk, Sesame, Soybeans\n\n- **General Tso’s Chicken**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 275 Kcal per 100g\n  - Ingredients: Chicken Tossed With Soy, Ginger, Hoisin\n  - Allergen Details: Soybeans, Sesame\n\n- **Banno Kebab**\n  - Categorization: Non-Vegetarian\n  - Price: INR 650\n  - Calorie Count: 138 Kcal per 100g\n  - Ingredients: Saffron Scented Chicken, Egg Coated Tandoor Cooked\n  - Allergen Details: Milk, Eggs\n\n- **Baked Bruschetta**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 156 Kcal per 100g\n  - Ingredients: Sliced Baked, Mozzarella, Marinated Cherry Tomato\n  - Allergen Details: Milk, Gluten\n\n- **Ultimate Veggie Nachos**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 142 Kcal per 100g\n  - Ingredients: Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked\n  - Allergen Details: Milk\n\n- **Hummus**\n  - Categorization: Vegetarian\n  - Price: INR 550\n  - Calorie Count: 99 Kcal per 100g\n  - Ingredients: Chickpeas, Tahini, Lemon, Olive Oil, P\n\n---\n\n# Restaurant Table Booking Service Information\n\n## Restaurant Options and Timings\n\n### The Aviation Bar\n- **Food Menu Availability**: 11am to 11pm\n- **Bar Hours**: Open until 1am\n- **Coffee, Tea & Desserts**: Available 24/7\n\n### Kadak\n- **Lunch/Dinner Hours**: 12pm to 3:30pm, 6:30pm to 11:30pm\n- **Breakfast Hours**: 6:30am to 10:30am (Monday to Friday), until 11am (Saturday & Sunday)\n- **Dessert Lounge**: Open 24/7\n\n### Scarletta\n- **Access**: Members only\n- **Membership Inquiry**: Guests can inquire or apply for membership at the front office.\n\n### Bombay Swim Club\n- **Operating Hours**: 4pm to 1am (Monday to Friday), 12pm to 12am (Saturday & Sunday)\n\n## Menu Information\n\n### Aviator À LA CARTE MENU\n- **Menu Name**: Aviator\n- **Sections**: À LA CARTE MENU\n- **Sample Items**:\n  - Tofu & Peanut Lettuce Cups (Vegan, INR 350)\n  - Baby Spinach Salad with Dates & Almonds (Vegetarian, INR 350)\n  - Sea Bass Crudo (Seafood, INR 750)\n\n### Kadak Menu\n- **Menu Name**: Kadak\n- **Sections**: Soup, Snacks, Small, Ulta Tawa Tacos, Kebabs & Grill, Large, Sides, Biryani, Traditional Indian Breads, Dessert, Kulcha Bombs\n- **Sample Items**:\n  - Black Chickpea Rassam, Chana Jor Garam (Vegetarian, INR 415)\n  - Chicken Changezi Tart, Pickled Pearl Onion (Non Vegetarian, INR 515)\n  - Tandoori Gucci Pulao (Vegetarian, INR 985)\n\n## Reservation Information\n- **Reservation Details**: Not available in KB\n\n## Pricing\n- **Sample Pricing**: \n  - Tofu & Peanut Lettuce Cups: INR 350\n  - Sea Bass Crudo: INR 750\n  - Chicken Biryani: INR 665\n\n## Allergen Information\n- **Sample Allergen Details**:\n  - Biscoff Cheesecake: Contains Gluten, Milk\n  - Tiramisu: Contains Gluten, Milk, Egg\n\n## Additional Information\n- **Membership Inquiry for Scarletta**: Guests should speak to the front office for membership inquiries.",
         "generated_extraction_prompt": "You are extracting a knowledge pack for a hotel chatbot service agent.\n\nSERVICE NAME: restaurant table booking\nSERVICE DESCRIPTION: Allows guests to view detailed information about all restaurant options and reserve a table during their stay.\nJourney phase: during_stay\n\nExtract only information explicitly present in provided KB evidence.\nDo not invent or assume any missing detail.\nDo not omit relevant details from evidence chunks.\nPreserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\nIf a field is not present in evidence, state that it is not available in KB.\nOrganize output with clear section headers."
+      },
+      {
+        "id": "room_booking_support_kb",
+        "service_id": "room_booking_support",
+        "plugin_id": "room_booking_support_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_7a6eaedd53",
+            "text": "room booking support is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.756889+00:00",
+            "created_at": "2026-03-16T14:57:41.756889+00:00",
+            "updated_at": "2026-03-16T14:57:41.756889+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_6bc1c3d583",
+            "text": "room booking support: Assists guests in exploring room options, booking through chat and resolving booking issues on the website during the pre-booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.756921+00:00",
+            "created_at": "2026-03-16T14:57:41.756921+00:00",
+            "updated_at": "2026-03-16T14:57:41.756921+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_8cb151b80a",
+            "text": "Ticketing is enabled for room booking support in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.756947+00:00",
+            "created_at": "2026-03-16T14:57:41.756947+00:00",
+            "updated_at": "2026-03-16T14:57:41.756947+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_e05c41b8e9",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.764789+00:00",
+            "created_at": "2026-03-16T14:57:41.764789+00:00",
+            "updated_at": "2026-03-16T14:57:41.764789+00:00",
+            "confidence": 0.61,
+            "evidence": null
+          },
+          {
+            "id": "fact_cf972ce44f",
+            "text": "From Checkin in, ordering a car, linen, or booking a massage – its all available seamless.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.764836+00:00",
+            "created_at": "2026-03-16T14:57:41.764836+00:00",
+            "updated_at": "2026-03-16T14:57:41.764836+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_e67e49b40c",
+            "text": "Featuring two plush twin beds with premium linens, this room is ideal for both business and leisure travelers.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.764864+00:00",
+            "created_at": "2026-03-16T14:57:41.764864+00:00",
+            "updated_at": "2026-03-16T14:57:41.764864+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_446fde9bf5",
+            "text": "(You will explain whatsapp as you walk from the lobby to the Iconiqa Room)\\nPretty much everything.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.764884+00:00",
+            "created_at": "2026-03-16T14:57:41.764884+00:00",
+            "updated_at": "2026-03-16T14:57:41.764884+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_567423e0c7",
+            "text": "ft\\n\\nDesigned for comfort and versatility, our Premier Twin Room offers 231 to 380 sq.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking_support",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.764901+00:00",
+            "created_at": "2026-03-16T14:57:41.764901+00:00",
+            "updated_at": "2026-03-16T14:57:41.764901+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 8,
+        "is_active": true,
+        "published_at": "2026-03-16T15:21:22.463489+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-16T14:57:41.719870+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-16T14:57:41.719870+00:00",
+          "compiler_version": "v1",
+          "service_signature": "558a10168a3c79fd13f5c45f2b7ed8cc97286496",
+          "source_signature": "60e490d7c0e70330997ba526493978561587c8b9",
+          "source_count": 1,
+          "manual_fact_count": 0,
+          "auto_fact_count": 8,
+          "total_fact_count": 8,
+          "enrichment_signature": "af03a589ecbec76d",
+          "enrichment_generated_at": "2026-03-16T15:21:22.463489+00:00",
+          "kb_hash": "b00631b22169b5f61685010fff3cf496f4dda391",
+          "library_book_ids": [
+            "accommodation_details",
+            "booking_and_cancellation",
+            "check_in_and_check_out",
+            "hotel_information",
+            "hotel_policies",
+            "hotel_services",
+            "location_details",
+            "property_details",
+            "room_information",
+            "special_offers"
+          ],
+          "library_page_count": 29,
+          "library_context_truncated": false
+        },
+        "extracted_knowledge": "# Room Booking Support Knowledge Pack\n\n## Hotel Information\n- **Hotel Name:** ICONIQA\n- **City:** Mumbai\n- **Hotel Address:** Near Terminal 2, Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099\n- **Google Maps Location:** [Hotel Location on Google Maps](https://maps.app.goo.gl/zvGW4DQF5prhpexM6)\n\n## Accommodation Details\n- **Total Rooms:** 291\n- **Room Distribution:**\n  - 1st Floor: 9 rooms\n  - 6th Floor: 34 rooms\n  - 7th Floor: 32 rooms\n  - 2nd-5th, 8th-9th Floors: 36 rooms each\n\n### Room Types and Details\n- **Premier King Room:**\n  - Total: 134 rooms\n  - Sizes: 109 rooms (229–285 sq. ft.), 25 rooms (300-340 sq. ft.)\n  - Features: Calming palette, cloud-soft linens, versatile table-and-chair duo\n\n- **Premier Twin Room:**\n  - Total: 48 rooms\n  - Sizes: 31 rooms (230–310 sq. ft.), 17 rooms (310-380 sq. ft.)\n  - Features: Two plush twin beds, premium linens\n\n- **Lux Suite:**\n  - Total: 79 rooms\n  - Sizes: 15 rooms (380-425 sq. ft. with King bed), 64 rooms (430-485 sq. ft. with Twin bed)\n  - Features: King-size bed, separate seating area, panoramic city views\n\n- **Reserve Suite:**\n  - Total: 16 rooms\n  - Sizes: 375–415 sq. ft.\n  - Features: King-size bed, separate lounge area\n\n- **Prestige Suite:**\n  - Total: 6 rooms\n  - Size: 485 sq. ft.\n  - Features: King-size bed, elegant seating area, includes bathtub\n\n- **Ultimate Suite:**\n  - Total: 8 rooms\n  - Size: 603 sq. ft.\n  - Features: King-size bed, separate living and dining area\n\n### In-Room Amenities\n- In-room smart laundry closet\n- Complimentary non-alcoholic minibar\n- Custom \"Bed of Dreams\" with traceable cotton linen\n- Espresso Machines + coffee pods\n- High-speed WiFi with unlimited device usage\n- Power shower with Indian Ayurvedic influenced bath products\n- Sustainable and recyclable bathroom amenities\n- Tea Maker with multiple flavors\n- Smart TVs with streaming options\n\n## Booking and Cancellation Policies\n- **Cancellation Policy:**\n  - On BAR: 48 hours prior to arrival\n  - Advance Purchase: Non-refundable, non-amendable, non-cancellable\n  - Corporate/TA: As per signed contract\n\n## Check-In and Check-Out\n- **Check-In Time:** 14:00 hrs\n- **Check-Out Time:** 11:00 hrs\n- **Early Check-In Policy:** Before 07:00 AM, 50% of room rate, subject to availability\n- **Late Check-Out Policy:** Complimentary till 12 noon, 50% of room rate till 4 PM, full night charges post 4 PM, subject to availability\n\n## Smoking Policy\n- All rooms are non-smoking\n- Designated smoking zones: Roof top, outside the main porch\n\n## Additional Services\n- **Doctor on Call:** Yes, Dr. Deepak Tiwari, 24x7, ₹2500 consultation\n- **Valet Parking:** Yes, capacity for 300 vehicles in the basement\n- **Business Center:** No formal business center, multiple spaces available for work\n- **Pilates Equipment:** Available 24x7, classes with a trainer at additional charge\n- **Beauty Bar:** Open 9 AM to 10 PM, offers nail art, manicures, pedicures, blow dry\n- **Wellness Rooms:** Candlelight therapies, functional massages, foot massages by the poolside\n\n## Special Offers\n- **Happy Hours:** Daily at Aviator, 12 PM to 5 PM. For reservations, call 022 6188 6188/0 from your in-room phone.",
+        "generated_extraction_prompt": "You are extracting a knowledge pack for a hotel chatbot service agent.\n\nSERVICE NAME: room booking support\nSERVICE DESCRIPTION: Assists guests in exploring room options, booking through chat and resolving booking issues on the website during the pre-booking phase.\nJourney phase: pre_booking\n\nExtract only information explicitly present in provided KB evidence.\nDo not invent or assume any missing detail.\nDo not omit relevant details from evidence chunks.\nPreserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\nIf a field is not present in evidence, state that it is not available in KB.\nOrganize output with clear section headers."
+      },
+      {
+        "id": "lost_and_found_kb",
+        "service_id": "lost_and_found",
+        "plugin_id": "lost_and_found_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_4314f46dec",
+            "text": "lost and found is configured as an active service for Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.772639+00:00",
+            "created_at": "2026-03-16T14:57:41.772639+00:00",
+            "updated_at": "2026-03-16T14:57:41.772639+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_dc08bd9b5a",
+            "text": "lost and found: Assist guests in locating and retrieving items they may have lost after checking out.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.772678+00:00",
+            "created_at": "2026-03-16T14:57:41.772678+00:00",
+            "updated_at": "2026-03-16T14:57:41.772678+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_553bcd8b0d",
+            "text": "Ticketing is enabled for lost and found in Post Checkout phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.772701+00:00",
+            "created_at": "2026-03-16T14:57:41.772701+00:00",
+            "updated_at": "2026-03-16T14:57:41.772701+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_6cde6c3657",
+            "text": "TRUFFLED EGGS TOAST\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"650\\\"\\n calorie_count_per_100g: \\\"146 Kcal\\\"\\n ingredients: \\\"Sourdough, Cream Cheese\\\"\\n allergen_details: \\\"Milk, Gluten, Eggs, Soybeans\\\"\\n\\n - section_name: \\\"24 HOURS BREADS\\\"\\n items:\\n - item_name: \\\"1.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.780971+00:00",
+            "created_at": "2026-03-16T14:57:41.780971+00:00",
+            "updated_at": "2026-03-16T14:57:41.780971+00:00",
+            "confidence": 0.67,
+            "evidence": null
+          },
+          {
+            "id": "fact_077f2048a1",
+            "text": "7\\\"\\n price_inr: \\\"500\\\"\\n - item_name: \\\"JIM BEAM\\\"\\n price_inr: \\\"450\\\"\\n\\n - section_name: \\\"Whiskey – Blended Scotch\\\"\\n items:\\n - item_name: \\\"J.W.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781014+00:00",
+            "created_at": "2026-03-16T14:57:41.781014+00:00",
+            "updated_at": "2026-03-16T14:57:41.781014+00:00",
+            "confidence": 0.67,
+            "evidence": null
+          },
+          {
+            "id": "fact_2ff5204726",
+            "text": "\\nKey Talking Points\\nFlexible modern banquet room\\nFully kitted out\\nGreat pre-function space and outdoor spaces\\n\\nLets go to the first floor\\n \\nAll hotels have a bigger larger fancier coffee shop, with mundane food.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781040+00:00",
+            "created_at": "2026-03-16T14:57:41.781040+00:00",
+            "updated_at": "2026-03-16T14:57:41.781040+00:00",
+            "confidence": 0.61,
+            "evidence": null
+          },
+          {
+            "id": "fact_10a03d89b2",
+            "text": "KOREAN FRIED CHICKEN BURGER\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"650\\\"\\n calorie_count_per_100g: \\\"161 Kcal\\\"\\n ingredients: \\\"Crispy Fried Chicken, Kimchi, Chilli Sauce, Fried Onion\\\"\\n allergen_details: \\\"Milk, Gluten, Eggs, Soybeans, Sesame\\\"\\n\\n - item_name: \\\"3.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781065+00:00",
+            "created_at": "2026-03-16T14:57:41.781065+00:00",
+            "updated_at": "2026-03-16T14:57:41.781065+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_c1c00b27db",
+            "text": "UFO BURGER WITH MUSHROOMS\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"133 Kcal\\\"\\n ingredients: \\\"Sautéed Mushroom, Sliced Tomato, Caramelised Onion, Cheese\\\"\\n allergen_details: \\\"Milk, Gluten\\\"\\n\\n - item_name: \\\"10.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781090+00:00",
+            "created_at": "2026-03-16T14:57:41.781090+00:00",
+            "updated_at": "2026-03-16T14:57:41.781090+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_1eced26bea",
+            "text": "PANEER KATHI ROLL\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"159 Kcal\\\"\\n ingredients: \\\"Tempered Cottage Cheese, Capsicum, Onion, Malabar Parotta\\\"\\n allergen_details: \\\"Milk, Gluten\\\"\\n\\n - item_name: \\\"12.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781113+00:00",
+            "created_at": "2026-03-16T14:57:41.781113+00:00",
+            "updated_at": "2026-03-16T14:57:41.781113+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_b7c513caab",
+            "text": "TEXAS VEGETABLE QUESADILLA\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"185 Kcal\\\"\\n ingredients: \\\"Red Kidney Bean, Cheese, In Grilled Tortilla\\\"\\n allergen_details: \\\"Milk, Gluten\\\"\\n\\n - item_name: \\\"11.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781159+00:00",
+            "created_at": "2026-03-16T14:57:41.781159+00:00",
+            "updated_at": "2026-03-16T14:57:41.781159+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_03e41d327f",
+            "text": "CHICKEN KATHI ROLL\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"650\\\"\\n calorie_count_per_100g: \\\"167 Kcal\\\"\\n ingredients: \\\"Chicken Tikka, Onion, Capsicum, Malabar Parotta\\\"\\n allergen_details: \\\"Gluten, Milk\\\"\\n\\n - item_name: \\\"4.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781183+00:00",
+            "created_at": "2026-03-16T14:57:41.781183+00:00",
+            "updated_at": "2026-03-16T14:57:41.781183+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_cbf2632afb",
+            "text": "CHICKEN CROISSANT\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"650\\\"\\n calorie_count_per_100g: \\\"258 Kcal\\\"\\n ingredients: \\\"Smoked Paprika, Goat Cheese\\\"\\n allergen_details: \\\"Milk, Gluten, Eggs\\\"\\n\\n - item_name: \\\"13.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781204+00:00",
+            "created_at": "2026-03-16T14:57:41.781204+00:00",
+            "updated_at": "2026-03-16T14:57:41.781204+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_95363dd7fb",
+            "text": "BOMBAY TOASTIE\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"91 Kcal\\\"\\n ingredients: \\\"Brioche, Potato Mash, Cheese\\\"\\n allergen_details: \\\"Gluten, Milk, Mustard\\\"\\n\\n - item_name: \\\"7.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781224+00:00",
+            "created_at": "2026-03-16T14:57:41.781224+00:00",
+            "updated_at": "2026-03-16T14:57:41.781224+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_08eea06110",
+            "text": "PULLED LAMB\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"700\\\"\\n calorie_count_per_100g: \\\"219 Kcal\\\"\\n ingredients: \\\"Sealed Burger, Shallots\\\"\\n allergen_details: \\\"Mustard, Tree nuts, Milk\\\"\\n\\n - item_name: \\\"5.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781245+00:00",
+            "created_at": "2026-03-16T14:57:41.781245+00:00",
+            "updated_at": "2026-03-16T14:57:41.781245+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_97d0af42b7",
+            "text": "GHEE ROAST PRAWN\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"800\\\"\\n calorie_count_per_100g: \\\"169 Kcal\\\"\\n ingredients: \\\"Sealed Bun, Gherkins\\\"\\n allergen_details: \\\"Gluten, Milk, Fish\\\"\\n\\n - item_name: \\\"6.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781266+00:00",
+            "created_at": "2026-03-16T14:57:41.781266+00:00",
+            "updated_at": "2026-03-16T14:57:41.781266+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_523b2773c0",
+            "text": "ICONIQA CLUB\\\"\\n categorization: \\\"Non-Vegetarian\\\"\\n price_inr: \\\"650\\\"\\n calorie_count_per_100g: \\\"154 Kcal\\\"\\n ingredients: \\\"Chicken, Bacon, Egg\\\"\\n allergen_details: \\\"Milk, Gluten, Eggs\\\"\\n\\n - item_name: \\\"2.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781287+00:00",
+            "created_at": "2026-03-16T14:57:41.781287+00:00",
+            "updated_at": "2026-03-16T14:57:41.781287+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_c7a035db5a",
+            "text": "POWER SHAKE WITH VANILLA, STRAWBERRIES AND BANANA\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"350\\\"\\n calorie_count_per_100g: \\\"51 Kcal\\\"\\n allergen_details: \\\"Tree Nuts, Milk, Soybeans\\\"\\n\\n - item_name: \\\"2.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781306+00:00",
+            "created_at": "2026-03-16T14:57:41.781306+00:00",
+            "updated_at": "2026-03-16T14:57:41.781306+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_726fbf7439",
+            "text": "STRAWBERRIES, BEETROOT POWDER, BANANA DATE PUREE\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"350\\\"\\n calorie_count_per_100g: \\\"40 Kcal\\\"\\n allergen_details: \\\"Tree Nuts, Milk, Soybeans\\\"\\n\\n - item_name: \\\"4.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781327+00:00",
+            "created_at": "2026-03-16T14:57:41.781327+00:00",
+            "updated_at": "2026-03-16T14:57:41.781327+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_403041be20",
+            "text": "GRILLED VEGGIE\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"150 Kcal\\\"\\n ingredients: \\\"Shokupan Sando, Boursin\\\"\\n allergen_details: \\\"Gluten, Milk\\\"\\n\\n - item_name: \\\"8.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781347+00:00",
+            "created_at": "2026-03-16T14:57:41.781347+00:00",
+            "updated_at": "2026-03-16T14:57:41.781347+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_3abf7fcc5e",
+            "text": "TAMARI TOFU\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"575\\\"\\n calorie_count_per_100g: \\\"134 Kcal\\\"\\n ingredients: \\\"Bao, Mesclun\\\"\\n allergen_details: \\\"Gluten, Soybeans\\\"\\n\\n - item_name: \\\"9.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781367+00:00",
+            "created_at": "2026-03-16T14:57:41.781367+00:00",
+            "updated_at": "2026-03-16T14:57:41.781367+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_831423a291",
+            "text": "CARROT, TURMERIC, GINGER, LEMON, APPLE, OLIVE OIL\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"350\\\"\\n calorie_count_per_100g: \\\"30 Kcal\\\"\\n allergen_details: \\\"None Listed\\\"\\n\\n - item_name: \\\"5.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781387+00:00",
+            "created_at": "2026-03-16T14:57:41.781387+00:00",
+            "updated_at": "2026-03-16T14:57:41.781387+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_11f1987219",
+            "text": "KALE, CELERY, CUCUMBER, OLIVE OIL\\\"\\n categorization: \\\"Vegetarian\\\"\\n price_inr: \\\"350\\\"\\n calorie_count_per_100g: \\\"23 Kcal\\\"\\n allergen_details: \\\"Celery\\\"\\n\\n - item_name: \\\"3.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781406+00:00",
+            "created_at": "2026-03-16T14:57:41.781406+00:00",
+            "updated_at": "2026-03-16T14:57:41.781406+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_17ef943f89",
+            "text": "Multiple spaces are available around the hotel to work, print sheets, have a quick meeting or get some real work done.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781426+00:00",
+            "created_at": "2026-03-16T14:57:41.781426+00:00",
+            "updated_at": "2026-03-16T14:57:41.781426+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_83b0936bd8",
+            "text": "DOUBLE BLACK\\\"\\n price_inr: \\\"650\\\"\\n - item_name: \\\"J.W.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781446+00:00",
+            "created_at": "2026-03-16T14:57:41.781446+00:00",
+            "updated_at": "2026-03-16T14:57:41.781446+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_f1b1507080",
+            "text": "\", \"nearby_hospitals\": \"SevenHills, Mukund, Holy Spirit\\n\", \"business_center\": \"While we do not have a formal business center, ICONIQA blurs the lines between Business and Leisure.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781462+00:00",
+            "created_at": "2026-03-16T14:57:41.781462+00:00",
+            "updated_at": "2026-03-16T14:57:41.781462+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_16b595d9fc",
+            "text": "ft\\n\\nThe hotel has multiple spaces at Aviator, Kadak or Bombay Swim Club that can be taken out for private-hire from 10 to 300 people.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781482+00:00",
+            "created_at": "2026-03-16T14:57:41.781482+00:00",
+            "updated_at": "2026-03-16T14:57:41.781482+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_aba760995f",
+            "text": "This has been designed as a space for you to have a meeting or enjoy a cocktail, as it seamlessly blends business and pleasure.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781503+00:00",
+            "created_at": "2026-03-16T14:57:41.781503+00:00",
+            "updated_at": "2026-03-16T14:57:41.781503+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_af238a9bcb",
+            "text": "It is fully kitted out, with its own sound system, mood lighting, projections systems and the like.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781524+00:00",
+            "created_at": "2026-03-16T14:57:41.781524+00:00",
+            "updated_at": "2026-03-16T14:57:41.781524+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_42beb19b87",
+            "text": "Morning coffee, post-meeting cocktails, late-night wind-downs-it's whatever you want it to be.",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781542+00:00",
+            "created_at": "2026-03-16T14:57:41.781542+00:00",
+            "updated_at": "2026-03-16T14:57:41.781542+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_5c1d2f59c9",
+            "text": "You don’t have to check in using the desk!",
+            "source": "kb_source:0c7ad8f6_ROHL_Test_property.txt",
+            "origin": "auto",
+            "tags": [
+              "lost_and_found",
+              "post_checkout",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-16T14:57:41.781559+00:00",
+            "created_at": "2026-03-16T14:57:41.781559+00:00",
+            "updated_at": "2026-03-16T14:57:41.781559+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 7,
+        "is_active": true,
+        "published_at": "2026-03-16T14:57:41.719870+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-16T14:57:41.719870+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-16T14:57:41.719870+00:00",
+          "compiler_version": "v1",
+          "service_signature": "e72d2148711a3a9fc91c2cfeb50dfd92c16cae4f",
+          "source_signature": "60e490d7c0e70330997ba526493978561587c8b9",
+          "source_count": 1,
+          "manual_fact_count": 0,
+          "auto_fact_count": 30,
+          "total_fact_count": 30
+        },
+        "extracted_knowledge": "",
+        "generated_extraction_prompt": ""
       }
     ],
     "compiler": {

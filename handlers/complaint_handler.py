@@ -224,7 +224,7 @@ class ComplaintHandler(BaseHandler):
                 next_state=ConversationState.AWAITING_INFO,
                 pending_action="collect_ticket_room_number",
                 pending_data=pending_data,
-                suggested_actions=["101", "202", "305"],
+                suggested_actions=["cancel"],
             )
 
         if self._should_auto_create_ticket():
@@ -255,7 +255,7 @@ class ComplaintHandler(BaseHandler):
                 next_state=ConversationState.AWAITING_INFO,
                 pending_action="collect_ticket_room_number",
                 pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
-                suggested_actions=["101", "202", "A-12"],
+                suggested_actions=["cancel"],
             )
 
         pending = dict(context.pending_data or {})

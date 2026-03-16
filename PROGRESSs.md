@@ -4226,3 +4226,416 @@ o moves to final review prompt.
 
 ### Note
 - Service-agent integration is intentionally paused in this cycle as requested; only non-service-agent phase/ticketing integration work was implemented.
+
+---
+
+## Latest Update (March 16, 2026)
+
+### Feature: Suggestion Bubbles — Full Overhaul
+
+**Goal**: The auto-suggestion chips shown after every bot response were generating random, context-blind, and bot-perspective suggestions (e.g. "Ask about room types", "Here's my full name and details", "7 PM", "101"). Overhauled the full suggestion pipeline to be contextual, grounded in the knowledge base and active service, and written purely as natural guest messages.
+
+---
+
+#### Root Cause Analysis
+
+Three compounding problems were identified:
+
+1. **Layer 1 (chat_service.py) always fired first and returned generic chips** — so Layer 2 (the LLM suggestion agent with full context) never ran. Suggestions like "Ask another question", "Show options", service names from the catalog, and hardcoded intent-based strings were returned regardless of what the bot actually said.
+
+2. **Layer 3 (fallback endpoint) was being called by the frontend for every response**, ignoring `data.suggested_actions` already returned by the orchestrator. The endpoint only received `last_bot_message` + `user_message`, with no knowledge of phase, active service, conversation state, or history.
+
+3. **LLM prompt framing** across all layers was producing bot-perspective labels ("Ask about X", "View services") instead of actual guest messages, because `response_contract` specified `"2-5 words action label"` — and there was no explicit first-person voice instruction or guard against suggesting personal/unique data.
+
+---
+
+#### Changes Made
+
+**`static/js/chat.js`**
+- If `data.suggested_actions` is non-empty (set by orchestrator with full context), use them directly — no endpoint call.
+- Only call `/api/chat/suggestions` as a fallback when orchestrator returns nothing.
+- Pass `session_id` in the fallback request so the endpoint can load live session context.
+
+**`api/routes/chat.py` — `/api/chat/suggestions` endpoint**
+- Added `session_id` and `current_phase` fields to `SuggestionsRequest`.
+- When `session_id` is provided: loads live session context via `context_manager.get_context()` to extract conversation state, `pending_action`, phase, and active service.
+- Looks up the active service from `config_service.get_service(pending_action)` — includes service name and profile in the payload.
+- Phase description loaded dynamically from `config_service.get_journey_phases()` — nothing hardcoded.
+- Phase services loaded from `config_service.get_phase_services(phase_id)` — reflects live config.
+- KB text loaded via `config_service.get_full_kb_text(max_chars=5000)` — LLM infers topics itself, no hardcoded topic list.
+- Recent conversation history (last 6 messages, 2000 char cap) extracted from context and included in payload.
+- Full `context_payload` passed to LLM as JSON: `last_bot_message`, `user_message`, `conversation_history`, `conversation_state`, `journey_phase`, `active_service`, `available_phase_services`, `knowledge_base_excerpt`.
+- System prompt rewritten with explicit reasoning order: bot message first → history → active service → KB/phase.
+
+**`services/llm_orchestration_service.py` — `_run_next_action_suggestion_agent`**
+- `response_contract` changed from `"2-5 words action label"` → `"what the guest would type next"` — stops the LLM writing bot-perspective labels.
+- System prompt rewritten with explicit reasoning order: read `assistant_response` first → `history` → `service` + `decision.missing_fields` → `selected_phase`.
+- Added voice enforcement with bad/good examples.
+- Added unique-values principle (see below).
+
+**`services/chat_service.py` — `_build_contextual_suggested_actions` + `_get_suggested_actions`**
+- Both methods now only return deterministic chips for functional states that require them:
+  - `AWAITING_CONFIRMATION` → `[confirmation_phrase, "cancel"]`
+  - `ESCALATED` → `["Return to bot"]`
+  - Confirm-type `pending_action` values → `[confirmation_phrase, "cancel"]`
+- Everything else returns `[]` — this unblocks Layer 2 from running in all normal conversation flows.
+- Removed: generic service catalog chips, intent-based fallbacks ("Ask another question", "Show options", "Talk to human"), `get_quick_actions()` calls, and all bot-perspective strings.
+
+**`handlers/booking_handler.py`**
+- Removed specific-value chips that guests must supply themselves:
+  - `["Kadak", "In-Room Dining"]` → `["cancel"]`
+  - `["2", "4", "6"]` (party size) → `["cancel"]`
+  - `["7 PM", "8 PM", "9 PM"]` (times) → `["cancel"]`
+
+**`handlers/complaint_handler.py`**
+- Removed specific-value chips:
+  - `["101", "202", "305"]` (room numbers) → `["cancel"]`
+  - `["101", "202", "A-12"]` (room number format examples) → `["cancel"]`
+
+---
+
+#### Prompt Rules Added to All LLM Suggestion Layers
+
+All LLM prompts (Layer 2 + fallback endpoint) now enforce:
+
+1. **Reasoning order**: `assistant_response`/`last_bot_message` → `history` → active service/missing fields → phase/KB. Suggestions must be a direct natural response to what the bot just said.
+
+2. **First-person voice**: Every suggestion must be a natural guest message — exactly what they would type.
+   - Bad: `"Ask about room types"`, `"View services"`, `"Show options"`, `"Share details"`
+   - Good: `"What room types do you have?"`, `"What services are available?"`, `"Can I see my options?"`
+
+3. **No unique personal values**: Never suggest any value unique to the individual guest — names, room numbers, phone numbers, email addresses, flight numbers, dates, times, booking references, quantities, party sizes, prices, or any personal/context-specific data.
+
+4. **No data-submission messages**: Never suggest a message where the guest is offering or providing their personal information, even without stating the actual value. Messages like `"Here's my full name and details"`, `"I'll share my details"`, `"Here is my information"` are explicitly forbidden — they imply the guest is about to hand over unique personal data. Suggestions must only be questions or service requests, never data submissions.
+
+---
+
+#### Result: New Suggestion Flow
+
+```
+Bot responds
+  ↓
+Layer 1 (_build_contextual_suggested_actions)
+  → AWAITING_CONFIRMATION / ESCALATED / confirm pending_action: returns functional chips
+  → Everything else: returns [] immediately
+  ↓
+Layer 2 (_run_next_action_suggestion_agent) runs — because Layer 1 returned []
+  → Reads: assistant_response (primary anchor), history, service, phase, missing_fields
+  → Writes: first-person guest messages grounded in what the bot just said
+  ↓
+Frontend uses data.suggested_actions directly (Layer 2 result)
+  ↓
+Only if Layer 2 also returned [] (rare edge case):
+  → Frontend calls fallback endpoint with session_id + last_bot_message
+  → Endpoint loads history, service, phase from session context
+  → LLM generates grounded first-person suggestions from bot message + full context
+```
+
+---
+
+## Update (March 16, 2026) — LLM Orchestrator as Single Authority: Disable Rule-Based Routing
+
+### Background
+
+A broken conversation was analyzed where:
+- Room type queries were incorrectly answered by the complaint agent
+- "yes" triggered a lost-and-found phase mismatch response
+- Affirmative replies ("yes", "ok", "sure") were hijacked by keyword-based resume handler
+- The LLM orchestrator's decisions were being overridden by rule-based layers beneath it
+
+**Decision**: Disable all rule-based routing/response override layers. The LLM orchestrator is now the single authority on all routing and response decisions.
+
+---
+
+### Change 1 — Remove `_infer_plugin_ticket_fallback_intent` Call Sites
+**File**: `services/chat_service.py`
+
+**Problem**: `_infer_plugin_ticket_fallback_intent()` was a rule-based fallback that scanned message text for keywords and forced routing to the complaint/ticketing agent. This ran *after* the LLM orchestrator had already made its decision, silently overriding it. Room type questions would match complaint keywords and get rerouted to the wrong agent.
+
+**Fix**: Removed both call sites. The LLM orchestrator's `action` field is now used directly without override.
+
+```python
+# REMOVED (was at ~line 6320):
+# fallback_intent = self._infer_plugin_ticket_fallback_intent(user_message, context)
+# if fallback_intent:
+#     handler_result = await self._route_to_handler(fallback_intent, ...)
+
+# REMOVED (was at ~line 7391):
+# fallback_intent = self._infer_plugin_ticket_fallback_intent(user_message, context)
+# if fallback_intent:
+#     return await self._handle_fallback_ticket(...)
+
+# Replaced with comment:
+# Rule-based fallback intent inference removed — LLM orchestrator owns all routing decisions.
+```
+
+---
+
+### Change 2 — Remove Phase Gate Early Return
+**File**: `services/chat_service.py`
+
+**Problem**: `_detect_ticketing_phase_service_mismatch()` ran before the LLM and checked if the current phase matched the current service. If a mismatch was detected, it fired an early return response bypassing the LLM entirely. The bug: the phase gate semantically matched "yes" against `lost_and_found` service during a `during_stay` phase check, and returned a phase mismatch response instead of letting the LLM handle the continuity of the pending flow.
+
+**Fix**: Removed the `elif phase_gate_handler_result is not None:` early return block. Phase mismatches are now communicated to the LLM via the orchestrator payload (phase fields, service context), and the LLM decides what to say.
+
+```python
+# REMOVED:
+# elif phase_gate_handler_result is not None:
+#     handler_result = phase_gate_handler_result
+#     response_text = handler_result.response_text
+#     response_source = "ticketing_phase_gate"
+```
+
+---
+
+### Change 3 — Replace Keyword Resume Handler with LLM Annotation
+**File**: `services/llm_orchestration_service.py`
+
+**Problem**: When `context.resume_prompt_sent` was True, a keyword-based handler checked for affirmatives ("yes", "ok", "sure", "yeah", "yep", "please", "alright", "go ahead") and negatives to decide whether to resume a suspended service. This was deterministic and wrong in ambiguous cases — any message containing those words would be intercepted.
+
+**Fix**: Replaced with an annotation approach. The user's actual message is preserved but wrapped with a context annotation that tells the LLM what the situation is. The LLM reads the full annotation and decides whether to resume or abandon.
+
+```python
+# BEFORE (keyword-based):
+# if context.resume_prompt_sent:
+#     affirmatives = ["yes", "ok", "sure", ...]
+#     if any(word in user_message.lower() for word in affirmatives):
+#         return await self._resume_suspended_service(...)
+#     else:
+#         context.suspended_services.clear()
+
+# AFTER (LLM annotation):
+if context.resume_prompt_sent:
+    context.resume_prompt_sent = False
+    if context.suspended_services:
+        suspended = context.suspended_services[0]
+        svc_name = suspended.get("service_name", "previous request")
+        user_message = (
+            f"[CONTEXT: bot just asked whether to resume '{svc_name}'. "
+            f"Guest replied: '{user_message}'. "
+            f"Decide based on the reply whether to resume or abandon.]"
+        )
+```
+
+---
+
+### Change 4 — Add `pending_action_context` to Orchestrator Payload
+**File**: `services/llm_orchestration_service.py`
+
+**Problem**: The orchestrator received `pending_action` as an opaque string (e.g. `"confirm_room_booking"`). The LLM had no understanding of what this meant — what service it belonged to, what data had already been collected, or how far along the flow was. This caused the LLM to sometimes re-route away from the pending flow instead of continuing it.
+
+**Fix**: Added `_build_pending_action_context()` helper method and `pending_action_context` field to the main orchestrator payload.
+
+```python
+def _build_pending_action_context(self, context: Any) -> str:
+    """Return a human-readable sentence describing what the guest was mid-flow on."""
+    pending_action = str(getattr(context, "pending_action", "") or "")
+    if not pending_action:
+        return ""
+    # looks up service name from config, collects filled slot names
+    # returns e.g.:
+    # "Guest was mid-flow: confirm_room_booking (service: Room Booking, already collected: party_size)"
+```
+
+Payload field added:
+```python
+"pending_action_context": self._build_pending_action_context(context),
+```
+
+---
+
+### Change 5 — Rewrite Main Orchestrator System Prompt
+**File**: `services/llm_orchestration_service.py`
+
+**Problem**: The old prompt had no explicit authority declaration, no short-message continuity rule, no ambiguity check step, and no explicit boundary between complaint and non-complaint intents. This caused the LLM to over-route to complaint handlers and fail to continue pending flows on short replies.
+
+**Fix**: Full prompt rewrite with five explicit steps:
+
+```
+STEP 1: READ HISTORY
+  → Always read history_last_10 then full_history_context first.
+  → Use last_user_message + last_assistant_message as high-priority continuity anchors.
+  → Resolve pronouns ('it', 'that', 'same', 'this') against last assistant message.
+
+STEP 2: MID-FLOW CHECK
+  → If pending_action is set: stay on that service, route back immediately.
+  → Short replies ('yes', 'ok', 'sure', 'no', 'cancel', a number, a name, a date)
+    when pending_action is set are ALWAYS a continuation — never re-route them.
+  → Only interrupt if guest explicitly asks about a completely different topic in a full sentence.
+
+STEP 2B: AMBIGUITY CHECK
+  → If short/vague + no pending_action + last_assistant_message provides no context:
+    do not guess, do not route. Set action=respond_only, ask a clarification question.
+
+STEP 3: DECIDE WHAT THE GUEST NEEDS
+  A) INFORMATION QUESTION → respond_only. Asking about room types/availability/prices/facilities is NEVER a complaint.
+  B) SERVICE REQUEST → route to service. Wanting to book/order/request is NEVER a complaint.
+  C) COMPLAINT / ISSUE → ONLY when guest explicitly reports a problem/malfunction/dissatisfaction.
+  D) HUMAN / EMERGENCY → requires_human_handoff=true.
+
+GROUNDING RULE
+  → Use only provided policy + knowledge. Never invent prices, timings, availability, or capabilities.
+
+AUTHORITY DECLARATION
+  → "You are the single authority on routing and responding — no other layer will override your decision."
+```
+
+---
+
+### Summary of Rule-Based Layers Disabled
+
+| Layer | What it did | Status |
+|---|---|---|
+| `_infer_plugin_ticket_fallback_intent` (call site 1) | Keyword scan → force complaint routing | **Removed** |
+| `_infer_plugin_ticket_fallback_intent` (call site 2) | Same, second call site | **Removed** |
+| `_detect_ticketing_phase_service_mismatch` early return | Phase gate → early response before LLM | **Removed** |
+| Keyword-based resume handler | Affirmative keywords → force service resume | **Replaced with LLM annotation** |
+
+### New Flow
+
+```
+User message
+  ↓
+[If resume_prompt_sent: wrap message with LLM annotation]
+  ↓
+LLM Orchestrator — single authority
+  Reads: history, pending_action_context, phase, service, KB
+  Steps 1 → 2 → 2B → 3 → output JSON
+  ↓
+Handler executed based on LLM's action decision
+  ↓
+No rule-based override possible
+```
+
+---
+
+## Update (March 16, 2026) — Additional Rule-Based Removal + Routing Fixes
+
+### Bug 1 — `complaint_signal` Rule-Based Intent Override (chat_service.py)
+
+**Problem**: A second rule-based complaint detection block was missed in the previous cleanup. It ran after the LLM orchestrator's decision and could silently override `effective_intent` to `IntentType.COMPLAINT`:
+
+```python
+complaint_signal = (
+    self._looks_like_operational_issue_for_ticketing(message_lower)
+    or self._looks_like_strong_ticket_issue_marker(message_lower)
+)
+if complaint_signal and effective_intent in {FAQ, MENU_REQUEST, UNCLEAR, GENERAL_SERVICE, ...}:
+    effective_intent = IntentType.COMPLAINT   # overrode LLM
+```
+
+This caused the "complain agent" label to appear for room type queries and booking requests. The "complain agent" label is produced by `_service_llm_label_for_service()` whenever `effective_intent == IntentType.COMPLAINT`.
+
+**Fix**: Removed the block entirely (same principle as previous cleanup).
+
+```python
+# Rule-based complaint signal detection removed — LLM orchestrator owns all intent decisions.
+```
+
+---
+
+### Bug 2 — Hardcoded Fallback `"Please share one more detail so I can continue."` (chat_service.py)
+
+**Problem**: When `response_text` was empty after orchestration (caused by confused service agent or wrong handler routing), a hardcoded string was returned. This masked real errors, gave a meaningless response, and broke the booking flow when the wrong agent's `pending_action` corrupted subsequent turns.
+
+**Fix**: Replaced with a lightweight `llm_client.chat()` call that generates a contextual response using:
+- Guest's actual last message
+- `context.pending_action` (if mid-flow, asks for the next needed piece of info)
+- A warning log so the root-cause empty-response is visible in logs
+
+A minimal true hardcoded fallback (`"I'm here to help — could you let me know what you need?"`) remains only if the LLM call itself fails.
+
+---
+
+### Bug 3 — LLM Orchestrator Routing Info/Booking to Complaint Handler
+
+**Problem**: The orchestrator prompt's Step 3C was not explicit enough about `ticketing_enabled`. All 4 services in the config have `ticketing_enabled=True`, so the LLM could interpret this as "all services are complaint-capable" and route bookings/info requests through `action=create_ticket`.
+
+**Fix 1 — payload field `complaint_routing_note`**: Added to orchestrator payload:
+```
+"IMPORTANT: 'ticketing_enabled=true' means the service CAN raise a support ticket if the guest
+reports a problem — it does NOT mean the service is a complaint handler. Room bookings, food orders,
+and all other service requests are handled as normal service requests."
+```
+
+**Fix 2 — Strengthened Step 3C in system prompt**:
+- Added explicit `action=create_ticket` negative examples: room type questions, booking requests, food orders, service inquiries
+- Added "ROUTING SANITY CHECK" step: "is the guest asking for something or reporting a problem? When in doubt, treat as service request — never assume complaint."
+
+---
+
+### Root Cause Chain (for reference)
+
+```
+complaint_signal block fires (missed in prev cleanup)
+  → effective_intent = COMPLAINT
+  → _service_llm_label_for_service() returns "complain"
+  → booking request → complaint handler → wrong pending_action set
+  → subsequent turns: main orchestrator sees wrong pending_action
+  → service agent returns empty response_text
+  → hardcoded fallback fires: "Please share one more detail so I can continue."
+  → guest is stuck in fallback loop
+```
+
+All links in this chain are now addressed.
+
+---
+
+## Update (March 16, 2026) — Suggestion Chips + Routing Label + Ticket Creation Fixes
+
+### Bug 1 — "Ask another question" / "Talk to human" hardcoded chips
+
+**Problem**: `_finalize_user_query_suggestions` at line 11065 had a final hardcoded fallback:
+```python
+return deduped or ["Ask another question", "Talk to human"]
+```
+When `decision.suggested_actions` was empty AND `_get_suggested_actions()` returned `[]` (as designed for all normal states), the cleaned list was empty and this fallback fired every time, showing generic meaningless chips.
+
+**Fix**: Removed the hardcoded fallback — returns empty list instead, which triggers the frontend fallback endpoint to call the LLM suggestion agent with full context.
+
+---
+
+### Bug 2 — "complain agent" label for non-complaint service requests
+
+**Two causes identified:**
+
+**2a — LLM hallucinating complaint-flavored `target_service_id`**: The LLM orchestrator sometimes returned `target_service_id = "complaint"` or `"complaint_service"` even for room booking requests. `_service_llm_label_for_service` at line 2681 would directly return `"complain"` for these IDs regardless of intent.
+
+**Fix**: Added guard — if `target_service_id` is in the complaint ID set but `effective_intent != COMPLAINT`, return `fallback` instead of `"complain"`. Added pre-dispatch sanitization that clears `decision.target_service_id` when it's complaint-flavored for a non-complaint `effective_intent`.
+
+**2b — Orchestrator prompt not explicit enough about `target_service_id` values**: Prompt said "use exact service id" but didn't say which IDs are forbidden.
+
+**Fix**: Added explicit instruction to orchestrator prompt Step 3B: "NEVER set target_service_id to 'complaint', 'complaint_service', 'complain', or any complaint-related value for a service request."
+
+---
+
+### Bug 3 — Ticket not created on booking confirmation
+
+**Problem**: The main orchestrator was handling all slot collection in `respond_only` mode (collecting name, phone, dates, party size). When user said "yes confirm", the orchestrator returned `action=respond_only` with a confirmation text — but no `action=create_ticket`, so the ticket creation code path was never triggered. Guest got a confirmation message with no actual booking reference.
+
+**Fix**: Added new **Step 3C: BOOKING CONFIRMATION** to the orchestrator prompt:
+- When `pending_action` contains "confirm" AND guest confirms → set `action=create_ticket`, `ticket.required=true`, `ticket.ready_to_create=true`, `ticket.category="request"`
+- Read all collected fields from `pending_data_public` and populate `ticket.issue` with a summary
+- If guest declines → set `action=cancel_pending`
+
+---
+
+### Bug 4 — Orchestrator collecting slots in `respond_only` instead of dispatching to service agent
+
+**Problem**: For service requests like "I need a room", the orchestrator was returning `action=respond_only` and doing the slot collection itself (asking for name, phone, dates, etc.) rather than dispatching to the room booking service agent which has the proper slot schema and ticket creation logic.
+
+**Fix**: Strengthened Step 3B in orchestrator prompt:
+- "ALWAYS set action=dispatch_handler with the exact target_service_id"
+- "Do NOT collect slots yourself via respond_only — the service agent handles all slot collection"
+
+---
+
+### Changes Made
+
+| File | Change |
+|---|---|
+| `chat_service.py:11065` | Removed `or ["Ask another question", "Talk to human"]` fallback → returns `deduped` (empty if nothing) |
+| `chat_service.py:2681` | Guard: complaint service ID + non-complaint intent → return `fallback` instead of `"complain"` |
+| `chat_service.py:3109` | Pre-dispatch sanitization: clears complaint-flavored `target_service_id` for non-complaint requests |
+| `llm_orchestration_service.py` | Step 3B: explicit forbidden IDs + always dispatch_handler for service requests |
+| `llm_orchestration_service.py` | New Step 3C: booking confirmation → `create_ticket` with pending_data fields |

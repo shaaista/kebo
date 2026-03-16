@@ -168,8 +168,13 @@ async function sendMessage(message) {
         // Update session info
         updateSessionInfoFromResponse(data);
 
-        // Show contextual suggestion bubbles from LLM (non-blocking)
-        fetchAndShowSuggestions(data.message, message);
+        // Use orchestrator suggestions if present (fully context-aware),
+        // otherwise fall back to the suggestions endpoint with session context
+        if (data.suggested_actions && data.suggested_actions.length > 0) {
+            showSuggestedActions(data.suggested_actions);
+        } else {
+            fetchAndShowSuggestions(data.message, message, state.sessionId);
+        }
 
         // Update debug panel
         updateDebug(data);
@@ -356,8 +361,8 @@ function resolveCreatedTicketDetails(data) {
     return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
-// Fetch context-aware suggestions from LLM and display them
-async function fetchAndShowSuggestions(lastBotMessage, userMessage) {
+// Fetch context-aware suggestions from LLM and display them (fallback only)
+async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId) {
     elements.suggestedActions.innerHTML = '';
     try {
         const response = await fetch('/api/chat/suggestions', {
@@ -367,6 +372,8 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage) {
                 last_bot_message: lastBotMessage,
                 user_message: userMessage,
                 hotel_code: state.hotelCode,
+                current_phase: state.phase,
+                session_id: sessionId || state.sessionId,
             }),
         });
         if (!response.ok) return;

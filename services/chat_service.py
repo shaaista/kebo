@@ -1833,10 +1833,6 @@ class ChatService:
             handler_result = contextual_sanity_handler_result
             response_text = handler_result.response_text
             response_source = "contextual_sanity_gate"
-        elif phase_gate_handler_result is not None:
-            handler_result = phase_gate_handler_result
-            response_text = handler_result.response_text
-            response_source = "ticketing_phase_gate"
         elif not capability_check.allowed:
             # Capability not available
             response_text = self._build_capability_denial_response(capability_check)
@@ -2682,8 +2678,14 @@ class ChatService:
         if not normalized:
             return "complain" if effective_intent == IntentType.COMPLAINT else fallback
 
-        if normalized in {"complain", "complaint", "complaint_service", "complain_service"}:
-            return "complain"
+        # If the LLM hallucinated a complaint-flavored service ID for a non-complaint request,
+        # treat it as main orchestrator rather than labeling the response as "complain agent".
+        complaint_service_ids = {"complain", "complaint", "complaint_service", "complain_service"}
+        if normalized in complaint_service_ids:
+            if effective_intent == IntentType.COMPLAINT:
+                return "complain"
+            # Non-complaint effective_intent with complaint service ID → LLM hallucinated service ID
+            return fallback
 
         mapped_intent = self._intent_from_service_id(
             service_id=normalized,
@@ -3104,21 +3106,15 @@ class ChatService:
             )
             if parsed_intent in {IntentType.CONFIRMATION_YES, IntentType.CONFIRMATION_NO}:
                 effective_intent = parsed_intent
-        message_lower = str(effective_user_message or "").strip().lower()
-        complaint_signal = (
-            self._looks_like_operational_issue_for_ticketing(message_lower)
-            or self._looks_like_strong_ticket_issue_marker(message_lower)
-        )
-        if complaint_signal and effective_intent in {
-            IntentType.FAQ,
-            IntentType.MENU_REQUEST,
-            IntentType.UNCLEAR,
-            IntentType.HUMAN_REQUEST,
-            IntentType.GENERAL_SERVICE,
-        }:
-            effective_intent = IntentType.COMPLAINT
-            if isinstance(decision.metadata, dict):
-                decision.metadata["intent_override"] = "operational_issue_complaint"
+        # Rule-based complaint signal detection removed — LLM orchestrator owns all intent decisions.
+        # (previously overrode LLM intent to COMPLAINT based on keyword matching)
+
+        # Sanitize target_service_id: if the LLM returned a complaint-flavored service ID
+        # for a non-complaint request, clear it so routing falls back to the LLM response text.
+        _complaint_service_ids = {"complain", "complaint", "complaint_service", "complain_service"}
+        _raw_target_sid = self._normalize_service_identifier(str(decision.target_service_id or ""))
+        if _raw_target_sid in _complaint_service_ids and effective_intent != IntentType.COMPLAINT:
+            decision.target_service_id = None
 
         entities = dict(decision.metadata) if isinstance(decision.metadata, dict) else {}
         if decision.target_service_id:
@@ -3362,7 +3358,44 @@ class ChatService:
                     }
 
         if not response_text:
-            response_text = "Please share one more detail so I can continue."
+            # Orchestrator/service agent returned empty response_text — generate a contextual reply
+            # instead of the old hardcoded fallback so the guest gets a meaningful message.
+            import logging as _logging
+            _logging.getLogger(__name__).warning(
+                "Empty response_text after orchestration [session=%s action=%s pending=%s] — generating contextual fallback",
+                getattr(context, "session_id", "?"),
+                getattr(decision, "action", "?"),
+                getattr(context, "pending_action", "?"),
+            )
+            _pending = str(context.pending_action or "").strip()
+            _fallback_system = (
+                "You are a hotel concierge assistant. The system failed to generate a response. "
+                "Write a single short, warm, helpful reply that continues the conversation naturally. "
+                "Do NOT mention any system error."
+            )
+            _fallback_user = (
+                f"Guest said: \"{effective_user_message}\". "
+                + (
+                    f"The guest was mid-flow on: {_pending}. "
+                    "Ask for the next piece of information needed in a natural, friendly way."
+                    if _pending
+                    else "Ask the guest what you can help them with today."
+                )
+            )
+            try:
+                response_text = await llm_client.chat(
+                    messages=[
+                        {"role": "system", "content": _fallback_system},
+                        {"role": "user", "content": _fallback_user},
+                    ],
+                    temperature=0.4,
+                    max_tokens=120,
+                ) or ""
+                response_text = response_text.strip()
+            except Exception:
+                response_text = ""
+            if not response_text:
+                response_text = "I'm here to help — could you let me know what you need?"
 
         if no_template_mode:
             capability_check = CapabilityCheck(allowed=True, reason="service_first_mode")
@@ -6317,17 +6350,7 @@ class ChatService:
                 matched_case = draft_case
             decision_reason = "resume_pending_ticket_draft"
             decision_source = "chat_service_pending_ticket_draft"
-        if not decision_activate:
-            fallback_routed_intent = self._infer_plugin_ticket_fallback_intent(
-                message=msg,
-                effective_intent=effective_intent,
-                next_state=next_state,
-            )
-            if fallback_routed_intent is not None:
-                decision_activate = True
-                decision_routed_intent = fallback_routed_intent
-                decision_reason = "generalized_operational_ticket_fallback"
-                decision_source = "chat_service_fallback"
+        # Rule-based fallback intent inference removed — LLM orchestrator owns all routing decisions.
         if not decision_activate:
             self._log_full_kb_ticket_event(
                 event="not_applicable",
@@ -7388,13 +7411,7 @@ class ChatService:
         if not should_attempt:
             return None, "", ""
 
-        fallback_intent = self._infer_plugin_ticket_fallback_intent(
-            message=message,
-            effective_intent=effective_intent,
-            next_state=next_state,
-        )
-        if fallback_intent == IntentType.COMPLAINT:
-            return IntentType.COMPLAINT, "default_complaint_agent_fallback", "chat_service"
+        # Rule-based fallback intent inference removed — LLM orchestrator owns all routing decisions.
 
         if (
             effective_intent == IntentType.HUMAN_REQUEST
@@ -11058,7 +11075,9 @@ class ChatService:
             deduped.append(str(action).strip())
             if len(deduped) >= 4:
                 break
-        return deduped or ["Ask another question", "Talk to human"]
+        # Return empty list so the frontend fallback endpoint generates contextual LLM suggestions.
+        # Hardcoded generic chips removed — they were appearing regardless of conversation context.
+        return deduped
 
     def _is_room_detail_collection_context(
         self,
@@ -16619,19 +16638,9 @@ class ChatService:
         if state == ConversationState.ESCALATED:
             return ["Return to bot"]
 
-        if state == ConversationState.COMPLETED:
-            return config_service.get_quick_actions(limit=4)
-
-        business_type = str(capabilities_summary.get("business_type", "hotel")).lower()
-        quick_actions = config_service.get_quick_actions(limit=4)
-
-        if intent == IntentType.MENU_REQUEST and business_type == "hotel":
-            return ["Ask specific question", "View services", "Talk to human"]
-
-        if intent == IntentType.GREETING:
-            return quick_actions
-
-        return quick_actions[:2]
+        # All other states: return empty so LLM layers generate contextual suggestions
+        # grounded in the actual bot message, history, phase and active service.
+        return []
 
     def _build_contextual_suggested_actions(
         self,
@@ -16642,8 +16651,10 @@ class ChatService:
         pending_data: dict[str, Any] | None = None,
     ) -> list[str]:
         """
-        Build context-aware quick actions for UI chips.
-        Uses current state + pending action + enabled services, with no outlet-specific hardcoding.
+        Returns deterministic chips only for states that require functional buttons
+        (confirmation, escalation). All other cases return [] so the LLM layers
+        generate contextual suggestions grounded in the actual bot message, history,
+        phase and active service.
         """
         confirmation_phrase = str(
             getattr(settings, "chat_confirmation_phrase", "yes confirm")
@@ -16654,70 +16665,17 @@ class ChatService:
         if state == ConversationState.ESCALATED:
             return ["Return to bot"]
 
-        actions: list[str] = []
-        if pending_action:
-            if pending_action in {
-                "confirm_order",
-                "confirm_booking",
-                "confirm_service_request",
-                "confirm_ticket_creation",
-                "confirm_ticket_escalation",
-            }:
-                actions.extend([confirmation_phrase, "cancel"])
-            elif pending_action in {"select_service", "select_restaurant"}:
-                actions.extend(["Show available services", "cancel"])
-            elif pending_action in {
-                "collect_booking_party_size",
-                "collect_booking_time",
-                "collect_ticket_room_number",
-                "collect_ticket_issue_details",
-                "collect_ticket_identity_details",
-                "collect_ticket_update_note",
-            }:
-                actions.extend(["Share details", "cancel"])
-            else:
-                actions.extend(["Continue", "cancel"])
+        if pending_action in {
+            "confirm_order",
+            "confirm_booking",
+            "confirm_service_request",
+            "confirm_ticket_creation",
+            "confirm_ticket_escalation",
+        }:
+            return [confirmation_phrase, "cancel"]
 
-        service_catalog = capabilities_summary.get("service_catalog", [])
-        current_phase_id = self._extract_phase_from_pending_data(pending_data)
-        if isinstance(service_catalog, list):
-            for service in service_catalog:
-                if not isinstance(service, dict):
-                    continue
-                if not bool(service.get("is_active", True)):
-                    continue
-                if current_phase_id:
-                    service_phase = self._normalize_phase_identifier(service.get("phase_id"))
-                    if service_phase != current_phase_id:
-                        continue
-                name = str(service.get("name") or "").strip()
-                if name:
-                    actions.append(name)
-                if len(actions) >= 6:
-                    break
-
-        if intent in {IntentType.ORDER_FOOD, IntentType.TABLE_BOOKING}:
-            actions.extend(["Show options", "Talk to human"])
-        elif intent == IntentType.FAQ:
-            actions.extend(["Ask another question", "Talk to human"])
-
-        fallback = self._get_suggested_actions(state, intent, capabilities_summary)
-        actions.extend(fallback)
-
-        deduped: list[str] = []
-        seen: set[str] = set()
-        for action in actions:
-            text = str(action or "").strip()
-            if not text:
-                continue
-            key = text.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            deduped.append(text)
-            if len(deduped) >= 4:
-                break
-        return deduped or ["Ask another question", "Talk to human"]
+        # Everything else: return empty — LLM layers handle it
+        return []
 
     def _ensure_internal_task_state(self, context: ConversationContext) -> dict[str, Any]:
         """Ensure diversion task-state payload exists in internal pending data."""

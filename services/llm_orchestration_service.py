@@ -576,6 +576,35 @@ class LLMOrchestrationService:
         full_kb_text = _cs.get_full_kb_text(max_chars=40_000)
         return {"full_kb_text": full_kb_text}
 
+    def _build_pending_action_context(self, context: Any) -> str:
+        """Return a human-readable sentence describing what the guest was mid-flow on."""
+        pending_action = str(getattr(context, "pending_action", "") or "")
+        if not pending_action:
+            return ""
+        pending_data = getattr(context, "pending_data", {}) or {}
+        service_id = str(pending_data.get("service_id", "") or "").strip()
+        svc_name = ""
+        if service_id:
+            try:
+                from services.config_service import config_service as _cs
+                svc = _cs.get_service(service_id)
+                if svc:
+                    svc_name = str(svc.get("name", "") or "").strip()
+            except Exception:
+                pass
+        collected = [
+            k for k in pending_data
+            if not str(k).startswith("_") and k not in {"service_id", "phase"}
+            and pending_data[k] not in (None, "", [])
+        ]
+        parts: list[str] = []
+        if svc_name:
+            parts.append(f"service: {svc_name}")
+        if collected:
+            parts.append(f"already collected: {', '.join(collected)}")
+        suffix = f" ({', '.join(parts)})" if parts else ""
+        return f"Guest was mid-flow: {pending_action}{suffix}"
+
     def _normalize_suggested_actions(self, value: Any) -> list[str]:
         if not isinstance(value, list):
             return []
@@ -619,6 +648,32 @@ class LLMOrchestrationService:
                 "profile": str(target_service.get("profile") or "").strip(),
             }
 
+        # Build bot delivery boundary from live config — fully dynamic per property
+        hotel_code = str(getattr(context, "hotel_code", None) or "DEFAULT")
+        try:
+            cap_summary = config_service.get_capability_summary(hotel_code)
+            raw_caps = cap_summary.get("capabilities", {})
+            enabled_capabilities = [
+                cap_id
+                for cap_id, cap_data in raw_caps.items()
+                if isinstance(cap_data, dict) and cap_data.get("enabled", False)
+            ]
+            nlu_policy = cap_summary.get("nlu_policy", {})
+            property_constraints = [
+                str(d).strip()
+                for d in (nlu_policy.get("donts", []) if isinstance(nlu_policy, dict) else [])
+                if str(d).strip()
+            ]
+        except Exception:
+            enabled_capabilities = []
+            property_constraints = []
+
+        bot_delivery_boundary = {
+            "medium": "text only — cannot show images, photos, videos, or visual media; cannot provide real-time availability, live pricing, or data from external systems not listed as active services",
+            "enabled_capabilities": enabled_capabilities,
+            "property_constraints": property_constraints,
+        }
+
         payload = {
             "user_message": str(user_message or "").strip(),
             "assistant_response": str(decision.response_text or "").strip(),
@@ -635,15 +690,27 @@ class LLMOrchestrationService:
             },
             "service": service_payload,
             "history": self._history_preview(context, max_messages=8, max_chars=3000),
-            "response_contract": {"suggested_actions": ["2-5 words action label"]},
+            "bot_delivery_boundary": bot_delivery_boundary,
+            "response_contract": {"suggested_actions": ["what the guest would type next"]},
         }
         system_prompt = (
-            "You are a next-turn suggestion planner for concierge chat.\n"
+            "You are a next-turn suggestion planner for a hotel concierge chat.\n"
             "Return STRICT JSON only.\n"
-            "Generate 2 to 4 concise suggestion chips for likely next user replies.\n"
-            "Prioritize context continuity from pending_action/history over generic options.\n"
-            "If a confirmation is expected, include the exact confirmation phrase option.\n"
-            "Keep labels short and guest-facing."
+            "Generate 2 to 4 suggestions representing what the guest would most likely send next.\n\n"
+            "Work through the payload in this order:\n"
+            "0. Read `bot_delivery_boundary` first — this defines the hard limits of what this bot can actually deliver. If a suggestion requires the bot to show images or media, provide real-time data, or use a capability not listed in `enabled_capabilities` — discard it. `property_constraints` lists explicit rules for this property that must also be respected.\n"
+            "1. Read `assistant_response` — this is what the bot just said. Suggestions must be a natural direct response to that specific message.\n"
+            "2. Read `history` — understand the full conversation thread. Do not suggest anything already discussed or resolved.\n"
+            "3. Read `service` and `decision.missing_fields` — if a service is active, suggest messages that continue that flow. If fields are missing, suggest messages that would naturally lead toward providing that information, not the values themselves.\n"
+            "4. Read `selected_phase` — only suggest things relevant to this journey phase.\n\n"
+            "Voice — strictly enforced:\n"
+            "Every suggestion must be a natural first-person guest message, exactly what they would type into the chat.\n"
+            "Bad: 'Ask about room types', 'View services', 'Show options', 'Share details'\n"
+            "Good: 'What room types do you have?', 'What services are available?', 'Can I see my options?'\n\n"
+            "Never suggest any value that is unique to the individual guest — this includes names, room numbers, phone numbers, email addresses, flight numbers, dates, times, booking references, order quantities, party sizes, prices, or any other personal or context-specific data. The guest is the only one who knows these — they must type them.\n"
+            "Also never suggest a message where the guest is offering or providing their personal information, even without stating the actual value. Messages like 'Here's my full name and details', 'I'll share my details', 'Here is my information', 'Let me provide my info' are all forbidden — they imply the guest is about to hand over unique personal data.\n"
+            "Suggestions must only be questions the guest wants to ask, or service actions they want to request — never data submissions.\n\n"
+            "Keep each suggestion 2-8 words."
         )
         model = (
             str(getattr(settings, "chat_llm_next_suggestions_model", "") or "").strip()
@@ -1621,27 +1688,19 @@ class LLMOrchestrationService:
             return None
 
         # ── RESUME PROMPT HANDLER ────────────────────────────────────────────
-        # If last turn asked user to resume a suspended service, evaluate reply.
+        # If last turn asked user to resume a suspended service, annotate the
+        # message with context and let the LLM orchestrator decide the intent.
         if context.resume_prompt_sent:
             context.resume_prompt_sent = False
-            user_lower = re.sub(r"\s+", " ", (user_message or "").strip().lower())
-            affirmative = any(w in user_lower for w in (
-                "yes", "yeah", "yep", "sure", "ok", "okay", "continue",
-                "go ahead", "proceed", "resume", "yea",
-            ))
-            if affirmative and context.suspended_services:
-                suspended = context.suspended_services.pop(0)
-                # Restore the pending state for the suspended service
-                context.pending_action = suspended.get("pending_action") or None
-                restored_pub = dict(suspended.get("pending_data") or {})
-                restored_pub["service_id"] = suspended.get("service_id", "")
-                _internal = {k: v for k, v in context.pending_data.items() if k.startswith("_")}
-                context.pending_data = {**restored_pub, **_internal}
-                # Rewrite user_message so orchestrator routes correctly
-                user_message = f"[RESUME {suspended.get('service_name', 'previous request')}] {user_message}"
-            else:
-                # User ignored or denied — kill all suspended tasks
-                context.suspended_services = []
+            if context.suspended_services:
+                suspended = context.suspended_services[0]
+                svc_name = suspended.get("service_name", "previous request")
+                # Annotate so the orchestrator sees full context and decides
+                user_message = (
+                    f"[CONTEXT: bot just asked whether to resume '{svc_name}'. "
+                    f"Guest replied: '{user_message}'. "
+                    f"Decide based on the reply whether to resume or abandon.]"
+                )
         # ─────────────────────────────────────────────────────────────────────
 
 
@@ -1773,6 +1832,7 @@ class LLMOrchestrationService:
             "user_message": str(user_message or ""),
             "state": context.state.value,
             "pending_action": str(context.pending_action or ""),
+            "pending_action_context": self._build_pending_action_context(context),
             "pending_data_public": self._sanitize_json(self._coerce_public_pending(context.pending_data)),
             "selected_phase": {
                 "id": selected_phase_id,
@@ -1814,6 +1874,13 @@ class LLMOrchestrationService:
                     "Ticket creation intent is allowed only when service ticketing is enabled.",
                 ],
             },
+            "complaint_routing_note": (
+                "IMPORTANT: 'ticketing_enabled=true' on a service means the service CAN raise a support ticket "
+                "if the guest reports a problem with it — it does NOT mean the service is a complaint handler. "
+                "Room bookings, food orders, and all other service requests are handled as normal service requests. "
+                "Only set action=create_ticket when the guest explicitly describes a problem, malfunction, or dissatisfaction. "
+                "Asking about a service, requesting a booking, or asking for information is NEVER a complaint."
+            ),
             "response_contract": {
                 "normalized_query": "string",
                 "intent": "core intent",
@@ -1849,39 +1916,56 @@ class LLMOrchestrationService:
         }
 
         system_prompt = (
-            "You are the main concierge assistant for this hotel.\n"
-            "You see every guest message first. Your job is to understand what the guest needs, "
-            "check whether it fits the current phase, and either answer directly or hand off to the right service specialist.\n"
+            "You are the main concierge assistant for this hotel. "
+            "You are the single authority on routing and responding — no other layer will override your decision.\n"
             "\n"
             "=== STEP 1: READ HISTORY ===\n"
-            "Always read history_last_10 first, then full_history_context.tail_messages and full_history_context.older_context_summary before deciding anything. "
+            "Always read history_last_10 first, then full_history_context before deciding anything. "
             "Use last_user_message and last_assistant_message as high-priority anchors for continuity. "
             "Resolve pronouns ('it', 'that', 'same', 'this') against the last assistant message.\n"
             "\n"
             "=== STEP 2: MID-FLOW CHECK ===\n"
-            "If pending_action is set OR pending_data_public contains a service_id, the guest is mid-flow in a service. "
+            "Read pending_action and pending_action_context carefully. "
+            "If pending_action is set, the guest is mid-flow in a service — read pending_action_context to understand exactly what was happening. "
             "Stay on that service and route back to it immediately. "
-            "Only interrupt if the guest clearly and explicitly switches to a completely different topic.\n"
+            "Short replies ('yes', 'ok', 'sure', 'no', 'cancel', a number, a name, a date) when pending_action is set are ALWAYS a direct continuation of that flow — never re-route them to a different service or topic. "
+            "Only interrupt the pending flow if the guest clearly and explicitly asks about a completely different topic in a full sentence.\n"
+            "\n"
+            "=== STEP 2B: AMBIGUITY CHECK ===\n"
+            "If the message is short, vague, or has no clear intent AND pending_action is empty AND last_assistant_message does not provide enough context to interpret it — "
+            "do not guess at intent and do not route to any service. Set action=respond_only and generate a friendly clarification question asking what the guest needs. "
+            "Example: 'Could you tell me a bit more about what you are looking for?'\n"
             "\n"
             "=== STEP 3: DECIDE WHAT THE GUEST NEEDS ===\n"
             "\n"
-            "A) INFORMATION QUESTION - the guest is asking about hotel facilities, timings, policies, menus, or general details.\n"
-            "   -> Answer directly using policy_snapshot.phase_service_policy.allowed_services[*].extracted_knowledge "
-            "and full_knowledge_base. Set action=respond_only.\n"
-            "   -> Never invent facts. If details are not present, explicitly say they are unavailable.\n"
+            "A) INFORMATION QUESTION — guest is asking about hotel facilities, timings, policies, menus, room types, or any general details.\n"
+            "   -> Answer directly from extracted_knowledge and full_knowledge_base. Set action=respond_only.\n"
+            "   -> Asking about room types, availability, prices, or facilities is NEVER a complaint.\n"
+            "   -> Never invent facts. If details are not present, say they are not available.\n"
             "\n"
-            "B) SERVICE REQUEST - the guest wants to perform an action (book, order, request, escalate).\n"
-            "   -> Match service primarily using service name + description, then supporting metadata.\n"
-            "   -> If the matching service is in allowed_service_ids_in_current_phase: set action=dispatch_handler with exact target_service_id.\n"
-            "   -> If the matching service exists only in blocked_out_of_phase_services: set action=respond_only, "
-            "share available details from blocked_out_of_phase_services (description/extracted_knowledge), and clearly state target phase vs current phase.\n"
-            "   -> If no matching service exists at all: set action=respond_only and state the hotel does not offer that service.\n"
+            "B) SERVICE REQUEST — guest wants to book, order, request, or arrange something.\n"
+            "   -> ALWAYS set action=dispatch_handler with the exact target_service_id from allowed_service_ids_in_current_phase.\n"
+            "   -> Do NOT collect slots yourself via respond_only — the service agent handles all slot collection.\n"
+            "   -> target_service_id MUST be an exact ID from the services list (e.g. 'room_booking_support'). NEVER set it to 'complaint', 'complaint_service', 'complain', or any complaint-related value for a service request.\n"
+            "   -> If the service is only in blocked_out_of_phase_services: set action=respond_only and state which phase it becomes available.\n"
+            "   -> Wanting to book a room, order food, or request any service is NEVER a complaint.\n"
             "\n"
-            "C) INFO-ONLY TOPIC WITH ACTION ASK - if user asks to execute an action for a topic that is informational only:\n"
-            "   -> Provide information from knowledge.\n"
-            "   -> Keep action=respond_only. Do not dispatch handler or create ticket.\n"
+            "C) BOOKING CONFIRMATION — pending_action contains 'confirm' AND the guest confirms (says 'yes', 'yes confirm', 'ok', 'proceed', 'go ahead', or similar).\n"
+            "   -> Set action=create_ticket, ticket.required=true, ticket.ready_to_create=true, ticket.category='request'.\n"
+            "   -> Read all collected fields from pending_data_public and populate ticket.issue with a summary.\n"
+            "   -> Write response_text confirming the booking is submitted and the team will follow up.\n"
+            "   -> If the guest says 'no', 'cancel', or refuses: set action=cancel_pending, clear pending state, and acknowledge politely.\n"
             "\n"
-            "D) HUMAN / EMERGENCY - if user is distressed, in an emergency, or asks for a human: set requires_human_handoff=true.\n"
+            "D) COMPLAINT / ISSUE — guest explicitly reports a problem, malfunction, or dissatisfaction.\n"
+            "   -> ONLY when guest describes something that went wrong. Questions about services are NOT complaints.\n"
+            "   -> Set action=create_ticket, ticket.category='complaint'.\n"
+            "   -> NEVER use complaint routing for: room inquiries, booking requests, food orders, or any request to do something.\n"
+            "\n"
+            "E) HUMAN / EMERGENCY — guest is distressed or explicitly asks for a human: set requires_human_handoff=true.\n"
+            "\n"
+            "=== ROUTING SANITY CHECK ===\n"
+            "Before writing output, ask: is the guest asking for something or reporting a problem? "
+            "Asking → service request or info. Reporting → complaint. When in doubt → never assume complaint.\n"
             "\n"
             "=== GROUNDING RULE ===\n"
             "Use only provided policy + knowledge data. Never invent prices, timings, availability, or capabilities.\n"
