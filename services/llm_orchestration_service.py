@@ -674,10 +674,21 @@ class LLMOrchestrationService:
             "property_constraints": property_constraints,
         }
 
-        # Build list of service names that are NOT available in the current phase.
-        # The suggestion agent must never recommend actions for these services.
+        # Build allowed and blocked service lists for the suggestion agent.
         try:
             all_services = cap_summary.get("service_catalog", [])
+            allowed_services = [
+                {
+                    "name": str(s.get("name") or s.get("id") or "").strip(),
+                    "can_do": str(s.get("description") or s.get("profile") or "").strip()[:120],
+                    "ticketing_enabled": bool(s.get("ticketing_enabled", True)),
+                }
+                for s in all_services
+                if isinstance(s, dict)
+                and bool(s.get("is_active", True))
+                and self._normalize_identifier(s.get("phase_id")) == selected_phase_id
+                and str(s.get("name") or s.get("id") or "").strip()
+            ]
             blocked_service_names = [
                 str(s.get("name") or s.get("id") or "").strip()
                 for s in all_services
@@ -687,6 +698,7 @@ class LLMOrchestrationService:
                 and str(s.get("name") or s.get("id") or "").strip()
             ]
         except Exception:
+            allowed_services = []
             blocked_service_names = []
 
         payload = {
@@ -706,6 +718,7 @@ class LLMOrchestrationService:
             "service": service_payload,
             "history": self._history_preview(context, max_messages=8, max_chars=3000),
             "bot_delivery_boundary": bot_delivery_boundary,
+            "allowed_services": allowed_services,
             "blocked_service_names": blocked_service_names,
             "response_contract": {"suggested_actions": ["what the guest would type next"]},
         }
@@ -718,10 +731,14 @@ class LLMOrchestrationService:
             "1. Read `assistant_response` — this is what the bot just said. Suggestions must be a natural direct response to that specific message.\n"
             "2. Read `history` — understand the full conversation thread. Do not suggest anything already discussed or resolved.\n"
             "3. Read `service` and `decision.missing_fields` — if a service is active, suggest messages that continue that flow. If fields are missing, suggest messages that would naturally lead toward providing that information, not the values themselves.\n"
-            "4. Read `selected_phase` — only suggest things relevant to this journey phase.\n"
-            "5. Read `blocked_service_names` — NEVER suggest booking, ordering, requesting, or asking to use any service listed there. "
-            "These services are not available in the current phase and any such suggestion will result in 'not available right now', creating a dead-end for the guest. "
-            "This includes indirect suggestions like 'Can I book a table?' when table booking is blocked, or 'Can I order food?' when food ordering is blocked.\n\n"
+            "4. Read `allowed_services` — these are the ONLY services the guest can actively use right now. "
+            "Suggestions should lead toward what these services offer, or toward general hotel information questions (policies, facilities, timings, amenities) that the bot can answer positively. "
+            "If `ticketing_enabled=false` on a service, the bot can answer questions about it but cannot process bookings — only suggest informational questions for those.\n"
+            "5. Read `blocked_service_names` — NEVER suggest booking, ordering, requesting, or asking to use any of these. "
+            "They are unavailable in the current phase — any suggestion about them will result in 'not available right now', a dead-end for the guest. "
+            "This includes indirect suggestions like 'Can I book a table?' when table booking is blocked.\n"
+            "6. Quality gate — before finalising each suggestion, ask: if the guest sent this exact message, would the bot give a genuinely useful and positive answer? "
+            "If the answer would be 'not available', 'not in this phase', or 'please contact staff' — discard it and replace with something the bot CAN answer well.\n\n"
             "Voice — strictly enforced:\n"
             "Every suggestion must be a natural first-person guest message, exactly what they would type into the chat.\n"
             "Bad: 'Ask about room types', 'View services', 'Show options', 'Share details'\n"
@@ -1368,6 +1385,18 @@ class LLMOrchestrationService:
             "Return STRICT JSON only matching the response schema."
         )
 
+        # ── DATE VALIDATION ───────────────────────────────────────────────────
+        lines.append(
+            "\n=== DATE VALIDATION ===\n"
+            "The payload includes `current_date` (today's date) and `current_day` (day of week). "
+            "Use these to validate any dates the guest provides:\n"
+            "  - If a check-in or check-out date is in the past (before current_date), do NOT accept it. "
+            "Tell the guest the date has already passed and ask them to provide a valid future date.\n"
+            "  - If check-out is on the same day or before check-in, flag it and ask for correction.\n"
+            "  - Never assume or guess dates. If the guest says 'tomorrow' or 'next Friday', "
+            "resolve it against current_date and store the resolved date."
+        )
+
         # ── RESPONSE SCHEMA ───────────────────────────────────────────────────
         lines.append(
             "\nResponse schema (return this exact structure):\n"
@@ -1537,8 +1566,11 @@ class LLMOrchestrationService:
             if val is not None:
                 collected_labels[s.get("label") or sid] = val
 
+        _now_svc = datetime.now(UTC)
         payload = {
             "user_message": str(user_message or ""),
+            "current_date": _now_svc.strftime("%Y-%m-%d"),
+            "current_day": _now_svc.strftime("%A"),
             "is_first_turn": is_first_service_turn,
             "current_phase_id": selected_phase_id,
             "service_phase_id": self._normalize_identifier(service.get("phase_id")),
@@ -1889,9 +1921,12 @@ class LLMOrchestrationService:
                 int(getattr(settings, "llm_orchestration_full_history_chars", 12000) or 12000),
             ),
         )
+        _now = datetime.now(UTC)
         payload = {
             "trace_id": orchestration_trace_id,
-            "timestamp": datetime.now(UTC).isoformat(),
+            "timestamp": _now.isoformat(),
+            "current_date": _now.strftime("%Y-%m-%d"),
+            "current_day": _now.strftime("%A"),
             "user_message": str(user_message or ""),
             "state": context.state.value,
             "pending_action": str(context.pending_action or ""),
