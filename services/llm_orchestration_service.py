@@ -674,6 +674,21 @@ class LLMOrchestrationService:
             "property_constraints": property_constraints,
         }
 
+        # Build list of service names that are NOT available in the current phase.
+        # The suggestion agent must never recommend actions for these services.
+        try:
+            all_services = cap_summary.get("service_catalog", [])
+            blocked_service_names = [
+                str(s.get("name") or s.get("id") or "").strip()
+                for s in all_services
+                if isinstance(s, dict)
+                and bool(s.get("is_active", True))
+                and self._normalize_identifier(s.get("phase_id")) != selected_phase_id
+                and str(s.get("name") or s.get("id") or "").strip()
+            ]
+        except Exception:
+            blocked_service_names = []
+
         payload = {
             "user_message": str(user_message or "").strip(),
             "assistant_response": str(decision.response_text or "").strip(),
@@ -691,6 +706,7 @@ class LLMOrchestrationService:
             "service": service_payload,
             "history": self._history_preview(context, max_messages=8, max_chars=3000),
             "bot_delivery_boundary": bot_delivery_boundary,
+            "blocked_service_names": blocked_service_names,
             "response_contract": {"suggested_actions": ["what the guest would type next"]},
         }
         system_prompt = (
@@ -702,7 +718,10 @@ class LLMOrchestrationService:
             "1. Read `assistant_response` — this is what the bot just said. Suggestions must be a natural direct response to that specific message.\n"
             "2. Read `history` — understand the full conversation thread. Do not suggest anything already discussed or resolved.\n"
             "3. Read `service` and `decision.missing_fields` — if a service is active, suggest messages that continue that flow. If fields are missing, suggest messages that would naturally lead toward providing that information, not the values themselves.\n"
-            "4. Read `selected_phase` — only suggest things relevant to this journey phase.\n\n"
+            "4. Read `selected_phase` — only suggest things relevant to this journey phase.\n"
+            "5. Read `blocked_service_names` — NEVER suggest booking, ordering, requesting, or asking to use any service listed there. "
+            "These services are not available in the current phase and any such suggestion will result in 'not available right now', creating a dead-end for the guest. "
+            "This includes indirect suggestions like 'Can I book a table?' when table booking is blocked, or 'Can I order food?' when food ordering is blocked.\n\n"
             "Voice — strictly enforced:\n"
             "Every suggestion must be a natural first-person guest message, exactly what they would type into the chat.\n"
             "Bad: 'Ask about room types', 'View services', 'Show options', 'Share details'\n"
@@ -1171,9 +1190,33 @@ class LLMOrchestrationService:
             f"{description}" if description else f"You are the {service_name} specialist for this hotel."
         )
 
+        # ══ PHASE BOUNDARY RULE ════════════════════════════════════════════════
+        # Injected into every service agent so it never promises unavailable services.
+        lines.append(
+            "\n=== PHASE BOUNDARY RULE ===\n"
+            "The guest is in a specific journey phase (pre_booking / pre_checkin / during_stay / post_checkout). "
+            "Each service is only available in its designated phase.\n"
+            "If the guest asks about or mentions a service that is NOT available in the current phase:\n"
+            "  - Provide factual information only (describe what the service offers, pricing, hours, etc.).\n"
+            "  - Do NOT promise, invite, offer, or imply that the guest can use or book the service right now.\n"
+            "  - Do NOT begin collecting booking/order slots for an out-of-phase service.\n"
+            "  - At the END of your response, always add a closing note such as: 'Please note that booking or ordering this service is not available during the current phase — it will be available during [phase name].'\n"
+            "  - Keep the tone warm and informative — not transactional.\n"
+            "This rule applies even if the guest seems eager to book or asks you to proceed."
+        )
+
         # ══ SECTION 2: TICKET CREATION (only shown when ticketing is enabled) ═
         # When ticket creation is on, the agent must collect the required info
         # and trigger a ticket. When it is off, skip this section entirely.
+        if not ticketing_enabled:
+            lines.append(
+                "\n=== BOOKING / ORDER PROCESSING ===\n"
+                "This service does NOT support booking or order processing through chat. "
+                "Do NOT collect booking/order slots. Do NOT initiate or continue any transactional flow. "
+                "Do NOT ask for confirmation. Provide factual information only and direct the guest to contact "
+                "staff directly if they wish to proceed."
+            )
+
         _valid_slots: list[dict] = [s for s in required_slots if isinstance(s, dict)]
         _already_collected_note = (
             "Before asking for any field, check pending_data_collected AND memory_facts. "
@@ -1257,6 +1300,18 @@ class LLMOrchestrationService:
                     "for staff to execute the request safely."
                 )
             ticket_lines.append("Set ticket.issue to a clear human-readable summary of what was requested.")
+
+            # Mid-flow complaint handling: if the guest reports a problem about THIS service
+            # while you are already collecting their booking/order details, handle it here —
+            # do NOT bounce it to the main orchestrator. You have the full context.
+            ticket_lines.append(
+                "\n=== MID-FLOW COMPLAINT HANDLING ===\n"
+                "If the guest reports a problem, malfunction, or dissatisfaction with this service "
+                "while you are mid-flow (slots are being collected): handle it directly. "
+                "Set action=create_ticket, ticket.category='complaint', ticket.ready_to_create=true, "
+                "ticket.issue=a clear summary of the problem including any context already collected. "
+                "Clear pending_action. Do NOT continue the booking/order flow after a complaint is raised."
+            )
             lines.extend(ticket_lines)
 
         # ══ SECTION 3: KNOWLEDGE BASE ══════════════════════════════════════════
@@ -1295,8 +1350,16 @@ class LLMOrchestrationService:
         # ── Scope and handoff ─────────────────────────────────────────────────
         lines.append(
             f"\nYou only handle {service_name} topics. "
-            "If the guest asks about something completely outside this service, "
-            "acknowledge it briefly and set context_switched=true in metadata so the main assistant can take over.\n"
+            "When a guest asks a question, first decide: is this question about THIS service's domain?\n"
+            "  - If YES (topic-adjacent — e.g. room types/sizes/amenities/pricing/policies during a room booking flow): "
+            "answer from your knowledge base. If the specific detail is not in your KB, say it is not available in the current system and offer to connect them with staff. "
+            "Keep the pending booking/order flow alive — do NOT set context_switched.\n"
+            "  - If NO (completely unrelated to this service — e.g. asking about the pool, spa, dining, gym, parking, events, or any other hotel facility while mid-booking): "
+            "do NOT attempt to answer. Set context_switched=true in metadata and use a short handoff line like 'Let me get that answered for you.' "
+            "The main hotel assistant has the full hotel knowledge base and will answer it. "
+            "The suspended booking flow will be offered for resume after the main assistant answers.\n"
+            "Rule of thumb: if the question is about THIS service's subject matter → stay and answer or say unavailable. "
+            "If the question is about a completely different part of the hotel → delegate via context_switched.\n"
             "Always read history_last_10 first, then full_history_context (including older_context_summary) before responding. "
             "Use last_user_message and last_assistant_message as the strongest anchors for short replies.\n"
             "Resolve short replies ('yes', a date, a number) against what was last asked.\n"
@@ -1927,9 +1990,12 @@ class LLMOrchestrationService:
             "=== STEP 2: MID-FLOW CHECK ===\n"
             "Read pending_action and pending_action_context carefully. "
             "If pending_action is set, the guest is mid-flow in a service — read pending_action_context to understand exactly what was happening. "
-            "Stay on that service and route back to it immediately. "
-            "Short replies ('yes', 'ok', 'sure', 'no', 'cancel', a number, a name, a date) when pending_action is set are ALWAYS a direct continuation of that flow — never re-route them to a different service or topic. "
-            "Only interrupt the pending flow if the guest clearly and explicitly asks about a completely different topic in a full sentence.\n"
+            "Stay on that service and route back to it immediately using action=dispatch_handler with the same target_service_id. "
+            "Short replies ('yes', 'ok', 'sure', 'no', 'cancel', a number, a name, a date) when pending_action is set are ALWAYS a direct continuation of that flow — never re-route them. "
+            "A question about the current service (e.g. asking about vehicle type during airport transfer, asking about room details during room booking, asking about menu during table booking) is NOT an interrupt — dispatch to the same service agent so it can answer and continue collecting slots. "
+            "When the guest confirms a booking ('yes', 'yes confirm', 'ok', 'proceed', 'go ahead') while pending_action is set: dispatch to the service agent — the service agent owns confirmation and ticket creation. Do NOT set action=create_ticket yourself. "
+            "When the guest cancels or refuses ('no', 'cancel', 'stop', 'forget it') while pending_action is set: set action=cancel_pending and acknowledge politely. "
+            "Only interrupt the pending flow if the guest explicitly and clearly asks to start a completely unrelated and different service.\n"
             "\n"
             "=== STEP 2B: AMBIGUITY CHECK ===\n"
             "If the message is short, vague, or has no clear intent AND pending_action is empty AND last_assistant_message does not provide enough context to interpret it — "
@@ -1944,24 +2010,18 @@ class LLMOrchestrationService:
             "   -> Never invent facts. If details are not present, say they are not available.\n"
             "\n"
             "B) SERVICE REQUEST — guest wants to book, order, request, or arrange something.\n"
-            "   -> ALWAYS set action=dispatch_handler with the exact target_service_id from allowed_service_ids_in_current_phase.\n"
-            "   -> Do NOT collect slots yourself via respond_only — the service agent handles all slot collection.\n"
-            "   -> target_service_id MUST be an exact ID from the services list (e.g. 'room_booking_support'). NEVER set it to 'complaint', 'complaint_service', 'complain', or any complaint-related value for a service request.\n"
-            "   -> If the service is only in blocked_out_of_phase_services: set action=respond_only and state which phase it becomes available.\n"
+            "   -> From the very first message requesting a service — even just 'I need a room', 'book a table', 'get me a cab' — IMMEDIATELY set action=dispatch_handler. Do not answer first, do not ask for details yourself.\n"
+            "   -> The service agent handles ALL slot collection and responses. Your job is only to dispatch to the right service.\n"
+            "   -> target_service_id MUST be an exact ID from allowed_service_ids_in_current_phase (e.g. 'room_booking_support'). NEVER use 'complaint', 'complaint_service', 'complain', or any complaint-flavored ID for a service request.\n"
+            "   -> If the service is only in blocked_out_of_phase_services: set action=respond_only. Provide factual information about the service (what it offers, hours, pricing if known). Do NOT promise, invite, offer, or imply the guest can use it now. At the END of your response, always add a note like: 'Please note that booking/ordering for this service is not available in the current phase — it will be available during [phase name].'\n"
             "   -> Wanting to book a room, order food, or request any service is NEVER a complaint.\n"
             "\n"
-            "C) BOOKING CONFIRMATION — pending_action contains 'confirm' AND the guest confirms (says 'yes', 'yes confirm', 'ok', 'proceed', 'go ahead', or similar).\n"
-            "   -> Set action=create_ticket, ticket.required=true, ticket.ready_to_create=true, ticket.category='request'.\n"
-            "   -> Read all collected fields from pending_data_public and populate ticket.issue with a summary.\n"
-            "   -> Write response_text confirming the booking is submitted and the team will follow up.\n"
-            "   -> If the guest says 'no', 'cancel', or refuses: set action=cancel_pending, clear pending state, and acknowledge politely.\n"
-            "\n"
-            "D) COMPLAINT / ISSUE — guest explicitly reports a problem, malfunction, or dissatisfaction.\n"
+            "C) COMPLAINT / ISSUE — guest explicitly reports a problem, malfunction, or dissatisfaction WITH NO active pending service flow.\n"
             "   -> ONLY when guest describes something that went wrong. Questions about services are NOT complaints.\n"
             "   -> Set action=create_ticket, ticket.category='complaint'.\n"
             "   -> NEVER use complaint routing for: room inquiries, booking requests, food orders, or any request to do something.\n"
             "\n"
-            "E) HUMAN / EMERGENCY — guest is distressed or explicitly asks for a human: set requires_human_handoff=true.\n"
+            "D) HUMAN / EMERGENCY — guest is distressed or explicitly asks for a human: set requires_human_handoff=true.\n"
             "\n"
             "=== ROUTING SANITY CHECK ===\n"
             "Before writing output, ask: is the guest asking for something or reporting a problem? "

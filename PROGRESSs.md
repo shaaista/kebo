@@ -4639,3 +4639,60 @@ When `decision.suggested_actions` was empty AND `_get_suggested_actions()` retur
 | `chat_service.py:3109` | Pre-dispatch sanitization: clears complaint-flavored `target_service_id` for non-complaint requests |
 | `llm_orchestration_service.py` | Step 3B: explicit forbidden IDs + always dispatch_handler for service requests |
 | `llm_orchestration_service.py` | New Step 3C: booking confirmation → `create_ticket` with pending_data fields |
+
+---
+
+## Update (March 16, 2026) — Remove Rule-Based Blocks from Handler Dispatch + Prompt Improvements
+
+### Changes Made
+
+#### Prompt: Orchestrator Step 2 — In-topic questions stay on service agent
+
+**Problem**: "will I be picked up in a limo?" during airport transfer flow → LLM treated it as a full-sentence interrupt → returned `respond_only` → main orchestrator answered instead of airport transfer agent.
+
+**Fix**: Added to Step 2: *"A question about the current service (asking about vehicle type during airport transfer, room details during room booking, etc.) is NOT an interrupt — dispatch to the same service agent so it can answer and continue collecting slots. Only interrupt if guest explicitly asks to start a completely unrelated and different service."*
+
+---
+
+#### Prompt: Orchestrator Step 3B — Always dispatch_handler from first message
+
+**Problem**: LLM sometimes answered service requests directly (`respond_only`) instead of dispatching immediately to the service agent on the first message.
+
+**Fix**: Step 3B now says: *"From the very first message requesting a service — even just 'I need a room' — IMMEDIATELY set action=dispatch_handler. Do not answer first, do not ask for details yourself. The service agent handles ALL slot collection."*
+
+---
+
+#### Code removal: `_resolve_unified_complaint_routing_intent` gutted of all rule-based paths
+
+**Problem**: `_dispatch_to_handler` called `_resolve_unified_complaint_routing_intent` before routing. This function had three rule-based complaint overrides that ran after the LLM orchestrator had already made its decision:
+
+1. **`_is_ticketing_pending_action`** (line 7398): If `pending_action` was any ticketing-related action name, the next message was force-routed to complaint handler regardless of what the guest said or what the orchestrator decided.
+
+2. **`_should_route_full_kb_ticketing_handler`** (line 7403): Rule-based gate that decided whether to attempt complaint routing at all — based on intent, pending_action, and message content. Pure keyword/state logic.
+
+3. **`_llm_response_implies_staff_action`** (line 7416): Scanned the LLM's own response text for phrases like "our team", "staff", "we will arrange" and if found, re-routed to complaint handler. This was literally using the LLM's output to override the LLM's own decision.
+
+**Fix**: Removed all three. `_resolve_unified_complaint_routing_intent` now only routes to complaint handler when `effective_intent == IntentType.COMPLAINT` — i.e., when the LLM orchestrator explicitly decided it was a complaint.
+
+```python
+# Now:
+if effective_intent == IntentType.COMPLAINT:
+    return IntentType.COMPLAINT, "complaint_intent", "intent"
+return None, "", ""
+```
+
+**Why this is correct**: The LLM orchestrator reads history, pending_action_context, service context, and KB before deciding intent. It is the right authority. Scanning pending_action names and response text to second-guess it is fundamentally wrong and caused complaint handler to fire for normal booking confirmations.
+
+---
+
+### Rule-Based Layers Removed (cumulative total this session)
+
+| Layer | File | Status |
+|---|---|---|
+| `_infer_plugin_ticket_fallback_intent` (×2) | `chat_service.py` | Removed |
+| Phase gate early return | `chat_service.py` | Removed |
+| Keyword resume handler | `llm_orchestration_service.py` | Replaced with LLM annotation |
+| `complaint_signal` intent override | `chat_service.py` | Removed |
+| `_is_ticketing_pending_action` → COMPLAINT route | `chat_service.py` | Removed |
+| `_should_route_full_kb_ticketing_handler` path | `chat_service.py` | Removed |
+| `_llm_response_implies_staff_action` → COMPLAINT route | `chat_service.py` | Removed |

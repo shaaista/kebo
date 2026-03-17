@@ -2632,7 +2632,7 @@ class ChatService:
             ]
         ).strip().lower()
 
-        if any(token in semantic_text for token in ("complaint", "issue", "maintenance", "housekeeping")):
+        if any(token in semantic_text for token in ("complaint", "maintenance", "housekeeping")):
             return IntentType.COMPLAINT
         if any(token in semantic_text for token in ("handoff", "human", "escalation", "staff")):
             return IntentType.HUMAN_REQUEST
@@ -2687,12 +2687,10 @@ class ChatService:
             # Non-complaint effective_intent with complaint service ID → LLM hallucinated service ID
             return fallback
 
-        mapped_intent = self._intent_from_service_id(
-            service_id=normalized,
-            capabilities_summary=capabilities_summary,
-            fallback=IntentType.FAQ,
-        )
-        if mapped_intent == IntentType.COMPLAINT or effective_intent == IntentType.COMPLAINT:
+        # effective_intent is the LLM's authoritative decision — it is the only signal used here.
+        # mapped_intent (keyword scan of service description) is NOT used because service descriptions
+        # may contain words like "issue" or "maintenance" that have nothing to do with the guest's intent.
+        if effective_intent == IntentType.COMPLAINT:
             return "complain"
 
         service_name = self._service_name_from_id(
@@ -3288,21 +3286,42 @@ class ChatService:
                                 "ticket_api_status_code": create_result.status_code,
                                 "ticket_api_response": create_result.response,
                             }
-                            # Update response_text with ticket confirmation so LLM response reflects reality
+                            # Update response_text with ticket reference injected.
+                            # For booking-type tickets: build a summary confirmation.
+                            # For all other tickets (complaints, lost items, etc.): use the LLM's own response_text
+                            # and just append the reference number — do NOT overwrite with a booking message.
                             ticket_ref = f" (Reference: #{created_ticket_id})" if created_ticket_id else ""
-                            # Build a summary from pending_data for the confirmation message
-                            _pub = {k: v for k, v in (context.pending_data or {}).items() if not k.startswith("_")}
-                            _parts = []
-                            if _pub.get("room_type"): _parts.append(str(_pub["room_type"]))
-                            if _pub.get("check_in_date"): _parts.append(f"check-in: {_pub['check_in_date']}")
-                            if _pub.get("check_out_date"): _parts.append(f"check-out: {_pub['check_out_date']}")
-                            if _pub.get("guest_count"): _parts.append(f"{_pub['guest_count']} guest(s)")
-                            _summary = ", ".join(_parts)
-                            response_text = (
-                                f"Your booking has been confirmed{ticket_ref}! "
-                                + (f"Details: {_summary}. " if _summary else "")
-                                + "Our team will follow up with you shortly."
+                            _is_booking_ticket = (
+                                category in ("request",)
+                                and bool(
+                                    isinstance(context.pending_data, dict)
+                                    and (
+                                        context.pending_data.get("room_type")
+                                        or context.pending_data.get("check_in_date")
+                                        or context.pending_data.get("check_out_date")
+                                    )
+                                )
                             )
+                            if _is_booking_ticket:
+                                _pub = {k: v for k, v in (context.pending_data or {}).items() if not k.startswith("_")}
+                                _parts = []
+                                if _pub.get("room_type"): _parts.append(str(_pub["room_type"]))
+                                if _pub.get("check_in_date"): _parts.append(f"check-in: {_pub['check_in_date']}")
+                                if _pub.get("check_out_date"): _parts.append(f"check-out: {_pub['check_out_date']}")
+                                if _pub.get("guest_count"): _parts.append(f"{_pub['guest_count']} guest(s)")
+                                _summary = ", ".join(_parts)
+                                response_text = (
+                                    f"Your booking has been confirmed{ticket_ref}! "
+                                    + (f"Details: {_summary}. " if _summary else "")
+                                    + "Our team will follow up with you shortly."
+                                )
+                            else:
+                                # Non-booking ticket: keep the LLM's response_text and inject the ticket reference.
+                                _llm_response = response_text.strip()
+                                if ticket_ref and _llm_response:
+                                    response_text = _llm_response.rstrip(".!") + f"{ticket_ref}."
+                                elif ticket_ref:
+                                    response_text = f"Your request has been logged{ticket_ref}. Our team will follow up shortly."
                             # Booking/ticket is completed: clear active pending flow
                             # and remove stale service carry-over data.
                             completed_service_id = self._normalize_service_identifier(
@@ -7383,41 +7402,15 @@ class ChatService:
         Determine whether this turn should be handled by the complaint flow even
         when plugin takeover mode is disabled.
         """
-        pending_current = str(current_pending_action or "").strip().lower()
-        pending_target = str(pending_action_target or "").strip().lower()
-        msg_lower = str(message or "").strip().lower()
-        if pending_current.startswith("confirm_"):
-            binary_reply = self._detect_simple_binary_reply(message)
-            explicit_complaint_evidence = (
-                self._looks_like_ticketing_request(msg_lower)
-                or self._looks_like_strong_ticket_issue_marker(msg_lower)
-                or self._looks_like_operational_issue_for_ticketing(msg_lower)
-            )
-            if binary_reply is not None and not explicit_complaint_evidence:
-                return None, "", ""
-        if self._is_ticketing_pending_action(pending_current) or self._is_ticketing_pending_action(pending_target):
-            return IntentType.COMPLAINT, "existing_ticketing_pending_action", "pending_action"
+        # LLM orchestrator is the single authority on routing.
+        # Only route to complaint handler when the LLM explicitly decided it is a complaint.
+        # All rule-based overrides removed:
+        #   - _is_ticketing_pending_action: removed — orchestrator reads pending_action and decides
+        #   - _should_route_full_kb_ticketing_handler: removed — orchestrator owns this decision
+        #   - _llm_response_implies_staff_action: removed — scanning LLM output to second-guess LLM is wrong
+
         if effective_intent == IntentType.COMPLAINT:
             return IntentType.COMPLAINT, "complaint_intent", "intent"
-
-        should_attempt = self._should_route_full_kb_ticketing_handler(
-            effective_intent=effective_intent,
-            current_pending_action=current_pending_action,
-            pending_action_target=pending_action_target,
-            message=message,
-            llm_response_text=llm_response_text,
-            llm_ticketing_preference=llm_ticketing_preference,
-        )
-        if not should_attempt:
-            return None, "", ""
-
-        # Rule-based fallback intent inference removed — LLM orchestrator owns all routing decisions.
-
-        if (
-            effective_intent == IntentType.HUMAN_REQUEST
-            and self._llm_response_implies_staff_action(llm_response_text)
-        ):
-            return IntentType.COMPLAINT, "human_request_staff_action_fallback", "chat_service"
         return None, "", ""
 
     @staticmethod
