@@ -33,6 +33,9 @@ async def _run_startup_kb_enrichment() -> None:
     Runs silently — failures are non-fatal.
     """
     try:
+        if not bool(getattr(settings, "kb_indexing_enabled", False)):
+            print("ℹ️  KB indexing disabled (kb_indexing_enabled=false)")
+            return
         if not str(settings.openai_api_key or "").strip():
             print("⚠️  KB enrichment skipped: no OpenAI API key configured")
             return

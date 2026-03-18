@@ -4784,6 +4784,9 @@ class ConfigService:
         max_sources: int = 50,
         force: bool = False,
     ) -> dict[str, Any]:
+        from config.settings import settings
+        if not bool(getattr(settings, "kb_indexing_enabled", False)):
+            return {}
         library = self.get_structured_kb_library(rebuild_if_stale=True, max_sources=max_sources)
         pages = library.get("pages", []) if isinstance(library, dict) else []
         books = library.get("books", []) if isinstance(library, dict) else []

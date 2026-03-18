@@ -1383,9 +1383,14 @@ async def preview_extract_service_kb(payload: dict):
         component="api.routes.admin.preview_extract_service_kb",
     )
 
-    library = config_service.get_structured_kb_library(rebuild_if_stale=True, max_sources=50)
-    pages = library.get("pages", []) if isinstance(library, dict) else []
-    if not isinstance(pages, list) or not pages:
+    # Load raw KB text directly — bypasses book indexing/selection so behaviour
+    # is identical on local and server regardless of whether the KB library is indexed.
+    from services.full_kb_llm_service import full_kb_llm_service
+    business = config_service.get_business_info()
+    tenant_id = str(payload.get("tenant_id") or business.get("id") or "default")
+    raw_kb_text, _ = full_kb_llm_service._load_full_kb_text(tenant_id)
+    context_text = raw_kb_text.strip()
+    if not context_text:
         everything_trace_service.log_event(
             "service_kb_preview_extract_no_kb_content",
             trace_payload,
@@ -1393,59 +1398,15 @@ async def preview_extract_service_kb(payload: dict):
         )
         return {"extracted_knowledge": "", "reason": "no_kb_content"}
 
-    context_payload = await config_service.build_service_library_context_llm(
-        service_name=service_name,
-        service_description=service_description,
-        max_books=max_books,
-        max_pages=0,
-        max_chars=max_chars,
-    )
-    context_text = str(context_payload.get("context_text") or "").strip()
-    if not context_text:
-        everything_trace_service.log_event(
-            "service_kb_preview_extract_no_context",
-            {
-                **trace_payload,
-                "library_books_used": int(context_payload.get("book_count") or 0),
-                "library_pages_used": int(context_payload.get("page_count") or 0),
-                "library_context_truncated": bool(context_payload.get("truncated", False)),
-            },
-            component="api.routes.admin.preview_extract_service_kb",
-        )
-        return {"extracted_knowledge": "", "reason": "no_relevant_library_books"}
-
     context_summary = {
         **trace_payload,
-        "library_books_used": int(context_payload.get("book_count") or 0),
-        "library_pages_used": int(context_payload.get("page_count") or 0),
-        "library_context_chars": len(context_text),
-        "library_context_truncated": bool(context_payload.get("truncated", False)),
+        "raw_kb_chars": len(context_text),
     }
     everything_trace_service.log_event(
         "service_kb_preview_extract_context_ready",
         context_summary,
         component="api.routes.admin.preview_extract_service_kb",
     )
-
-    # Verbatim mode is default to avoid detail loss from extraction summarization.
-    if extraction_mode == "verbatim":
-        everything_trace_service.log_event(
-            "service_kb_preview_extract_complete",
-            {
-                **context_summary,
-                "result_reason": "ok_verbatim",
-                "result_chars": len(context_text),
-            },
-            component="api.routes.admin.preview_extract_service_kb",
-        )
-        return {
-            "extracted_knowledge": context_text,
-            "reason": "ok_verbatim",
-            "extraction_mode": "verbatim",
-            "library_books_used": int(context_payload.get("book_count") or 0),
-            "library_pages_used": int(context_payload.get("page_count") or 0),
-            "library_context_truncated": bool(context_payload.get("truncated", False)),
-        }
 
     try:
         extraction_prompt = await config_service._generate_service_extraction_prompt(
