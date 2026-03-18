@@ -1452,9 +1452,6 @@ async def preview_extract_service_kb(payload: dict):
             "extracted_knowledge": final_text,
             "reason": final_reason,
             "extraction_mode": "llm",
-            "library_books_used": int(context_payload.get("book_count") or 0),
-            "library_pages_used": int(context_payload.get("page_count") or 0),
-            "library_context_truncated": bool(context_payload.get("truncated", False)),
         }
     except Exception as exc:
         everything_trace_service.log_event(
