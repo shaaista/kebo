@@ -3553,19 +3553,40 @@ class ConfigService:
         service_name: str,
         service_description: str,
         full_kb_text: str,
+        existing_menu_facts: list[str] | None = None,
     ) -> str:
         """Return stable extraction instructions for service knowledge generation."""
-        return (
-            f"You are extracting a knowledge pack for a hotel chatbot service agent.\n\n"
+        base = (
+            f"You are building a complete knowledge pack for a hotel chatbot service agent.\n\n"
             f"SERVICE NAME: {service_name}\n"
             f"SERVICE DESCRIPTION: {service_description}\n\n"
-            "Extract only information explicitly present in provided KB evidence.\n"
-            "Do not invent or assume any missing detail.\n"
-            "Do not omit relevant details from evidence chunks.\n"
-            "Preserve important specifics exactly (prices, timings, policies, restrictions, conditions, names).\n"
-            "If a field is not present in evidence, state that it is not available in KB.\n"
-            "Organize output with clear section headers."
+            "YOUR TASK: Extract EVERYTHING from the KB that is relevant to this specific service.\n"
+            "First, read the service name and description to understand the service's scope "
+            "(e.g. room booking, in-room dining, spa, airport transfer, lost & found, etc.).\n"
+            "Then extract ALL content that falls within that scope.\n\n"
+            "CRITICAL COMPLETENESS RULES — apply these to everything you extract:\n"
+            "- Do NOT summarise, compress, paraphrase, or shorten any relevant content.\n"
+            "- Do NOT drop any detail within the scope — every item, price, variant, condition,\n"
+            "  restriction, policy clause, timing, room type, menu item, specification, or name\n"
+            "  must be reproduced exactly as it appears in the source.\n"
+            "- If a list has 10 items, include all 10. If a table has 20 rows, include all 20.\n"
+            "- Preserve the original structure (sections, sub-items, bullet points) as closely as possible.\n"
+            "- Do NOT invent or assume any detail not present in the source.\n"
+            "- Organise output with clear section headers matching the source content.\n\n"
+            "SCOPE RULE: Only skip content that is clearly about a completely different service or topic\n"
+            "(e.g. skip spa details when extracting for a room booking service, skip room types when\n"
+            "extracting for airport transfer). When in doubt, include it."
         )
+        if existing_menu_facts:
+            facts_block = "\n".join(f"- {f}" for f in existing_menu_facts[:300])
+            base += (
+                "\n\nThe following facts have already been captured from a menu upload. "
+                "Do NOT re-extract or repeat any information already covered by these facts. "
+                "Only extract additional knowledge from the KB that is NOT present below "
+                "(e.g. service policies, booking rules, timings, descriptions, conditions):\n\n"
+                f"{facts_block}"
+            )
+        return base
 
     async def _extract_service_knowledge_from_kb(
         self,
@@ -3591,8 +3612,12 @@ class ConfigService:
                     "role": "user",
                     "content": (
                         f"KB EVIDENCE CHUNK {idx}/{len(chunks)}:\n\n{chunk}\n\n"
-                        "Extract only information relevant to the service from this chunk.\n"
-                        "If nothing is relevant, return exactly: NO_RELEVANT_INFO\n"
+                        "Extract ALL content from this chunk that is relevant to the service described above.\n"
+                        "For every relevant section, item, or policy you find: reproduce it in full — "
+                        "every sub-item, price, variant, condition, and number exactly as it appears. "
+                        "Do not summarise or shorten any relevant content.\n"
+                        "Only skip content that is clearly about a completely different service or topic.\n"
+                        "If this chunk contains nothing relevant to the service, return exactly: NO_RELEVANT_INFO\n"
                         "Do not invent missing values."
                     ),
                 },
@@ -3600,7 +3625,7 @@ class ConfigService:
             result = await llm_client.chat(
                 messages,
                 temperature=0.0,
-                max_tokens=900,
+                max_tokens=4000,
             )
             extracted = str(result or "").strip()
             if not extracted:
@@ -4884,7 +4909,8 @@ class ConfigService:
             raw_ids = []
 
         selected: list[str] = []
-        hard_cap = max(max_books, max_books * 2)
+        # Keep a wider ceiling for recall: LLM shortlist + lexical union is merged later.
+        hard_cap = max(24, max_books * 3)
         for value in raw_ids:
             book_id = str(value or "").strip()
             if not book_id or book_id not in valid_ids or book_id in selected:
@@ -5192,6 +5218,76 @@ class ConfigService:
             "source_signature": str(library.get("source_signature") or ""),
         }
 
+    def _service_context_queries(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+    ) -> list[str]:
+        """
+        Build multiple high-recall queries for service KB context retrieval.
+        This intentionally biases toward recall so important details are not dropped.
+        """
+        name = re.sub(r"\s+", " ", str(service_name or "").strip())
+        description = re.sub(r"\s+", " ", str(service_description or "").strip())
+        combined = re.sub(r"\s+", " ", f"{name} {description}".strip())
+
+        raw_queries: list[str] = []
+        if combined:
+            raw_queries.append(combined)
+        if name:
+            raw_queries.append(name)
+        if description:
+            raw_queries.append(description)
+        if combined:
+            raw_queries.append(
+                f"{combined} amenities inclusions exclusions policy timings charges variants features"
+            )
+
+        combined_tokens = self._expand_token_forms(
+            {
+                token
+                for token in self._tokenize_text(combined)
+                if token not in _LIBRARY_TOPIC_STOPWORDS
+            }
+        )
+        if combined_tokens:
+            token_query = " ".join(sorted(combined_tokens)[:24]).strip()
+            if token_query:
+                raw_queries.append(token_query)
+
+        normalized = combined.lower()
+        if any(marker in normalized for marker in ("room", "suite", "accommodation", "stay", "reservation", "booking")):
+            raw_queries.append(
+                "room suite room types accommodation amenities bathroom bathtub shower premium ultimate prestige reservation booking"
+            )
+        if any(marker in normalized for marker in ("spa", "wellness", "massage", "treatment")):
+            raw_queries.append(
+                "spa wellness treatments therapies massage functional massage candlelight candle treatment candle therapy foot massage"
+            )
+        if any(marker in normalized for marker in ("food", "dining", "menu", "restaurant", "order")):
+            raw_queries.append(
+                "menu dishes beverages allergen prices dining in room dining restaurant"
+            )
+        if any(marker in normalized for marker in ("airport", "transfer", "cab", "transport")):
+            raw_queries.append(
+                "airport transfer pickup drop terminal vehicle timings fares"
+            )
+        if any(marker in normalized for marker in ("check in", "checkout", "late check", "early check")):
+            raw_queries.append(
+                "checkin checkout early check in late checkout policy charges timings"
+            )
+
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for query in raw_queries:
+            normalized_query = re.sub(r"\s+", " ", str(query or "").strip().lower())
+            if not normalized_query or normalized_query in seen:
+                continue
+            seen.add(normalized_query)
+            deduped.append(normalized_query)
+        return deduped
+
     async def build_service_library_context_llm(
         self,
         *,
@@ -5218,7 +5314,37 @@ class ConfigService:
             books=books,
             max_books=max(1, max_books),
         )
-        if not selected_book_ids:
+        query_book_ids: list[str] = []
+        service_queries = self._service_context_queries(
+            service_name=service_name,
+            service_description=service_description,
+        )
+        lexical_max_books = max(12, int(max_books or 1) * 3)
+        lexical_max_pages_per_book = 16 if max_pages <= 0 else max(6, max_pages // max(1, lexical_max_books))
+        query_id_cap = max(32, lexical_max_books * 3)
+        for query in service_queries[:12]:
+            hits = self.query_structured_kb_books(
+                query=query,
+                max_books=lexical_max_books,
+                max_pages_per_book=lexical_max_pages_per_book,
+            )
+            for hit in hits:
+                book_id = str(hit.get("book_id") or "").strip()
+                if not book_id or book_id in query_book_ids:
+                    continue
+                query_book_ids.append(book_id)
+                if len(query_book_ids) >= query_id_cap:
+                    break
+            if len(query_book_ids) >= query_id_cap:
+                break
+
+        merged_book_ids: list[str] = []
+        for book_id in [*selected_book_ids, *query_book_ids]:
+            if not book_id or book_id in merged_book_ids:
+                continue
+            merged_book_ids.append(book_id)
+
+        if not merged_book_ids:
             return self.build_service_library_context(
                 service_name=service_name,
                 service_description=service_description,
@@ -5227,10 +5353,18 @@ class ConfigService:
                 max_chars=max_chars,
             )
 
+        if max_books > 0:
+            effective_max_books = min(
+                max(len(merged_book_ids), max(1, max_books) * 3),
+                max(36, max_books * 6),
+            )
+        else:
+            effective_max_books = max(1, len(merged_book_ids))
+
         book_hits = self._book_hits_from_ids(
             library=library,
-            book_ids=selected_book_ids,
-            max_books=max_books,
+            book_ids=merged_book_ids,
+            max_books=effective_max_books,
             max_pages=max_pages,
         )
         if not book_hits:
@@ -5772,6 +5906,7 @@ class ConfigService:
                 "ticketing_policy": str(svc.get("ticketing_policy") or "").strip(),
                 "service_prompt_pack": copy.deepcopy(svc.get("service_prompt_pack", {})),
                 "service_prompt_pack_custom": bool(svc.get("service_prompt_pack_custom", False)),
+                "generated_system_prompt": str(svc.get("generated_system_prompt") or "").strip(),
             }
             service_catalog.append(service_row)
 

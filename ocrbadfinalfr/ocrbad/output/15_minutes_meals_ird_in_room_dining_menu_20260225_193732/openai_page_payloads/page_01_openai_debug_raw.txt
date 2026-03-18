@@ -1,0 +1,254 @@
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 1,
+  "dish_blocks": [
+    {
+      "block_id": "d1",
+      "column_index": 1,
+      "bbox": [962.3711940999999, 1259.9142181, 1990.1629945999998, 1454.40919859],
+      "line_indices": [5, 6, 7, 8, 9]
+    },
+    {
+      "block_id": "d2",
+      "column_index": 1,
+      "bbox": [962.3711940999999, 1559.40205692, 1990.1629945999998, 1710.8670419],
+      "line_indices": [10, 12, 13, 14, 11]
+    },
+    {
+      "block_id": "d3",
+      "column_index": 1,
+      "bbox": [962.3711940999999, 1815.85998209, 1990.1629945999998, 1967.32513079],
+      "line_indices": [15, 16, 17, 18]
+    },
+    {
+      "block_id": "d4",
+      "column_index": 1,
+      "bbox": [960.64961138, 2070.5967189000003, 1990.1629945999998, 2315.00632555],
+      "line_indices": [18, 19, 20, 21, 22, 23, 24]
+    },
+    {
+      "block_id": "d5",
+      "column_index": 1,
+      "bbox": [960.64961138, 2419.99918388, 1990.1629945999998, 2555.97351455],
+      "line_indices": [24, 25, 26]
+    },
+    {
+      "block_id": "d6",
+      "column_index": 1,
+      "bbox": [960.64961138, 2647.1968659999998, 1990.1629945999998, 2831.3646754],
+      "line_indices": [27, 28, 29, 30, 41]
+    },
+    {
+      "block_id": "d7",
+      "column_index": 1,
+      "bbox": [962.3711940999999, 2932.9148705000002, 1990.1629945999998, 3175.6035753],
+      "line_indices": [31, 32, 33, 34, 35, 42]
+    },
+    {
+      "block_id": "d8",
+      "column_index": 1,
+      "bbox": [962.3711940999999, 3266.8267220999996, 1990.1629945999998, 3413.128142],
+      "line_indices": [36, 37, 38, 39, 40, 43]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 3, 4, 23],
+  "footer_line_indices": [0, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+  "notes": "Titles grouped with adjacent description/kcal and right-aligned prices within same column and vertical proximity. Split multi-line titles (e.g., GNOCCHI WITH TOMATO / AND BURRATA) and multi-title sequence (DOON SCHOOL BULLS / BUN ANDA) into single dish block to avoid merging different dishes; retained as one block since layout indicates a combined dish name."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - 15 MINUTES MEALS",
+  "items": [
+    {
+      "name": "PAV BHAJI",
+      "description": "Assorted Spiced Vegetables, Buttered Pav Bun, Onion Salad",
+      "price": "500",
+      "kcal": "94",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "DUNKED IDLI SAMBAR BOWL",
+      "description": "Mini Idli, Dipped In Sambar",
+      "price": "500",
+      "kcal": "45",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "RAJMA CHAWAL",
+      "description": "Spiced Kidney Bean Curry, Steam Rice",
+      "price": "750",
+      "kcal": "110",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "GNOCCHI WITH TOMATO AND BURRATA",
+      "description": "Potato Gnocchi, Tomato Sauce, Creamy Burrata",
+      "price": "750",
+      "kcal": "166",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "VEGETABLE MINESTRONE SOUP",
+      "description": "Beans, Potato, Cheese And Tomato",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "■"
+        ]
+      }
+    },
+    {
+      "name": "SUBZI BIRYANI",
+      "description": "Aromatic Vegetables, Long Grain Rice, Served With Raita",
+      "price": "750",
+      "kcal": "123",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {}
+    },
+    {
+      "name": "DOON SCHOOL BULLS BUN ANDA",
+      "description": "Quick Cooked Eggs, Grilled Pav With Butter",
+      "price": "750",
+      "kcal": "180",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "☑"
+        ]
+      }
+    },
+    {
+      "name": "CHICKEN WONTON SOUP",
+      "description": "Chicken Wonton, Clear Soup, Scallion",
+      "price": "550",
+      "kcal": "51",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "SERVED IN SUSTAINABLE MEAL BOXES",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Sulpher Dioxide",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Celery",
+    "Soybeans",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Crustaceans",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Fish",
+    "Eggs",
+    "Non-Vegetarian",
+    "◉",
+    "◉",
+    "◉",
+    "◉",
+    "■",
+    "☑",
+    "□",
+    "⑥",
+    "⑥",
+    "⑩",
+    "◉",
+    "☑"
+  ],
+  "notes": "page_intent: menu_items_page. Single primary column with adjacent price strip on the right; items extracted top-to-bottom. Dietary icons from line icons preserved as veg/non_veg strings; additional stray symbols kept in extras.unparsed_marks when present. Kcal values are per 100 g as stated in footer.",
+  "page_extras": {}
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - 15 MINUTES MEALS", "items": [], "other_text": [ "SERVED IN SUSTAINABLE MEAL BOXES", "12:00 PM TO 6:00 AM" ], "footer_text": "", "notes": "", "page_extras": [] }

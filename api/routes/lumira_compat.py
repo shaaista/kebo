@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.database import get_db
 from services.chat_service import chat_service
+from services.response_beautifier_service import response_beautifier_service
 from services.lumira_compat_adapter import (
     build_engage_chat_request,
     build_engage_response,
@@ -50,6 +51,7 @@ async def guest_journey_message(
         chat_response = await chat_service.process_message(chat_request, db_session=None)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=_normalize_error(exc)) from exc
+    chat_response.message = response_beautifier_service.beautify_response_text(chat_response.message)
 
     return build_guest_journey_response(chat_response, source_payload=payload)
 
@@ -81,10 +83,10 @@ async def engage_message(
         chat_response = await chat_service.process_message(chat_request, db_session=None)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=_normalize_error(exc)) from exc
+    chat_response.message = response_beautifier_service.beautify_response_text(chat_response.message)
 
     return build_engage_response(
         chat_response,
         source_payload=body,
         session_id=chat_request.session_id,
     )
-

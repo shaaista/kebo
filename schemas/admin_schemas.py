@@ -1,5 +1,5 @@
 """
-Admin/API schemas for KePSLA Bot v2.
+Admin/API schemas for NexOria.
 
 Pydantic v2 compatible with SQLAlchemy ORM objects.
 All IDs are int (matching INT AUTO_INCREMENT in MySQL).

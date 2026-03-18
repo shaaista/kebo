@@ -1,0 +1,1409 @@
+[PAGE 1]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 1,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [989.9167202, 1123.9398465, 2015.9868511599998, 1323.5984329999999],
+      "line_indices": [3, 4, 6, 7, 11]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [989.9167202, 1419.9853086, 2015.9868511599998, 1619.6438132399999],
+      "line_indices": [8, 9, 10, 12]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 2,
+      "bbox": [986.47352582, 1728.07908922, 2015.9868511599998, 1874.38055005],
+      "line_indices": [13, 15, 16, 17]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 2,
+      "bbox": [986.47352582, 1979.37340838, 2012.5437436, 2125.674992],
+      "line_indices": [18, 19, 20, 21]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 2,
+      "bbox": [972.70077724, 2755.6321010499996, 2012.5437436, 2901.93356188],
+      "line_indices": [23, 24, 25, 26]
+    },
+    {
+      "block_id": "b6",
+      "column_index": 1,
+      "bbox": [972.70077724, 3003.4841253500003, 2012.5437436, 3139.45841509],
+      "line_indices": [27, 28, 29, 30]
+    },
+    {
+      "block_id": "b7",
+      "column_index": 2,
+      "bbox": [970.97919452, 3230.68160282, 2012.5437436, 3426.8978125999997],
+      "line_indices": [31, 32, 33, 34, 35]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 5, 14, 22],
+  "footer_line_indices": [0, 36, 37, 38, 40, 41, 42, 43, 44, 39, 45, 46, 47, 48, 49, 50, 51, 52, 53],
+  "notes": "Grouped titles with adjacent description/calorie and right-aligned prices within same vertical bands. Kept each candidate title as its own block; headers and service notes left as other/footer."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "MINESTRONE ALLA GENOVESE SOUP",
+      "description": "Beans, Potato, Cheese, Tomato",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "HOMEMADE MUSHROOM SOUP",
+      "description": "Mushroom, Cream, Aromatic Vegetables",
+      "price": "500",
+      "kcal": "46",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "O"
+        ]
+      }
+    },
+    {
+      "name": "VEGETABLE WONTON SOUP",
+      "description": "Vegetable Wonton, Clear Soup, Scallion",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "O"
+        ]
+      }
+    },
+    {
+      "name": "SWEET CORN CHICKEN SOUP",
+      "description": "Creamy Corn, Chicken, Scallion",
+      "price": "550",
+      "kcal": "60",
+      "allergens": [
+        "egg",
+        "sesame"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "⑥"
+        ]
+      }
+    },
+    {
+      "name": "BABY SPINACH SALAD",
+      "description": "Spinach, Date, Walnut, Sumac Lemon",
+      "price": "500",
+      "kcal": "176",
+      "allergens": [
+        "gluten",
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "BURRATA SALAD",
+      "description": "Fresh Burrata, Tomato, Olive Oil",
+      "price": "500",
+      "kcal": "129",
+      "allergens": [
+        "gluten",
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "CLASSIC CAESAR SALAD",
+      "description": "Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg",
+      "price": "650",
+      "kcal": "124",
+      "allergens": [
+        "egg",
+        "fish",
+        "gluten",
+        "milk",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "10**"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Sulpher Dioxide",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Eggs",
+    "Fish",
+    "Crustaceans",
+    "Celery",
+    "Soybeans",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "page_intent: menu_items_page. Columns detected with section headers SOUPS and SALADS. Prices aligned in right-side price strip matched per item. Kcal values taken from explicit lines. Allergen icons captured from corresponding kcal/description lines. Unclear symbols kept in extras.unparsed_marks.",
+  "page_extras": []
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING", "items": [], "other_text": [ "12:00 PM TO 11:30 PM", "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "", "page_extras": [] }
+
+[PAGE 2]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING - SMALL PLATES",
+  "page": 2,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [965.81438848, 1123.9398465, 1988.441354, 1311.55003262],
+      "line_indices": [3, 4, 5, 6, 7]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [965.81438848, 1404.4945315, 1988.441354, 1593.82594691],
+      "line_indices": [8, 9, 10, 11, 12]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [965.81438848, 1690.21282251, 1988.441354, 1882.98653278],
+      "line_indices": [13, 14, 15, 16, 17]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 1,
+      "bbox": [965.81438848, 1979.37340838, 1988.441354, 2015.51856859],
+      "line_indices": [18, 23]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 1,
+      "bbox": [965.81438848, 2039.61528749, 1988.441354, 2225.50428525],
+      "line_indices": [19, 20, 21, 22]
+    },
+    {
+      "block_id": "b6",
+      "column_index": 1,
+      "bbox": [965.81438848, 2318.4487432, 1988.441354, 2506.05892932],
+      "line_indices": [24, 25, 26, 27, 28]
+    },
+    {
+      "block_id": "b7",
+      "column_index": 1,
+      "bbox": [965.81438848, 2597.28207612, 1988.441354, 2784.8923441],
+      "line_indices": [29, 30, 31, 32, 33]
+    },
+    {
+      "block_id": "b8",
+      "column_index": 1,
+      "bbox": [965.81438848, 2883.0003262, 1988.441354, 3025.8595331],
+      "line_indices": [34, 35, 36, 37]
+    },
+    {
+      "block_id": "b9",
+      "column_index": 1,
+      "bbox": [965.81438848, 3122.2464087, 1988.441354, 3316.7412664],
+      "line_indices": [38, 39, 40, 41, 42]
+    },
+    {
+      "block_id": "b10",
+      "column_index": 1,
+      "bbox": [965.81438848, 3406.243716, 1988.441354, 3599.01734441],
+      "line_indices": [43, 56, 44, 45, 46]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 0, 47, 48, 49, 51, 53, 55, 57, 59, 61, 63, 64, 65, 66],
+  "footer_line_indices": [50, 52, 54, 58, 60, 62]
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - SMALL PLATES (12:00 PM TO 11:30 PM)",
+  "items": [
+    {
+      "name": "BAKED BRUSCHETTA",
+      "description": "Sliced Baked, Mozzarella, Marinated Cherry Tomato",
+      "price": "550",
+      "kcal": "156",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "ULTIMATE VEGGIE NACHOS",
+      "description": "Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked",
+      "price": "550",
+      "kcal": "142",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "HUMMUS",
+      "description": "Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket",
+      "price": "550",
+      "kcal": "99",
+      "allergens": [
+        "celery",
+        "sesame"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MANGO PICKLE PANEER TIKKA",
+      "description": "Cottage Cheese, Spices, Mango Pickle",
+      "price": "550",
+      "kcal": "162",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MALAI BROCCOLI KEBAB",
+      "description": "Broccoli Florets, Creamy Cheese Yoghurt, Mild Spices",
+      "price": "550",
+      "kcal": "171",
+      "allergens": [
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MATTAR TIKKI",
+      "description": "Green Peas, Chilli, Spices, Panko Crust",
+      "price": "550",
+      "kcal": "119",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "KOREAN CHICKEN BAO",
+      "description": "Steam Bao, Crispy Chicken",
+      "price": "650",
+      "kcal": "241",
+      "allergens": [
+        "celery",
+        "gluten",
+        "milk",
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "GENERAL TSO’S CHICKEN",
+      "description": "Chicken Tossed With Soy, Ginger, Hoisin",
+      "price": "650",
+      "kcal": "275",
+      "allergens": [
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "BANNO KEBAB",
+      "description": "Saffron Scented Chicken, Egg Coated Tandoor Cooked",
+      "price": "650",
+      "kcal": "138",
+      "allergens": [
+        "egg",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "SMALL PLATES",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "page_intent: menu_items_page. Single main column of items with adjacent right-side price strip lines aligned per item. Vegetarian/non-vegetarian markers taken from line icons. Allergen icons captured per item from corresponding kcal/allergen lines.",
+  "page_extras": {
+    "legend": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Mustard",
+      "Peanuts",
+      "Crustaceans",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Vegetarian",
+      "Non-Vegetarian",
+      "Fish",
+      "Eggs"
+    ],
+    "unassigned_symbols": [
+      "◉",
+      "①",
+      "④",
+      ". . .",
+      "□",
+      "1",
+      "⑥",
+      "⑩",
+      "☑"
+    ]
+  }
+}
+
+[PASS 4]
+{"menu_name":"IN ROOM DINING - SMALL PLATES","items":[],"other_text":["IN ROOM DINING","SMALL PLATES","12:00 PM TO 11:30 PM"],"footer_text":"","notes":"Reviewed other_text lines only. No recoverable menu items were embedded there; all dish entries with prices/descriptions are already captured in extracted items. Kept the three lines as non-item headers/subheader/time window.","page_extras":{}}
+
+[PAGE 3]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 3,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [903.8370054, 1129.10345251, 1988.441354, 1280.56860121],
+      "line_indices": [3, 4, 5, 6]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [903.8370054, 1387.2826479, 1988.441354, 1578.33521074],
+      "line_indices": [8, 9, 10, 11, 12]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [903.8370054, 1673.00081612, 1988.441354, 1865.77456732],
+      "line_indices": [13, 26, 14, 15, 16, 17]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 7, 18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42],
+  "footer_line_indices": [18, 19, 21, 23, 24, 26, 29, 30, 31, 32],
+  "notes": "Three dish titles identified in column 1 with adjacent price/description/kcal lines grouped by vertical proximity. Symbols like ☑ and ⑥ near dishes were included only when clearly within the title/desc/kcal vertical span."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "PEPPER CHICKEN TIKKA",
+      "description": "Creamy Chicken, Crushed Pink Pepper",
+      "price": "650",
+      "kcal": "150",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 3,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MUTTON PEPPER SUKKHA",
+      "description": "Tender Lamb, Pepper Masala, Tempered Mustard, Curry Leaves",
+      "price": "750",
+      "kcal": "141",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 3,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "CRISPY CALAMARI",
+      "description": "Squid Rings, Semolina Flour, Lemon",
+      "price": "650",
+      "kcal": "261",
+      "allergens": [
+        "gluten",
+        "molluscs"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 3,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": [
+          "⑥"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Sesame",
+    "Tree Nuts",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Peanuts",
+    "Eggs",
+    "Mustard",
+    "Vegetarian",
+    "Fish",
+    "Non-Vegetarian"
+  ],
+  "notes": "page_intent: menu_items_page. Column-wise extraction performed using provided coordinates. Prices aligned from right-side price strip within same column. Allergen icons taken from line icons only. Unclear symbol retained in extras.unparsed_marks.",
+  "page_extras": []
+}
+
+[PASS 4]
+{"menu_name":"IN ROOM DINING - SMALL PLATES","items":[],"other_text":["12:00 PM TO 11:30 PM"],"footer_text":[],"notes":"No additional menu items detected within other_text. All visible dishes on the page (Pepper Chicken Tikka, Mutton Pepper Sukkha, Crispy Calamari) are already extracted.","page_extras":{}}
+
+[PAGE 4]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 4,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [902.1153648, 1151.47902398, 1988.441354, 1406.21576079],
+      "line_indices": [3, 4, 5, 6, 7, 21]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [902.1153648, 1500.8814071, 1988.441354, 1707.42466518],
+      "line_indices": [8, 9, 10, 11, 22, 50]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [902.1153648, 1803.81154078, 1988.441354, 2053.3848353000003],
+      "line_indices": [12, 13, 14, 15, 16, 23]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 1,
+      "bbox": [903.8370054, 2096.4145443, 1988.441354, 2308.12149025],
+      "line_indices": [17, 19, 20, 24]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 1,
+      "bbox": [903.8370054, 2416.5568890199997, 1990.1629945999998, 2569.7429804999997],
+      "line_indices": [25, 27, 28, 26]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 18, 29, 30, 31, 33, 35, 37, 39, 41, 42, 43, 44, 45, 46, 47],
+  "footer_line_indices": [0, 32, 34, 36, 38, 40],
+  "notes": "Each dish block corresponds to a distinct title line and its related description/calorie/price lines in column 1. Decorative symbols adjacent to titles (e.g., ◉, □, ☑) are omitted unless part of the text line. Header and legend/allergen lines are classified as footer/other."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "ICONIQA NEAPOLITAN FLATBREAD",
+      "description": "Sourdough, Tomato Sauce, Mozzarella Cheese",
+      "price": "650",
+      "kcal": "200",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "GRILLED MUSHROOM FLATBREAD",
+      "description": "Mushroom, Tomato, Mozzarella, Basil",
+      "price": "650",
+      "kcal": "208",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "⑪"
+        ]
+      }
+    },
+    {
+      "name": "THE MEDITERRANEAN FLATBREAD",
+      "description": "Artichoke Heart, Kalamata, Roasted Garlic, Feta",
+      "price": "650",
+      "kcal": "187",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "BBQ CHICKEN FLATBREAD",
+      "description": "BBQ Chicken, Tomato, Mozzarella",
+      "price": "750",
+      "kcal": "157",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    },
+    {
+      "name": "LOW CARB PIZZA BOWL",
+      "description": "Lean Turkey, Jalapeño, Cheese",
+      "price": "650",
+      "kcal": "110",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "☑"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Section header FLATBREADS applies to all listed dishes in the single main column. Prices aligned in a right-side price strip were matched vertically to nearest items. Allergen icons on kcal lines were used for allergens; veg/non-veg icons on title lines used for diet tags. Unclear glyphs kept in extras.unparsed_marks.",
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Crustaceans",
+      "Celery",
+      "Sulpher Dioxide",
+      "Soybeans",
+      "Molluscs",
+      "Sesame",
+      "Tree Nuts",
+      "Mustard",
+      "Peanuts",
+      "Vegetarian",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ]
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - FLATBREADS", "items": [], "other_text": [ "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "Reviewed other_text lines against page layout; the time range is a service window, not a menu item. No additional items recovered.", "page_extras": {} }
+
+[PAGE 5]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING - FROM THE ORIENT",
+  "page": 5,
+  "dish_blocks": [
+    {
+      "block_id": "5-1",
+      "column_index": 1,
+      "bbox": [977.8655253999999, 1122.21874, 2002.21410258, 1327.04076879],
+      "line_indices": [3, 4, 5, 6, 7, 8]
+    },
+    {
+      "block_id": "5-2",
+      "column_index": 1,
+      "bbox": [979.5871659999999, 1430.31247969, 2002.21410258, 1629.9709434000001],
+      "line_indices": [9, 10, 11, 12, 13]
+    },
+    {
+      "block_id": "5-3",
+      "column_index": 1,
+      "bbox": [977.8655253999999, 1734.9637607999998, 2002.21410258, 1994.86414455],
+      "line_indices": [14, 15, 16, 17, 18, 25]
+    },
+    {
+      "block_id": "5-4",
+      "column_index": 1,
+      "bbox": [981.30874872, 2087.8086025, 2002.21410258, 2297.7942372999996],
+      "line_indices": [19, 20, 21, 22, 23, 24, 26]
+    },
+    {
+      "block_id": "5-5",
+      "column_index": 1,
+      "bbox": [974.42235996, 2387.2962776, 2002.21410258, 2586.9548641],
+      "line_indices": [27, 28, 29, 30, 31, 32]
+    },
+    {
+      "block_id": "5-6",
+      "column_index": 1,
+      "bbox": [976.14397162, 2686.784362, 2002.21410258, 2888.164055],
+      "line_indices": [33, 34, 35, 36, 37]
+    },
+    {
+      "block_id": "5-7",
+      "column_index": 1,
+      "bbox": [972.7007772400001, 2986.2720371, 2002.21410258, 3182.48816502],
+      "line_indices": [38, 41, 42, 43, 44]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 0, 39, 40, 45, 46, 47, 49, 51, 52, 54, 55, 57, 58, 60, 61, 62, 63, 64, 65, 66],
+  "footer_line_indices": [48, 50, 53, 56, 59]
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - FROM THE ORIENT",
+  "items": [
+    {
+      "name": "Asparagus & Mushroom Stir Fry",
+      "description": "Asparagus, Mushroom, Garlic, Sesame Oil",
+      "price": "750",
+      "kcal": "31",
+      "allergens": [
+        "fish",
+        "gluten",
+        "sesame",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "Thai Green Curry",
+      "description": "Zucchini, Bamboo Shoots, Bok Choy, Pea Brinjal, Coconut Milk",
+      "price": "750",
+      "kcal": "62",
+      "allergens": [
+        "gluten"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "American Chopsuey with Vegetables",
+      "description": "Fried Noodle, Sweet And Sour Vegetables",
+      "price": "750",
+      "kcal": "93",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "Mapo Tofu",
+      "description": "Silken Tofu, Shiitake Mushroom, Black Beans, Sichuan Peppercorns",
+      "price": "750",
+      "kcal": "111",
+      "allergens": [
+        "gluten",
+        "sesame",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": [
+          "⑧",
+          "+"
+        ]
+      }
+    },
+    {
+      "name": "Simple Hakka Noodles",
+      "description": "Shredded Vegetables, Noodle, Light Soy, Spring Onion",
+      "price": "750",
+      "kcal": "146",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "Hainanese Chicken Rice",
+      "description": "Steamed Chicken, Poaching Broth, Ginger, Garlic, Rice",
+      "price": "850",
+      "kcal": "127",
+      "allergens": [
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "Thai Red Curry",
+      "description": "Lemongrass, Galangal, Chicken, Coconut Milk, Kar Lime Leaf",
+      "price": "850",
+      "kcal": "111",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 5,
+      "dish_type": "From the Orient",
+      "extras": {
+        "unparsed_marks": [
+          "③"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Single main column of dishes under 'FROM THE ORIENT'. Prices appear in a right-side price strip aligned to each item. Dietary icons used as veg/non_veg; allergen words/icons captured from kcal lines where shown. Unclear glyphs kept in extras.unparsed_marks.",
+  "page_extras": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Fish",
+    "Eggs",
+    "•",
+    "10",
+    "Ⓡ",
+    "O",
+    "⑥",
+    "⑩",
+    "◉",
+    "☑"
+  ]
+}
+
+[PASS 4]
+{ "menu_name": "FROM THE ORIENT", "items": [], "other_text": [ "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "", "page_extras": [] }
+
+[PAGE 6]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 6,
+  "dish_blocks": [
+    {
+      "block_id": "d1",
+      "column_index": 1,
+      "bbox": [900.39378208, 1118.0, 1990.1629945999998, 1318.4347042],
+      "line_indices": [3, 36, 4, 5, 6, 7]
+    },
+    {
+      "block_id": "d2",
+      "column_index": 1,
+      "bbox": [900.39378208, 1413.0, 1990.1629945999998, 1609.31664215],
+      "line_indices": [8, 37, 10, 11, 12, 38]
+    },
+    {
+      "block_id": "d3",
+      "column_index": 1,
+      "bbox": [900.39378208, 1696.0, 1990.1629945999998, 1946.67070675],
+      "line_indices": [13, 39, 15, 16, 17, 18]
+    },
+    {
+      "block_id": "d4",
+      "column_index": 1,
+      "bbox": [900.39378208, 2046.0, 1990.1629945999998, 2299.51546659],
+      "line_indices": [19, 40, 20, 21, 22, 23, 41]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 24, 25, 26, 27, 29, 31, 33, 34, 42, 43, 44, 45, 46, 47, 48, 49],
+  "footer_line_indices": [0, 28, 30, 32, 35]
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - FROM THE ORIENT",
+  "items": [
+    {
+      "name": "Nasi Goreng",
+      "description": "Fried Rice, Prawn Cracker, Chicken Satay, Peanut Sauce",
+      "price": "900",
+      "kcal": "150",
+      "allergens": ["crustacean", "egg", "gluten", "peanut", "soy"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 6,
+      "dish_type": "FROM THE ORIENT",
+      "extras": {
+        "unparsed_marks": ["☑"]
+      }
+    },
+    {
+      "name": "Kung Pao Chicken",
+      "description": "Chicken, Sichuan Peppercorns, Cashewnuts, Sticky Rice",
+      "price": "900",
+      "kcal": "145",
+      "allergens": ["gluten", "nuts", "soy"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 6,
+      "dish_type": "FROM THE ORIENT",
+      "extras": {
+        "unparsed_marks": ["◉", "M ⑧"]
+      }
+    },
+    {
+      "name": "Wokked Sweet and Sour Prawns",
+      "description": "Prawn, Bell Pepper, Pineapple, Chilli Vinegar",
+      "price": "875",
+      "kcal": "92",
+      "allergens": ["crustacean", "gluten", "sesame"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 6,
+      "dish_type": "FROM THE ORIENT",
+      "extras": {
+        "unparsed_marks": ["☑"]
+      }
+    },
+    {
+      "name": "Shanghai Fried Noodles",
+      "description": "Prawn, Dark Soy, Udon Noodle, Spring Onion",
+      "price": "875",
+      "kcal": "103",
+      "allergens": ["crustacean", "gluten", "soy"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 6,
+      "dish_type": "FROM THE ORIENT",
+      "extras": {
+        "unparsed_marks": ["◉", "Ⓡ"]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Prices in INR without symbol.",
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Crustaceans",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Mustard",
+      "Peanuts",
+      "Vegetarian",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ],
+    "unparsed_footer_icons": ["⑥", "⑥", "⑩", "◉", "☑"]
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - FROM THE ORIENT", "items": [], "other_text": [ "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "Rechecked other_text lines against page structure; the single line is a service time header, not a menu item. No additional recoverable items found.", "page_extras": [] }
+
+[PAGE 7]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING - FROM THE MEDITERRANEAN",
+  "page": 7,
+  "dish_blocks": [
+    {
+      "block_id": "dish_1",
+      "column_index": 1,
+      "bbox": [903.8370054, 1070.58284362, 1988.441354, 1314.9924912000001],
+      "line_indices": [41, 3, 4, 5, 6, 7, 8]
+    },
+    {
+      "block_id": "dish_2",
+      "column_index": 1,
+      "bbox": [964.09280576, 1416.54289095, 1988.441354, 1617.92266581],
+      "line_indices": [9, 11, 12, 13, 14]
+    },
+    {
+      "block_id": "dish_3",
+      "column_index": 1,
+      "bbox": [903.8370054, 1717.75195906, 1988.441354, 1876.1018612],
+      "line_indices": [42, 15, 16, 17, 18, 19]
+    },
+    {
+      "block_id": "dish_4",
+      "column_index": 1,
+      "bbox": [903.8370054, 1982.8157851, 1988.441354, 2185.9168711099996],
+      "line_indices": [43, 20, 21, 22, 23, 44]
+    },
+    {
+      "block_id": "dish_5",
+      "column_index": 1,
+      "bbox": [903.8370054, 2292.6309178, 1988.441354, 2488.846882],
+      "line_indices": [45, 24, 25, 26, 27, 28, 29]
+    },
+    {
+      "block_id": "dish_6",
+      "column_index": 1,
+      "bbox": [903.8370054, 2599.0034281999997, 1988.441354, 2788.3346798899997],
+      "line_indices": [46, 30, 31, 32, 33, 34, 35]
+    },
+    {
+      "block_id": "dish_7",
+      "column_index": 1,
+      "bbox": [903.8370054, 2895.04868565, 1988.441354, 3105.0345251000003],
+      "line_indices": [47, 36, 37, 38, 39, 40]
+    },
+    {
+      "block_id": "dish_8",
+      "column_index": 1,
+      "bbox": [902.1153648, 3211.7484489999997, 1988.441354, 3399.35875791],
+      "line_indices": [48, 41, 42, 43, 44, 45]
+    }
+  ],
+  "other_text_line_indices": [0, 1, 2, 10, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64],
+  "footer_line_indices": [49, 50, 51, 65, 66, 67, 68, 69]
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - FROM THE MEDITERRANEAN (12:00 PM TO 11:30 PM)",
+  "items": [
+    {
+      "name": "RATATOUILLE (FROM THE MOVIE)",
+      "description": "Grilled Med Vegetables, Tomato Sauce, Baked",
+      "price": "750",
+      "kcal": "70",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "WILD MUSHROOM RISOTTO",
+      "description": "Assorted Mushroom, Arborio, Cream, Cheese",
+      "price": "750",
+      "kcal": "111",
+      "allergens": [
+        "milk",
+        "sulphites"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {}
+    },
+    {
+      "name": "GNOCCHI SORRENTINA",
+      "description": "Potato Gnocchi, Tomato Sauce, Cheese",
+      "price": "750",
+      "kcal": "122",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "①"
+        ]
+      }
+    },
+    {
+      "name": "SPINACH RAVIOLI",
+      "description": "Spinach Ravioli, Tomato Sauce, Cheese",
+      "price": "750",
+      "kcal": "144",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "Ⓡ"
+        ]
+      }
+    },
+    {
+      "name": "HONEY MUSTARD CHICKEN",
+      "description": "Honey Mustard Glaze Chicken, Sautéed Mushroom, Peas, Dipping Jus",
+      "price": "850",
+      "kcal": "114",
+      "allergens": [
+        "egg",
+        "gluten",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "⑧1"
+        ]
+      }
+    },
+    {
+      "name": "GRILLED LAMB CHOPS",
+      "description": "Mint Grilled Lamb Chops, Arugula Salad, Dipping Sauce",
+      "price": "850",
+      "kcal": "241",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    },
+    {
+      "name": "PANKO CRUSTED FISH AND CHIPS",
+      "description": "Fish Fillet, Panko Crust, Tarter Sauce",
+      "price": "850",
+      "kcal": "170",
+      "allergens": [
+        "egg",
+        "fish",
+        "gluten",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "110"
+        ]
+      }
+    },
+    {
+      "name": "SPICY PRAWN SPAGHETTI",
+      "description": "Grilled Prawn Spicy Tomato Sauce, Tossed Spaghetti",
+      "price": "850",
+      "kcal": "176",
+      "allergens": [
+        "crustacean",
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "Ⓡ"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "FROM THE MEDITERRANEAN",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Fish",
+    "Eggs",
+    "Non-Vegetarian"
+  ],
+  "notes": "Page classified as menu_items_page. Single primary column of dishes with right-aligned price strip. Allergens and veg/non_veg assigned strictly from line icons and explicit allergen lines. Unclear marks kept in extras.unparsed_marks. A stray numeric '110' near calories retained as unparsed mark for Panko Crusted Fish and Chips per evidence.",
+  "page_extras": {
+    "page_intent": "menu_items_page",
+    "columns_detected": 1
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - FROM THE MEDITERRANEAN", "items": [], "other_text": [ "IN ROOM DINING", "FROM THE MEDITERRANEAN", "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "", "page_extras": [] }

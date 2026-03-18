@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+openai==2.18.0
+requests
+google-auth
+pypdf
+reportlab
+Pillow
+PyMuPDF
+numpy
+opencv-python
+pytesseract

@@ -1,0 +1,915 @@
+{
+  "page": 2,
+  "lines": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ],
+      "icons": [],
+      "layout_role": "shared",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "15 MINUTES MEALS",
+      "bbox": [
+        998.52469168,
+        762.4890630000001,
+        1892.03220076,
+        827.89446626
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "SERVED IN SUSTAINABLE MEAL BOXES",
+      "bbox": [
+        673.1433870999999,
+        876.0879040599999,
+        2220.8567576,
+        919.11777678
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "12:00 PM TO 6:00 AM",
+      "bbox": [
+        1026.0702177800001,
+        965.5899852900001,
+        1864.4867036,
+        1008.61985801
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "BUTTER CHICKEN PULAO",
+      "bbox": [
+        965.81438848,
+        1259.9142181,
+        1604.5259185999998,
+        1294.33806716
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        1259.9142181,
+        1988.441354,
+        1287.4533137199999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Chicken Tikka, Smooth Makhani Gravy,",
+      "bbox": [
+        965.81438848,
+        1325.31962136,
+        1690.60551764,
+        1358.02232299
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Served With Pulao",
+      "bbox": [
+        965.81438848,
+        1368.34945315,
+        1311.8548304,
+        1395.8885897
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "159 Kcal",
+      "bbox": [
+        964.09280576,
+        1430.31247969,
+        1091.4908241800001,
+        1454.40919859
+      ],
+      "icons": [
+        "milk",
+        "mustard"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "LAMB MINCE SHEPHERD\u2019S PIE",
+      "bbox": [
+        965.81438848,
+        1550.79607419,
+        1719.8726554,
+        1585.21992325
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        1550.79607419,
+        1988.441354,
+        1578.3352107399999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Minced Lamb, Rosemary, Tomato Jus,",
+      "bbox": [
+        967.5359712,
+        1611.03778958,
+        1675.1112731599999,
+        1643.7405321400001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Mashed Potato Baked",
+      "bbox": [
+        967.5359712,
+        1654.0676623,
+        1373.83227136,
+        1681.6067988500001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "149 Kcal",
+      "bbox": [
+        964.09280576,
+        1710.8670419,
+        1093.2124069,
+        1734.9637607999998
+      ],
+      "icons": [
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Milk",
+      "bbox": [
+        760.94471356,
+        3765.9729837,
+        805.7060958,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Gluten",
+      "bbox": [
+        891.7858105999999,
+        3765.9729837,
+        967.5359712,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Lupin",
+      "bbox": [
+        1045.0077724,
+        3767.69425392,
+        1108.7067382,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Crustaceans",
+      "bbox": [
+        759.2231019,
+        3815.88769172,
+        903.8370054,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Celery",
+      "bbox": [
+        984.7519431,
+        3815.88769172,
+        1058.7805209800001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Sulpher Dioxide",
+      "bbox": [
+        1189.62161802,
+        3765.9729837,
+        1377.2754367999999,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Soybeans",
+      "bbox": [
+        1146.58176062,
+        3815.88769172,
+        1260.20700152,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "Molluscs",
+      "bbox": [
+        1447.8606756,
+        3765.9729837,
+        1547.7132258000001,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Mustard",
+      "bbox": [
+        1644.1224948000001,
+        3765.9729837,
+        1737.08868518,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Peanuts",
+      "bbox": [
+        1819.7252056,
+        3767.69425392,
+        1912.6913381000002,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Eggs",
+      "bbox": [
+        1993.6062758,
+        3767.69425392,
+        2048.6972411799998,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Fish",
+      "bbox": [
+        2124.4474886,
+        3765.9729837,
+        2169.20887084,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Sesame",
+      "bbox": [
+        1358.33791112,
+        3815.88769172,
+        1449.5824319600001,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Tree Nuts",
+      "bbox": [
+        1533.94050616,
+        3815.88769172,
+        1645.8441354,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Vegetarian",
+      "bbox": [
+        1733.6454908,
+        3817.6088391499998,
+        1861.0434224,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Non-Vegetarian",
+      "bbox": [
+        1960.8958279,
+        3817.6088391499998,
+        2146.82806396,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Kindly inform our associates of any allergies you may have.",
+      "bbox": [
+        724.7912159800001,
+        3870.96596482,
+        1430.64490628,
+        3893.3414135
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+      "bbox": [
+        723.06963326,
+        3905.38969109,
+        1516.7245632000001,
+        3927.7653853499996
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        724.7912159800001,
+        3939.8137448,
+        1339.40038544,
+        3960.46800512
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "\u25a1",
+      "bbox": [
+        903.8370054,
+        1259.9142181,
+        933.10408528,
+        1296.05933738
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u2460\u2465 \u246a",
+      "bbox": [
+        1129.3658466,
+        1428.5912503999998,
+        1198.2295895,
+        1457.8514934500001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        903.8370054,
+        1550.79607419,
+        934.825668,
+        1586.94107068
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1010.5758285999999,
+        3764.2518772,
+        1031.2349948800002,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1409.9857399999999,
+        3765.9729837,
+        1432.366489,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u2469",
+      "bbox": [
+        946.8768627999999,
+        3814.1664215,
+        972.7007772400001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1875.5
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        1695.7704105,
+        3815.88769172,
+        1718.1510147999998,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        1916.1344746,
+        3815.88769172,
+        1936.79349618,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ]
+    },
+    {
+      "text": "15 MINUTES MEALS",
+      "bbox": [
+        998.52469168,
+        762.4890630000001,
+        1892.03220076,
+        827.89446626
+      ]
+    },
+    {
+      "text": "SERVED IN SUSTAINABLE MEAL BOXES 12:00 PM TO 6:00 AM",
+      "bbox": [
+        673.1433870999999,
+        876.0879040599999,
+        2220.8567576,
+        1008.61985801
+      ]
+    },
+    {
+      "text": "\u25b5 BUTTER CHICKEN PULAO",
+      "bbox": [
+        965.81438848,
+        1259.9142181,
+        1604.5259185999998,
+        1294.33806716
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        1259.9142181,
+        1988.441354,
+        1287.4533137199999
+      ]
+    },
+    {
+      "text": "Chicken Tikka, Smooth Makhani Gravy, Served With Pulao",
+      "bbox": [
+        965.81438848,
+        1325.31962136,
+        1690.60551764,
+        1358.02232299
+      ]
+    },
+    {
+      "text": "159 Kcal",
+      "bbox": [
+        964.09280576,
+        1430.31247969,
+        1091.4908241800001,
+        1454.40919859
+      ]
+    },
+    {
+      "text": "\u25b5 LAMB MINCE SHEPHERD'S PIE",
+      "bbox": [
+        965.81438848,
+        1550.79607419,
+        1719.8726554,
+        1585.21992325
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        1550.79607419,
+        1988.441354,
+        1578.3352107399999
+      ]
+    },
+    {
+      "text": "Minced Lamb, Rosemary, Tomato Jus, Mashed Potato Baked",
+      "bbox": [
+        967.5359712,
+        1611.03778958,
+        1675.1112731599999,
+        1643.7405321400001
+      ]
+    },
+    {
+      "text": "149 Kcal",
+      "bbox": [
+        964.09280576,
+        1710.8670419,
+        1093.2124069,
+        1734.9637607999998
+      ]
+    },
+    {
+      "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u22a1 Vegetarian \u25b5 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        964.09280576,
+        1738.4061493618165,
+        1093.2124069,
+        1762.5028682618165
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        1254.0,
+        943.0,
+        1302.0
+      ],
+      "score": 0.9,
+      "line_index": 4
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        1257.0,
+        943.0,
+        1302.0
+      ],
+      "score": 0.9,
+      "line_index": 6
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1163.0,
+        1422.0,
+        1205.0,
+        1461.0
+      ],
+      "score": 0.5457664132118225,
+      "line_index": 7
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1124.0,
+        1422.0,
+        1166.0,
+        1464.0
+      ],
+      "score": 0.560299277305603,
+      "line_index": 8
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1163.0,
+        1422.0,
+        1205.0,
+        1464.0
+      ],
+      "score": 0.5457664132118225,
+      "line_index": 8
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        1545.0,
+        943.0,
+        1593.0
+      ],
+      "score": 0.9,
+      "line_index": 9
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        1543.0,
+        943.0,
+        1593.0
+      ],
+      "score": 0.9,
+      "line_index": 11
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1119.0,
+        1702.0,
+        1165.0,
+        1747.0
+      ],
+      "score": 0.56746506690979,
+      "line_index": 13
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        1253.0,
+        944.0,
+        1303.0
+      ],
+      "score": 0.9,
+      "line_index": 33
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1123.0,
+        1421.0,
+        1167.0,
+        1465.0
+      ],
+      "score": 0.560299277305603,
+      "line_index": 34
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1160.0,
+        1421.0,
+        1206.0,
+        1465.0
+      ],
+      "score": 0.5457664132118225,
+      "line_index": 34
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        1544.0,
+        944.0,
+        1594.0
+      ],
+      "score": 0.9,
+      "line_index": 35
+    }
+  ],
+  "page_text": "IN ROOM DINING\n15 MINUTES MEALS\nSERVED IN SUSTAINABLE MEAL BOXES\n12:00 PM TO 6:00 AM\nBUTTER CHICKEN PULAO\n850\nChicken Tikka, Smooth Makhani Gravy,\nServed With Pulao\n159 Kcal\nLAMB MINCE SHEPHERD\u2019S PIE\n850\nMinced Lamb, Rosemary, Tomato Jus,\nMashed Potato Baked\n149 Kcal\nMilk\nGluten\nLupin\nCrustaceans\nCelery\nSulpher Dioxide\nSoybeans\nMolluscs\nMustard\nPeanuts\nEggs\nFish\nSesame\nTree Nuts\nVegetarian\nNon-Vegetarian\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\n\u25a1\n\u2460\u2465 \u246a\n\u25c9\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+}

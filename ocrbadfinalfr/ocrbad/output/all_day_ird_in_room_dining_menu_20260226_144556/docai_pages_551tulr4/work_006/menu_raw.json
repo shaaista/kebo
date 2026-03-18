@@ -1,0 +1,1482 @@
+{
+  "pdf": "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot (1)\\new_bot\\ocrbadfinalfr\\ocrbad\\output\\all_day_ird_in_room_dining_menu_20260226_144556\\docai_pages_551tulr4\\page_006.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "lines": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "icons": [],
+          "layout_role": "shared",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "FROM THE ORIENT",
+          "bbox": [
+            926.2177544,
+            710.85324848,
+            1974.6685186,
+            790.0281995500001
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            831.33684298,
+            1819.7252056,
+            876.0879040599999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "NASI GORENG",
+          "bbox": [
+            964.09280576,
+            1122.21874,
+            1322.1843846000002,
+            1158.36373649
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Fried Rice, Prawn Cracker,",
+          "bbox": [
+            965.81438848,
+            1191.06643812,
+            1470.2415693,
+            1222.04791046
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Chicken Satay, Peanut Sauce",
+          "bbox": [
+            964.09280576,
+            1234.0963108400001,
+            1520.16772864,
+            1268.5201599
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "150 Kcals",
+          "bbox": [
+            964.09280576,
+            1294.33806716,
+            1110.4283788,
+            1318.4347042
+          ],
+          "icons": [
+            "crustacean",
+            "egg",
+            "gluten",
+            "peanut",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "900",
+          "bbox": [
+            1914.412834,
+            1122.21874,
+            1990.1629945999998,
+            1149.75775376
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "KUNG PAO CHICKEN",
+          "bbox": [
+            964.09280576,
+            1416.5428909500001,
+            1480.57115244,
+            1452.6879693
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "900",
+          "bbox": [
+            1914.412834,
+            1416.5428909500001,
+            1990.1629945999998,
+            1444.0820275
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Chicken, Sichuan Peppercorns,",
+          "bbox": [
+            964.09280576,
+            1481.94821235,
+            1554.59961456,
+            1514.65091398
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Cashewnuts, Sticky Rice",
+          "bbox": [
+            964.09280576,
+            1524.9781260000002,
+            1430.64490628,
+            1559.40205692
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "145 Kcal",
+          "bbox": [
+            964.09280576,
+            1581.7775056,
+            1093.2124069,
+            1604.153118
+          ],
+          "icons": [
+            "gluten",
+            "nuts",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "WOKKED SWEET AND",
+          "bbox": [
+            962.3711940999999,
+            1700.5399936,
+            1523.6109230200002,
+            1734.9637607999998
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "875",
+          "bbox": [
+            1923.0208923,
+            1698.81880524,
+            1990.1629945999998,
+            1726.357819
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "SOUR PRAWNS",
+          "bbox": [
+            962.3711940999999,
+            1759.0604797,
+            1349.72993964,
+            1793.4844106199998
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Prawn, Bell Pepper, Pineapple,",
+          "bbox": [
+            965.81438848,
+            1822.7446946,
+            1549.4348664,
+            1857.16866645
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Chilli Vinegar",
+          "bbox": [
+            964.09280576,
+            1867.4958375400001,
+            1218.8887268400001,
+            1900.1985801
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "92 Kcal",
+          "bbox": [
+            965.81438848,
+            1922.57398785,
+            1079.43965832,
+            1946.67070675
+          ],
+          "icons": [
+            "crustacean",
+            "gluten",
+            "sesame"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "SHANGHAI FRIED",
+          "bbox": [
+            962.3711940999999,
+            2049.942213,
+            1403.09938018,
+            2084.3663895
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "NOODLES",
+          "bbox": [
+            964.09280576,
+            2108.46290375,
+            1212.00236702,
+            2142.8868756
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Prawn, Dark Soy, Udon Noodle,",
+          "bbox": [
+            965.81438848,
+            2172.14715958,
+            1566.65086724,
+            2204.84973842
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Spring Onion",
+          "bbox": [
+            964.09280576,
+            2216.89830252,
+            1213.7239208,
+            2249.6007995
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "103 Kcal",
+          "bbox": [
+            964.09280576,
+            2271.9764119,
+            1094.93398962,
+            2296.0731308
+          ],
+          "icons": [
+            "crustacean",
+            "gluten",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "875",
+          "bbox": [
+            1923.0208923,
+            2048.2211065,
+            1990.1629945999998,
+            2075.76028398
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            902.1153648,
+            1122.21874,
+            929.6609198400001,
+            1160.0848839199998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            900.39378208,
+            1416.5428909500001,
+            931.3825025599999,
+            1452.6879693
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "M \u2467",
+          "bbox": [
+            1158.63292648,
+            1578.3352107399999,
+            1229.21830998,
+            1609.31664215
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            902.1153648,
+            1700.5399936,
+            931.3825025599999,
+            1736.68507195
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            900.39378208,
+            2051.6637287999997,
+            929.6609198400001,
+            2084.3663895
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u24c7",
+          "bbox": [
+            1199.95120116,
+            2270.2553054,
+            1229.21830998,
+            2299.51546659
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.3,
+            1558.2
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ]
+        },
+        {
+          "text": "FROM THE ORIENT",
+          "bbox": [
+            926.2177544,
+            710.85324848,
+            1974.6685186,
+            790.0281995500001
+          ]
+        },
+        {
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            831.33684298,
+            1819.7252056,
+            876.0879040599999
+          ]
+        },
+        {
+          "text": "\u25b5 NASI GORENG Fried Rice, Prawn Cracker, Chicken Satay, Peanut Sauce 150 Kcals",
+          "bbox": [
+            1069.1100751800002,
+            876.0879040599999,
+            1819.7252056,
+            1122.21874
+          ]
+        },
+        {
+          "text": "900",
+          "bbox": [
+            1914.412834,
+            1122.21874,
+            1990.1629945999998,
+            1149.75775376
+          ]
+        },
+        {
+          "text": "\u25b5 KUNG PAO CHICKEN Chicken, Sichuan Peppercorns, Cashewnuts, Sticky Rice 145 Kcal",
+          "bbox": [
+            1914.412834,
+            1149.75775376,
+            1990.1629945999998,
+            1416.5428909500001
+          ]
+        },
+        {
+          "text": "900",
+          "bbox": [
+            1914.412834,
+            1416.5428909500001,
+            1990.1629945999998,
+            1444.0820275
+          ]
+        },
+        {
+          "text": "\u25b5 WOKKED SWEET AND SOUR PRAWNS Prawn, Bell Pepper, Pineapple, Chilli Vinegar 92 Kcal",
+          "bbox": [
+            1914.412834,
+            1444.0820275,
+            1990.1629945999998,
+            1698.81880524
+          ]
+        },
+        {
+          "text": "875",
+          "bbox": [
+            1923.0208923,
+            1698.81880524,
+            1990.1629945999998,
+            1726.357819
+          ]
+        },
+        {
+          "text": "\u25b5 SHANGHAI FRIED NOODLES Prawn, Dark Soy, Udon Noodle, Spring Onion 103 Kcal",
+          "bbox": [
+            965.81438848,
+            2172.14715958,
+            1566.65086724,
+            2204.84973842
+          ]
+        },
+        {
+          "text": "875",
+          "bbox": [
+            1923.0208923,
+            2048.2211065,
+            1990.1629945999998,
+            2075.76028398
+          ]
+        },
+        {
+          "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u25c9 Vegetarian \u25b5 Non-Vegetarian",
+          "bbox": [
+            1923.0208923,
+            2075.76028398,
+            1990.1629945999998,
+            3905.3896910899994
+          ]
+        },
+        {
+          "text": "Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ]
+        }
+      ],
+      "icons": [
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            1118.0,
+            942.0,
+            1168.0
+          ],
+          "score": 0.9,
+          "line_index": 3
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1124.0,
+            940.0,
+            1166.0
+          ],
+          "score": 0.9,
+          "line_index": 4
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1261.0,
+            1284.0,
+            1305.0,
+            1330.0
+          ],
+          "score": 0.5940389633178711,
+          "line_index": 5
+        },
+        {
+          "label": "peanut",
+          "bbox": [
+            1300.0,
+            1284.0,
+            1346.0,
+            1330.0
+          ],
+          "score": 0.5669516921043396,
+          "line_index": 5
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1138.0,
+            1286.0,
+            1180.0,
+            1328.0
+          ],
+          "score": 0.5970613360404968,
+          "line_index": 6
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1261.0,
+            1286.0,
+            1303.0,
+            1328.0
+          ],
+          "score": 0.5940389633178711,
+          "line_index": 6
+        },
+        {
+          "label": "peanut",
+          "bbox": [
+            1302.0,
+            1286.0,
+            1344.0,
+            1328.0
+          ],
+          "score": 0.5669516921043396,
+          "line_index": 6
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1220.0,
+            1286.0,
+            1262.0,
+            1328.0
+          ],
+          "score": 0.4740304946899414,
+          "line_index": 6
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1179.0,
+            1286.0,
+            1221.0,
+            1328.0
+          ],
+          "score": 0.4708605110645294,
+          "line_index": 6
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            1413.0,
+            942.0,
+            1463.0
+          ],
+          "score": 0.9,
+          "line_index": 8
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            1413.0,
+            941.0,
+            1462.0
+          ],
+          "score": 0.9,
+          "line_index": 10
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1155.0,
+            1573.0,
+            1195.0,
+            1614.0
+          ],
+          "score": 0.6471605896949768,
+          "line_index": 12
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1196.0,
+            1574.0,
+            1236.0,
+            1613.0
+          ],
+          "score": 0.5951545238494873,
+          "line_index": 12
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1116.0,
+            1574.0,
+            1156.0,
+            1613.0
+          ],
+          "score": 0.5228787660598755,
+          "line_index": 12
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            1697.0,
+            941.0,
+            1745.0
+          ],
+          "score": 0.9,
+          "line_index": 13
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            1697.0,
+            941.0,
+            1745.0
+          ],
+          "score": 0.9,
+          "line_index": 15
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1096.0,
+            1912.0,
+            1141.0,
+            1957.0
+          ],
+          "score": 0.6902327537536621,
+          "line_index": 17
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1174.0,
+            1911.0,
+            1220.0,
+            1958.0
+          ],
+          "score": 0.5613141655921936,
+          "line_index": 17
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1134.0,
+            1912.0,
+            1180.0,
+            1957.0
+          ],
+          "score": 0.5239341855049133,
+          "line_index": 17
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1097.0,
+            1914.0,
+            1139.0,
+            1955.0
+          ],
+          "score": 0.6902327537536621,
+          "line_index": 18
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1176.0,
+            1913.0,
+            1218.0,
+            1956.0
+          ],
+          "score": 0.562221884727478,
+          "line_index": 18
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1136.0,
+            1914.0,
+            1178.0,
+            1955.0
+          ],
+          "score": 0.5239341855049133,
+          "line_index": 18
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            2046.0,
+            941.0,
+            2094.0
+          ],
+          "score": 0.9,
+          "line_index": 19
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            2046.0,
+            941.0,
+            2094.0
+          ],
+          "score": 0.9,
+          "line_index": 20
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1156.0,
+            2260.0,
+            1202.0,
+            2306.0
+          ],
+          "score": 0.5799258351325989,
+          "line_index": 22
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1117.0,
+            2260.0,
+            1163.0,
+            2306.0
+          ],
+          "score": 0.5527158975601196,
+          "line_index": 22
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1197.0,
+            2261.0,
+            1243.0,
+            2307.0
+          ],
+          "score": 0.5186036825180054,
+          "line_index": 22
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1158.0,
+            2262.0,
+            1200.0,
+            2304.0
+          ],
+          "score": 0.5810912847518921,
+          "line_index": 23
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1119.0,
+            2262.0,
+            1161.0,
+            2304.0
+          ],
+          "score": 0.5527158975601196,
+          "line_index": 23
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1199.0,
+            2263.0,
+            1241.0,
+            2305.0
+          ],
+          "score": 0.5186036825180054,
+          "line_index": 23
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            890.0,
+            1118.0,
+            942.0,
+            1168.0
+          ],
+          "score": 0.9,
+          "line_index": 44
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            1413.0,
+            942.0,
+            1463.0
+          ],
+          "score": 0.9,
+          "line_index": 45
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1153.0,
+            1571.0,
+            1197.0,
+            1616.0
+          ],
+          "score": 0.6471605896949768,
+          "line_index": 46
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1194.0,
+            1572.0,
+            1238.0,
+            1615.0
+          ],
+          "score": 0.5951545238494873,
+          "line_index": 46
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1114.0,
+            1572.0,
+            1158.0,
+            1615.0
+          ],
+          "score": 0.5228787660598755,
+          "line_index": 46
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            890.0,
+            1696.0,
+            942.0,
+            1746.0
+          ],
+          "score": 0.9,
+          "line_index": 47
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            2046.0,
+            941.0,
+            2094.0
+          ],
+          "score": 0.9,
+          "line_index": 48
+        },
+        {
+          "label": "crustacean",
+          "bbox": [
+            1157.0,
+            2261.0,
+            1201.0,
+            2305.0
+          ],
+          "score": 0.5799258351325989,
+          "line_index": 49
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1118.0,
+            2261.0,
+            1162.0,
+            2305.0
+          ],
+          "score": 0.5527158975601196,
+          "line_index": 49
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1198.0,
+            2262.0,
+            1242.0,
+            2306.0
+          ],
+          "score": 0.5186036825180054,
+          "line_index": 49
+        }
+      ],
+      "page_text": "IN ROOM DINING\nFROM THE ORIENT\n12:00 PM TO 11:30 PM\nNASI GORENG\nFried Rice, Prawn Cracker,\nChicken Satay, Peanut Sauce\n150 Kcals\n900\nKUNG PAO CHICKEN\n900\nChicken, Sichuan Peppercorns,\nCashewnuts, Sticky Rice\n145 Kcal\nWOKKED SWEET AND\n875\nSOUR PRAWNS\nPrawn, Bell Pepper, Pineapple,\nChilli Vinegar\n92 Kcal\nSHANGHAI FRIED\nNOODLES\nPrawn, Dark Soy, Udon Noodle,\nSpring Onion\n103 Kcal\nMilk\nGluten\nLupin\nSulpher Dioxide\nMolluscs\nCrustaceans\nCelery\nSoybeans\nSesame\nTree Nuts\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\n875\nMustard\nPeanuts\nVegetarian\nFish\nEggs\nNon-Vegetarian\n\u2611\n\u25c9\nM \u2467\n\u2611\n\u25c9\n\u24c7\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "menu_name": "IN ROOM DINING - 15 MINUTES MEALS",
+  "items": [
+    {
+      "name": "PAV BHAJI",
+      "description": "Assorted Spiced Vegetables, Buttered Pav Bun, Onion Salad",
+      "price": "500",
+      "kcal": "94",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "DUNKED IDLI SAMBAR BOWL",
+      "description": "Mini Idli, Dipped In Sambar",
+      "price": "500",
+      "kcal": "45",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "RAJMA CHAWAL",
+      "description": "Spiced Kidney Bean Curry, Steam Rice",
+      "price": "750",
+      "kcal": "110",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "GNOCCHI WITH TOMATO AND BURRATA",
+      "description": "Potato Gnocchi, Tomato Sauce, Creamy Burrata",
+      "price": "750",
+      "kcal": "166",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "VEGETABLE MINESTRONE SOUP",
+      "description": "Beans, Potato, Cheese And Tomato",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "■"
+        ]
+      }
+    },
+    {
+      "name": "SUBZI BIRYANI",
+      "description": "Aromatic Vegetables, Long Grain Rice, Served With Raita",
+      "price": "750",
+      "kcal": "123",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {}
+    },
+    {
+      "name": "DOON SCHOOL BULLS BUN ANDA",
+      "description": "Quick Cooked Eggs, Grilled Pav With Butter",
+      "price": "750",
+      "kcal": "180",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "☑"
+        ]
+      }
+    },
+    {
+      "name": "CHICKEN WONTON SOUP",
+      "description": "Chicken Wonton, Clear Soup, Scallion",
+      "price": "550",
+      "kcal": "51",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "SERVED IN SUSTAINABLE MEAL BOXES",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Single main column of items with a right-aligned price strip. Dietary icons captured as veg/non_veg and unparsed marks when unclear.",
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Mustard",
+      "Peanuts",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Vegetarian",
+      "Crustaceans",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ],
+    "page_intent": "menu_items_page"
+  }
+}

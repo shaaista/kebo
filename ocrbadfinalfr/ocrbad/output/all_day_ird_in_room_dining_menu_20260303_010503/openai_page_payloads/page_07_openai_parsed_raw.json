@@ -1,0 +1,190 @@
+{
+  "menu_name": "IN ROOM DINING - FROM THE MEDITERRANEAN (12:00 PM TO 11:30 PM)",
+  "items": [
+    {
+      "name": "RATATOUILLE (FROM THE MOVIE)",
+      "description": "Grilled Med Vegetables, Tomato Sauce, Baked",
+      "price": "750",
+      "kcal": "70",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "WILD MUSHROOM RISOTTO",
+      "description": "Assorted Mushroom, Arborio, Cream, Cheese",
+      "price": "750",
+      "kcal": "111",
+      "allergens": [
+        "milk",
+        "sulphites"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {}
+    },
+    {
+      "name": "GNOCCHI SORRENTINA",
+      "description": "Potato Gnocchi, Tomato Sauce, Cheese",
+      "price": "750",
+      "kcal": "122",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "①"
+        ]
+      }
+    },
+    {
+      "name": "SPINACH RAVIOLI",
+      "description": "Spinach Ravioli, Tomato Sauce, Cheese",
+      "price": "750",
+      "kcal": "144",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "Ⓡ"
+        ]
+      }
+    },
+    {
+      "name": "HONEY MUSTARD CHICKEN",
+      "description": "Honey Mustard Glaze Chicken, Sautéed Mushroom, Peas, Dipping Jus",
+      "price": "850",
+      "kcal": "114",
+      "allergens": [
+        "egg",
+        "gluten",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "⑧1"
+        ]
+      }
+    },
+    {
+      "name": "GRILLED LAMB CHOPS",
+      "description": "Mint Grilled Lamb Chops, Arugula Salad, Dipping Sauce",
+      "price": "850",
+      "kcal": "241",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    },
+    {
+      "name": "PANKO CRUSTED FISH AND CHIPS",
+      "description": "Fish Fillet, Panko Crust, Tarter Sauce",
+      "price": "850",
+      "kcal": "170",
+      "allergens": [
+        "egg",
+        "fish",
+        "gluten",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "110"
+        ]
+      }
+    },
+    {
+      "name": "SPICY PRAWN SPAGHETTI",
+      "description": "Grilled Prawn Spicy Tomato Sauce, Tossed Spaghetti",
+      "price": "850",
+      "kcal": "176",
+      "allergens": [
+        "crustacean",
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 7,
+      "dish_type": "FROM THE MEDITERRANEAN",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "Ⓡ"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "FROM THE MEDITERRANEAN",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Fish",
+    "Eggs",
+    "Non-Vegetarian"
+  ],
+  "notes": "Page classified as menu_items_page. Single primary column of dishes with right-aligned price strip. Allergens and veg/non_veg assigned strictly from line icons and explicit allergen lines. Unclear marks kept in extras.unparsed_marks. A stray numeric '110' near calories retained as unparsed mark for Panko Crusted Fish and Chips per evidence.",
+  "page_extras": {
+    "page_intent": "menu_items_page",
+    "columns_detected": 1
+  }
+}

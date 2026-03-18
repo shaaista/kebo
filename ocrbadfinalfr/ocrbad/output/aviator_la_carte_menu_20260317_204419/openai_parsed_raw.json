@@ -1,0 +1,19 @@
+{
+  "pages": [
+    {
+      "page": 1,
+      "parsed": {
+        "menu_name": "",
+        "items": [],
+        "other_text": "[PAGE 1]",
+        "footer_text": "",
+        "notes": "Page intent classified as: footer_only_page or non-menu content because the OCR page provided contains no lines/blocks/icons and only raw_text placeholder. No menu items could be extracted.",
+        "page_extras": {
+          "page_intent": "footer_only_page",
+          "columns_detected": 0,
+          "extraction_summary": "No OCR lines present; nothing to parse into items."
+        }
+      }
+    }
+  ]
+}

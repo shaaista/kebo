@@ -1,0 +1,12 @@
+{
+  "menu_name": null,
+  "items": [],
+  "other_text": [],
+  "footer_text": [],
+  "notes": [],
+  "page_extras": {
+    "page_intent": "footer_only_page",
+    "columns_detected": 0,
+    "extraction_summary": "No OCR lines present; nothing to parse into items."
+  }
+}

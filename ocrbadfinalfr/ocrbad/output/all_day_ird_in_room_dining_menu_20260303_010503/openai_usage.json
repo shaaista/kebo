@@ -1,0 +1,89 @@
+{
+  "model": "gpt-5",
+  "input_tokens": 215237,
+  "output_tokens": 12346,
+  "total_tokens": 227583,
+  "estimated_cost_usd": 0.0,
+  "pricing_source": "unknown",
+  "input_cost_per_1m_tokens_usd": null,
+  "output_cost_per_1m_tokens_usd": null,
+  "pages": [
+    {
+      "model": "gpt-5",
+      "input_tokens": 32341,
+      "output_tokens": 1905,
+      "total_tokens": 34246,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 1
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 39855,
+      "output_tokens": 2334,
+      "total_tokens": 42189,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 2
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 18930,
+      "output_tokens": 1123,
+      "total_tokens": 20053,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 3
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 25942,
+      "output_tokens": 1575,
+      "total_tokens": 27517,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 4
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 33261,
+      "output_tokens": 1889,
+      "total_tokens": 35150,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 5
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 26549,
+      "output_tokens": 1290,
+      "total_tokens": 27839,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 6
+    },
+    {
+      "model": "gpt-5",
+      "input_tokens": 38359,
+      "output_tokens": 2230,
+      "total_tokens": 40589,
+      "estimated_cost_usd": 0.0,
+      "pricing_source": "unknown",
+      "input_cost_per_1m_tokens_usd": null,
+      "output_cost_per_1m_tokens_usd": null,
+      "page": 7
+    }
+  ]
+}

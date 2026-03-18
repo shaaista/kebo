@@ -1,41 +1,105 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - KePSLA Bot Admin</title>
+    <title>{{ title }} - NexOria Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
+            --primary: #ff5a7e;
+            --primary-dark: #e94f72;
             --success: #22c55e;
             --warning: #f59e0b;
             --danger: #ef4444;
-            --bg-dark: #1e293b;
-            --bg-light: #f8fafc;
-            --border: #e2e8f0;
+            --bg-dark: #0f0f1e;
+            --bg-light: #f9f9fa;
+            --border: #e5e7eb;
+            --text-dark: #0f0f1e;
+            --text-light: #6b7280;
+            --white: #ffffff;
+            --font-heading: 'Space Grotesk', 'Inter', sans-serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--font-body);
             background: var(--bg-light);
+            color: var(--text-dark);
             min-height: 100vh;
         }
+
+        h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); }
+        input, select, textarea, button { font-family: var(--font-body); }
 
         .header {
             background: var(--bg-dark);
             color: white;
-            padding: 16px 24px;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid rgba(255,90,126,0.3);
         }
 
-        .header h1 { font-size: 1.25rem; }
-        .header a { color: white; text-decoration: none; margin-left: 20px; }
-        .header a:hover { text-decoration: underline; }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ff5a7e, #e94f72);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(255,90,126,0.4);
+            flex-shrink: 0;
+        }
+
+        .header-titles { display: flex; flex-direction: column; gap: 1px; }
+
+        .header h1 {
+            font-size: 1.2rem;
+            color: var(--white);
+            line-height: 1.2;
+        }
+
+        .header h1 .logo-n,
+        .header h1 .logo-o { color: #ff5a7e; }
+
+        .header-sub {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.5px;
+            font-family: var(--font-body);
+        }
+
+        .header a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            margin-left: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .header a:hover { color: #ff5a7e; text-decoration: none; }
+
+        .header nav {
+            display: flex;
+            align-items: center;
+        }
 
         .container {
             max-width: 1400px;
@@ -44,7 +108,7 @@
         }
 
         .card {
-            background: white;
+            background: var(--white);
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             margin-bottom: 20px;
@@ -102,7 +166,7 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-warning { background: var(--warning); color: white; }
         .btn-small { padding: 4px 8px; font-size: 0.8rem; }
-        .btn-outline { background: white; border: 1px solid var(--border); color: #333; }
+        .btn-outline { background: var(--white); border: 1px solid var(--border); color: var(--text-dark); }
         .btn-outline:hover { background: var(--bg-light); }
 
         .toggle {
@@ -249,7 +313,7 @@
         }
 
         .stat-value { font-size: 2rem; font-weight: 700; color: var(--primary); }
-        .stat-label { color: #666; font-size: 0.9rem; margin-top: 4px; }
+        .stat-label { color: var(--text-light); font-size: 0.9rem; margin-top: 4px; }
 
         /* Industry Cards */
         .industry-card {
@@ -263,17 +327,18 @@
 
         .industry-card:hover {
             border-color: var(--primary);
-            background: #f0f7ff;
+            background: #fff0f4;
         }
 
         .industry-card.selected {
             border-color: var(--primary);
-            background: #dbeafe;
+            background: #ffe4ec;
         }
 
         .industry-card .icon {
             font-size: 2rem;
             margin-bottom: 8px;
+            font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
         }
 
         .industry-card .name {
@@ -334,7 +399,7 @@
         .service-item .name { font-weight: 600; }
         .service-item .type {
             font-size: 0.8rem;
-            color: #666;
+            color: var(--text-light);
             word-break: break-word;
         }
         .service-item .actions {
@@ -352,13 +417,13 @@
             z-index: 1;
         }
         .service-item.ticketing-plugin {
-            border-color: #93c5fd;
-            background: #f8fbff;
+            border-color: #ffb5c6;
+            background: #fff3f7;
         }
         .ticketing-cases-wrap {
             border: 1px solid var(--border);
             border-radius: 8px;
-            background: #f8fafc;
+            background: var(--bg-light);
             padding: 10px;
         }
         .ticketing-case-row {
@@ -376,13 +441,13 @@
             resize: vertical;
         }
         .ticketing-case-empty {
-            color: #666;
+            color: var(--text-light);
             font-size: 0.85rem;
             padding: 4px 2px;
         }
         .service-modal-hint {
             font-size: 0.8rem;
-            color: #666;
+            color: var(--text-light);
             margin-top: 4px;
         }
         .phase-controls {
@@ -402,10 +467,10 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 12px;
-            background: #fff;
+            background: var(--white);
         }
         .phase-empty {
-            color: #666;
+            color: var(--text-light);
             font-size: 0.9rem;
             text-align: center;
             padding: 10px;
@@ -432,7 +497,7 @@
             flex-wrap: wrap;
         }
         .phase-helper-text {
-            color: #666;
+            color: var(--text-light);
             font-size: 0.82rem;
         }
         .phase-prebuilt-actions {
@@ -450,9 +515,9 @@
         }
 
         .alert-info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #93c5fd;
+            background: #ffe8ef;
+            color: #8a2f48;
+            border: 1px solid #ffb5c6;
         }
 
         .alert-warning {
@@ -464,16 +529,66 @@
         /* Section Title */
         .section-title {
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 16px;
             padding-bottom: 8px;
-            border-bottom: 2px solid var(--border);
+            border-bottom: 2px solid var(--primary);
+            color: var(--bg-dark);
+            font-family: var(--font-heading);
+        }
+
+        /* Card header accent */
+        .card-header {
+            background: linear-gradient(135deg, #0f0f1e, #1a1a30);
+            border-left: 3px solid #ff5a7e;
+        }
+
+        /* Stat card */
+        .stat-card {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .stat-card:hover {
+            box-shadow: 0 6px 20px rgba(255,90,126,0.12);
+            transform: translateY(-2px);
+        }
+
+        /* Tab active underline */
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Button enhancements */
+        .btn-primary {
+            background: linear-gradient(135deg, #ff5a7e, #e94f72);
+            box-shadow: 0 3px 8px rgba(255,90,126,0.25);
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ff6b8c, #ff5a7e);
+            box-shadow: 0 4px 14px rgba(255,90,126,0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Service item ticketing */
+        .service-item.ticketing-plugin {
+            border-color: #ffb5c6;
+            background: #fff6f9;
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <h1>KePSLA Bot - Admin Portal</h1>
+        <div class="header-left">
+            <div class="header-logo-mark">N</div>
+            <div class="header-titles">
+                <h1><span class="logo-n">N</span>ex<span class="logo-o">O</span>ria</h1>
+                <span class="header-sub">Admin Portal</span>
+            </div>
+        </div>
         <nav>
             <a href="/chat">Chat Test</a>
             <a href="/docs">API Docs</a>
@@ -507,54 +622,54 @@
                     <span>Step 1: Choose Your Industry</span>
                 </div>
                 <div class="card-body">
-                    <p style="margin-bottom: 16px; color: #666;">Select your industry to get recommended capabilities and settings:</p>
+                    <p style="margin-bottom: 16px; color: #6b7280;">Select your industry to get recommended capabilities and settings:</p>
                     <div class="grid grid-4" id="industry-selector">
                         <div class="industry-card" data-industry="hotel" onclick="selectIndustry('hotel')">
-                            <div class="icon">🏨</div>
+                            <div class="icon">&#x1F3E8;</div>
                             <div class="name">Hotel</div>
                         </div>
                         <div class="industry-card" data-industry="restaurant" onclick="selectIndustry('restaurant')">
-                            <div class="icon">🍽️</div>
+                            <div class="icon">&#x1F37D;&#xFE0F;</div>
                             <div class="name">Restaurant</div>
                         </div>
                         <div class="industry-card" data-industry="spa" onclick="selectIndustry('spa')">
-                            <div class="icon">💆</div>
+                            <div class="icon">&#x1F486;</div>
                             <div class="name">Spa & Wellness</div>
                         </div>
                         <div class="industry-card" data-industry="healthcare" onclick="selectIndustry('healthcare')">
-                            <div class="icon">🏥</div>
+                            <div class="icon">&#x1F3E5;</div>
                             <div class="name">Hospital</div>
                         </div>
                         <div class="industry-card" data-industry="automobile" onclick="selectIndustry('automobile')">
-                            <div class="icon">🚗</div>
+                            <div class="icon">&#x1F697;</div>
                             <div class="name">Automobile</div>
                         </div>
                         <div class="industry-card" data-industry="retail" onclick="selectIndustry('retail')">
-                            <div class="icon">🛍️</div>
+                            <div class="icon">&#x1F6CD;&#xFE0F;</div>
                             <div class="name">Retail</div>
                         </div>
                         <div class="industry-card" data-industry="travel" onclick="selectIndustry('travel')">
-                            <div class="icon">✈️</div>
+                            <div class="icon">&#x2708;&#xFE0F;</div>
                             <div class="name">Travel Agency</div>
                         </div>
                         <div class="industry-card" data-industry="events" onclick="selectIndustry('events')">
-                            <div class="icon">🎉</div>
+                            <div class="icon">&#x1F389;</div>
                             <div class="name">Event Management</div>
                         </div>
                         <div class="industry-card" data-industry="banquet" onclick="selectIndustry('banquet')">
-                            <div class="icon">🎊</div>
+                            <div class="icon">&#x1F38A;</div>
                             <div class="name">Banquet Hall</div>
                         </div>
                         <div class="industry-card" data-industry="education" onclick="selectIndustry('education')">
-                            <div class="icon">🎓</div>
+                            <div class="icon">&#x1F393;</div>
                             <div class="name">Education</div>
                         </div>
                         <div class="industry-card" data-industry="realestate" onclick="selectIndustry('realestate')">
-                            <div class="icon">🏠</div>
+                            <div class="icon">&#x1F3E0;</div>
                             <div class="name">Real Estate</div>
                         </div>
                         <div class="industry-card" data-industry="custom" onclick="selectIndustry('custom')">
-                            <div class="icon">⚙️</div>
+                            <div class="icon">&#x2699;&#xFE0F;</div>
                             <div class="name">Custom</div>
                         </div>
                     </div>
@@ -600,12 +715,12 @@
                         <div class="form-group">
                             <label>Currency</label>
                             <select class="form-control" id="cfg-currency">
-                                <option value="INR">INR (₹)</option>
+                                <option value="INR">INR (&#8377;)</option>
                                 <option value="USD">USD ($)</option>
-                                <option value="EUR">EUR (€)</option>
-                                <option value="GBP">GBP (£)</option>
-                                <option value="AED">AED (د.إ)</option>
-                                <option value="SAR">SAR (﷼)</option>
+                                <option value="EUR">EUR (&#8364;)</option>
+                                <option value="GBP">GBP (&#163;)</option>
+                                <option value="AED">AED (&#x062F;.&#x0625;)</option>
+                                <option value="SAR">SAR (&#xFDFC;)</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -728,19 +843,19 @@
                     <div class="grid grid-4">
                         <div class="form-group">
                             <label>Primary Color</label>
-                            <input type="color" class="form-control" id="cfg-ui-primary" value="#2563eb">
+                            <input type="color" class="form-control" id="cfg-ui-primary" value="#ff5a7e">
                         </div>
                         <div class="form-group">
                             <label>Accent Color</label>
-                            <input type="color" class="form-control" id="cfg-ui-accent" value="#22c55e">
+                            <input type="color" class="form-control" id="cfg-ui-accent" value="#0f0f1e">
                         </div>
                         <div class="form-group">
                             <label>Background Color</label>
-                            <input type="color" class="form-control" id="cfg-ui-bg" value="#f8fafc">
+                            <input type="color" class="form-control" id="cfg-ui-bg" value="#f9f9fa">
                         </div>
                         <div class="form-group">
                             <label>Text Color</label>
-                            <input type="color" class="form-control" id="cfg-ui-text" value="#1e293b">
+                            <input type="color" class="form-control" id="cfg-ui-text" value="#0f0f1e">
                         </div>
                     </div>
                     <div class="grid grid-2">
@@ -905,7 +1020,7 @@
                             <label>What do you expect from this service?</label>
                             <textarea class="form-control" id="phase-new-service-user-intent" rows="2" placeholder="e.g. Guest can order food to their room, we need room number and order details, kitchen is open 24/7"></textarea>
                             <div class="phase-description-actions">
-                                <span class="phase-helper-text">Describe in plain words — AI will turn this into a clean description.</span>
+                                <span class="phase-helper-text">Describe in plain words - AI will turn this into a clean description.</span>
                                 <button class="btn btn-outline btn-small" type="button" id="phase-autofill-btn" onclick="autofillPhaseServiceDescription()">Refine with AI</button>
                             </div>
                         </div>
@@ -926,22 +1041,23 @@
                             </label>
                             <div id="phase-ticketing-conditions-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
                             <textarea class="form-control" id="phase-new-service-ticketing-conditions" rows="2"
-                                placeholder="Auto-suggested when you enable ticketing — edit then refine with AI"></textarea>
+                                placeholder="Auto-suggested when you enable ticketing - edit then refine with AI"></textarea>
                             <div class="phase-helper-text">Tells the bot exactly when to raise a backend ticket for this service.</div>
                         </div>
 
                         <!-- KB Knowledge pull -->
                         <div class="form-group" style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; margin-bottom: 0;">
-                            <label style="display:flex; align-items:center; justify-content:space-between;">
-                                <span>Knowledge from KB</span>
-                                <button class="btn btn-outline btn-small" type="button" id="phase-pull-kb-btn" onclick="pullPhaseKbKnowledge()">
-                                    ✦ Pull from KB
-                                </button>
-                            </label>
+                            <label style="margin-bottom:8px; display:block;">Knowledge from KB</label>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+                                <button class="btn btn-outline btn-small" type="button" id="phase-upload-menu-btn" onclick="document.getElementById('phase-menu-upload-input').click()">Upload Menu(s)</button>
+                                <input type="file" id="phase-menu-upload-input" multiple accept=".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp" style="display:none;" onchange="uploadPhaseMenuFiles(this.files)">
+                                <button class="btn btn-outline btn-small" type="button" id="phase-pull-kb-btn" onclick="pullPhaseKbKnowledge()">Pull from KB</button>
+                            </div>
+                            <div id="phase-menu-queue" style="display:none; margin-bottom:8px; font-size:0.82rem; color:#374151;"></div>
                             <div id="phase-pull-kb-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
                             <textarea class="form-control" id="phase-new-service-kb-knowledge" rows="6"
-                                placeholder="Click 'Pull from KB' to auto-extract relevant knowledge, or type manually."></textarea>
-                            <div class="phase-helper-text">This knowledge will be fed to the service agent. You can edit it after pulling.</div>
+                                placeholder="Upload a menu and/or click 'Pull from KB' to auto-extract knowledge, or type manually."></textarea>
+                            <div class="phase-helper-text">Upload menu file(s) first (optional), then Pull from KB to combine both sources. You can edit the result before saving.</div>
                         </div>
 
                         <div style="margin-top: 14px;">
@@ -981,11 +1097,11 @@
                             <span class="badge badge-success" id="rag-tenant-chunks">tenant chunks: 0</span>
                             <span class="badge badge-purple" id="rag-total-chunks">total chunks: 0</span>
                         </div>
-                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">
+                        <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 8px;">
                             <div><strong>Index File:</strong> <span id="rag-index-file">-</span></div>
                             <div><strong>KB Directory:</strong> <span id="rag-kb-dir">-</span></div>
                         </div>
-                        <pre id="rag-status-json" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 220px; overflow: auto;">Loading...</pre>
+                        <pre id="rag-status-json" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 220px; overflow: auto;">Loading...</pre>
                     </div>
                 </div>
 
@@ -1033,7 +1149,7 @@
                         <label style="display: block; margin-top: 8px; font-weight: normal;">
                             <input type="checkbox" id="rag-upload-add-sources" checked> Add uploaded file paths to Knowledge Sources automatically
                         </label>
-                        <pre id="rag-upload-result" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 180px; overflow: auto; margin-top: 10px;">No upload run yet.</pre>
+                        <pre id="rag-upload-result" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 180px; overflow: auto; margin-top: 10px;">No upload run yet.</pre>
                     </div>
                     <div class="form-group">
                         <label>Optional File Paths (one per line)</label>
@@ -1044,7 +1160,7 @@
                             <input type="checkbox" id="rag-clear-existing" checked> Clear existing tenant chunks before reindex
                         </label>
                     </div>
-                    <pre id="rag-reindex-result" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 260px; overflow: auto;">No reindex run yet.</pre>
+                    <pre id="rag-reindex-result" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 260px; overflow: auto;">No reindex run yet.</pre>
                 </div>
             </div>
 
@@ -1062,7 +1178,7 @@
                         <span class="badge badge-warning" id="rag-current-job-status">status: idle</span>
                         <span class="badge badge-purple" id="rag-current-job-updated">updated: -</span>
                     </div>
-                    <pre id="rag-jobs-list" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 260px; overflow: auto;">No jobs yet.</pre>
+                    <pre id="rag-jobs-list" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 260px; overflow: auto;">No jobs yet.</pre>
                 </div>
             </div>
 
@@ -1088,7 +1204,7 @@
                         </div>
                         <div class="form-group">
                             <label>Status</label>
-                            <div id="service-kb-status" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #f8fafc; font-size: 0.85rem;">
+                            <div id="service-kb-status" style="padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: #f9f9fa; font-size: 0.85rem;">
                                 No service selected.
                             </div>
                         </div>
@@ -1106,7 +1222,7 @@
                             </div>
                         </div>
                     </div>
-                    <pre id="service-kb-meta" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 220px; overflow: auto;">No record loaded.</pre>
+                    <pre id="service-kb-meta" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 220px; overflow: auto;">No record loaded.</pre>
                 </div>
             </div>
         </div>
@@ -1147,7 +1263,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <pre id="eval-summary-json" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
+                        <pre id="eval-summary-json" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
                     </div>
                 </div>
 
@@ -1163,7 +1279,7 @@
                             <span class="badge badge-success" id="obs-rate-limit-badge">rate limit: -</span>
                             <span class="badge badge-purple" id="obs-auth-badge">auth: -</span>
                         </div>
-                        <pre id="obs-status-json" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
+                        <pre id="obs-status-json" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
                     </div>
                 </div>
             </div>
@@ -1175,7 +1291,7 @@
                         <button class="btn btn-outline btn-small" onclick="loadEvaluationEvents()">Refresh</button>
                     </div>
                     <div class="card-body">
-                        <pre id="eval-events-json" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
+                        <pre id="eval-events-json" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
                     </div>
                 </div>
 
@@ -1188,7 +1304,7 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <pre id="obs-events-json" style="background: #f8fafc; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
+                        <pre id="obs-events-json" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 320px; overflow: auto;">Loading...</pre>
                     </div>
                 </div>
             </div>
@@ -1210,12 +1326,12 @@
                             <div class="form-group">
                                 <label>Confidence Threshold (0.0 - 1.0)</label>
                                 <input type="number" class="form-control" id="cfg-confidence-threshold" min="0" max="1" step="0.1" value="0.4">
-                                <small style="color: #666;">If AI confidence is below this, escalate to human</small>
+                                <small style="color: #6b7280;">If AI confidence is below this, escalate to human</small>
                             </div>
                             <div class="form-group">
                                 <label>Max Clarification Attempts</label>
                                 <input type="number" class="form-control" id="cfg-max-clarifications" min="1" max="10" value="3">
-                                <small style="color: #666;">After this many failed clarifications, escalate</small>
+                                <small style="color: #6b7280;">After this many failed clarifications, escalate</small>
                             </div>
                             <div class="form-group">
                                 <label>Escalation Message</label>
@@ -1252,7 +1368,7 @@
                 <div class="card">
                     <div class="card-header">Export / Import Configuration</div>
                     <div class="card-body">
-                        <p style="margin-bottom: 16px; color: #666;">Export your configuration to share or backup, or import from a file.</p>
+                        <p style="margin-bottom: 16px; color: #6b7280;">Export your configuration to share or backup, or import from a file.</p>
                         <div style="display: flex; gap: 12px;">
                             <button class="btn btn-primary" onclick="exportConfig()">Export JSON</button>
                             <button class="btn btn-primary" onclick="document.getElementById('import-file-adv').click()">Import JSON</button>
@@ -1263,7 +1379,7 @@
                 <div class="card">
                     <div class="card-header">Raw Configuration</div>
                     <div class="card-body">
-                        <p style="margin-bottom: 16px; color: #666;">View and edit the raw JSON configuration (for advanced users).</p>
+                        <p style="margin-bottom: 16px; color: #6b7280;">View and edit the raw JSON configuration (for advanced users).</p>
                         <button class="btn btn-warning" onclick="showRawConfigModal()">Edit Raw JSON</button>
                     </div>
                 </div>
@@ -1271,7 +1387,7 @@
             <div class="card">
                 <div class="card-header">Current Configuration Preview</div>
                 <div class="card-body">
-                    <pre id="config-preview" style="background: #1e293b; color: #f8fafc; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem;">Loading...</pre>
+                    <pre id="config-preview" style="background: #0f0f1e; color: #f9f9fa; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem;">Loading...</pre>
                 </div>
             </div>
         </div>
@@ -1288,7 +1404,7 @@
                 <div class="form-group">
                     <label>FAQ ID (optional)</label>
                     <input type="text" class="form-control" id="new-faq-id" placeholder="e.g., medicine_availability">
-                    <small style="color: #666;">If blank, it will be generated from the question.</small>
+                    <small style="color: #6b7280;">If blank, it will be generated from the question.</small>
                 </div>
                 <div class="form-group">
                     <label>Question *</label>
@@ -1447,14 +1563,31 @@
                 <div class="form-group" style="margin-top:18px; border-top:1px solid var(--border); padding-top:16px;">
                     <label style="display:flex; align-items:center; justify-content:space-between;">
                         <span>Knowledge from KB</span>
-                        <button class="btn btn-outline btn-small" type="button" id="pull-kb-btn" onclick="pullKbKnowledge()">
-                            ✦ Pull from KB
-                        </button>
+                        <button class="btn btn-outline btn-small" type="button" id="pull-kb-btn" onclick="pullKbKnowledge()">Pull from KB</button>
                     </label>
                     <div id="pull-kb-status" style="display:none; font-size:0.82rem; color:#6b7280; margin-bottom:6px;"></div>
                     <textarea class="form-control" id="new-svc-kb-knowledge" rows="6"
                         placeholder="Click 'Pull from KB' to auto-extract relevant knowledge for this service, or type manually."></textarea>
                     <div class="service-modal-hint">This knowledge will be fed to the service agent. You can edit it after pulling.</div>
+                </div>
+
+                <!-- Generated System Prompt Section -->
+                <div class="form-group" style="margin-top:18px; border-top:1px solid var(--border); padding-top:16px;" id="svc-generated-prompt-section">
+                    <label style="display:flex; align-items:center; justify-content:space-between;">
+                        <span style="display:flex; align-items:center; gap:8px;">
+                            Agent System Prompt
+                            <span id="svc-prompt-badge" style="display:none; font-size:0.72rem; padding:2px 8px; border-radius:10px; background:var(--success,#22c55e); color:#fff;">AI Generated</span>
+                        </span>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-outline btn-small" type="button" id="svc-regenerate-btn" onclick="regenerateServicePrompt()" style="display:none;">Regenerate</button>
+                            <button class="btn btn-outline btn-small" type="button" id="svc-save-prompt-btn" onclick="saveEditedPrompt()" style="display:none;">Save Prompt</button>
+                        </div>
+                    </label>
+                    <div id="svc-prompt-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
+                    <textarea class="form-control" id="new-svc-generated-prompt" rows="10"
+                        placeholder="Save the service first - AI will auto-generate a system prompt. You can also edit it manually here."
+                        style="font-family: monospace; font-size: 0.82rem;"></textarea>
+                    <div class="service-modal-hint">This prompt is used by the agent at chat time. Editing it overrides the AI-generated version. Changes save instantly.</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1502,6 +1635,7 @@
         let journeyPhases = [];
         let currentPhaseId = 'pre_booking';
         let phaseAllServices = [];
+        let phaseMenuFacts = [];
         let phaseServices = [];
         let phasePrebuiltServices = [];
         const DEFAULT_TICKETING_SERVICE_ID = 'ticketing_agent';
@@ -1942,16 +2076,134 @@
             const kbStatus = document.getElementById('pull-kb-status');
             if (kbStatus) { kbStatus.style.display = 'none'; kbStatus.textContent = ''; }
             const pullBtn = document.getElementById('pull-kb-btn');
-            if (pullBtn) { pullBtn.disabled = false; pullBtn.textContent = '✦ Pull from KB'; }
+            if (pullBtn) { pullBtn.disabled = false; pullBtn.textContent = 'Pull from KB'; }
             const tcStatus = document.getElementById('svc-ticketing-conditions-status');
             if (tcStatus) { tcStatus.style.display = 'none'; tcStatus.textContent = ''; }
             const refineBtn = document.getElementById('svc-refine-ticketing-btn');
             if (refineBtn) { refineBtn.disabled = false; refineBtn.textContent = 'Refine with AI'; }
+            // Reset prompt section
+            const promptArea = document.getElementById('new-svc-generated-prompt');
+            if (promptArea) promptArea.value = '';
+            const promptBadge = document.getElementById('svc-prompt-badge');
+            if (promptBadge) promptBadge.style.display = 'none';
+            const regenBtn = document.getElementById('svc-regenerate-btn');
+            if (regenBtn) regenBtn.style.display = 'none';
+            const savePromptBtn = document.getElementById('svc-save-prompt-btn');
+            if (savePromptBtn) savePromptBtn.style.display = 'none';
+            const promptStatus = document.getElementById('svc-prompt-status');
+            if (promptStatus) { promptStatus.style.display = 'none'; promptStatus.textContent = ''; }
             document.getElementById('new-svc-id-hint').textContent = 'Use lowercase with underscores (for example: front_desk).';
             document.getElementById('service-modal-title').textContent = mode === 'edit' ? 'Edit Service' : 'Add New Service';
             document.getElementById('save-service-btn').textContent = mode === 'edit' ? 'Save Service' : 'Add Service';
             renderServiceTicketingCases();
             updateServiceTicketingSectionVisibility();
+        }
+
+        async function regenerateServicePrompt() {
+            if (!currentServiceEditId) {
+                showToast('Save the service first, then regenerate prompt.', 'error');
+                return;
+            }
+            const regenBtn = document.getElementById('svc-regenerate-btn');
+            const statusEl = document.getElementById('svc-prompt-status');
+            const promptArea = document.getElementById('new-svc-generated-prompt');
+            try {
+                if (regenBtn) {
+                    regenBtn.disabled = true;
+                    regenBtn.textContent = 'Regenerating...';
+                }
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#6b7280';
+                    statusEl.textContent = 'Generating service prompt...';
+                }
+                const serviceId = encodeURIComponent(String(currentServiceEditId));
+                const res = await fetch(`${API_BASE}/config/services/${serviceId}/regenerate-prompt`, {
+                    method: 'POST',
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.detail || `status ${res.status}`);
+                }
+                const prompt = String(data.generated_system_prompt || '').trim();
+                if (promptArea) promptArea.value = prompt;
+                const promptBadge = document.getElementById('svc-prompt-badge');
+                if (promptBadge) promptBadge.style.display = prompt ? 'inline-block' : 'none';
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#16a34a';
+                    statusEl.textContent = 'Prompt regenerated.';
+                }
+                showToast('Prompt regenerated');
+            } catch (error) {
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#dc2626';
+                    statusEl.textContent = `Error: ${error.message || error}`;
+                }
+                showToast('Error regenerating prompt', 'error');
+            } finally {
+                if (regenBtn) {
+                    regenBtn.disabled = false;
+                    regenBtn.textContent = 'Regenerate';
+                }
+            }
+        }
+
+        async function saveEditedPrompt() {
+            if (!currentServiceEditId) {
+                showToast('Save the service first, then edit prompt.', 'error');
+                return;
+            }
+            const promptArea = document.getElementById('new-svc-generated-prompt');
+            const saveBtn = document.getElementById('svc-save-prompt-btn');
+            const statusEl = document.getElementById('svc-prompt-status');
+            const prompt = String(promptArea?.value || '').trim();
+            if (!prompt) {
+                showToast('Prompt cannot be empty', 'error');
+                return;
+            }
+            try {
+                if (saveBtn) {
+                    saveBtn.disabled = true;
+                    saveBtn.textContent = 'Saving...';
+                }
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#6b7280';
+                    statusEl.textContent = 'Saving prompt...';
+                }
+                const serviceId = encodeURIComponent(String(currentServiceEditId));
+                const res = await fetch(`${API_BASE}/config/services/${serviceId}/prompt`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(data.detail || `status ${res.status}`);
+                }
+                const promptBadge = document.getElementById('svc-prompt-badge');
+                if (promptBadge) promptBadge.style.display = 'inline-block';
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#16a34a';
+                    statusEl.textContent = 'Prompt saved.';
+                }
+                showToast('Prompt saved');
+            } catch (error) {
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.color = '#dc2626';
+                    statusEl.textContent = `Error: ${error.message || error}`;
+                }
+                showToast('Error saving prompt', 'error');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save Prompt';
+                }
+            }
         }
 
         async function refineSvcTicketingConditions() {
@@ -1961,9 +2213,9 @@
             if (!name) { showToast('Enter a Service Name first', 'error'); return; }
             const btn = document.getElementById('svc-refine-ticketing-btn');
             const statusEl = document.getElementById('svc-ticketing-conditions-status');
-            btn.disabled = true; btn.textContent = 'Thinking…';
+            btn.disabled = true; btn.textContent = 'Thinking...';
             statusEl.style.display = 'block'; statusEl.style.color = '#6b7280';
-            statusEl.textContent = current ? 'Refining conditions…' : 'Suggesting conditions…';
+            statusEl.textContent = current ? 'Refining conditions...' : 'Suggesting conditions...';
             try {
                 const res = await fetch(`${API_BASE}/config/phases/ticketing-conditions/suggest`, {
                     method: 'POST',
@@ -1973,7 +2225,7 @@
                 const data = await res.json();
                 if (data.conditions) {
                     document.getElementById('new-svc-ticketing-conditions').value = data.conditions;
-                    statusEl.textContent = '✓ Done — edit as needed.'; statusEl.style.color = '#16a34a';
+                    statusEl.textContent = 'Done - edit as needed.'; statusEl.style.color = '#16a34a';
                 } else {
                     statusEl.textContent = 'Could not generate conditions.'; statusEl.style.color = '#dc2626';
                 }
@@ -1994,9 +2246,10 @@
             const btn = document.getElementById('pull-kb-btn');
             const statusEl = document.getElementById('pull-kb-status');
             btn.disabled = true;
-            btn.textContent = 'Pulling…';
+            btn.textContent = 'Pulling...';
             statusEl.style.display = 'block';
-            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment…';
+            statusEl.style.color = '#6b7280';
+            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment...';
             try {
                 const res = await fetch(`${API_BASE}/config/service-kb/preview-extract`, {
                     method: 'POST',
@@ -2006,7 +2259,7 @@
                 const data = await res.json();
                 if (data.extracted_knowledge) {
                     document.getElementById('new-svc-kb-knowledge').value = data.extracted_knowledge;
-                    statusEl.textContent = '✓ Knowledge pulled — review and edit as needed.';
+                    statusEl.textContent = 'Knowledge pulled - review and edit as needed.';
                     statusEl.style.color = '#16a34a';
                 } else {
                     statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;
@@ -2017,7 +2270,7 @@
                 statusEl.style.color = '#dc2626';
             } finally {
                 btn.disabled = false;
-                btn.textContent = '✦ Pull from KB';
+                btn.textContent = 'Pull from KB';
             }
         }
 
@@ -3544,6 +3797,17 @@
                 document.getElementById('new-svc-kb-knowledge').value = existingKb;
                 const existingTc = String((svc.service_prompt_pack || {}).ticketing_conditions || svc.ticketing_policy || '');
                 document.getElementById('new-svc-ticketing-conditions').value = existingTc;
+                const generatedPrompt = String(svc.generated_system_prompt || '').trim();
+                const promptArea = document.getElementById('new-svc-generated-prompt');
+                if (promptArea) promptArea.value = generatedPrompt;
+                const promptBadge = document.getElementById('svc-prompt-badge');
+                if (promptBadge) promptBadge.style.display = generatedPrompt ? 'inline-block' : 'none';
+                const regenBtn = document.getElementById('svc-regenerate-btn');
+                if (regenBtn) { regenBtn.style.display = 'inline-flex'; regenBtn.disabled = false; regenBtn.textContent = 'Regenerate'; }
+                const savePromptBtn = document.getElementById('svc-save-prompt-btn');
+                if (savePromptBtn) { savePromptBtn.style.display = 'inline-flex'; savePromptBtn.disabled = false; savePromptBtn.textContent = 'Save Prompt'; }
+                const promptStatus = document.getElementById('svc-prompt-status');
+                if (promptStatus) { promptStatus.style.display = 'none'; promptStatus.textContent = ''; }
                 updateServiceTicketingSectionVisibility();
                 document.getElementById('service-modal-title').textContent = 'Edit Service';
                 document.getElementById('save-service-btn').textContent = 'Save Service';
@@ -4084,6 +4348,76 @@
             }
         }
 
+        async function uploadPhaseMenuFiles(fileList) {
+            const files = Array.from(fileList || []);
+            const queueEl = document.getElementById('phase-menu-queue');
+            const statusEl = document.getElementById('phase-pull-kb-status');
+            const uploadBtn = document.getElementById('phase-upload-menu-btn');
+            const uploadInput = document.getElementById('phase-menu-upload-input');
+            if (!files.length) {
+                if (uploadInput) uploadInput.value = '';
+                return;
+            }
+
+            if (uploadBtn) {
+                uploadBtn.disabled = true;
+                uploadBtn.textContent = 'Uploading...';
+            }
+            if (queueEl) {
+                queueEl.style.display = 'block';
+                queueEl.innerHTML = files.map((file) => `<div>Processing ${escapeHtml(file.name)}...</div>`).join('');
+            }
+
+            const serviceName = String(document.getElementById('phase-new-service-name')?.value || '').trim();
+            const extractedFacts = [];
+            const statusRows = [];
+
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('service_name', serviceName || String(file.name || 'menu_upload'));
+                formData.append('max_facts', '150');
+                try {
+                    const res = await fetch(`${API_BASE}/agent-builder/menu-ocr/scan`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const payload = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        throw new Error(payload.detail || `status ${res.status}`);
+                    }
+                    const facts = Array.isArray(payload.fact_lines)
+                        ? payload.fact_lines.map((entry) => String(entry || '').trim()).filter(Boolean)
+                        : [];
+                    extractedFacts.push(...facts);
+                    statusRows.push(`<div><strong>${escapeHtml(file.name)}</strong>: ${facts.length} fact(s) extracted.</div>`);
+                } catch (error) {
+                    statusRows.push(`<div style="color:#dc2626;"><strong>${escapeHtml(file.name)}</strong>: ${escapeHtml(error.message || String(error))}</div>`);
+                }
+            }
+
+            phaseMenuFacts = Array.from(new Set([...(phaseMenuFacts || []), ...extractedFacts]));
+            if (queueEl) {
+                queueEl.style.display = 'block';
+                queueEl.innerHTML = statusRows.join('');
+            }
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                if (phaseMenuFacts.length) {
+                    statusEl.style.color = '#16a34a';
+                    statusEl.textContent = `${phaseMenuFacts.length} menu fact(s) ready. Click Pull from KB to merge them with library knowledge.`;
+                } else {
+                    statusEl.style.color = '#dc2626';
+                    statusEl.textContent = 'No menu facts extracted from uploaded files.';
+                }
+            }
+            if (uploadBtn) {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Menu(s)';
+            }
+            if (uploadInput) uploadInput.value = '';
+        }
+
         async function pullPhaseKbKnowledge() {
             const name = String(document.getElementById('phase-new-service-name')?.value || '').trim();
             const desc = String(document.getElementById('phase-new-service-description')?.value || '').trim();
@@ -4094,20 +4428,26 @@
             const btn = document.getElementById('phase-pull-kb-btn');
             const statusEl = document.getElementById('phase-pull-kb-status');
             btn.disabled = true;
-            btn.textContent = 'Pulling…';
+            btn.textContent = 'Pulling...';
             statusEl.style.display = 'block';
             statusEl.style.color = '#6b7280';
-            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment…';
+            statusEl.textContent = 'Extracting relevant knowledge from KB, this may take a moment...';
             try {
                 const res = await fetch(`${API_BASE}/config/service-kb/preview-extract`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ service_name: name, service_description: desc }),
+                    body: JSON.stringify({
+                        service_name: name,
+                        service_description: desc,
+                        existing_menu_facts: phaseMenuFacts,
+                    }),
                 });
                 const data = await res.json();
+                const kbTextarea = document.getElementById('phase-new-service-kb-knowledge');
                 if (data.extracted_knowledge) {
-                    document.getElementById('phase-new-service-kb-knowledge').value = data.extracted_knowledge;
-                    statusEl.textContent = '✓ Knowledge pulled — review and edit as needed.';
+                    const existing = (kbTextarea.value || '').trim();
+                    kbTextarea.value = existing ? existing + '\n\n---\n\n' + data.extracted_knowledge : data.extracted_knowledge;
+                    statusEl.textContent = 'KB knowledge added - review and edit as needed.';
                     statusEl.style.color = '#16a34a';
                 } else {
                     statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;
@@ -4118,7 +4458,7 @@
                 statusEl.style.color = '#dc2626';
             } finally {
                 btn.disabled = false;
-                btn.textContent = '✦ Pull from KB';
+                btn.textContent = 'Pull from KB';
             }
         }
 
@@ -4203,6 +4543,13 @@
                 if (ticketingConditionsEl) ticketingConditionsEl.value = '';
                 const userIntentEl = document.getElementById('phase-new-service-user-intent');
                 if (userIntentEl) userIntentEl.value = '';
+                phaseMenuFacts = [];
+                const menuQueue = document.getElementById('phase-menu-queue');
+                if (menuQueue) { menuQueue.style.display = 'none'; menuQueue.innerHTML = ''; }
+                const menuUploadInput = document.getElementById('phase-menu-upload-input');
+                if (menuUploadInput) menuUploadInput.value = '';
+                const uploadBtn = document.getElementById('phase-upload-menu-btn');
+                if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Menu(s)'; }
                 const kbStatus = document.getElementById('phase-pull-kb-status');
                 if (kbStatus) { kbStatus.style.display = 'none'; kbStatus.textContent = ''; }
                 const tcStatus = document.getElementById('phase-ticketing-conditions-status');
@@ -4467,10 +4814,10 @@
                     },
                     ui_settings: {
                         theme: {
-                            primary_color: '#2563eb',
-                            accent_color: '#22c55e',
-                            background_color: '#f8fafc',
-                            text_color: '#1e293b'
+                            primary_color: '#ff5a7e',
+                            accent_color: '#0f0f1e',
+                            background_color: '#f9f9fa',
+                            text_color: '#0f0f1e'
                         },
                         widget: {
                             position: 'right',
@@ -4568,3 +4915,5 @@
     </script>
 </body>
 </html>
+
+

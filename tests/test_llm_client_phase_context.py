@@ -191,3 +191,42 @@ async def test_generate_response_prompt_uses_full_history_not_last_six(monkeypat
     prompt = str(captured.get("system_prompt") or "")
     assert "USER: first" in prompt
     assert "USER: seventh" in prompt
+
+
+@pytest.mark.asyncio
+async def test_chat_with_json_injects_json_keyword_when_missing(monkeypatch):
+    client = LLMClient()
+    captured: dict[str, object] = {}
+
+    class _FakeMessage:
+        def __init__(self, content: str):
+            self.content = content
+
+    class _FakeChoice:
+        def __init__(self, content: str):
+            self.message = _FakeMessage(content)
+
+    class _FakeResponse:
+        def __init__(self, content: str):
+            self.choices = [_FakeChoice(content)]
+            self.usage = None
+
+    async def _fake_create(**kwargs):
+        captured["messages"] = kwargs.get("messages")
+        return _FakeResponse('{"ok": true}')
+
+    monkeypatch.setattr(client.client.chat.completions, "create", _fake_create)
+
+    result = await client.chat_with_json(
+        messages=[
+            {"role": "system", "content": "You are a concierge assistant."},
+            {"role": "user", "content": "hello"},
+        ],
+        model="test-model",
+        temperature=0.0,
+    )
+
+    assert result == {"ok": True}
+    sent_messages = captured.get("messages")
+    assert isinstance(sent_messages, list) and len(sent_messages) >= 2
+    assert "json" in str((sent_messages[0] or {}).get("content") or "").lower()

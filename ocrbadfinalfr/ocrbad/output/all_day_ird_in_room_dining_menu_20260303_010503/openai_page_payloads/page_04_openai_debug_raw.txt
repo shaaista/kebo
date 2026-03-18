@@ -1,0 +1,174 @@
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 4,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [902.1153648, 1151.47902398, 1988.441354, 1406.21576079],
+      "line_indices": [3, 4, 5, 6, 7, 21]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [902.1153648, 1500.8814071, 1988.441354, 1707.42466518],
+      "line_indices": [8, 9, 10, 11, 22, 50]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [902.1153648, 1803.81154078, 1988.441354, 2053.3848353000003],
+      "line_indices": [12, 13, 14, 15, 16, 23]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 1,
+      "bbox": [903.8370054, 2096.4145443, 1988.441354, 2308.12149025],
+      "line_indices": [17, 19, 20, 24]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 1,
+      "bbox": [903.8370054, 2416.5568890199997, 1990.1629945999998, 2569.7429804999997],
+      "line_indices": [25, 27, 28, 26]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 18, 29, 30, 31, 33, 35, 37, 39, 41, 42, 43, 44, 45, 46, 47],
+  "footer_line_indices": [0, 32, 34, 36, 38, 40],
+  "notes": "Each dish block corresponds to a distinct title line and its related description/calorie/price lines in column 1. Decorative symbols adjacent to titles (e.g., ◉, □, ☑) are omitted unless part of the text line. Header and legend/allergen lines are classified as footer/other."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "ICONIQA NEAPOLITAN FLATBREAD",
+      "description": "Sourdough, Tomato Sauce, Mozzarella Cheese",
+      "price": "650",
+      "kcal": "200",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "GRILLED MUSHROOM FLATBREAD",
+      "description": "Mushroom, Tomato, Mozzarella, Basil",
+      "price": "650",
+      "kcal": "208",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "⑪"
+        ]
+      }
+    },
+    {
+      "name": "THE MEDITERRANEAN FLATBREAD",
+      "description": "Artichoke Heart, Kalamata, Roasted Garlic, Feta",
+      "price": "650",
+      "kcal": "187",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "BBQ CHICKEN FLATBREAD",
+      "description": "BBQ Chicken, Tomato, Mozzarella",
+      "price": "750",
+      "kcal": "157",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    },
+    {
+      "name": "LOW CARB PIZZA BOWL",
+      "description": "Lean Turkey, Jalapeño, Cheese",
+      "price": "650",
+      "kcal": "110",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "☑"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Section header FLATBREADS applies to all listed dishes in the single main column. Prices aligned in a right-side price strip were matched vertically to nearest items. Allergen icons on kcal lines were used for allergens; veg/non-veg icons on title lines used for diet tags. Unclear glyphs kept in extras.unparsed_marks.",
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Crustaceans",
+      "Celery",
+      "Sulpher Dioxide",
+      "Soybeans",
+      "Molluscs",
+      "Sesame",
+      "Tree Nuts",
+      "Mustard",
+      "Peanuts",
+      "Vegetarian",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ]
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - FLATBREADS", "items": [], "other_text": [ "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "Reviewed other_text lines against page layout; the time range is a service window, not a menu item. No additional items recovered.", "page_extras": {} }

@@ -1,0 +1,74 @@
+- generic [ref=e2]:
+  - complementary [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: "N"
+      - generic [ref=e7]: NexOria
+      - generic [ref=e8]: Test Mode
+    - generic [ref=e9]:
+      - heading "Session Info" [level=3] [ref=e10]
+      - generic [ref=e11]:
+        - generic [ref=e12]: "Session ID:"
+        - generic [ref=e13]: session_1773842...
+      - generic [ref=e14]:
+        - generic [ref=e15]: "State:"
+        - generic [ref=e16]: awaiting_info
+      - generic [ref=e17]:
+        - generic [ref=e18]: "Ticket:"
+        - generic [ref=e19]: No ticket action
+      - generic [ref=e20]:
+        - generic [ref=e21]: "Messages:"
+        - generic [ref=e22]: "4"
+    - generic [ref=e23]:
+      - button "New Session" [ref=e24] [cursor=pointer]
+      - button "Reset State" [ref=e25] [cursor=pointer]
+      - button "View History" [ref=e26] [cursor=pointer]
+      - button "View Tickets" [ref=e27] [cursor=pointer]
+    - generic [ref=e28]:
+      - heading "Quick Test" [level=3] [ref=e29]
+      - generic [ref=e30]:
+        - button "Greeting" [ref=e31] [cursor=pointer]
+        - button "Services" [ref=e32] [cursor=pointer]
+        - button "Order" [ref=e33] [cursor=pointer]
+        - button "Confirm" [ref=e34] [cursor=pointer]
+        - button "Cancel" [ref=e35] [cursor=pointer]
+        - button "Status" [ref=e36] [cursor=pointer]
+        - button "Escalate" [ref=e37] [cursor=pointer]
+    - generic [ref=e38]:
+      - heading "Hotel" [level=3] [ref=e39]
+      - combobox [ref=e40] [cursor=pointer]:
+        - option "Default Business"
+        - option "Mumbai Grand Hotel" [selected]
+        - option "Delhi Palace"
+        - option "Bangalore Inn"
+        - option "Test Hotel"
+    - generic [ref=e41]:
+      - heading "Phase" [level=3] [ref=e42]
+      - combobox [ref=e43] [cursor=pointer]:
+        - option "Pre Booking"
+        - option "Pre Checkin" [selected]
+        - option "During Stay"
+        - option "Post Checkout"
+    - generic [ref=e44]:
+      - heading "Phase Test Profile" [level=3] [ref=e45]
+      - generic [ref=e46] [cursor=pointer]:
+        - checkbox "Auto-apply mapped guest profile" [checked] [ref=e47]
+        - generic [ref=e48]: Auto-apply mapped guest profile
+      - generic [ref=e49]: Mapped test profile active for pre_checkin.
+      - generic [ref=e50]: "{ \"guest_id\": \"921346\", \"entity_id\": \"5703\", \"organisation_id\": \"5703\", \"ticket_source\": \"whatsapp_bot\" }"
+  - main [ref=e51]:
+    - generic [ref=e52]:
+      - heading "Chat Test Interface" [level=1] [ref=e53]
+      - paragraph [ref=e54]: Test the chatbot flow, context retention, and state management
+    - generic [ref=e55]:
+      - generic [ref=e179]: Hi, I'm checking out the day after tomorrow but I'd like to request a late checkout. I need until around 3pm if possible.
+      - generic [ref=e184]:
+        - generic [ref=e185]: I can assist with your late check-out request. Please provide your reservation number to proceed.
+        - generic [ref=e186]: "answered by: early check in and late check out request agent"
+      - generic [ref=e191]: My reservation number is RES-2024-88543. Name is Priya Sharma, phone 9867543210.
+      - generic [ref=e196]:
+        - generic [ref=e197]: "Thank you for providing your reservation details. To proceed with your late check-out request until 3 PM, please confirm the following: - Reservation number: RES-2024-88543 - Preferred check-out time: 3 PM Once confirmed, I will create a ticket for your request."
+        - generic [ref=e198]: "answered by: early check in and late check out request agent"
+    - button "Confirm" [ref=e199] [cursor=pointer]
+    - generic [ref=e61]:
+      - textbox "Type a message..." [active] [ref=e62]
+      - button "Send" [ref=e63] [cursor=pointer]

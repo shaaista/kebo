@@ -1,0 +1,1819 @@
+{
+  "pdf": "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot (1)\\new_bot\\ocrbadfinalfr\\ocrbad\\output\\dessert_ird_in_room_dining_menu_20260226_153349\\input.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "lines": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "icons": [],
+          "layout_role": "shared",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "DESSERT",
+          "bbox": [
+            1198.2295895,
+            764.2102513599999,
+            1700.93510078,
+            843.3851615
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "12:00 PM TO 6:00 AM",
+          "bbox": [
+            1058.7805209800001,
+            884.69384586,
+            1814.5602837999998,
+            929.44490694
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "OOTY BANANA",
+          "bbox": [
+            962.3711940999999,
+            1149.75775376,
+            1351.45152236,
+            1184.18160282
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Banana And Cinnamon Compote,",
+          "bbox": [
+            965.81438848,
+            1215.1631570200002,
+            1587.3100914,
+            1247.8658995800001
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Vanilla Ganache, Banana Sponge,",
+          "bbox": [
+            962.3711940999999,
+            1259.9142181,
+            1587.3100914,
+            1292.6168788
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Sable",
+          "bbox": [
+            964.09280576,
+            1302.94404989,
+            1063.9452980800002,
+            1330.48318644
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "337 Kcal",
+          "bbox": [
+            960.64961138,
+            1368.34945315,
+            1094.93398962,
+            1392.4461720499999
+          ],
+          "icons": [
+            "gluten",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            1149.75775376,
+            1990.1629945999998,
+            1177.29689031
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "BELGIUM CHOCOLATE TART",
+          "bbox": [
+            964.09280576,
+            1519.81451999,
+            1683.7190710000002,
+            1554.23849184
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            1518.09337256,
+            1990.1629945999998,
+            1545.63250911
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Chocolate Tart, Belgium Chocolate Ganache,",
+          "bbox": [
+            964.09280576,
+            1583.4987758200002,
+            1804.2307296,
+            1617.92266581
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Feuilletine Crunch",
+          "bbox": [
+            965.81438848,
+            1628.2498369,
+            1299.80369348,
+            1655.78893252
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "432 Kcal",
+          "bbox": [
+            967.5359712,
+            1695.37638759,
+            1103.54199004,
+            1719.47310649
+          ],
+          "icons": [
+            "gluten",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "PASSIONFRUIT PANNA COTTA",
+          "bbox": [
+            964.09280576,
+            1824.46596482,
+            1737.08868518,
+            1860.61096131
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Vanilla Cream Mascarpone Cheese, Passion",
+          "bbox": [
+            962.3711940999999,
+            1889.87128622,
+            1773.242067,
+            1922.57398785
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Fruit Jelly, Fruits",
+          "bbox": [
+            965.81438848,
+            1934.6223473,
+            1275.70136176,
+            1967.32513079
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "155 Kcal",
+          "bbox": [
+            967.5359712,
+            2001.7489798499998,
+            1093.2124069,
+            2024.1243876
+          ],
+          "icons": [
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            1824.46596482,
+            1990.1629945999998,
+            1852.0051423
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "BISCOFF CHEESECAKE",
+          "bbox": [
+            964.09280576,
+            2125.674992,
+            1542.5485934,
+            2160.0987591999997
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            2123.95372178,
+            1990.1629945999998,
+            2151.4928174
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Bisco Spread, Cream Cheese,",
+          "bbox": [
+            965.81438848,
+            2189.3592068999997,
+            1539.1053121999998,
+            2223.7829741
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Caramel Glaze, Sable",
+          "bbox": [
+            964.09280576,
+            2234.11030891,
+            1358.33791112,
+            2266.8128877500003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "393 Kcal",
+          "bbox": [
+            967.5359712,
+            2301.2368596,
+            1103.54199004,
+            2325.3335785
+          ],
+          "icons": [
+            "gluten",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "OPERA",
+          "bbox": [
+            962.3711940999999,
+            2426.88401918,
+            1139.6954008,
+            2461.30778638
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            2426.88401918,
+            1990.1629945999998,
+            2452.70176272
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Almond Sponge, Coee Butter Cream,",
+          "bbox": [
+            964.09280576,
+            2490.5679885000004,
+            1685.44082736,
+            2524.992165
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Dark True, Espresso Coee",
+          "bbox": [
+            965.81438848,
+            2535.3192133000002,
+            1511.5599308,
+            2569.7429804999997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "370 Kcal",
+          "bbox": [
+            967.5359712,
+            2602.4458049200002,
+            1105.26357276,
+            2626.5423601
+          ],
+          "icons": [
+            "egg",
+            "gluten",
+            "milk",
+            "nuts",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "TIRAMISU",
+          "bbox": [
+            962.3711940999999,
+            2738.4200128,
+            1203.3943666,
+            2772.8441893
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Vanilla Sabayon Cream, Crunchy Lady",
+          "bbox": [
+            964.09280576,
+            2802.1043914200004,
+            1680.27596344,
+            2836.5281176900003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Finger, Coee Ganache Cocoa Powder,",
+          "bbox": [
+            965.81438848,
+            2846.85524785,
+            1700.93510078,
+            2879.5581131999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Espresso Coee",
+          "bbox": [
+            965.81438848,
+            2891.60639079,
+            1267.09339028,
+            2924.3089287
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "398 Kcal",
+          "bbox": [
+            965.81438848,
+            2957.01183498,
+            1101.82037838,
+            2981.1083083
+          ],
+          "icons": [
+            "egg",
+            "gluten",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "450",
+          "bbox": [
+            1914.412834,
+            2736.6989063,
+            1990.1629945999998,
+            2764.2380837799997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u2463",
+          "bbox": [
+            1162.0761498,
+            1366.628142,
+            1191.34322968,
+            1395.8885897
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            902.1153648,
+            1519.81451999,
+            933.10408528,
+            1555.9596801999999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u24c7",
+          "bbox": [
+            1167.24089796,
+            1691.93396994,
+            1196.50800678,
+            1721.1942539200002
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            902.1153648,
+            1824.46596482,
+            934.825668,
+            1858.88981388
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            902.1153648,
+            2125.674992,
+            933.10408528,
+            2161.82002942
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u25a1",
+          "bbox": [
+            903.8370054,
+            2428.6052894,
+            933.10408528,
+            2461.30778638
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "* * * *",
+          "bbox": [
+            1168.96248068,
+            2600.7245347000003,
+            1311.8548304,
+            2631.7060889
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2738.4200128,
+            933.10408528,
+            2772.8441893
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "+",
+          "bbox": [
+            1124.2011273800001,
+            2955.29068755,
+            1150.024955,
+            2981.1083083
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            914.6,
+            1719.0
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ]
+        },
+        {
+          "text": "DESSERT",
+          "bbox": [
+            1198.2295895,
+            764.2102513599999,
+            1700.93510078,
+            843.3851615
+          ]
+        },
+        {
+          "text": "12:00 PM TO 6:00 AM",
+          "bbox": [
+            1058.7805209800001,
+            884.69384586,
+            1814.5602837999998,
+            929.44490694
+          ]
+        },
+        {
+          "text": "\u2611 OOTY BANANA",
+          "bbox": [
+            962.3711940999999,
+            1149.75775376,
+            1351.45152236,
+            1184.18160282
+          ]
+        },
+        {
+          "text": "450 Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable 337 Kcal",
+          "bbox": [
+            962.3711940999998,
+            1184.18160282,
+            1351.45152236,
+            1519.81451999
+          ]
+        },
+        {
+          "text": "\u2611 BELGIUM CHOCOLATE TART",
+          "bbox": [
+            964.09280576,
+            1519.81451999,
+            1804.2307296,
+            1617.92266581
+          ]
+        },
+        {
+          "text": "450 Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch 432 Kcal",
+          "bbox": [
+            964.09280576,
+            1617.92266581,
+            1804.2307296,
+            1824.46596482
+          ]
+        },
+        {
+          "text": "\u2611 PASSIONFRUIT PANNA COTTA",
+          "bbox": [
+            964.09280576,
+            1824.46596482,
+            1737.08868518,
+            1860.61096131
+          ]
+        },
+        {
+          "text": "450 Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits 155 Kcal",
+          "bbox": [
+            962.3711940999999,
+            1889.87128622,
+            1773.242067,
+            1922.57398785
+          ]
+        },
+        {
+          "text": "\u25ec BISCOFF CHEESECAKE",
+          "bbox": [
+            964.09280576,
+            2125.674992,
+            1542.5485934,
+            2160.0987591999997
+          ]
+        },
+        {
+          "text": "450 Biscoff Spread, Cream Cheese, Caramel Glaze, Sable 393 Kcal",
+          "bbox": [
+            964.09280576,
+            2160.0987591999997,
+            1542.5485934,
+            2426.88401918
+          ]
+        },
+        {
+          "text": "\u25ec OPERA",
+          "bbox": [
+            962.3711940999999,
+            2426.88401918,
+            1139.6954008,
+            2461.30778638
+          ]
+        },
+        {
+          "text": "450 Almond Sponge, Coffee Butter Cream, Dark Truffle, Espresso Coffee 370 Kcal",
+          "bbox": [
+            962.3711940999998,
+            2461.30778638,
+            1139.6954008,
+            2738.4200128
+          ]
+        },
+        {
+          "text": "\u25ec TIRAMISU",
+          "bbox": [
+            962.3711940999999,
+            2738.4200128,
+            1203.3943666,
+            2772.8441893
+          ]
+        },
+        {
+          "text": "450 Vanilla Sabayon Cream, Crunchy Lady Finger, Coffee Ganache Cocoa Powder, Espresso Coffee 398 Kcal",
+          "bbox": [
+            962.3711940999998,
+            2776.2865778618166,
+            1203.3943666000002,
+            2810.7107543618167
+          ]
+        },
+        {
+          "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            962.3711940999998,
+            2776.2865778618166,
+            1203.3943666000002,
+            2810.7107543618167
+          ]
+        }
+      ],
+      "icons": [
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1144.0,
+            942.0,
+            1192.0
+          ],
+          "score": 0.9,
+          "line_index": 3
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1147.0,
+            942.0,
+            1192.0
+          ],
+          "score": 0.9,
+          "line_index": 4
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1118.0,
+            1359.0,
+            1160.0,
+            1396.0
+          ],
+          "score": 0.6016203761100769,
+          "line_index": 6
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1157.0,
+            1359.0,
+            1199.0,
+            1396.0
+          ],
+          "score": 0.4855707287788391,
+          "line_index": 6
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1118.0,
+            1359.0,
+            1160.0,
+            1401.0
+          ],
+          "score": 0.6016203761100769,
+          "line_index": 7
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1157.0,
+            1359.0,
+            1199.0,
+            1401.0
+          ],
+          "score": 0.4855707287788391,
+          "line_index": 7
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1514.0,
+            942.0,
+            1561.0
+          ],
+          "score": 0.9,
+          "line_index": 9
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1515.0,
+            942.0,
+            1561.0
+          ],
+          "score": 0.9,
+          "line_index": 11
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1124.0,
+            1687.0,
+            1166.0,
+            1729.0
+          ],
+          "score": 0.6422808170318604,
+          "line_index": 13
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1163.0,
+            1687.0,
+            1205.0,
+            1729.0
+          ],
+          "score": 0.4758698344230652,
+          "line_index": 13
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            893.0,
+            1819.0,
+            943.0,
+            1868.0
+          ],
+          "score": 0.9,
+          "line_index": 14
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1821.0,
+            942.0,
+            1867.0
+          ],
+          "score": 0.9,
+          "line_index": 15
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1112.0,
+            1992.0,
+            1152.0,
+            2032.0
+          ],
+          "score": 0.5000154376029968,
+          "line_index": 17
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2119.0,
+            942.0,
+            2167.0
+          ],
+          "score": 0.9,
+          "line_index": 19
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2121.0,
+            942.0,
+            2167.0
+          ],
+          "score": 0.9,
+          "line_index": 21
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1124.0,
+            2292.0,
+            1166.0,
+            2334.0
+          ],
+          "score": 0.7277703285217285,
+          "line_index": 23
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1163.0,
+            2292.0,
+            1205.0,
+            2334.0
+          ],
+          "score": 0.5074752569198608,
+          "line_index": 23
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2421.0,
+            942.0,
+            2469.0
+          ],
+          "score": 0.9,
+          "line_index": 24
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2422.0,
+            942.0,
+            2469.0
+          ],
+          "score": 0.9,
+          "line_index": 26
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1277.0,
+            2592.0,
+            1323.0,
+            2637.0
+          ],
+          "score": 0.5622674226760864,
+          "line_index": 27
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1124.0,
+            2593.0,
+            1166.0,
+            2635.0
+          ],
+          "score": 0.6916836500167847,
+          "line_index": 28
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1162.0,
+            2593.0,
+            1204.0,
+            2636.0
+          ],
+          "score": 0.5765037536621094,
+          "line_index": 28
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1279.0,
+            2594.0,
+            1321.0,
+            2636.0
+          ],
+          "score": 0.5622674226760864,
+          "line_index": 28
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1201.0,
+            2593.0,
+            1243.0,
+            2636.0
+          ],
+          "score": 0.4730542302131653,
+          "line_index": 28
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1240.0,
+            2593.0,
+            1282.0,
+            2635.0
+          ],
+          "score": 0.45414990186691284,
+          "line_index": 28
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2732.0,
+            942.0,
+            2780.0
+          ],
+          "score": 0.9,
+          "line_index": 29
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2734.0,
+            942.0,
+            2780.0
+          ],
+          "score": 0.9,
+          "line_index": 30
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1123.0,
+            2946.0,
+            1163.0,
+            2992.0
+          ],
+          "score": 0.5682230591773987,
+          "line_index": 32
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1157.0,
+            2946.0,
+            1203.0,
+            2992.0
+          ],
+          "score": 0.5493526458740234,
+          "line_index": 32
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1197.0,
+            2946.0,
+            1243.0,
+            2992.0
+          ],
+          "score": 0.4745163321495056,
+          "line_index": 32
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1119.0,
+            2948.0,
+            1161.0,
+            2990.0
+          ],
+          "score": 0.5682230591773987,
+          "line_index": 33
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1159.0,
+            2948.0,
+            1201.0,
+            2990.0
+          ],
+          "score": 0.5493526458740234,
+          "line_index": 33
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1199.0,
+            2948.0,
+            1241.0,
+            2990.0
+          ],
+          "score": 0.4745163321495056,
+          "line_index": 33
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1117.0,
+            1358.0,
+            1161.0,
+            1402.0
+          ],
+          "score": 0.6016203761100769,
+          "line_index": 54
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1156.0,
+            1358.0,
+            1200.0,
+            1402.0
+          ],
+          "score": 0.4855707287788391,
+          "line_index": 54
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            893.0,
+            1513.0,
+            943.0,
+            1562.0
+          ],
+          "score": 0.9,
+          "line_index": 55
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1123.0,
+            1686.0,
+            1167.0,
+            1730.0
+          ],
+          "score": 0.6422808170318604,
+          "line_index": 56
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1162.0,
+            1686.0,
+            1206.0,
+            1730.0
+          ],
+          "score": 0.4758698344230652,
+          "line_index": 56
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1820.0,
+            942.0,
+            1867.0
+          ],
+          "score": 0.9,
+          "line_index": 57
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            2118.0,
+            943.0,
+            2168.0
+          ],
+          "score": 0.9,
+          "line_index": 58
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            2421.0,
+            942.0,
+            2469.0
+          ],
+          "score": 0.9,
+          "line_index": 59
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1123.0,
+            2592.0,
+            1167.0,
+            2636.0
+          ],
+          "score": 0.6916836500167847,
+          "line_index": 60
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1161.0,
+            2592.0,
+            1205.0,
+            2637.0
+          ],
+          "score": 0.5765037536621094,
+          "line_index": 60
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1278.0,
+            2593.0,
+            1322.0,
+            2637.0
+          ],
+          "score": 0.5622674226760864,
+          "line_index": 60
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1240.0,
+            2592.0,
+            1283.0,
+            2636.0
+          ],
+          "score": 0.45414990186691284,
+          "line_index": 60
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            2732.0,
+            942.0,
+            2780.0
+          ],
+          "score": 0.9,
+          "line_index": 61
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1119.0,
+            2948.0,
+            1161.0,
+            2990.0
+          ],
+          "score": 0.5682230591773987,
+          "line_index": 62
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1159.0,
+            2948.0,
+            1201.0,
+            2990.0
+          ],
+          "score": 0.5493526458740234,
+          "line_index": 62
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1199.0,
+            2948.0,
+            1241.0,
+            2990.0
+          ],
+          "score": 0.4745163321495056,
+          "line_index": 62
+        }
+      ],
+      "page_text": "IN ROOM DINING\nDESSERT\n12:00 PM TO 6:00 AM\nOOTY BANANA\nBanana And Cinnamon Compote,\nVanilla Ganache, Banana Sponge,\nSable\n337 Kcal\n450\nBELGIUM CHOCOLATE TART\n450\nChocolate Tart, Belgium Chocolate Ganache,\nFeuilletine Crunch\n432 Kcal\nPASSIONFRUIT PANNA COTTA\nVanilla Cream Mascarpone Cheese, Passion\nFruit Jelly, Fruits\n155 Kcal\n450\nBISCOFF CHEESECAKE\n450\nBisco Spread, Cream Cheese,\nCaramel Glaze, Sable\n393 Kcal\nOPERA\n450\nAlmond Sponge, Coee Butter Cream,\nDark True, Espresso Coee\n370 Kcal\nTIRAMISU\nVanilla Sabayon Cream, Crunchy Lady\nFinger, Coee Ganache Cocoa Powder,\nEspresso Coee\n398 Kcal\nMilk\nGluten\nLupin\nSulpher Dioxide\nMolluscs\nMustard\nCrustaceans\nCelery\nSoybeans\nSesame\nTree Nuts\nVegetarian\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\n450\nPeanuts\nFish\nEggs\nNon-Vegetarian\n\u2463\n\u25c9\n\u24c7\n\u25c9\n\u2611\n\u25a1\n* * * *\n\u25c9\n+\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+    }
+  ]
+}

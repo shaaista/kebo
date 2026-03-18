@@ -1,0 +1,275 @@
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING - SMALL PLATES",
+  "page": 2,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [965.81438848, 1123.9398465, 1988.441354, 1311.55003262],
+      "line_indices": [3, 4, 5, 6, 7]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [965.81438848, 1404.4945315, 1988.441354, 1593.82594691],
+      "line_indices": [8, 9, 10, 11, 12]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [965.81438848, 1690.21282251, 1988.441354, 1882.98653278],
+      "line_indices": [13, 14, 15, 16, 17]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 1,
+      "bbox": [965.81438848, 1979.37340838, 1988.441354, 2015.51856859],
+      "line_indices": [18, 23]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 1,
+      "bbox": [965.81438848, 2039.61528749, 1988.441354, 2225.50428525],
+      "line_indices": [19, 20, 21, 22]
+    },
+    {
+      "block_id": "b6",
+      "column_index": 1,
+      "bbox": [965.81438848, 2318.4487432, 1988.441354, 2506.05892932],
+      "line_indices": [24, 25, 26, 27, 28]
+    },
+    {
+      "block_id": "b7",
+      "column_index": 1,
+      "bbox": [965.81438848, 2597.28207612, 1988.441354, 2784.8923441],
+      "line_indices": [29, 30, 31, 32, 33]
+    },
+    {
+      "block_id": "b8",
+      "column_index": 1,
+      "bbox": [965.81438848, 2883.0003262, 1988.441354, 3025.8595331],
+      "line_indices": [34, 35, 36, 37]
+    },
+    {
+      "block_id": "b9",
+      "column_index": 1,
+      "bbox": [965.81438848, 3122.2464087, 1988.441354, 3316.7412664],
+      "line_indices": [38, 39, 40, 41, 42]
+    },
+    {
+      "block_id": "b10",
+      "column_index": 1,
+      "bbox": [965.81438848, 3406.243716, 1988.441354, 3599.01734441],
+      "line_indices": [43, 56, 44, 45, 46]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 0, 47, 48, 49, 51, 53, 55, 57, 59, 61, 63, 64, 65, 66],
+  "footer_line_indices": [50, 52, 54, 58, 60, 62]
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - SMALL PLATES (12:00 PM TO 11:30 PM)",
+  "items": [
+    {
+      "name": "BAKED BRUSCHETTA",
+      "description": "Sliced Baked, Mozzarella, Marinated Cherry Tomato",
+      "price": "550",
+      "kcal": "156",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "ULTIMATE VEGGIE NACHOS",
+      "description": "Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked",
+      "price": "550",
+      "kcal": "142",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "HUMMUS",
+      "description": "Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket",
+      "price": "550",
+      "kcal": "99",
+      "allergens": [
+        "celery",
+        "sesame"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MANGO PICKLE PANEER TIKKA",
+      "description": "Cottage Cheese, Spices, Mango Pickle",
+      "price": "550",
+      "kcal": "162",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MALAI BROCCOLI KEBAB",
+      "description": "Broccoli Florets, Creamy Cheese Yoghurt, Mild Spices",
+      "price": "550",
+      "kcal": "171",
+      "allergens": [
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MATTAR TIKKI",
+      "description": "Green Peas, Chilli, Spices, Panko Crust",
+      "price": "550",
+      "kcal": "119",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "KOREAN CHICKEN BAO",
+      "description": "Steam Bao, Crispy Chicken",
+      "price": "650",
+      "kcal": "241",
+      "allergens": [
+        "celery",
+        "gluten",
+        "milk",
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "GENERAL TSO’S CHICKEN",
+      "description": "Chicken Tossed With Soy, Ginger, Hoisin",
+      "price": "650",
+      "kcal": "275",
+      "allergens": [
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "BANNO KEBAB",
+      "description": "Saffron Scented Chicken, Egg Coated Tandoor Cooked",
+      "price": "650",
+      "kcal": "138",
+      "allergens": [
+        "egg",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "SMALL PLATES",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "page_intent: menu_items_page. Single main column of items with adjacent right-side price strip lines aligned per item. Vegetarian/non-vegetarian markers taken from line icons. Allergen icons captured per item from corresponding kcal/allergen lines.",
+  "page_extras": {
+    "legend": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Mustard",
+      "Peanuts",
+      "Crustaceans",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Vegetarian",
+      "Non-Vegetarian",
+      "Fish",
+      "Eggs"
+    ],
+    "unassigned_symbols": [
+      "◉",
+      "①",
+      "④",
+      ". . .",
+      "□",
+      "1",
+      "⑥",
+      "⑩",
+      "☑"
+    ]
+  }
+}
+
+[PASS 4]
+{"menu_name":"IN ROOM DINING - SMALL PLATES","items":[],"other_text":["IN ROOM DINING","SMALL PLATES","12:00 PM TO 11:30 PM"],"footer_text":"","notes":"Reviewed other_text lines only. No recoverable menu items were embedded there; all dish entries with prices/descriptions are already captured in extracted items. Kept the three lines as non-item headers/subheader/time window.","page_extras":{}}

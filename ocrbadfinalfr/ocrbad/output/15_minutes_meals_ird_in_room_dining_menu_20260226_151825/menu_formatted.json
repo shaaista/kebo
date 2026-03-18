@@ -1,0 +1,217 @@
+{
+  "menu_name": "In-Room Dining",
+  "items": [
+    {
+      "name": "PAV BHAJI",
+      "description": "Assorted Spiced Vegetables, Buttered Pav Bun, Onion Salad",
+      "price": "500",
+      "kcal": "94 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "DUNKED IDLI SAMBAR BOWL",
+      "description": "Mini Idli, Dipped In Sambar",
+      "price": "500",
+      "kcal": "45 Kcal",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "RAJMA CHAWAL",
+      "description": "Spiced Kidney Bean Curry, Steam Rice",
+      "price": "750",
+      "kcal": "110 Kcal",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "GNOCCHI WITH TOMATO AND BURRATA",
+      "description": "Potato Gnocchi, Tomato Sauce, Creamy Burrata",
+      "price": "750",
+      "kcal": "166 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "VEGETABLE MINESTRONE SOUP",
+      "description": "Beans, Potato, Cheese And Tomato",
+      "price": "500",
+      "kcal": "48 Kcal",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25a0"
+        ]
+      }
+    },
+    {
+      "name": "SUBZI BIRYANI",
+      "description": "Aromatic Vegetables, Long Grain Rice, Served With Raita",
+      "price": "750",
+      "kcal": "123 Kcal",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "DOON SCHOOL BULLS BUN ANDA",
+      "description": "Quick Cooked Eggs, Grilled Pav With Butter",
+      "price": "750",
+      "kcal": "180 Kcal",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u2611"
+        ]
+      }
+    },
+    {
+      "name": "CHICKEN WONTON SOUP",
+      "description": "Chicken Wonton, Clear Soup, Scallion",
+      "price": "550",
+      "kcal": "51 Kcal",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "15 MINUTES MEALS",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25a1"
+        ]
+      }
+    },
+    {
+      "name": "BUTTER CHICKEN PULAO",
+      "description": "Chicken Tikka, Smooth Makhani Gravy, Served With Pulao",
+      "price": "850",
+      "kcal": "159 Kcal",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "15 MINUTES MEALS",
+      "page": 2,
+      "extras": {
+        "unparsed_marks": [
+          "\u25a1",
+          "\u2465 \u246a"
+        ]
+      }
+    },
+    {
+      "name": "LAMB MINCE SHEPHERD\u2019S PIE",
+      "description": "Minced Lamb, Rosemary, Tomato Jus, Mashed Potato Baked",
+      "price": "850",
+      "kcal": "149 Kcal",
+      "allergens": [
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "15 MINUTES MEALS",
+      "page": 2,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "SERVED IN SUSTAINABLE MEAL BOXES",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Eggs",
+    "Fish",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian"
+  ],
+  "notes": [],
+  "page_extras": {}
+}

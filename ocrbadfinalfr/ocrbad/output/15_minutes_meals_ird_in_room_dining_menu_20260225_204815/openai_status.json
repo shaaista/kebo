@@ -1,0 +1,12 @@
+{
+  "source": "openai_page_by_page",
+  "error": null,
+  "usage": {
+    "model": "gpt-5",
+    "input_tokens": 50382,
+    "output_tokens": 3064,
+    "total_tokens": 53446,
+    "estimated_cost_usd": 0.0,
+    "pricing_source": "unknown"
+  }
+}

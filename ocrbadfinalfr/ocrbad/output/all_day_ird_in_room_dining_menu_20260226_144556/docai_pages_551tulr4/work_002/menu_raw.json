@@ -1,0 +1,2338 @@
+{
+  "pdf": "C:\\Users\\venky\\Desktop\\kepsla.ai\\chat bot\\new_bot (1)\\new_bot\\ocrbadfinalfr\\ocrbad\\output\\all_day_ird_in_room_dining_menu_20260226_144556\\docai_pages_551tulr4\\page_002.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "lines": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "icons": [],
+          "layout_role": "shared",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "SMALL PLATES",
+          "bbox": [
+            1027.7918005,
+            772.81623409,
+            1866.2081994999999,
+            851.99118516
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            891.5785993,
+            1819.7252056,
+            938.0509306
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "BAKED BRUSCHETTA",
+          "bbox": [
+            965.81438848,
+            1123.9398465000002,
+            1502.9517278,
+            1158.36373649
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1122.21874,
+            1988.441354,
+            1149.75775376
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Sliced Baked, Mozzarella, Marinated",
+          "bbox": [
+            964.09280576,
+            1189.34529069,
+            1652.7304083999998,
+            1220.3267221
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Cherry Tomato",
+          "bbox": [
+            964.09280576,
+            1234.0963108400001,
+            1251.5990300400001,
+            1266.7990534
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "156 Kcal",
+          "bbox": [
+            962.3711940999999,
+            1289.17446115,
+            1089.76921252,
+            1311.5500326200001
+          ],
+          "icons": [
+            "gluten",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "ULTIMATE VEGGIE NACHOS",
+          "bbox": [
+            965.81438848,
+            1406.21576079,
+            1668.2248844,
+            1440.63960985
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1404.4945315,
+            1988.441354,
+            1432.03362712
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Crispy Nachos, Kidney Bean,",
+          "bbox": [
+            964.09280576,
+            1471.6210821900002,
+            1513.281282,
+            1504.32378382
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Tomato Salsa, Cheese Baked",
+          "bbox": [
+            964.09280576,
+            1516.3721842,
+            1516.7245632000001,
+            1547.35365654
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "142 Kcal",
+          "bbox": [
+            962.3711940999999,
+            1571.45037544,
+            1091.4908241800001,
+            1593.82594691
+          ],
+          "icons": [
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "HUMMUS",
+          "bbox": [
+            965.81438848,
+            1691.93396994,
+            1186.17845258,
+            1726.357819
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1690.21282251,
+            1988.441354,
+            1717.75195906
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Chickpeas, Tahini, Lemon,",
+          "bbox": [
+            964.09280576,
+            1757.3393732000002,
+            1459.9120151,
+            1790.0421157600001
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Olive Oil, Pita Pocket",
+          "bbox": [
+            964.09280576,
+            1802.0903933499999,
+            1368.6675232,
+            1833.07194755
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "99 Kcal",
+          "bbox": [
+            964.09280576,
+            1857.16866645,
+            1079.43965832,
+            1881.26538535
+          ],
+          "icons": [
+            "celery",
+            "sesame"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "MANGO PICKLE",
+          "bbox": [
+            965.81438848,
+            1981.0945558100002,
+            1356.6163284,
+            2015.5185685899999
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "PANEER TIKKA",
+          "bbox": [
+            965.81438848,
+            2039.6152874900001,
+            1342.84355088,
+            2074.0391365500004
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Cottage Cheese, Spices,",
+          "bbox": [
+            964.09280576,
+            2103.2993796,
+            1425.48010024,
+            2136.0020403000003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Mango Pickle",
+          "bbox": [
+            965.81438848,
+            2146.3290886,
+            1215.4455613999999,
+            2180.7532651
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "162 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2201.4073617,
+            1089.76921252,
+            2225.50428525
+          ],
+          "icons": [
+            "milk",
+            "mustard"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1979.37340838,
+            1988.441354,
+            2006.912504
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "MALAI BROCCOLI KEBAB",
+          "bbox": [
+            965.81438848,
+            2320.1698496999998,
+            1604.5259185999998,
+            2354.59373969
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            2318.4487432,
+            1988.441354,
+            2345.9876751
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Broccoli Florets, Creamy Cheese",
+          "bbox": [
+            965.81438848,
+            2383.8540646,
+            1590.7531989600002,
+            2416.5568890199997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Yoghurt, Mild Spices",
+          "bbox": [
+            962.3711940999999,
+            2428.6052894,
+            1358.33791112,
+            2461.30778638
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "171 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2481.9620467,
+            1081.1612410399998,
+            2506.05892932
+          ],
+          "icons": [
+            "milk",
+            "nuts"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "MATTAR TIKKI",
+          "bbox": [
+            965.81438848,
+            2599.0034281999997,
+            1325.62760792,
+            2633.4271954
+          ],
+          "icons": [
+            "veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            2597.28207612,
+            1988.441354,
+            2624.8212535999996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Green Peas, Chilli, Spices,",
+          "bbox": [
+            964.09280576,
+            2662.68752031,
+            1453.0255974,
+            2695.3903038000003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Panko Crust",
+          "bbox": [
+            965.81438848,
+            2707.43866325,
+            1194.786453,
+            2734.9777998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "119 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2762.51693635,
+            1082.8828527,
+            2784.8923440999997
+          ],
+          "icons": [
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "KOREAN CHICKEN BAO",
+          "bbox": [
+            965.81438848,
+            2884.72155549,
+            1559.7644206,
+            2919.1456092
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            2883.0003262,
+            1988.441354,
+            2910.5396674
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Steam Bao, Crispy Chicken",
+          "bbox": [
+            962.3711940999999,
+            2948.40585225,
+            1478.84945396,
+            2981.1083083
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "241 Kcal",
+          "bbox": [
+            964.09280576,
+            3001.7628142,
+            1091.4908241800001,
+            3025.8595331
+          ],
+          "icons": [
+            "celery",
+            "gluten",
+            "milk",
+            "sesame",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "GENERAL TSO\u2019S CHICKEN",
+          "bbox": [
+            965.81438848,
+            3123.9675152,
+            1616.5771134000001,
+            3158.3916917
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            3122.2464087,
+            1988.441354,
+            3149.7855861800003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Chicken Tossed With Soy,",
+          "bbox": [
+            964.09280576,
+            3187.65185289,
+            1461.633511,
+            3220.3543908
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Ginger, Hoisin",
+          "bbox": [
+            964.09280576,
+            3232.40275025,
+            1227.49669832,
+            3265.1056156
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "275 Kcal",
+          "bbox": [
+            964.09280576,
+            3289.20217078,
+            1098.377184,
+            3313.2990534
+          ],
+          "icons": [
+            "sesame",
+            "soy"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "BANNO KEBAB",
+          "bbox": [
+            965.81438848,
+            3407.9648225,
+            1344.5651335999999,
+            3444.1096961999997
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Saron Scented Chicken, Egg",
+          "bbox": [
+            962.3711940999999,
+            3471.64879182,
+            1533.94050616,
+            3506.0728046
+          ],
+          "icons": [
+            "non_veg"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Coated Tandoor Cooked",
+          "bbox": [
+            964.09280576,
+            3516.3998529,
+            1434.08807172,
+            3543.93907131
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "138 Kcal",
+          "bbox": [
+            964.09280576,
+            3574.92050272,
+            1091.4908241800001,
+            3599.01734441
+          ],
+          "icons": [
+            "egg",
+            "milk"
+          ],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            3406.243716,
+            1988.441354,
+            3433.7824841799998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2413.7
+          ]
+        },
+        {
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1123.9398465000002,
+            934.825668,
+            1161.80615414
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1406.21576079,
+            934.825668,
+            1442.36079821
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1691.93396994,
+            936.5473086,
+            1728.07908922
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u2460",
+          "bbox": [
+            1155.1897321000001,
+            1855.4473553,
+            1184.4568409199999,
+            1882.98653278
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1981.0945558100002,
+            934.825668,
+            2017.23971602
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2320.1698496999998,
+            934.825668,
+            2356.3149280499997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u2463",
+          "bbox": [
+            1150.024955,
+            2478.5198337,
+            1175.84886944,
+            2507.78007675
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2600.7245347000003,
+            936.5473086,
+            2633.4271954
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2884.72155549,
+            933.10408528,
+            2920.8667157
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": ". . .",
+          "bbox": [
+            1153.46814938,
+            2998.3204374800002,
+            1263.6501959,
+            3025.8595331
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25a1",
+          "bbox": [
+            903.8370054,
+            3123.9675152,
+            934.825668,
+            3160.1127982000003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "1",
+          "bbox": [
+            1160.3545092000002,
+            3289.20217078,
+            1191.34322968,
+            3316.7412664
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            3407.9648225,
+            929.6609198400001,
+            3444.1096961999997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            903.8,
+            1610.6
+          ]
+        },
+        {
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        },
+        {
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1521.5,
+            2087.9
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ]
+        },
+        {
+          "text": "SMALL PLATES",
+          "bbox": [
+            1027.7918005,
+            772.81623409,
+            1866.2081994999999,
+            851.99118516
+          ]
+        },
+        {
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            891.5785993,
+            1819.7252056,
+            938.0509306
+          ]
+        },
+        {
+          "text": "\u22a1 BAKED BRUSCHETTA",
+          "bbox": [
+            965.81438848,
+            1123.9398465000002,
+            1502.9517278,
+            1158.36373649
+          ]
+        },
+        {
+          "text": "550 Sliced Baked, Mozzarella, Marinated Cherry Tomato 156 Kcal",
+          "bbox": [
+            964.09280576,
+            1189.34529069,
+            1652.7304083999998,
+            1220.3267221
+          ]
+        },
+        {
+          "text": "\u22a1 ULTIMATE VEGGIE NACHOS",
+          "bbox": [
+            965.81438848,
+            1406.21576079,
+            1668.2248844,
+            1440.63960985
+          ]
+        },
+        {
+          "text": "550 Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked 142 Kcal",
+          "bbox": [
+            965.8143884799999,
+            1440.63960985,
+            1668.2248844,
+            1691.93396994
+          ]
+        },
+        {
+          "text": "\u22a1 HUMMUS",
+          "bbox": [
+            965.81438848,
+            1691.93396994,
+            1186.17845258,
+            1726.357819
+          ]
+        },
+        {
+          "text": "550 Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket 99 Kcal",
+          "bbox": [
+            964.09280576,
+            1802.0903933499999,
+            1368.6675232,
+            1833.07194755
+          ]
+        },
+        {
+          "text": "\u22a1 MANGO PICKLE PANEER TIKKA",
+          "bbox": [
+            965.81438848,
+            1981.0945558100002,
+            1356.6163284,
+            2180.7532651
+          ]
+        },
+        {
+          "text": "550 Cottage Cheese, Spices, Mango Pickle 162 Kcal",
+          "bbox": [
+            965.8143884799999,
+            2180.7532651,
+            1356.6163284,
+            2320.1698496999998
+          ]
+        },
+        {
+          "text": "\u22a1 MALAI BROCCOLI KEBAB",
+          "bbox": [
+            965.81438848,
+            2320.1698496999998,
+            1604.5259185999998,
+            2354.59373969
+          ]
+        },
+        {
+          "text": "550 Broccoli Florets, Creamy Cheese Yoghurt, Mild Spices 171 Kcal",
+          "bbox": [
+            965.81438848,
+            2383.8540646,
+            1590.7531989600002,
+            2416.5568890199997
+          ]
+        },
+        {
+          "text": "\u22a1 MATTAR TIKKI",
+          "bbox": [
+            965.81438848,
+            2599.0034281999997,
+            1325.62760792,
+            2633.4271954
+          ]
+        },
+        {
+          "text": "550 Green Peas, Chilli, Spices, Panko Crust 119 Kcal",
+          "bbox": [
+            964.09280576,
+            2662.68752031,
+            1453.0255974,
+            2695.3903038000003
+          ]
+        },
+        {
+          "text": "\u25ec KOREAN CHICKEN BAO",
+          "bbox": [
+            965.81438848,
+            2884.72155549,
+            1559.7644206,
+            2919.1456092
+          ]
+        },
+        {
+          "text": "650 Steam Bao, Crispy Chicken 241 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2948.40585225,
+            1478.84945396,
+            2981.1083083
+          ]
+        },
+        {
+          "text": "\u25ec GENERAL TSO\u2019S CHICKEN",
+          "bbox": [
+            965.81438848,
+            3123.9675152,
+            1616.5771134000001,
+            3158.3916917
+          ]
+        },
+        {
+          "text": "650 Chicken Tossed With Soy, Ginger, Hoisin 275 Kcal",
+          "bbox": [
+            964.09280576,
+            3187.65185289,
+            1461.633511,
+            3220.3543908
+          ]
+        },
+        {
+          "text": "\u25ec BANNO KEBAB",
+          "bbox": [
+            965.81438848,
+            3407.9648225,
+            1344.5651335999999,
+            3444.1096961999997
+          ]
+        },
+        {
+          "text": "650 Saffron Scented Chicken, Egg Coated Tandoor Cooked 138 Kcal",
+          "bbox": [
+            965.8143884799999,
+            3447.5520847618163,
+            1344.5651335999999,
+            3483.6969584618164
+          ]
+        },
+        {
+          "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u22a1 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            965.8143884799999,
+            3447.5520847618163,
+            1344.5651335999999,
+            3483.6969584618164
+          ]
+        }
+      ],
+      "icons": [
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1120.0,
+            943.0,
+            1168.0
+          ],
+          "score": 0.9,
+          "line_index": 3
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            896.0,
+            1122.0,
+            942.0,
+            1167.0
+          ],
+          "score": 0.9,
+          "line_index": 5
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1119.0,
+            1277.0,
+            1165.0,
+            1323.0
+          ],
+          "score": 0.5877149105072021,
+          "line_index": 6
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1160.0,
+            1277.0,
+            1206.0,
+            1324.0
+          ],
+          "score": 0.4748033285140991,
+          "line_index": 6
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1122.0,
+            1280.0,
+            1162.0,
+            1320.0
+          ],
+          "score": 0.5877149105072021,
+          "line_index": 7
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1163.0,
+            1280.0,
+            1203.0,
+            1321.0
+          ],
+          "score": 0.4748033285140991,
+          "line_index": 7
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1402.0,
+            943.0,
+            1450.0
+          ],
+          "score": 0.9,
+          "line_index": 8
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1403.0,
+            943.0,
+            1450.0
+          ],
+          "score": 0.9,
+          "line_index": 10
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1125.0,
+            1560.0,
+            1169.0,
+            1604.0
+          ],
+          "score": 0.5408928394317627,
+          "line_index": 12
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1688.0,
+            943.0,
+            1736.0
+          ],
+          "score": 0.9,
+          "line_index": 13
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1689.0,
+            943.0,
+            1736.0
+          ],
+          "score": 0.9,
+          "line_index": 15
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1110.0,
+            1849.0,
+            1152.0,
+            1891.0
+          ],
+          "score": 0.5732948780059814,
+          "line_index": 17
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1150.0,
+            1848.0,
+            1194.0,
+            1892.0
+          ],
+          "score": 0.5137969255447388,
+          "line_index": 17
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1978.0,
+            943.0,
+            2025.0
+          ],
+          "score": 0.9,
+          "line_index": 18
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1978.0,
+            943.0,
+            2025.0
+          ],
+          "score": 0.9,
+          "line_index": 19
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1156.0,
+            2191.0,
+            1202.0,
+            2237.0
+          ],
+          "score": 0.636428713798523,
+          "line_index": 21
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1117.0,
+            2191.0,
+            1163.0,
+            2237.0
+          ],
+          "score": 0.510084867477417,
+          "line_index": 21
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1158.0,
+            2193.0,
+            1200.0,
+            2235.0
+          ],
+          "score": 0.636428713798523,
+          "line_index": 22
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1119.0,
+            2193.0,
+            1161.0,
+            2235.0
+          ],
+          "score": 0.510084867477417,
+          "line_index": 22
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2316.0,
+            943.0,
+            2364.0
+          ],
+          "score": 0.9,
+          "line_index": 24
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2315.0,
+            943.0,
+            2364.0
+          ],
+          "score": 0.9,
+          "line_index": 26
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1107.0,
+            2473.0,
+            1149.0,
+            2515.0
+          ],
+          "score": 0.6678609848022461,
+          "line_index": 28
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1145.0,
+            2473.0,
+            1187.0,
+            2515.0
+          ],
+          "score": 0.48923128843307495,
+          "line_index": 28
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2595.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 29
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2594.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 31
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1098.0,
+            2752.0,
+            1144.0,
+            2797.0
+          ],
+          "score": 0.5564123392105103,
+          "line_index": 32
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1099.0,
+            2753.0,
+            1143.0,
+            2796.0
+          ],
+          "score": 0.557487964630127,
+          "line_index": 33
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2880.0,
+            943.0,
+            2929.0
+          ],
+          "score": 0.9,
+          "line_index": 34
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2880.0,
+            943.0,
+            2929.0
+          ],
+          "score": 0.9,
+          "line_index": 36
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1275.0,
+            2989.0,
+            1321.0,
+            3035.0
+          ],
+          "score": 0.5467944741249084,
+          "line_index": 36
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1238.0,
+            2989.0,
+            1279.0,
+            3035.0
+          ],
+          "score": 0.5225100517272949,
+          "line_index": 36
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1277.0,
+            2991.0,
+            1319.0,
+            3033.0
+          ],
+          "score": 0.5467944741249084,
+          "line_index": 37
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1234.0,
+            2990.0,
+            1278.0,
+            3034.0
+          ],
+          "score": 0.5225100517272949,
+          "line_index": 37
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1193.0,
+            2991.0,
+            1235.0,
+            3033.0
+          ],
+          "score": 0.47864049673080444,
+          "line_index": 37
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1150.0,
+            2991.0,
+            1192.0,
+            3033.0
+          ],
+          "score": 0.46809864044189453,
+          "line_index": 37
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1108.0,
+            2991.0,
+            1150.0,
+            3033.0
+          ],
+          "score": 0.46069130301475525,
+          "line_index": 37
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3119.0,
+            943.0,
+            3167.0
+          ],
+          "score": 0.9,
+          "line_index": 38
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3119.0,
+            943.0,
+            3167.0
+          ],
+          "score": 0.9,
+          "line_index": 40
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1155.0,
+            3279.0,
+            1201.0,
+            3325.0
+          ],
+          "score": 0.5331887006759644,
+          "line_index": 41
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1113.0,
+            3279.0,
+            1159.0,
+            3325.0
+          ],
+          "score": 0.5245566368103027,
+          "line_index": 41
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1157.0,
+            3281.0,
+            1199.0,
+            3323.0
+          ],
+          "score": 0.5331887006759644,
+          "line_index": 42
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1115.0,
+            3281.0,
+            1157.0,
+            3323.0
+          ],
+          "score": 0.5247454643249512,
+          "line_index": 42
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            3404.0,
+            944.0,
+            3454.0
+          ],
+          "score": 0.9,
+          "line_index": 43
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3403.0,
+            943.0,
+            3453.0
+          ],
+          "score": 0.9,
+          "line_index": 44
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1115.0,
+            3565.0,
+            1157.0,
+            3607.0
+          ],
+          "score": 0.5653890371322632,
+          "line_index": 46
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1159.0,
+            3565.0,
+            1201.0,
+            3607.0
+          ],
+          "score": 0.48307928442955017,
+          "line_index": 46
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1119.0,
+            944.0,
+            1169.0
+          ],
+          "score": 0.9,
+          "line_index": 67
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1401.0,
+            944.0,
+            1451.0
+          ],
+          "score": 0.9,
+          "line_index": 68
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1687.0,
+            944.0,
+            1737.0
+          ],
+          "score": 0.9,
+          "line_index": 69
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1110.0,
+            1849.0,
+            1152.0,
+            1891.0
+          ],
+          "score": 0.5732948780059814,
+          "line_index": 70
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1150.0,
+            1848.0,
+            1194.0,
+            1892.0
+          ],
+          "score": 0.5137969255447388,
+          "line_index": 70
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1977.0,
+            944.0,
+            2026.0
+          ],
+          "score": 0.9,
+          "line_index": 71
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            2315.0,
+            944.0,
+            2365.0
+          ],
+          "score": 0.9,
+          "line_index": 72
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1106.0,
+            2472.0,
+            1150.0,
+            2516.0
+          ],
+          "score": 0.6678609848022461,
+          "line_index": 73
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1144.0,
+            2472.0,
+            1188.0,
+            2516.0
+          ],
+          "score": 0.48923128843307495,
+          "line_index": 73
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2595.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 74
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            2879.0,
+            944.0,
+            2930.0
+          ],
+          "score": 0.9,
+          "line_index": 75
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1277.0,
+            2991.0,
+            1319.0,
+            3033.0
+          ],
+          "score": 0.5467944741249084,
+          "line_index": 76
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1234.0,
+            2990.0,
+            1278.0,
+            3034.0
+          ],
+          "score": 0.5225100517272949,
+          "line_index": 76
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1149.0,
+            2990.0,
+            1193.0,
+            3034.0
+          ],
+          "score": 0.46809864044189453,
+          "line_index": 76
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1108.0,
+            2991.0,
+            1150.0,
+            3033.0
+          ],
+          "score": 0.46069130301475525,
+          "line_index": 76
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            3118.0,
+            944.0,
+            3168.0
+          ],
+          "score": 0.9,
+          "line_index": 77
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1157.0,
+            3281.0,
+            1199.0,
+            3323.0
+          ],
+          "score": 0.5331887006759644,
+          "line_index": 78
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1115.0,
+            3281.0,
+            1157.0,
+            3323.0
+          ],
+          "score": 0.5247454643249512,
+          "line_index": 78
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            3404.0,
+            944.0,
+            3454.0
+          ],
+          "score": 0.9,
+          "line_index": 79
+        }
+      ],
+      "page_text": "IN ROOM DINING\nSMALL PLATES\n12:00 PM TO 11:30 PM\nBAKED BRUSCHETTA\n550\nSliced Baked, Mozzarella, Marinated\nCherry Tomato\n156 Kcal\nULTIMATE VEGGIE NACHOS\n550\nCrispy Nachos, Kidney Bean,\nTomato Salsa, Cheese Baked\n142 Kcal\nHUMMUS\n550\nChickpeas, Tahini, Lemon,\nOlive Oil, Pita Pocket\n99 Kcal\nMANGO PICKLE\nPANEER TIKKA\nCottage Cheese, Spices,\nMango Pickle\n162 Kcal\n550\nMALAI BROCCOLI KEBAB\n550\nBroccoli Florets, Creamy Cheese\nYoghurt, Mild Spices\n171 Kcal\nMATTAR TIKKI\n550\nGreen Peas, Chilli, Spices,\nPanko Crust\n119 Kcal\nKOREAN CHICKEN BAO\n650\nSteam Bao, Crispy Chicken\n241 Kcal\nGENERAL TSO\u2019S CHICKEN\n650\nChicken Tossed With Soy,\nGinger, Hoisin\n275 Kcal\nBANNO KEBAB\nSaron Scented Chicken, Egg\nCoated Tandoor Cooked\n138 Kcal\nMilk\nGluten\nLupin\nSulpher Dioxide\nMolluscs\nMustard\nPeanuts\nCrustaceans\nCelery\nSoybeans\nSesame\nTree Nuts\nVegetarian\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\n650\nFish\nEggs\nNon-Vegetarian\n\u25c9\n\u25c9\n\u25c9\n\u2460\n\u25c9\n\u25c9\n\u2463\n\u25c9\n\u25c9\n. . .\n\u25a1\n1\n\u25c9\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+    }
+  ]
+}

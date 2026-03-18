@@ -16,6 +16,7 @@ from openai import AsyncOpenAI
 
 from config.settings import settings
 from services.config_service import config_service
+from services.turn_diagnostics_service import turn_diagnostics_service
 
 
 class LLMClient:
@@ -234,6 +235,29 @@ class LLMClient:
             "messages": messages,
         }
 
+    @classmethod
+    def _messages_contain_json_keyword(cls, messages: list[dict]) -> bool:
+        for message in list(messages or []):
+            if not isinstance(message, dict):
+                continue
+            content_text = cls._message_content_to_text(message.get("content")).strip().lower()
+            if not content_text:
+                continue
+            if "json" in content_text:
+                return True
+        return False
+
+    @classmethod
+    def _ensure_json_keyword_for_json_mode(cls, messages: list[dict]) -> list[dict]:
+        normalized_messages = [msg for msg in list(messages or []) if isinstance(msg, dict)]
+        if cls._messages_contain_json_keyword(normalized_messages):
+            return normalized_messages
+        shim = {
+            "role": "system",
+            "content": "Return valid JSON only. Output must be a JSON object.",
+        }
+        return [shim, *normalized_messages]
+
     @staticmethod
     def _caller_context() -> dict[str, Any]:
         default = {
@@ -368,14 +392,14 @@ class LLMClient:
         return result
 
     def _log_llm_trace(self, payload: dict[str, Any]) -> None:
-        if not self.llm_trace_enabled:
-            return
         try:
             safe_payload = self._coerce_json_safe(payload)
             safe_payload = self._truncate_large_strings(safe_payload, max_chars=self.llm_trace_max_chars)
-            self._llm_trace_logger.info(
-                json.dumps(safe_payload, ensure_ascii=False)
-            )
+            if self.llm_trace_enabled:
+                self._llm_trace_logger.info(
+                    json.dumps(safe_payload, ensure_ascii=False)
+                )
+            turn_diagnostics_service.log_llm_trace(safe_payload if isinstance(safe_payload, dict) else payload)
         except Exception:
             return
 
@@ -488,14 +512,15 @@ class LLMClient:
         caller = self._caller_context()
         trace_meta = trace_context if isinstance(trace_context, dict) else {}
         trace_actor = self._resolve_trace_actor(caller, trace_meta)
-        input_snapshot = self._extract_message_inputs(messages)
+        request_messages = self._ensure_json_keyword_for_json_mode(messages)
+        input_snapshot = self._extract_message_inputs(request_messages)
         request_model = model or self.model
         request_temperature = temperature if temperature is not None else self.temperature
-        user_query = self._extract_user_query(messages)
+        user_query = self._extract_user_query(request_messages)
         try:
             response = await self.client.chat.completions.create(
                 model=request_model,
-                messages=messages,
+                messages=request_messages,
                 temperature=request_temperature,
                 max_tokens=self.max_tokens,
                 response_format={"type": "json_object"},

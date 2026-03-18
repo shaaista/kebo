@@ -1,0 +1,3435 @@
+{
+  "mode": "page_by_page",
+  "pages": [
+    {
+      "page": 1,
+      "docai": {
+        "doc": {
+          "mime_type": null,
+          "text_length": 949,
+          "page_count": 1
+        },
+        "pages": [
+          {
+            "page": 1,
+            "page_dimension": {
+              "width": 1681.0,
+              "height": 2378.0,
+              "unit": "POINT"
+            },
+            "text_length_total": 949,
+            "lines": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "DESSERT",
+                "bbox": [
+                  695.99997925,
+                  443.99999456,
+                  987.9999669700001,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.41403925,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.41403925,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 OOTY BANANA",
+                "bbox": [
+                  558.9999921499999,
+                  667.99998496,
+                  785.00000314,
+                  687.9999637200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28931874
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable 337 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  687.9999637200001,
+                  785.00000314,
+                  882.9999825399999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.37132043
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BELGIUM CHOCOLATE TART",
+                "bbox": [
+                  560.00000224,
+                  882.9999825399999,
+                  1047.9999504,
+                  940.00002426
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.39529017
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch 432 Kcal",
+                "bbox": [
+                  560.00000224,
+                  940.00002426,
+                  1047.9999504,
+                  1060.00001572
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44575274
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 PASSIONFRUIT PANNA COTTA",
+                "bbox": [
+                  560.00000224,
+                  1060.00001572,
+                  1009.00002757,
+                  1080.99996726
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.45458367
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.45458367
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits 155 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1097.9999801200001,
+                  1029.9999705,
+                  1116.9999861000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46972245
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46972245
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec BISCOFF CHEESECAKE",
+                "bbox": [
+                  560.00000224,
+                  1235.0000320000001,
+                  896.0000641,
+                  1254.9999632
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.5277544
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Biscoff Spread, Cream Cheese, Caramel Glaze, Sable 393 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1254.9999632,
+                  896.0000641,
+                  1410.0000482799999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.59293526
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec OPERA",
+                "bbox": [
+                  558.9999921499999,
+                  1410.0000482799999,
+                  661.9999892,
+                  1429.99997948
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.60134566
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Almond Sponge, Coffee Butter Cream, Dark Truffle, Espresso Coffee 370 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1429.99997948,
+                  661.9999892,
+                  1590.9999488
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6690496
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec TIRAMISU",
+                "bbox": [
+                  558.9999921499999,
+                  1590.9999488,
+                  698.9999759000001,
+                  1611.0001178
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6774601
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6774601
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Vanilla Sabayon Cream, Crunchy Lady Finger, Coffee Ganache Cocoa Powder, Espresso Coffee 398 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1613.0001178,
+                  698.9999759000001,
+                  1633.0002868
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6867116428931875
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6867116428931875
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  558.9999921499999,
+                  1613.0001178,
+                  698.9999759000001,
+                  1633.0002868
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6867116428931875
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6867116428931875
+                  }
+                ],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "blocks": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "DESSERT",
+                "bbox": [
+                  695.99997925,
+                  443.99999456,
+                  987.9999669700001,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.41403925,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.41403925,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 OOTY BANANA",
+                "bbox": [
+                  558.9999921499999,
+                  667.99998496,
+                  785.00000314,
+                  687.9999637200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28931874
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable 337 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  687.9999637200001,
+                  785.00000314,
+                  882.9999825399999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.37132043
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BELGIUM CHOCOLATE TART",
+                "bbox": [
+                  560.00000224,
+                  882.9999825399999,
+                  1047.9999504,
+                  940.00002426
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.39529017
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch 432 Kcal",
+                "bbox": [
+                  560.00000224,
+                  940.00002426,
+                  1047.9999504,
+                  1060.00001572
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44575274
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 PASSIONFRUIT PANNA COTTA",
+                "bbox": [
+                  560.00000224,
+                  1060.00001572,
+                  1009.00002757,
+                  1080.99996726
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.45458367
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.45458367
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits 155 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1097.9999801200001,
+                  1029.9999705,
+                  1116.9999861000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46972245
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46972245
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec BISCOFF CHEESECAKE",
+                "bbox": [
+                  560.00000224,
+                  1235.0000320000001,
+                  896.0000641,
+                  1254.9999632
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.5277544
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Biscoff Spread, Cream Cheese, Caramel Glaze, Sable 393 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1254.9999632,
+                  896.0000641,
+                  1410.0000482799999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.59293526
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec OPERA",
+                "bbox": [
+                  558.9999921499999,
+                  1410.0000482799999,
+                  661.9999892,
+                  1429.99997948
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.60134566
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Almond Sponge, Coffee Butter Cream, Dark Truffle, Espresso Coffee 370 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1429.99997948,
+                  661.9999892,
+                  1590.9999488
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6690496
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u25ec TIRAMISU",
+                "bbox": [
+                  558.9999921499999,
+                  1590.9999488,
+                  698.9999759000001,
+                  1611.0001178
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6774601
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6774601
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450 Vanilla Sabayon Cream, Crunchy Lady Finger, Coffee Ganache Cocoa Powder, Espresso Coffee 398 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1613.0001178,
+                  698.9999759000001,
+                  1633.0002868
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6867116428931875
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6867116428931875
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  558.9999921499999,
+                  1613.0001178,
+                  698.9999759000001,
+                  1633.0002868
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6783011428931875
+                  },
+                  {
+                    "x": 0.4158239000000001,
+                    "y": 0.6867116428931875
+                  },
+                  {
+                    "x": 0.3325401499999999,
+                    "y": 0.6867116428931875
+                  }
+                ],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "raw_page": {
+              "documentLayout_entries": [
+                {
+                  "text": "IN ROOM DINING",
+                  "type": "heading-1",
+                  "block_id": "1",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "DESSERT",
+                  "type": "heading-2",
+                  "block_id": "2",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "12:00 PM TO 6:00 AM",
+                  "type": "paragraph",
+                  "block_id": "3",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 OOTY BANANA",
+                  "type": "heading-3",
+                  "block_id": "4",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable 337 Kcal",
+                  "type": "paragraph",
+                  "block_id": "5",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 BELGIUM CHOCOLATE TART",
+                  "type": "heading-3",
+                  "block_id": "6",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch 432 Kcal",
+                  "type": "paragraph",
+                  "block_id": "7",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 PASSIONFRUIT PANNA COTTA",
+                  "type": "heading-3",
+                  "block_id": "8",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits 155 Kcal",
+                  "type": "paragraph",
+                  "block_id": "9",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u25ec BISCOFF CHEESECAKE",
+                  "type": "heading-3",
+                  "block_id": "10",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Biscoff Spread, Cream Cheese, Caramel Glaze, Sable 393 Kcal",
+                  "type": "paragraph",
+                  "block_id": "11",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u25ec OPERA",
+                  "type": "heading-3",
+                  "block_id": "12",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Almond Sponge, Coffee Butter Cream, Dark Truffle, Espresso Coffee 370 Kcal",
+                  "type": "paragraph",
+                  "block_id": "13",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u25ec TIRAMISU",
+                  "type": "heading-3",
+                  "block_id": "14",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450 Vanilla Sabayon Cream, Crunchy Lady Finger, Coffee Ganache Cocoa Powder, Espresso Coffee 398 Kcal",
+                  "type": "paragraph",
+                  "block_id": "15",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                  "type": "footer",
+                  "block_id": "16",
+                  "bbox_normalized": []
+                }
+              ]
+            },
+            "width": 1681.0,
+            "height": 2378.0,
+            "ocr_lines": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "DESSERT",
+                "bbox": [
+                  695.99997925,
+                  443.99999456,
+                  987.9999669700001,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.41403925,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.41403925,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "OOTY BANANA",
+                "bbox": [
+                  558.9999921499999,
+                  667.99998496,
+                  785.00000314,
+                  687.9999637200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.46698394,
+                    "y": 0.28931874
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28931874
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Banana And Cinnamon Compote,",
+                "bbox": [
+                  560.99999552,
+                  705.9999969200001,
+                  922.0000911,
+                  725.00002668
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.29688814
+                  },
+                  {
+                    "x": 0.5484831,
+                    "y": 0.29688814
+                  },
+                  {
+                    "x": 0.5484831,
+                    "y": 0.30487806
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.30487806
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vanilla Ganache, Banana Sponge,",
+                "bbox": [
+                  558.9999921499999,
+                  732.0000025999999,
+                  922.0000911,
+                  750.9999848000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.3078217
+                  },
+                  {
+                    "x": 0.5484831,
+                    "y": 0.3078217
+                  },
+                  {
+                    "x": 0.5484831,
+                    "y": 0.3158116
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.3158116
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Sable",
+                "bbox": [
+                  560.00000224,
+                  756.99998794,
+                  618.00001592,
+                  773.0000042400001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.31833473
+                  },
+                  {
+                    "x": 0.36763832,
+                    "y": 0.31833473
+                  },
+                  {
+                    "x": 0.36763832,
+                    "y": 0.32506308
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.32506308
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "337 Kcal",
+                "bbox": [
+                  557.99999887,
+                  794.9999998999999,
+                  636.00001263,
+                  808.9999992999999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33194527,
+                    "y": 0.33431455
+                  },
+                  {
+                    "x": 0.37834623,
+                    "y": 0.33431455
+                  },
+                  {
+                    "x": 0.37834623,
+                    "y": 0.34020185
+                  },
+                  {
+                    "x": 0.33194527,
+                    "y": 0.34020185
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  667.99998496,
+                  1155.9999979,
+                  684.00000126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28090832
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28763667
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.28763667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "BELGIUM CHOCOLATE TART",
+                "bbox": [
+                  560.00000224,
+                  882.9999825399999,
+                  977.9999165,
+                  903.00003264
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.5817965,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.5817965,
+                    "y": 0.37973088
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.37973088
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  882.00000976,
+                  1155.9999979,
+                  898.00002606
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.37089992
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.37089992
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.37762827
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.37762827
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Chocolate Tart, Belgium Chocolate Ganache,",
+                "bbox": [
+                  560.00000224,
+                  920.0000217200001,
+                  1047.9999504,
+                  940.00002426
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.38687974
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.38687974
+                  },
+                  {
+                    "x": 0.6234384,
+                    "y": 0.39529017
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.39529017
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Feuilletine Crunch",
+                "bbox": [
+                  560.99999552,
+                  946.0000273999999,
+                  755.00000302,
+                  962.00001992
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.3978133
+                  },
+                  {
+                    "x": 0.44913742,
+                    "y": 0.3978133
+                  },
+                  {
+                    "x": 0.44913742,
+                    "y": 0.40454164
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.40454164
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "432 Kcal",
+                "bbox": [
+                  561.9999888,
+                  985.00001214,
+                  641.00002946,
+                  999.00001154
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.41421363
+                  },
+                  {
+                    "x": 0.38132066,
+                    "y": 0.41421363
+                  },
+                  {
+                    "x": 0.38132066,
+                    "y": 0.42010093
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.42010093
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "PASSIONFRUIT PANNA COTTA",
+                "bbox": [
+                  560.00000224,
+                  1060.00001572,
+                  1009.00002757,
+                  1080.99996726
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.45458367
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.45458367
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vanilla Cream Mascarpone Cheese, Passion",
+                "bbox": [
+                  558.9999921499999,
+                  1097.9999801200001,
+                  1029.9999705,
+                  1116.9999861000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46173254
+                  },
+                  {
+                    "x": 0.6127305,
+                    "y": 0.46972245
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.46972245
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Fruit Jelly, Fruits",
+                "bbox": [
+                  560.99999552,
+                  1123.9999857999999,
+                  740.99999624,
+                  1143.00003934
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.4726661
+                  },
+                  {
+                    "x": 0.44080904,
+                    "y": 0.4726661
+                  },
+                  {
+                    "x": 0.44080904,
+                    "y": 0.48065603
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.48065603
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "155 Kcal",
+                "bbox": [
+                  561.9999888,
+                  1163.0000181,
+                  635.00001935,
+                  1175.9999496
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.48906645
+                  },
+                  {
+                    "x": 0.37775135,
+                    "y": 0.48906645
+                  },
+                  {
+                    "x": 0.37775135,
+                    "y": 0.4945332
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.4945332
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1060.00001572,
+                  1155.9999979,
+                  1076.0000558000002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.4524811
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.4524811
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "BISCOFF CHEESECAKE",
+                "bbox": [
+                  560.00000224,
+                  1235.0000320000001,
+                  896.0000641,
+                  1254.9999632
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.5330161,
+                    "y": 0.5277544
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.5277544
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1233.99998788,
+                  1155.9999979,
+                  1249.9999804
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.51892346
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.51892346
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5256518
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5256518
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Bisco Spread, Cream Cheese,",
+                "bbox": [
+                  560.99999552,
+                  1272.0000473999999,
+                  894.0000103,
+                  1291.9999786
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.5349033
+                  },
+                  {
+                    "x": 0.5318263,
+                    "y": 0.5349033
+                  },
+                  {
+                    "x": 0.5318263,
+                    "y": 0.5433137
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.5433137
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Caramel Glaze, Sable",
+                "bbox": [
+                  560.00000224,
+                  1298.00007686,
+                  789.00000988,
+                  1317.0000115
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.54583687
+                  },
+                  {
+                    "x": 0.46936348,
+                    "y": 0.54583687
+                  },
+                  {
+                    "x": 0.46936348,
+                    "y": 0.55382675
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.55382675
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "393 Kcal",
+                "bbox": [
+                  561.9999888,
+                  1337.0000616,
+                  641.00002946,
+                  1351.0000610000002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.5622372
+                  },
+                  {
+                    "x": 0.38132066,
+                    "y": 0.5622372
+                  },
+                  {
+                    "x": 0.38132066,
+                    "y": 0.5681245
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.5681245
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "OPERA",
+                "bbox": [
+                  558.9999921499999,
+                  1410.0000482799999,
+                  661.9999892,
+                  1429.99997948
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.3938132,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.60134566
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1410.0000482799999,
+                  1155.9999979,
+                  1424.9999491199999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.59293526
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.59924304
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.59924304
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Almond Sponge, Coee Butter Cream,",
+                "bbox": [
+                  560.00000224,
+                  1446.999921,
+                  979.0000106399999,
+                  1467.00009
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.6084945
+                  },
+                  {
+                    "x": 0.58239144,
+                    "y": 0.6084945
+                  },
+                  {
+                    "x": 0.58239144,
+                    "y": 0.616905
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.616905
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Dark True, Espresso Coee",
+                "bbox": [
+                  560.99999552,
+                  1473.0000218,
+                  878.0000842,
+                  1492.999953
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.6194281
+                  },
+                  {
+                    "x": 0.5223082,
+                    "y": 0.6194281
+                  },
+                  {
+                    "x": 0.5223082,
+                    "y": 0.6278385
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.6278385
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "370 Kcal",
+                "bbox": [
+                  561.9999888,
+                  1512.0000303200002,
+                  642.00002274,
+                  1525.9999346
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.63582844
+                  },
+                  {
+                    "x": 0.38191554,
+                    "y": 0.63582844
+                  },
+                  {
+                    "x": 0.38191554,
+                    "y": 0.6417157
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.6417157
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "TIRAMISU",
+                "bbox": [
+                  558.9999921499999,
+                  1590.9999488,
+                  698.9999759000001,
+                  1611.0001178
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.4158239,
+                    "y": 0.6774601
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6774601
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vanilla Sabayon Cream, Crunchy Lady",
+                "bbox": [
+                  560.00000224,
+                  1628.0000593200002,
+                  975.99996356,
+                  1647.9999667400002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.68460894
+                  },
+                  {
+                    "x": 0.58060676,
+                    "y": 0.68460894
+                  },
+                  {
+                    "x": 0.58060676,
+                    "y": 0.69301933
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.69301933
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Finger, Coee Ganache Cocoa Powder,",
+                "bbox": [
+                  560.99999552,
+                  1653.9999461,
+                  987.9999669700001,
+                  1673.0000472
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.69554245
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.69554245
+                  },
+                  {
+                    "x": 0.58774537,
+                    "y": 0.7035324
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.7035324
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Espresso Coee",
+                "bbox": [
+                  560.99999552,
+                  1679.9999993400002,
+                  735.99999622,
+                  1698.9999102
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.70647603
+                  },
+                  {
+                    "x": 0.43783462,
+                    "y": 0.70647603
+                  },
+                  {
+                    "x": 0.43783462,
+                    "y": 0.7144659
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.7144659
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "398 Kcal",
+                "bbox": [
+                  560.99999552,
+                  1718.0000350799999,
+                  640.00001937,
+                  1731.9998918000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.72245586
+                  },
+                  {
+                    "x": 0.38072577,
+                    "y": 0.72245586
+                  },
+                  {
+                    "x": 0.38072577,
+                    "y": 0.7283431
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.7283431
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Milk",
+                "bbox": [
+                  442.00002194,
+                  2187.9999402,
+                  467.9999817,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.26293874,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.2784057,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.2784057,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.26293874,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Gluten",
+                "bbox": [
+                  517.9999819,
+                  2187.9999402,
+                  561.9999888,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3081499,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.3081499,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Lupin",
+                "bbox": [
+                  607.0000226,
+                  2188.99998432,
+                  644.0000093,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3610946,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.3831053,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.3831053,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.3610946,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Sulpher Dioxide",
+                "bbox": [
+                  690.99997923,
+                  2187.9999402,
+                  800.0000031999999,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.41106483,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4759072,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4759072,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.41106483,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Molluscs",
+                "bbox": [
+                  840.9999294,
+                  2187.9999402,
+                  898.9999767,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5002974,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.5348007,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.5348007,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.5002974,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Mustard",
+                "bbox": [
+                  954.9999702,
+                  2187.9999402,
+                  1009.00002757,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5681142,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.5681142,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Crustaceans",
+                "bbox": [
+                  441.00001184999996,
+                  2216.99998312,
+                  525.0000021,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.26234385,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.26234385,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Celery",
+                "bbox": [
+                  572.0000056499999,
+                  2216.99998312,
+                  615.00001927,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.34027365,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.34027365,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Soybeans",
+                "bbox": [
+                  665.99997913,
+                  2216.99998312,
+                  731.99998948,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.39619273,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.43545508,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.43545508,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.39619273,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Sesame",
+                "bbox": [
+                  789.00000988,
+                  2216.99998312,
+                  842.00002354,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.46936348,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.50089234,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.50089234,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.46936348,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Tree Nuts",
+                "bbox": [
+                  890.99999684,
+                  2216.99998312,
+                  955.9999971,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.53004164,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5687091,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5687091,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.53004164,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vegetarian",
+                "bbox": [
+                  1007.0000242000001,
+                  2217.9999559,
+                  1080.9999976000001,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5990482,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.6430696,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.6430696,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.5990482,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Kindly inform our associates of any allergies you may have.",
+                "bbox": [
+                  421.00001177,
+                  2249.0000157199997,
+                  831.00003022,
+                  2261.999971
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.25044617,
+                    "y": 0.94575274
+                  },
+                  {
+                    "x": 0.49434862,
+                    "y": 0.94575274
+                  },
+                  {
+                    "x": 0.49434862,
+                    "y": 0.9512195
+                  },
+                  {
+                    "x": 0.25044617,
+                    "y": 0.9512195
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+                "bbox": [
+                  420.00001849,
+                  2268.9999231399997,
+                  880.9999968000001,
+                  2282.0000210999997
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.24985129,
+                    "y": 0.95416313
+                  },
+                  {
+                    "x": 0.5240928,
+                    "y": 0.95416313
+                  },
+                  {
+                    "x": 0.5240928,
+                    "y": 0.95962995
+                  },
+                  {
+                    "x": 0.24985129,
+                    "y": 0.95962995
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  421.00001177,
+                  2289.0000208,
+                  778.0000165600001,
+                  2300.99997952
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.25044617,
+                    "y": 0.9625736
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.9625736
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.96761984
+                  },
+                  {
+                    "x": 0.25044617,
+                    "y": 0.96761984
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1589.9999997999998,
+                  1155.9999979,
+                  1606.0000398799998
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.6686291
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6686291
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.67535746
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.67535746
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Peanuts",
+                "bbox": [
+                  1057.0000244,
+                  2188.99998432,
+                  1111.00004815,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6287924,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.66091615,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.66091615,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.6287924,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Fish",
+                "bbox": [
+                  1234.0000789,
+                  2187.9999402,
+                  1260.00003866,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.7340869,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.74955386,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.74955386,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.7340869,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Eggs",
+                "bbox": [
+                  1158.0000516999999,
+                  2188.99998432,
+                  1190.00002157,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6888757,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.70791197,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.70791197,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.6888757,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Non-Vegetarian",
+                "bbox": [
+                  1138.99996085,
+                  2217.9999559,
+                  1246.9999915399999,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.67757285,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.74182034,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.74182034,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.67757285,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2463",
+                "bbox": [
+                  675.0000027,
+                  793.9999320000001,
+                  691.99998932,
+                  811.0000162
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.4015467,
+                    "y": 0.333894
+                  },
+                  {
+                    "x": 0.41165972,
+                    "y": 0.333894
+                  },
+                  {
+                    "x": 0.41165972,
+                    "y": 0.3410429
+                  },
+                  {
+                    "x": 0.4015467,
+                    "y": 0.3410429
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  523.9999752,
+                  882.9999825399999,
+                  541.99998872,
+                  904.0000292
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3117192,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.37132043
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.3801514
+                  },
+                  {
+                    "x": 0.3117192,
+                    "y": 0.3801514
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u24c7",
+                "bbox": [
+                  677.99998254,
+                  982.99999524,
+                  694.99998597,
+                  999.9999843200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.40333134,
+                    "y": 0.41337258
+                  },
+                  {
+                    "x": 0.41344437,
+                    "y": 0.41337258
+                  },
+                  {
+                    "x": 0.41344437,
+                    "y": 0.42052144
+                  },
+                  {
+                    "x": 0.40333134,
+                    "y": 0.42052144
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  523.9999752,
+                  1060.00001572,
+                  542.9999819999999,
+                  1079.99999448
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3117192,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.44575274
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.45416316
+                  },
+                  {
+                    "x": 0.3117192,
+                    "y": 0.45416316
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2611",
+                "bbox": [
+                  523.9999752,
+                  1235.0000320000001,
+                  541.99998872,
+                  1256.00000732
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3117192,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.52817494
+                  },
+                  {
+                    "x": 0.3117192,
+                    "y": 0.52817494
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25a1",
+                "bbox": [
+                  525.0000021,
+                  1411.0000924,
+                  541.99998872,
+                  1429.99997948
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.5933558
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.5933558
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.60134566
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "* * * *",
+                "bbox": [
+                  678.99997582,
+                  1510.9999862,
+                  761.9999896,
+                  1529.0000194
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.40392622,
+                    "y": 0.6354079
+                  },
+                  {
+                    "x": 0.4533016,
+                    "y": 0.6354079
+                  },
+                  {
+                    "x": 0.4533016,
+                    "y": 0.6429773
+                  },
+                  {
+                    "x": 0.40392622,
+                    "y": 0.6429773
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  525.0000021,
+                  1590.9999488,
+                  541.99998872,
+                  1611.0001178
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.6690496
+                  },
+                  {
+                    "x": 0.32242712,
+                    "y": 0.6774601
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.6774601
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "+",
+                "bbox": [
+                  653.00003287,
+                  1717.0000622999999,
+                  667.9999825000001,
+                  1731.9998918000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.38845927,
+                    "y": 0.72203535
+                  },
+                  {
+                    "x": 0.3973825,
+                    "y": 0.72203535
+                  },
+                  {
+                    "x": 0.3973825,
+                    "y": 0.7283431
+                  },
+                  {
+                    "x": 0.38845927,
+                    "y": 0.7283431
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2465",
+                "bbox": [
+                  586.9999889,
+                  2186.9999912,
+                  599.0000091200001,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3491969,
+                    "y": 0.9196804
+                  },
+                  {
+                    "x": 0.35633552,
+                    "y": 0.9196804
+                  },
+                  {
+                    "x": 0.35633552,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.3491969,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2465",
+                "bbox": [
+                  819.00001,
+                  2187.9999402,
+                  832.0000235,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.48721,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4949435,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4949435,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.48721,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2469",
+                "bbox": [
+                  550.0000021999999,
+                  2215.999939,
+                  565.0000022600001,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3271862,
+                    "y": 0.9318755
+                  },
+                  {
+                    "x": 0.33610946,
+                    "y": 0.9318755
+                  },
+                  {
+                    "x": 0.33610946,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.3271862,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  985.0000207500001,
+                  2216.99998312,
+                  997.9999502,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.58596075,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5936942,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5936942,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.58596075,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2611",
+                "bbox": [
+                  1113.0000179,
+                  2216.99998312,
+                  1124.99995407,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6621059,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.66924447,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.66924447,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              }
+            ]
+          }
+        ],
+        "text": "IN ROOM DINING\nDESSERT\n12:00 PM TO 6:00 AM\n\u2611 OOTY BANANA\n450 Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable 337 Kcal\n\u2611 BELGIUM CHOCOLATE TART\n450 Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch 432 Kcal\n\u2611 PASSIONFRUIT PANNA COTTA\n450 Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits 155 Kcal\n\u25ec BISCOFF CHEESECAKE\n450 Biscoff Spread, Cream Cheese, Caramel Glaze, Sable 393 Kcal\n\u25ec OPERA\n450 Almond Sponge, Coffee Butter Cream, Dark Truffle, Espresso Coffee 370 Kcal\n\u25ec TIRAMISU\n450 Vanilla Sabayon Cream, Crunchy Lady Finger, Coffee Ganache Cocoa Powder, Espresso Coffee 398 Kcal\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving."
+      }
+    }
+  ]
+}

@@ -1,0 +1,229 @@
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 1,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [989.9167202, 1123.9398465, 2015.9868511599998, 1323.5984329999999],
+      "line_indices": [3, 4, 6, 7, 11]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [989.9167202, 1419.9853086, 2015.9868511599998, 1619.6438132399999],
+      "line_indices": [8, 9, 10, 12]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 2,
+      "bbox": [986.47352582, 1728.07908922, 2015.9868511599998, 1874.38055005],
+      "line_indices": [13, 15, 16, 17]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 2,
+      "bbox": [986.47352582, 1979.37340838, 2012.5437436, 2125.674992],
+      "line_indices": [18, 19, 20, 21]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 2,
+      "bbox": [972.70077724, 2755.6321010499996, 2012.5437436, 2901.93356188],
+      "line_indices": [23, 24, 25, 26]
+    },
+    {
+      "block_id": "b6",
+      "column_index": 1,
+      "bbox": [972.70077724, 3003.4841253500003, 2012.5437436, 3139.45841509],
+      "line_indices": [27, 28, 29, 30]
+    },
+    {
+      "block_id": "b7",
+      "column_index": 2,
+      "bbox": [970.97919452, 3230.68160282, 2012.5437436, 3426.8978125999997],
+      "line_indices": [31, 32, 33, 34, 35]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 5, 14, 22],
+  "footer_line_indices": [0, 36, 37, 38, 40, 41, 42, 43, 44, 39, 45, 46, 47, 48, 49, 50, 51, 52, 53],
+  "notes": "Grouped titles with adjacent description/calorie and right-aligned prices within same vertical bands. Kept each candidate title as its own block; headers and service notes left as other/footer."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "MINESTRONE ALLA GENOVESE SOUP",
+      "description": "Beans, Potato, Cheese, Tomato",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "HOMEMADE MUSHROOM SOUP",
+      "description": "Mushroom, Cream, Aromatic Vegetables",
+      "price": "500",
+      "kcal": "46",
+      "allergens": [
+        "celery",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "O"
+        ]
+      }
+    },
+    {
+      "name": "VEGETABLE WONTON SOUP",
+      "description": "Vegetable Wonton, Clear Soup, Scallion",
+      "price": "500",
+      "kcal": "48",
+      "allergens": [
+        "gluten",
+        "soy"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "O"
+        ]
+      }
+    },
+    {
+      "name": "SWEET CORN CHICKEN SOUP",
+      "description": "Creamy Corn, Chicken, Scallion",
+      "price": "550",
+      "kcal": "60",
+      "allergens": [
+        "egg",
+        "sesame"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "SOUPS",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "⑥"
+        ]
+      }
+    },
+    {
+      "name": "BABY SPINACH SALAD",
+      "description": "Spinach, Date, Walnut, Sumac Lemon",
+      "price": "500",
+      "kcal": "176",
+      "allergens": [
+        "gluten",
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "BURRATA SALAD",
+      "description": "Fresh Burrata, Tomato, Olive Oil",
+      "price": "500",
+      "kcal": "129",
+      "allergens": [
+        "gluten",
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "CLASSIC CAESAR SALAD",
+      "description": "Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg",
+      "price": "650",
+      "kcal": "124",
+      "allergens": [
+        "egg",
+        "fish",
+        "gluten",
+        "milk",
+        "mustard"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "SALADS",
+      "extras": {
+        "unparsed_marks": [
+          "☑",
+          "10**"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Sulpher Dioxide",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Eggs",
+    "Fish",
+    "Crustaceans",
+    "Celery",
+    "Soybeans",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "page_intent: menu_items_page. Columns detected with section headers SOUPS and SALADS. Prices aligned in right-side price strip matched per item. Kcal values taken from explicit lines. Allergen icons captured from corresponding kcal/description lines. Unclear symbols kept in extras.unparsed_marks.",
+  "page_extras": []
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING", "items": [], "other_text": [ "12:00 PM TO 11:30 PM", "12:00 PM TO 11:30 PM" ], "footer_text": [], "notes": "", "page_extras": [] }

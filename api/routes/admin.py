@@ -28,6 +28,8 @@ from services.evaluation_metrics_service import evaluation_metrics_service
 from services.observability_service import observability_service
 from services.gateway_service import gateway_service
 from services.menu_ocr_plugin_service import menu_ocr_plugin_service
+from services.prompt_writer_service import generate_service_system_prompt
+from services.everything_trace_service import everything_trace_service
 from config.settings import settings
 from llm.client import llm_client
 
@@ -803,6 +805,27 @@ async def delete_config_capability(capability_id: str):
     raise HTTPException(status_code=500, detail="Failed to delete capability")
 
 
+async def _generate_and_save_prompt(service_id: str) -> None:
+    """Background task: generate an LLM system prompt for a service and persist it."""
+    try:
+        ok, services = await _call_db_config_with_fast_fallback(
+            "get_services",
+            db_config_service.get_services(),
+        )
+        services = services if (ok and isinstance(services, list)) else config_service.get_services()
+        sid = str(service_id or "").strip().lower()
+        service = next((s for s in (services or []) if str(s.get("id") or "").strip().lower() == sid), None)
+        if not service:
+            print(f"[PromptWriter] Service '{service_id}' not found after save, skipping generation.")
+            return
+        prompt = await generate_service_system_prompt(service)
+        if prompt:
+            await db_config_service.save_generated_prompt(service_id, prompt)
+            print(f"[PromptWriter] Prompt saved for '{service_id}' ({len(prompt)} chars)")
+    except Exception as e:
+        print(f"[PromptWriter] Background generation failed for '{service_id}': {e}")
+
+
 @router.get("/api/config/services")
 async def get_config_services():
     """Get all services from database."""
@@ -824,14 +847,15 @@ async def add_config_service(service: AddService):
         db_config_service.add_service(payload),
     )
     if ok and db_saved:
+        asyncio.create_task(_generate_and_save_prompt(payload.get("id")))
         return {"message": "Service added to database"}
 
     if config_service.add_service(payload):
-        # Trigger LLM-based knowledge enrichment for the newly added service (non-blocking)
         service_id_for_enrichment = payload.get("id")
         asyncio.create_task(config_service.enrich_service_kb_records(
             service_id=service_id_for_enrichment, published_by="system"
         ))
+        asyncio.create_task(_generate_and_save_prompt(service_id_for_enrichment))
         return {"message": "Service added to JSON"}
     raise HTTPException(status_code=500, detail="Failed to add service")
 
@@ -844,45 +868,96 @@ async def update_config_service(service_id: str, update: dict):
         db_config_service.update_service(service_id, update),
     )
     if ok and db_updated:
+        asyncio.create_task(_generate_and_save_prompt(service_id))
         return {"message": f"Service {service_id} updated in database"}
 
     if config_service.update_service(service_id, update):
-        # Re-enrich knowledge when service definition changes (non-blocking)
         asyncio.create_task(config_service.enrich_service_kb_records(
             service_id=service_id, published_by="system"
         ))
+        asyncio.create_task(_generate_and_save_prompt(service_id))
         return {"message": f"Service {service_id} updated in JSON"}
     raise HTTPException(status_code=404, detail="Service not found")
+
+
+@router.post("/api/config/services/{service_id}/regenerate-prompt")
+async def regenerate_service_prompt(service_id: str):
+    """Regenerate the LLM-written system prompt for a service (blocking — returns new prompt)."""
+    ok, services = await _call_db_config_with_fast_fallback(
+        "get_services",
+        db_config_service.get_services(),
+    )
+    services = services if (ok and isinstance(services, list)) else config_service.get_services()
+    sid = str(service_id or "").strip().lower()
+    service = next((s for s in (services or []) if str(s.get("id") or "").strip().lower() == sid), None)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    prompt = await generate_service_system_prompt(service)
+    if not prompt:
+        raise HTTPException(status_code=500, detail="Prompt generation failed")
+    await db_config_service.save_generated_prompt(service_id, prompt)
+    return {"generated_system_prompt": prompt}
+
+
+@router.put("/api/config/services/{service_id}/prompt")
+async def save_service_prompt(service_id: str, body: dict):
+    """Save a manually edited system prompt for a service."""
+    prompt = str(body.get("prompt") or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt field is required")
+    saved = await db_config_service.save_generated_prompt(service_id, prompt)
+    if not saved:
+        raise HTTPException(status_code=404, detail="Service not found")
+    return {"message": "Prompt saved"}
 
 
 @router.delete("/api/config/services/clear-all")
 async def clear_all_config_services():
     """Delete all services from database and JSON fallback."""
+    json_cleared = config_service.clear_services()
+    db_config_service.mark_all_services_deleted()
+
     ok, db_cleared = await _call_db_config_with_fast_fallback(
         "clear_services",
         db_config_service.clear_services(),
     )
     if ok and db_cleared:
-        return {"message": "All services deleted from database"}
+        db_config_service.clear_service_delete_tombstones()
+        return {"message": "All services deleted from database and JSON"}
 
-    if config_service.clear_services():
-        return {"message": "All services deleted from JSON"}
-    raise HTTPException(status_code=500, detail="Failed to clear services")
+    if json_cleared:
+        return {"message": "All services deleted from JSON; DB reconciliation queued"}
+    return {"message": "Service clear queued for DB reconciliation"}
 
 
 @router.delete("/api/config/services/{service_id}")
 async def delete_config_service(service_id: str):
     """Delete a service from database."""
+    normalized_id = _normalize_identifier(service_id)
+    if not normalized_id:
+        raise HTTPException(status_code=400, detail="Invalid service_id")
+
+    json_deleted = config_service.delete_service(normalized_id)
+    db_config_service.mark_service_deleted(normalized_id)
+
     ok, db_deleted = await _call_db_config_with_fast_fallback(
         "delete_service",
-        db_config_service.delete_service(service_id),
+        db_config_service.delete_service(normalized_id),
     )
     if ok and db_deleted:
-        return {"message": "Service deleted from database"}
+        db_config_service.unmark_service_deleted(normalized_id)
+        return {"message": "Service deleted from database and JSON"}
 
-    if config_service.delete_service(service_id):
-        return {"message": "Service deleted from JSON"}
-    raise HTTPException(status_code=404, detail="Service not found")
+    if ok and not db_deleted:
+        # DB was reachable and the row was already absent.
+        db_config_service.unmark_service_deleted(normalized_id)
+        if json_deleted:
+            return {"message": "Service deleted from JSON; DB already clean"}
+        return {"message": "Service already deleted"}
+
+    if json_deleted:
+        return {"message": "Service deleted from JSON; DB reconciliation queued"}
+    return {"message": "Service delete queued for DB reconciliation"}
 
 
 @router.get("/api/config/phases")
@@ -1259,39 +1334,133 @@ async def compile_service_kb_records(payload: CompileServiceKBRequest):
 @router.post("/api/config/service-kb/preview-extract")
 async def preview_extract_service_kb(payload: dict):
     """
-    Run LLM KB extraction for a service name+description WITHOUT saving.
+    Run service KB extraction for a service name+description WITHOUT saving.
     Used by the admin modal 'Pull from KB' button.
     Returns the extracted knowledge text so the admin can review/edit before saving.
     """
     service_name = str(payload.get("service_name") or "").strip()
     service_description = str(payload.get("service_description") or "").strip()
+    extraction_mode = str(
+        payload.get("extraction_mode")
+        or payload.get("mode")
+        or "verbatim"
+    ).strip().lower()
+    if extraction_mode not in {"verbatim", "llm"}:
+        extraction_mode = "verbatim"
+
+    try:
+        requested_max_books = int(payload.get("max_books") or 24)
+    except (TypeError, ValueError):
+        requested_max_books = 24
+    max_books = max(12, min(requested_max_books, 120))
+
+    try:
+        requested_max_chars = int(payload.get("max_chars") or 550000)
+    except (TypeError, ValueError):
+        requested_max_chars = 550000
+    max_chars = max(80000, min(requested_max_chars, 1200000))
+
+    existing_menu_facts = [
+        str(f).strip()
+        for f in (payload.get("existing_menu_facts") or [])
+        if str(f).strip()
+    ]
     if not service_name:
         from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="service_name is required")
 
+    trace_payload = {
+        "service_name": service_name,
+        "service_description_chars": len(service_description),
+        "extraction_mode": extraction_mode,
+        "existing_menu_fact_count": len(existing_menu_facts),
+        "requested_max_books": max_books,
+        "requested_max_chars": max_chars,
+    }
+    everything_trace_service.log_event(
+        "service_kb_preview_extract_start",
+        trace_payload,
+        component="api.routes.admin.preview_extract_service_kb",
+    )
+
     library = config_service.get_structured_kb_library(rebuild_if_stale=True, max_sources=50)
     pages = library.get("pages", []) if isinstance(library, dict) else []
     if not isinstance(pages, list) or not pages:
+        everything_trace_service.log_event(
+            "service_kb_preview_extract_no_kb_content",
+            trace_payload,
+            component="api.routes.admin.preview_extract_service_kb",
+        )
         return {"extracted_knowledge": "", "reason": "no_kb_content"}
 
     context_payload = await config_service.build_service_library_context_llm(
         service_name=service_name,
         service_description=service_description,
-        max_books=12,
+        max_books=max_books,
         max_pages=0,
-        max_chars=0,
+        max_chars=max_chars,
     )
     context_text = str(context_payload.get("context_text") or "").strip()
     if not context_text:
+        everything_trace_service.log_event(
+            "service_kb_preview_extract_no_context",
+            {
+                **trace_payload,
+                "library_books_used": int(context_payload.get("book_count") or 0),
+                "library_pages_used": int(context_payload.get("page_count") or 0),
+                "library_context_truncated": bool(context_payload.get("truncated", False)),
+            },
+            component="api.routes.admin.preview_extract_service_kb",
+        )
         return {"extracted_knowledge": "", "reason": "no_relevant_library_books"}
+
+    context_summary = {
+        **trace_payload,
+        "library_books_used": int(context_payload.get("book_count") or 0),
+        "library_pages_used": int(context_payload.get("page_count") or 0),
+        "library_context_chars": len(context_text),
+        "library_context_truncated": bool(context_payload.get("truncated", False)),
+    }
+    everything_trace_service.log_event(
+        "service_kb_preview_extract_context_ready",
+        context_summary,
+        component="api.routes.admin.preview_extract_service_kb",
+    )
+
+    # Verbatim mode is default to avoid detail loss from extraction summarization.
+    if extraction_mode == "verbatim":
+        everything_trace_service.log_event(
+            "service_kb_preview_extract_complete",
+            {
+                **context_summary,
+                "result_reason": "ok_verbatim",
+                "result_chars": len(context_text),
+            },
+            component="api.routes.admin.preview_extract_service_kb",
+        )
+        return {
+            "extracted_knowledge": context_text,
+            "reason": "ok_verbatim",
+            "extraction_mode": "verbatim",
+            "library_books_used": int(context_payload.get("book_count") or 0),
+            "library_pages_used": int(context_payload.get("page_count") or 0),
+            "library_context_truncated": bool(context_payload.get("truncated", False)),
+        }
 
     try:
         extraction_prompt = await config_service._generate_service_extraction_prompt(
             service_name=service_name,
             service_description=service_description,
             full_kb_text=context_text,
+            existing_menu_facts=existing_menu_facts,
         )
         if not extraction_prompt:
+            everything_trace_service.log_event(
+                "service_kb_preview_extract_empty_prompt",
+                context_summary,
+                component="api.routes.admin.preview_extract_service_kb",
+                error="extraction_prompt_empty",
+            )
             return {"extracted_knowledge": "", "reason": "extraction_prompt_empty"}
 
         extracted_knowledge = await config_service._extract_service_knowledge_from_kb(
@@ -1299,14 +1468,40 @@ async def preview_extract_service_kb(payload: dict):
             full_kb_text="",
             knowledge_context=context_text,
         )
+        final_reason = "ok_llm"
+        final_text = str(extracted_knowledge or "").strip()
+        minimum_expected_chars = max(700, int(len(context_text) * 0.20))
+        # Fallback to verbatim context when LLM output appears too sparse.
+        if len(final_text) < minimum_expected_chars:
+            final_text = context_text
+            final_reason = "ok_verbatim_fallback"
+
+        everything_trace_service.log_event(
+            "service_kb_preview_extract_complete",
+            {
+                **context_summary,
+                "result_reason": final_reason,
+                "result_chars": len(final_text),
+                "llm_extracted_chars": len(str(extracted_knowledge or "").strip()),
+                "fallback_threshold_chars": minimum_expected_chars,
+            },
+            component="api.routes.admin.preview_extract_service_kb",
+        )
         return {
-            "extracted_knowledge": extracted_knowledge or "",
-            "reason": "ok",
+            "extracted_knowledge": final_text,
+            "reason": final_reason,
+            "extraction_mode": "llm",
             "library_books_used": int(context_payload.get("book_count") or 0),
             "library_pages_used": int(context_payload.get("page_count") or 0),
             "library_context_truncated": bool(context_payload.get("truncated", False)),
         }
     except Exception as exc:
+        everything_trace_service.log_event(
+            "service_kb_preview_extract_error",
+            context_summary,
+            component="api.routes.admin.preview_extract_service_kb",
+            error=str(exc),
+        )
         return {"extracted_knowledge": "", "reason": str(exc)}
 
 
@@ -1357,7 +1552,7 @@ async def scan_menu_ocr_for_agent_builder(
         upload_path = Path(tmp_dir) / safe_name
         upload_path.write_bytes(content)
         try:
-            return menu_ocr_plugin_service.scan_menu(
+            ocr_result = menu_ocr_plugin_service.scan_menu(
                 upload_path=upload_path,
                 menu_name_hint=str(service_name or safe_name),
                 max_facts=bounded_max_facts,
@@ -1366,6 +1561,41 @@ async def scan_menu_ocr_for_agent_builder(
             raise HTTPException(status_code=400, detail=str(exc))
         except RuntimeError as exc:
             raise HTTPException(status_code=500, detail=str(exc))
+
+    # Pass OCR structured output through LLM for clean plain-text formatting
+    raw_ocr_json = str(ocr_result.get("ocr_raw_output_text") or "").strip()
+    formatted_text = raw_ocr_json  # fallback if LLM fails
+    if raw_ocr_json and str(settings.openai_api_key or "").strip():
+        try:
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a menu formatter. You will receive raw JSON output from an OCR pipeline "
+                        "that extracted a restaurant/hotel menu. Your job is to reformat it into clean, "
+                        "readable plain text — like a well-laid-out menu a human would read.\n\n"
+                        "Rules:\n"
+                        "- Do NOT add any information that is not present in the input.\n"
+                        "- Do NOT remove any information from the input.\n"
+                        "- Organise by category/section if categories are present.\n"
+                        "- For each item include: name, description (if any), price (if any), dietary tags (veg/non-veg, if any).\n"
+                        "- Use clean formatting: section headings, item names, indented details.\n"
+                        "- Output plain text only — no markdown, no JSON, no bullet symbols unless they aid readability.\n"
+                        "- Preserve all notes, footer text, and allergen info from the input."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Format this OCR menu output into clean plain text:\n\n{raw_ocr_json}",
+                },
+            ]
+            formatted_text = await llm_client.chat(messages, temperature=0.1, max_tokens=4000)
+            formatted_text = str(formatted_text or "").strip() or raw_ocr_json
+        except Exception:
+            formatted_text = raw_ocr_json
+
+    ocr_result["formatted_text"] = formatted_text
+    return ocr_result
 
 
 @router.get("/api/agent-builder/menu-ocr/logs")

@@ -1,0 +1,82 @@
+[
+  {
+    "page": 1,
+    "legend_found": true,
+    "labels": [
+      "sulphites",
+      "milk",
+      "gluten",
+      "lupin",
+      "molluscs",
+      "mustard",
+      "peanut",
+      "egg",
+      "fish",
+      "nuts",
+      "crustacean",
+      "celery",
+      "soy",
+      "sesame",
+      "veg",
+      "non_veg"
+    ],
+    "icon_map": {
+      "sulphites": "icons\\sulphites.png",
+      "milk": "icons\\milk.png",
+      "gluten": "icons\\gluten.png",
+      "lupin": "icons\\lupin.png",
+      "molluscs": "icons\\molluscs.png",
+      "mustard": "icons\\mustard.png",
+      "peanut": "icons\\peanut.png",
+      "egg": "icons\\egg.png",
+      "fish": "icons\\fish.png",
+      "nuts": "icons\\nuts.png",
+      "crustacean": "icons\\crustacean.png",
+      "celery": "icons\\celery.png",
+      "soy": "icons\\soy.png",
+      "sesame": "icons\\sesame.png",
+      "veg": "icons\\veg.png",
+      "non_veg": "icons\\non_veg.png"
+    }
+  },
+  {
+    "page": 2,
+    "legend_found": true,
+    "labels": [
+      "sulphites",
+      "milk",
+      "gluten",
+      "lupin",
+      "molluscs",
+      "mustard",
+      "peanut",
+      "egg",
+      "fish",
+      "nuts",
+      "crustacean",
+      "celery",
+      "soy",
+      "sesame",
+      "veg",
+      "non_veg"
+    ],
+    "icon_map": {
+      "sulphites": "icons\\sulphites.png",
+      "milk": "icons\\milk.png",
+      "gluten": "icons\\gluten.png",
+      "lupin": "icons\\lupin.png",
+      "molluscs": "icons\\molluscs.png",
+      "mustard": "icons\\mustard.png",
+      "peanut": "icons\\peanut.png",
+      "egg": "icons\\egg.png",
+      "fish": "icons\\fish.png",
+      "nuts": "icons\\nuts.png",
+      "crustacean": "icons\\crustacean.png",
+      "celery": "icons\\celery.png",
+      "soy": "icons\\soy.png",
+      "sesame": "icons\\sesame.png",
+      "veg": "icons\\veg.png",
+      "non_veg": "icons\\non_veg.png"
+    }
+  }
+]

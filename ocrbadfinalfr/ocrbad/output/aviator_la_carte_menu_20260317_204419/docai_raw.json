@@ -1,0 +1,1631 @@
+{
+  "mode": "page_by_page",
+  "pages": [
+    {
+      "page": 1,
+      "docai": {
+        "doc": {
+          "mime_type": null,
+          "text_length": 1807,
+          "page_count": 1
+        },
+        "pages": [
+          {
+            "page": 1,
+            "page_dimension": {
+              "width": 1,
+              "height": 1,
+              "unit": "NORMALIZED"
+            },
+            "text_length_total": 1807,
+            "lines": [
+              {
+                "text": "AVIATOR",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "header",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TOFU & PEANUT LETTUCE CUPS (VG)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ginger-chilli, peanut-sesame, lime ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "BABY SPINACH SALAD WITH DATES & ALMONDS (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "carmelised dates, toasted almonds, lemon, sumac ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "HEIRLOOM TOMATO & STRACCIATELLA (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "basil oil, black olive caramel ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ultra-crisp spears, pepper, lemon ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "RUSSET POTATO, TRUFFLE, CAVIAR (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "crisp potato, hot truffle sauce, oscietra ~ 495",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SMOKED CHICKEN & GREEN TOMATO",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "chilled slices, dill oil, kombu-chicken dashi gel, pickled green tomatoes ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SEA BASS CRUDO (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "chilled slices, finger-lime pearls, aromatic oil ~ 750",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TAGLIATELLE & TRUFFLE (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "rich yolk pasta, beurre mont\u00e9, shaved truffle ~ 950",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "BUTTERNUT SQUASH \u201cCARBONARA\u201d (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "butternut cream, pecorino, black pepper ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ASPARAGUS & PARMESAN CUSTARD (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "raw-shaved tips, warm parmesan custard, citrus crumb ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CHARRED BABY CORN, BLACK GARLIC BUTTER (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "brown-butter glaze, manchego snow ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "capers, toasted hazelnut crumb ~ 750",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "COURGETTE & CHICKPEA PANCAKES (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "socca-style, dill yoghurt, herb salad ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TOMATO BENEDICT CROISSANT (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "poached egg, crushed tomatoes, chili hollandaise ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "AVIATOR BIG MACWICH (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "seasonal veggie patties, mozzarella, beet slaw, rocket ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ICONIQ CLUB",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "grilled chicken, herb mayo, bacon, tomatoes, rocket ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "LOBSTER ROLL (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "warm buttered brioche, truffle mayo, butter garlic, chive ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "PRAWN & SCOTCH BONNET BUNS (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "steamed buns, prawn salad, scotch-bonnet mayo ~ 550",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SMOKED CHICKEN BUN",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "wood smoked chicken, garlic cream, thyme, parmesan ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CHILI CHEESE BUN (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "green chilli, cheddar-mozzarella-belper knolle, scallion, chaat spice ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Please let us know of any allergies BEFORE you order. Some dishes can be made Vegan or Gluten Free. Taxes are charged extra",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "blocks": [
+              {
+                "text": "AVIATOR",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "header",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TOFU & PEANUT LETTUCE CUPS (VG)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ginger-chilli, peanut-sesame, lime ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "BABY SPINACH SALAD WITH DATES & ALMONDS (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "carmelised dates, toasted almonds, lemon, sumac ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "HEIRLOOM TOMATO & STRACCIATELLA (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "basil oil, black olive caramel ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ultra-crisp spears, pepper, lemon ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "RUSSET POTATO, TRUFFLE, CAVIAR (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "crisp potato, hot truffle sauce, oscietra ~ 495",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SMOKED CHICKEN & GREEN TOMATO",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "chilled slices, dill oil, kombu-chicken dashi gel, pickled green tomatoes ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SEA BASS CRUDO (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "chilled slices, finger-lime pearls, aromatic oil ~ 750",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TAGLIATELLE & TRUFFLE (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "rich yolk pasta, beurre mont\u00e9, shaved truffle ~ 950",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "BUTTERNUT SQUASH \u201cCARBONARA\u201d (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "butternut cream, pecorino, black pepper ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ASPARAGUS & PARMESAN CUSTARD (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "raw-shaved tips, warm parmesan custard, citrus crumb ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CHARRED BABY CORN, BLACK GARLIC BUTTER (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "brown-butter glaze, manchego snow ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "capers, toasted hazelnut crumb ~ 750",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "COURGETTE & CHICKPEA PANCAKES (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "socca-style, dill yoghurt, herb salad ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "TOMATO BENEDICT CROISSANT (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "poached egg, crushed tomatoes, chili hollandaise ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "AVIATOR BIG MACWICH (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "seasonal veggie patties, mozzarella, beet slaw, rocket ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "ICONIQ CLUB",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "grilled chicken, herb mayo, bacon, tomatoes, rocket ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "LOBSTER ROLL (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "warm buttered brioche, truffle mayo, butter garlic, chive ~ 650",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "PRAWN & SCOTCH BONNET BUNS (S)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "steamed buns, prawn salad, scotch-bonnet mayo ~ 550",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "SMOKED CHICKEN BUN",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "wood smoked chicken, garlic cream, thyme, parmesan ~ 450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "CHILI CHEESE BUN (V)",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "green chilli, cheddar-mozzarella-belper knolle, scallion, chaat spice ~ 350",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Please let us know of any allergies BEFORE you order. Some dishes can be made Vegan or Gluten Free. Taxes are charged extra",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "raw_page": {
+              "documentLayout_entries": [
+                {
+                  "text": "AVIATOR",
+                  "type": "header",
+                  "block_id": "1",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "TOFU & PEANUT LETTUCE CUPS (VG)",
+                  "type": "heading-3",
+                  "block_id": "2",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "ginger-chilli, peanut-sesame, lime ~ 350",
+                  "type": "paragraph",
+                  "block_id": "3",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "BABY SPINACH SALAD WITH DATES & ALMONDS (V)",
+                  "type": "heading-3",
+                  "block_id": "4",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "carmelised dates, toasted almonds, lemon, sumac ~ 350",
+                  "type": "paragraph",
+                  "block_id": "5",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "HEIRLOOM TOMATO & STRACCIATELLA (V)",
+                  "type": "heading-3",
+                  "block_id": "6",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "basil oil, black olive caramel ~ 350",
+                  "type": "paragraph",
+                  "block_id": "7",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "ASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI (V)",
+                  "type": "heading-3",
+                  "block_id": "8",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "ultra-crisp spears, pepper, lemon ~ 350",
+                  "type": "paragraph",
+                  "block_id": "9",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "RUSSET POTATO, TRUFFLE, CAVIAR (S)",
+                  "type": "heading-3",
+                  "block_id": "10",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "crisp potato, hot truffle sauce, oscietra ~ 495",
+                  "type": "paragraph",
+                  "block_id": "11",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "SMOKED CHICKEN & GREEN TOMATO",
+                  "type": "heading-3",
+                  "block_id": "12",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "chilled slices, dill oil, kombu-chicken dashi gel, pickled green tomatoes ~ 450",
+                  "type": "paragraph",
+                  "block_id": "13",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "SEA BASS CRUDO (S)",
+                  "type": "heading-3",
+                  "block_id": "14",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "chilled slices, finger-lime pearls, aromatic oil ~ 750",
+                  "type": "paragraph",
+                  "block_id": "15",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "TAGLIATELLE & TRUFFLE (V)",
+                  "type": "heading-3",
+                  "block_id": "16",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "rich yolk pasta, beurre mont\u00e9, shaved truffle ~ 950",
+                  "type": "paragraph",
+                  "block_id": "17",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "BUTTERNUT SQUASH \u201cCARBONARA\u201d (V)",
+                  "type": "heading-3",
+                  "block_id": "18",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "butternut cream, pecorino, black pepper ~ 650",
+                  "type": "paragraph",
+                  "block_id": "19",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "ASPARAGUS & PARMESAN CUSTARD (V)",
+                  "type": "heading-3",
+                  "block_id": "20",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "raw-shaved tips, warm parmesan custard, citrus crumb ~ 650",
+                  "type": "paragraph",
+                  "block_id": "21",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "CHARRED BABY CORN, BLACK GARLIC BUTTER (V)",
+                  "type": "heading-3",
+                  "block_id": "22",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "brown-butter glaze, manchego snow ~ 650",
+                  "type": "paragraph",
+                  "block_id": "23",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION (V)",
+                  "type": "heading-3",
+                  "block_id": "24",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "capers, toasted hazelnut crumb ~ 750",
+                  "type": "paragraph",
+                  "block_id": "25",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "COURGETTE & CHICKPEA PANCAKES (V)",
+                  "type": "heading-3",
+                  "block_id": "26",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "socca-style, dill yoghurt, herb salad ~ 450",
+                  "type": "paragraph",
+                  "block_id": "27",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "TOMATO BENEDICT CROISSANT (V)",
+                  "type": "heading-3",
+                  "block_id": "28",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "poached egg, crushed tomatoes, chili hollandaise ~ 450",
+                  "type": "paragraph",
+                  "block_id": "29",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "AVIATOR BIG MACWICH (V)",
+                  "type": "heading-3",
+                  "block_id": "30",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "seasonal veggie patties, mozzarella, beet slaw, rocket ~ 350",
+                  "type": "paragraph",
+                  "block_id": "31",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "ICONIQ CLUB",
+                  "type": "heading-3",
+                  "block_id": "32",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "grilled chicken, herb mayo, bacon, tomatoes, rocket ~ 450",
+                  "type": "paragraph",
+                  "block_id": "33",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "LOBSTER ROLL (S)",
+                  "type": "heading-3",
+                  "block_id": "34",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "warm buttered brioche, truffle mayo, butter garlic, chive ~ 650",
+                  "type": "paragraph",
+                  "block_id": "35",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "PRAWN & SCOTCH BONNET BUNS (S)",
+                  "type": "heading-3",
+                  "block_id": "36",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "steamed buns, prawn salad, scotch-bonnet mayo ~ 550",
+                  "type": "paragraph",
+                  "block_id": "37",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "SMOKED CHICKEN BUN",
+                  "type": "heading-3",
+                  "block_id": "38",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "wood smoked chicken, garlic cream, thyme, parmesan ~ 450",
+                  "type": "paragraph",
+                  "block_id": "39",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "CHILI CHEESE BUN (V)",
+                  "type": "heading-3",
+                  "block_id": "40",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "green chilli, cheddar-mozzarella-belper knolle, scallion, chaat spice ~ 350",
+                  "type": "paragraph",
+                  "block_id": "41",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "Please let us know of any allergies BEFORE you order. Some dishes can be made Vegan or Gluten Free. Taxes are charged extra",
+                  "type": "footer",
+                  "block_id": "42",
+                  "bbox_normalized": []
+                }
+              ]
+            }
+          }
+        ],
+        "text": "AVIATOR\nTOFU & PEANUT LETTUCE CUPS (VG)\nginger-chilli, peanut-sesame, lime ~ 350\nBABY SPINACH SALAD WITH DATES & ALMONDS (V)\ncarmelised dates, toasted almonds, lemon, sumac ~ 350\nHEIRLOOM TOMATO & STRACCIATELLA (V)\nbasil oil, black olive caramel ~ 350\nASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI (V)\nultra-crisp spears, pepper, lemon ~ 350\nRUSSET POTATO, TRUFFLE, CAVIAR (S)\ncrisp potato, hot truffle sauce, oscietra ~ 495\nSMOKED CHICKEN & GREEN TOMATO\nchilled slices, dill oil, kombu-chicken dashi gel, pickled green tomatoes ~ 450\nSEA BASS CRUDO (S)\nchilled slices, finger-lime pearls, aromatic oil ~ 750\nTAGLIATELLE & TRUFFLE (V)\nrich yolk pasta, beurre mont\u00e9, shaved truffle ~ 950\nBUTTERNUT SQUASH \u201cCARBONARA\u201d (V)\nbutternut cream, pecorino, black pepper ~ 650\nASPARAGUS & PARMESAN CUSTARD (V)\nraw-shaved tips, warm parmesan custard, citrus crumb ~ 650\nCHARRED BABY CORN, BLACK GARLIC BUTTER (V)\nbrown-butter glaze, manchego snow ~ 650\nCAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION (V)\ncapers, toasted hazelnut crumb ~ 750\nCOURGETTE & CHICKPEA PANCAKES (V)\nsocca-style, dill yoghurt, herb salad ~ 450\nTOMATO BENEDICT CROISSANT (V)\npoached egg, crushed tomatoes, chili hollandaise ~ 450\nAVIATOR BIG MACWICH (V)\nseasonal veggie patties, mozzarella, beet slaw, rocket ~ 350\nICONIQ CLUB\ngrilled chicken, herb mayo, bacon, tomatoes, rocket ~ 450\nLOBSTER ROLL (S)\nwarm buttered brioche, truffle mayo, butter garlic, chive ~ 650\nPRAWN & SCOTCH BONNET BUNS (S)\nsteamed buns, prawn salad, scotch-bonnet mayo ~ 550\nSMOKED CHICKEN BUN\nwood smoked chicken, garlic cream, thyme, parmesan ~ 450\nCHILI CHEESE BUN (V)\ngreen chilli, cheddar-mozzarella-belper knolle, scallion, chaat spice ~ 350\nPlease let us know of any allergies BEFORE you order. Some dishes can be made Vegan or Gluten Free. Taxes are charged extra"
+      }
+    }
+  ]
+}

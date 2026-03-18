@@ -1,5 +1,5 @@
 """
-Order Handler for KePSLA Bot v2
+Order Handler for NexOria
 
 Handles ORDER_FOOD intent (building order summaries from DB menu items)
 and CONFIRMATION_YES when pending_action is "confirm_order" (creating

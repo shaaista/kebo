@@ -1,0 +1,24 @@
+[PASS 1]
+{
+  "menu_name": "",
+  "page": 1,
+  "dish_blocks": [],
+  "other_text_line_indices": [],
+  "footer_line_indices": [],
+  "notes": "No OCR lines were provided on this page; nothing to group."
+}
+
+[PASS 2]
+{
+  "menu_name": "",
+  "items": [],
+  "other_text": "[PAGE 1]",
+  "footer_text": "",
+  "notes": "Page classified as intro_or_story_page or non-menu due to absence of OCR lines containing menu content. The provided ocr_page has no extractable lines, blocks, or icons; only raw_text shows a placeholder.",
+  "page_extras": {
+    "page_intent": "intro_or_story_page",
+    "columns_detected": 0,
+    "section_headers": [],
+    "reasoning": "The ocr_page payload contains no lines or blocks to form menu items. No coordinates, prices, or dish-like phrases present."
+  }
+}

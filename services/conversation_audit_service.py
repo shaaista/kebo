@@ -213,6 +213,10 @@ class ConversationAuditService:
         return {
             "timestamp": datetime.now(UTC).isoformat(),
             "trace_id": self._as_text(trace_id),
+            "turn_trace_id": self._as_text(
+                request_meta.get("turn_trace_id")
+                or response_meta.get("turn_trace_id")
+            ),
             "session_id": self._as_text(request.session_id),
             "hotel_code": self._as_text(request.hotel_code),
             "channel": channel,
@@ -230,6 +234,8 @@ class ConversationAuditService:
             "routing": {
                 "routing_path": self._as_text(response_meta.get("routing_path")),
                 "response_source": self._as_text(response_meta.get("response_source")),
+                "orchestration_trace_id": self._as_text(response_meta.get("orchestration_trace_id")),
+                "full_kb_trace_id": self._as_text(response_meta.get("full_kb_trace_id")),
             },
             "request_metadata": self._sanitize(request_meta),
             "response_metadata": self._sanitize(response_meta),
@@ -284,4 +290,3 @@ class ConversationAuditService:
 
 
 conversation_audit_service = ConversationAuditService()
-

@@ -1,0 +1,60 @@
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "BUTTER CHICKEN PULAO",
+      "description": "Chicken Tikka, Smooth Makhani Gravy, Served With Pulao",
+      "price": "850",
+      "kcal": "159 Kcal",
+      "allergens": ["milk", "mustard"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": ["□", "①⑥ ⑪"]
+      }
+    },
+    {
+      "name": "LAMB MINCE SHEPHERD’S PIE",
+      "description": "Minced Lamb, Rosemary, Tomato Jus, Mashed Potato Baked",
+      "price": "850",
+      "kcal": "149 Kcal",
+      "allergens": ["milk"],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": ["◉"]
+      }
+    }
+  ],
+  "other_text": [
+    "SERVED IN SUSTAINABLE MEAL BOXES",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Eggs",
+    "Fish",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Single main column of items under heading '15 MINUTES MEALS'. Prices aligned to the right within the same column. Dietary/allergen icons used where present; numeric circled markers retained in extras.unparsed_marks.",
+  "page_extras": {}
+}

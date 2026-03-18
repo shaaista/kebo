@@ -1,0 +1,151 @@
+{
+  "menu_name": "In-Room Dining",
+  "items": [
+    {
+      "name": "OOTY BANANA",
+      "description": "Banana And Cinnamon Compote, Vanilla Ganache, Banana Sponge, Sable",
+      "price": "450",
+      "kcal": "337",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u2463"
+        ]
+      }
+    },
+    {
+      "name": "BELGIUM CHOCOLATE TART",
+      "description": "Chocolate Tart, Belgium Chocolate Ganache, Feuilletine Crunch",
+      "price": "450",
+      "kcal": "432",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u24c7"
+        ]
+      }
+    },
+    {
+      "name": "PASSIONFRUIT PANNA COTTA",
+      "description": "Vanilla Cream Mascarpone Cheese, Passion Fruit Jelly, Fruits",
+      "price": "450",
+      "kcal": "155",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "BISCOFF CHEESECAKE",
+      "description": "Bisco Spread, Cream Cheese, Caramel Glaze, Sable",
+      "price": "450",
+      "kcal": "393",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u2611"
+        ]
+      }
+    },
+    {
+      "name": "OPERA",
+      "description": "Almond Sponge, Coee Butter Cream, Dark True, Espresso Coee",
+      "price": "450",
+      "kcal": "370",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk",
+        "nuts",
+        "soy"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25a1",
+          "* * * *"
+        ]
+      }
+    },
+    {
+      "name": "TIRAMISU",
+      "description": "Vanilla Sabayon Cream, Crunchy Lady Finger, Coee Ganache Cocoa Powder, Espresso Coee",
+      "price": "450",
+      "kcal": "398",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "DESSERT",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "+"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Sulpher Dioxide",
+    "Molluscs",
+    "Mustard",
+    "Crustaceans",
+    "Celery",
+    "Soybeans",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Peanuts",
+    "Fish",
+    "Eggs",
+    "Non-Vegetarian"
+  ],
+  "notes": [],
+  "page_extras": {}
+}

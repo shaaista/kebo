@@ -1,0 +1,1463 @@
+{
+  "page": 4,
+  "lines": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ],
+      "icons": [],
+      "layout_role": "shared",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "FLATBREADS",
+      "bbox": [
+        1077.7180756,
+        772.81623409,
+        1819.7252056,
+        851.99118516
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "12:00 PM TO 11:30 PM",
+      "bbox": [
+        1069.11007518,
+        891.5785993,
+        1819.7252056,
+        938.0509306
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "ICONIQA NEAPOLITAN",
+      "bbox": [
+        967.5359712,
+        1153.20017141,
+        1540.8269528,
+        1187.6240614
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "FLATBREAD",
+      "bbox": [
+        965.81438848,
+        1211.7207803000001,
+        1272.25816738,
+        1246.14462936
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Sourdough, Tomato Sauce,",
+      "bbox": [
+        964.09280576,
+        1278.84733099,
+        1484.01426,
+        1311.5500326200001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Mozzarella Cheese",
+      "bbox": [
+        965.81438848,
+        1323.5984329999999,
+        1320.46283082,
+        1351.13748769
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "200 Kcal",
+      "bbox": [
+        964.09280576,
+        1382.1190418899998,
+        1103.54199004,
+        1406.21576079
+      ],
+      "icons": [
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "GRILLED MUSHROOM",
+      "bbox": [
+        965.81438848,
+        1502.60263639,
+        1502.9517278,
+        1537.0264854499999
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "FLATBREAD",
+      "bbox": [
+        965.81438848,
+        1561.12320435,
+        1272.25816738,
+        1593.82594691
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Mushroom, Tomato, Mozzarella, Basil",
+      "bbox": [
+        965.81438848,
+        1626.52864854,
+        1676.832798,
+        1657.51007995
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "208 Kcal",
+      "bbox": [
+        964.09280576,
+        1685.0492165,
+        1101.82037838,
+        1707.42466518
+      ],
+      "icons": [
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "THE MEDITERRANEAN",
+      "bbox": [
+        964.09280576,
+        1805.532811,
+        1527.0541174,
+        1839.9567009900002
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "FLATBREAD",
+      "bbox": [
+        965.81438848,
+        1864.05341989,
+        1272.25816738,
+        1898.4772689499998
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Artichoke Heart, Kalamata,",
+      "bbox": [
+        964.09280576,
+        1929.45882315,
+        1480.57115244,
+        1960.44029549
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Roasted Garlic, Feta",
+      "bbox": [
+        965.81438848,
+        1974.2098432999999,
+        1351.45152236,
+        2005.19127471
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "187 Kcal",
+      "bbox": [
+        962.3711940999999,
+        2029.28799361,
+        1089.76921252,
+        2053.3848353000003
+      ],
+      "icons": [
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "BBQ CHICKEN FLATBREAD",
+      "bbox": [
+        967.5359712,
+        2156.65630062,
+        1647.5657760000001,
+        2191.0803134000003
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "BBQ Chicken, Tomato, Mozzarella",
+      "bbox": [
+        965.81438848,
+        2223.7829741,
+        1614.85535704,
+        2256.4856348
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "157 Kcal",
+      "bbox": [
+        964.09280576,
+        2280.5823537,
+        1089.76921252,
+        2304.6790726
+      ],
+      "icons": [
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u24c7",
+      "bbox": [
+        1153.46814938,
+        2278.8612472,
+        1184.4568409199999,
+        2308.12149025
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1151.47902398,
+        1988.441354,
+        1179.0180377400002
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1500.8814071,
+        1988.441354,
+        1528.4205027199998
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1803.81154078,
+        1988.441354,
+        1831.3506364
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        2096.4145443,
+        1988.441354,
+        2123.95372178
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "LOW CARB PIZZA BOWL",
+      "bbox": [
+        967.5359712,
+        2418.27803645,
+        1595.9178892399998,
+        2452.70176272
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1917.8561152,
+        2416.5568890199997,
+        1990.1629945999998,
+        2444.09577999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Lean Turkey, Jalape\u00f1o, Cheese",
+      "bbox": [
+        965.81438848,
+        2487.1257754999997,
+        1559.7644206,
+        2521.5495427
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "110 Kcal",
+      "bbox": [
+        964.09280576,
+        2545.6462616000003,
+        1086.3259891999999,
+        2569.7429804999997
+      ],
+      "icons": [
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Milk",
+      "bbox": [
+        760.94471356,
+        3765.9729837,
+        805.7060958,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Gluten",
+      "bbox": [
+        891.7858105999999,
+        3765.9729837,
+        967.5359712,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Lupin",
+      "bbox": [
+        1045.0077724,
+        3767.69425392,
+        1108.7067382,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Crustaceans",
+      "bbox": [
+        759.2231019,
+        3815.88769172,
+        903.8370054,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Celery",
+      "bbox": [
+        984.7519431,
+        3815.88769172,
+        1058.7805209800001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Sulpher Dioxide",
+      "bbox": [
+        1189.62161802,
+        3765.9729837,
+        1377.2754367999999,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Soybeans",
+      "bbox": [
+        1146.58176062,
+        3815.88769172,
+        1260.20700152,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "Molluscs",
+      "bbox": [
+        1447.8606756,
+        3765.9729837,
+        1547.7132258000001,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Sesame",
+      "bbox": [
+        1358.33791112,
+        3815.88769172,
+        1449.5824319600001,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Tree Nuts",
+      "bbox": [
+        1533.94050616,
+        3815.88769172,
+        1645.8441354,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Kindly inform our associates of any allergies you may have.",
+      "bbox": [
+        724.7912159800001,
+        3870.96596482,
+        1430.64490628,
+        3893.3414135
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+      "bbox": [
+        723.06963326,
+        3905.38969109,
+        1516.7245632000001,
+        3927.7653853499996
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        724.7912159800001,
+        3939.8137448,
+        1339.40038544,
+        3960.46800512
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Mustard",
+      "bbox": [
+        1644.1224948000001,
+        3765.9729837,
+        1737.08868518,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Peanuts",
+      "bbox": [
+        1819.7252056,
+        3767.69425392,
+        1912.6913381000002,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Vegetarian",
+      "bbox": [
+        1733.6454908,
+        3817.6088391499998,
+        1861.0434224,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Fish",
+      "bbox": [
+        2124.4474886,
+        3765.9729837,
+        2169.20887084,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Eggs",
+      "bbox": [
+        1993.6062758,
+        3767.69425392,
+        2048.6972411799998,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Non-Vegetarian",
+      "bbox": [
+        1960.8958279,
+        3817.6088391499998,
+        2146.82806396,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        902.1153648,
+        1153.20017141,
+        934.825668,
+        1189.34529069
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        902.1153648,
+        1502.60263639,
+        934.825668,
+        1538.7476328799999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u246a",
+      "bbox": [
+        1167.24089796,
+        1683.3279462799999,
+        1198.2295895,
+        1712.58823026
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        902.1153648,
+        1805.532811,
+        933.10408528,
+        1839.9567009900002
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u25a1",
+      "bbox": [
+        903.8370054,
+        2156.65630062,
+        936.5473086,
+        2192.8014199
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        903.8370054,
+        2418.27803645,
+        934.825668,
+        2452.70176272
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1010.5758285999999,
+        3764.2518772,
+        1031.2349948800002,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1409.9857399999999,
+        3765.9729837,
+        1432.366489,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u2469",
+      "bbox": [
+        946.8768627999999,
+        3814.1664215,
+        972.7007772400001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1653.4
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        1695.7704105,
+        3815.88769172,
+        1718.1510147999998,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        1916.1344746,
+        3815.88769172,
+        1936.79349618,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ]
+    },
+    {
+      "text": "FLATBREADS",
+      "bbox": [
+        1077.7180756,
+        772.81623409,
+        1819.7252056,
+        851.99118516
+      ]
+    },
+    {
+      "text": "12:00 PM TO 11:30 PM",
+      "bbox": [
+        1069.11007518,
+        891.5785993,
+        1819.7252056,
+        938.0509306
+      ]
+    },
+    {
+      "text": "\u25a3 ICONIQA NEAPOLITAN FLATBREAD",
+      "bbox": [
+        967.5359712,
+        1153.20017141,
+        1540.8269528,
+        1187.6240614
+      ]
+    },
+    {
+      "text": "Sourdough, Tomato Sauce, Mozzarella Cheese 200 Kcal",
+      "bbox": [
+        964.09280576,
+        1278.84733099,
+        1484.01426,
+        1311.5500326200001
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1151.47902398,
+        1988.441354,
+        1179.0180377400002
+      ]
+    },
+    {
+      "text": "\u25a3 GRILLED MUSHROOM FLATBREAD",
+      "bbox": [
+        965.81438848,
+        1502.60263639,
+        1502.9517278,
+        1537.0264854499999
+      ]
+    },
+    {
+      "text": "Mushroom, Tomato, Mozzarella, Basil 208 Kcal",
+      "bbox": [
+        965.81438848,
+        1626.52864854,
+        1676.832798,
+        1657.51007995
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1500.8814071,
+        1988.441354,
+        1528.4205027199998
+      ]
+    },
+    {
+      "text": "\u25a3 THE MEDITERRANEAN FLATBREAD",
+      "bbox": [
+        964.09280576,
+        1805.532811,
+        1527.0541174,
+        1839.9567009900002
+      ]
+    },
+    {
+      "text": "Artichoke Heart, Kalamata, Roasted Garlic, Feta 187 Kcal",
+      "bbox": [
+        964.09280576,
+        1803.81154078,
+        1527.0541174,
+        1839.95670099
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1916.1344746,
+        1803.81154078,
+        1988.441354,
+        1831.3506364
+      ]
+    },
+    {
+      "text": "\u25ec BBQ CHICKEN FLATBREAD",
+      "bbox": [
+        967.5359712,
+        2156.65630062,
+        1647.5657760000001,
+        2191.0803134000003
+      ]
+    },
+    {
+      "text": "BBQ Chicken, Tomato, Mozzarella 157 Kcal",
+      "bbox": [
+        965.81438848,
+        2223.7829741,
+        1614.85535704,
+        2256.4856348
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        2096.4145443,
+        1988.441354,
+        2123.95372178
+      ]
+    },
+    {
+      "text": "\u25ec LOW CARB PIZZA BOWL",
+      "bbox": [
+        967.5359712,
+        2418.27803645,
+        1595.9178892399998,
+        2452.70176272
+      ]
+    },
+    {
+      "text": "Lean Turkey, Jalape\u00f1o, Cheese 110 Kcal",
+      "bbox": [
+        965.81438848,
+        2487.1257754999997,
+        1559.7644206,
+        2521.5495427
+      ]
+    },
+    {
+      "text": "650",
+      "bbox": [
+        1917.8561152,
+        2416.5568890199997,
+        1990.1629945999998,
+        2444.09577999
+      ]
+    },
+    {
+      "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u25a3 Vegetarian \u25ec Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        1917.8561152000002,
+        2447.538168551817,
+        1990.1629945999998,
+        2475.0770595218173
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1143.0,
+        943.0,
+        1191.0
+      ],
+      "score": 0.9,
+      "line_index": 3
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1143.0,
+        943.0,
+        1191.0
+      ],
+      "score": 0.9,
+      "line_index": 4
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1165.0,
+        1373.0,
+        1207.0,
+        1417.0
+      ],
+      "score": 0.5816936492919922,
+      "line_index": 6
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1165.0,
+        1373.0,
+        1207.0,
+        1415.0
+      ],
+      "score": 0.5816936492919922,
+      "line_index": 7
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1125.0,
+        1373.0,
+        1167.0,
+        1415.0
+      ],
+      "score": 0.5596427917480469,
+      "line_index": 7
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1492.0,
+        943.0,
+        1540.0
+      ],
+      "score": 0.9,
+      "line_index": 8
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1493.0,
+        943.0,
+        1540.0
+      ],
+      "score": 0.9,
+      "line_index": 9
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1167.0,
+        1678.0,
+        1207.0,
+        1718.0
+      ],
+      "score": 0.5282909274101257,
+      "line_index": 11
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1127.0,
+        1678.0,
+        1167.0,
+        1718.0
+      ],
+      "score": 0.44715800881385803,
+      "line_index": 11
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1795.0,
+        943.0,
+        1843.0
+      ],
+      "score": 0.9,
+      "line_index": 12
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1796.0,
+        943.0,
+        1843.0
+      ],
+      "score": 0.9,
+      "line_index": 13
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1151.0,
+        2019.0,
+        1193.0,
+        2061.0
+      ],
+      "score": 0.6283280253410339,
+      "line_index": 16
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1111.0,
+        2019.0,
+        1153.0,
+        2061.0
+      ],
+      "score": 0.5137492418289185,
+      "line_index": 16
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2146.0,
+        944.0,
+        2194.0
+      ],
+      "score": 0.9,
+      "line_index": 17
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2155.0,
+        944.0,
+        2194.0
+      ],
+      "score": 0.9,
+      "line_index": 18
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1150.0,
+        2272.0,
+        1192.0,
+        2314.0
+      ],
+      "score": 0.5055455565452576,
+      "line_index": 19
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1110.0,
+        2272.0,
+        1152.0,
+        2314.0
+      ],
+      "score": 0.493610680103302,
+      "line_index": 19
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1149.0,
+        2271.0,
+        1193.0,
+        2315.0
+      ],
+      "score": 0.5055455565452576,
+      "line_index": 20
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1109.0,
+        2271.0,
+        1153.0,
+        2315.0
+      ],
+      "score": 0.493610680103302,
+      "line_index": 20
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2409.0,
+        944.0,
+        2457.0
+      ],
+      "score": 0.9,
+      "line_index": 25
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1108.0,
+        2535.0,
+        1154.0,
+        2581.0
+      ],
+      "score": 0.5863745808601379,
+      "line_index": 28
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        894.0,
+        1142.0,
+        944.0,
+        1192.0
+      ],
+      "score": 0.9,
+      "line_index": 48
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        894.0,
+        1491.0,
+        944.0,
+        1541.0
+      ],
+      "score": 0.9,
+      "line_index": 49
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1165.0,
+        1676.0,
+        1209.0,
+        1720.0
+      ],
+      "score": 0.5282909274101257,
+      "line_index": 50
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1125.0,
+        1676.0,
+        1169.0,
+        1720.0
+      ],
+      "score": 0.44715800881385803,
+      "line_index": 50
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1795.0,
+        943.0,
+        1843.0
+      ],
+      "score": 0.9,
+      "line_index": 51
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        2145.0,
+        945.0,
+        2195.0
+      ],
+      "score": 0.9,
+      "line_index": 52
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2409.0,
+        944.0,
+        2457.0
+      ],
+      "score": 0.9,
+      "line_index": 53
+    }
+  ],
+  "page_text": "IN ROOM DINING\nFLATBREADS\n12:00 PM TO 11:30 PM\nICONIQA NEAPOLITAN\nFLATBREAD\nSourdough, Tomato Sauce,\nMozzarella Cheese\n200 Kcal\nGRILLED MUSHROOM\nFLATBREAD\nMushroom, Tomato, Mozzarella, Basil\n208 Kcal\nTHE MEDITERRANEAN\nFLATBREAD\nArtichoke Heart, Kalamata,\nRoasted Garlic, Feta\n187 Kcal\nBBQ CHICKEN FLATBREAD\nBBQ Chicken, Tomato, Mozzarella\n157 Kcal\n\u24c7\n650\n650\n650\n750\nLOW CARB PIZZA BOWL\n650\nLean Turkey, Jalape\u00f1o, Cheese\n110 Kcal\nMilk\nGluten\nLupin\nCrustaceans\nCelery\nSulpher Dioxide\nSoybeans\nMolluscs\nSesame\nTree Nuts\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\nMustard\nPeanuts\nVegetarian\nFish\nEggs\nNon-Vegetarian\n\u25c9\n\u25c9\n\u246a\n\u25c9\n\u25a1\n\u2611\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+}

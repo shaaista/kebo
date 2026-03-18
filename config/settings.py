@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     )
 
     # Application
-    app_name: str = "KePSLA Bot v2"
+    app_name: str = "NexOria"
     app_env: str = "development"
     debug: bool = True
     secret_key: str = "change-me-in-production"
@@ -33,9 +33,18 @@ class Settings(BaseSettings):
     # Observability / Evaluation
     observability_enabled: bool = True
     observability_log_file: str = "./logs/observability.log"
+    backend_trace_enabled: bool = True
+    backend_trace_log_file: str = "./logs/backend_trace.jsonl"
+    backend_trace_max_chars: int = 2000
     evaluation_metrics_enabled: bool = True
     conversation_audit_enabled: bool = True
     conversation_audit_log_file: str = "./logs/conversation_audit.jsonl"
+    turn_diagnostics_enabled: bool = True
+    turn_diagnostics_log_file: str = "./logs/turn_diagnostics.jsonl"
+    turn_diagnostics_max_chars: int = 250000
+    everything_trace_enabled: bool = True
+    everything_trace_log_file: str = "./logs/everything_backend_trace.jsonl"
+    everything_trace_max_chars: int = 400000
 
     # Database (SQLite for dev, PostgreSQL for production)
     database_url: str = "sqlite+aiosqlite:///./kepsla_bot.db"
@@ -140,6 +149,8 @@ class Settings(BaseSettings):
     context_window_tokens: int = 8000
     session_ttl_hours: int = 24
     conversation_local_store_enabled: bool = True
+    chat_test_phase_profile_auto_apply: bool = True
+    chat_test_phase_profiles_json: str = ""
     conversation_local_store_file: str = Field(
         default_factory=lambda: (
             "/tmp/kepsla_local_contexts.json"

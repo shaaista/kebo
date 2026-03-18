@@ -1,0 +1,12 @@
+{
+  "source": "deterministic",
+  "error": "OpenAI disabled",
+  "usage": {
+    "model": "gpt-5",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "total_tokens": 0,
+    "estimated_cost_usd": null,
+    "pricing_source": "unknown"
+  }
+}

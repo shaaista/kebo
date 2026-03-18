@@ -1,0 +1,2128 @@
+{
+  "input_type": "ocr_document",
+  "payload_mode": "layout_full",
+  "pages": [
+    {
+      "page": 1,
+      "width": null,
+      "height": null,
+      "raw_text": "[PAGE 1]\nIN ROOM DINING\nSOUPS\n12:00 PM TO 11:30 PM\n\u2610 MINESTRONE ALLA GENOVESE SOUP Beans, Potato, Cheese, Tomato 48 Kcal\n500\n\u2610 HOMEMADE MUSHROOM SOUP Mushroom, Cream, Aromatic Vegetables 46 Kcal\n500\n\u2610 VEGETABLE WONTON SOUP Vegetable Wonton, Clear Soup, Scallion 48 Kcal\n500\n\u2611 SWEET CORN CHICKEN SOUP Creamy Corn, Chicken, Scallion 60 Kcal\n550\nSALADS\n12:00 PM TO 11:30 PM\n\u2610 BABY SPINACH SALAD Spinach, Date, Walnut, Sumac Lemon 176 Kcal\n500\n\u2610 BURRATA SALAD Fresh Burrata, Tomato, Olive Oil 129 Kcal\n500\n\u2611 CLASSIC CAESAR SALAD Romaine, Grilled Chicken, Crispy Bacon, Anchovies, Poached Egg 124 Kcal\n650\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2610 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "lines": [
+        {
+          "line_index": 0,
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "column_index": 0,
+          "layout_role": "shared"
+        },
+        {
+          "line_index": 36,
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 37,
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 40,
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 41,
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 52,
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 38,
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 44,
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 46,
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 48,
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 49,
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 50,
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 51,
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 55,
+          "text": "\u25c9",
+          "bbox": [
+            927.93930818,
+            1123.9398465000002,
+            960.64961138,
+            1158.36373649
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1118.0,
+                968.0,
+                1166.0
+              ],
+              "score": 0.9,
+              "line_index": 55,
+              "near_line_index": 55,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 3,
+          "text": "MINESTRONE ALLA",
+          "bbox": [
+            989.9167202,
+            1123.9398465000002,
+            1477.127987,
+            1158.36373649
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1118.0,
+                968.0,
+                1166.0
+              ],
+              "score": 0.9,
+              "line_index": 3,
+              "near_line_index": 3,
+              "near_text": "MINESTRONE ALLA"
+            }
+          ]
+        },
+        {
+          "line_index": 11,
+          "text": "500",
+          "bbox": [
+            1940.23669056,
+            1123.9398465000002,
+            2015.9868511599998,
+            1149.75775376
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 4,
+          "text": "GENOVESE SOUP",
+          "bbox": [
+            988.1951374800001,
+            1182.4604553899999,
+            1425.48010024,
+            1216.88430445
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1118.0,
+                968.0,
+                1166.0
+              ],
+              "score": 0.9,
+              "line_index": 4,
+              "near_line_index": 4,
+              "near_text": "GENOVESE SOUP"
+            }
+          ]
+        },
+        {
+          "line_index": 6,
+          "text": "48 Kcal",
+          "bbox": [
+            988.1951374800001,
+            1299.5017140999998,
+            1105.26357276,
+            1323.5984329999999
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "celery",
+              "bbox": [
+                1177.0,
+                1289.0,
+                1219.0,
+                1331.0
+              ],
+              "score": 0.4892,
+              "line_index": 6,
+              "near_line_index": 6,
+              "near_text": "48 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1135.0,
+                1289.0,
+                1177.0,
+                1331.0
+              ],
+              "score": 0.4854,
+              "line_index": 6,
+              "near_line_index": 6,
+              "near_text": "48 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 7,
+          "text": "HOMEMADE",
+          "bbox": [
+            989.9167202,
+            1419.9853086,
+            1287.75252762,
+            1454.40919859
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1414.0,
+                968.0,
+                1462.0
+              ],
+              "score": 0.9,
+              "line_index": 7,
+              "near_line_index": 7,
+              "near_text": "HOMEMADE"
+            }
+          ]
+        },
+        {
+          "line_index": 12,
+          "text": "500",
+          "bbox": [
+            1940.23669056,
+            1419.9853086,
+            2015.9868511599998,
+            1447.52436329
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 56,
+          "text": "O",
+          "bbox": [
+            926.2177544,
+            1421.70649696,
+            958.9280576,
+            1454.40919859
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1414.0,
+                968.0,
+                1462.0
+              ],
+              "score": 0.9,
+              "line_index": 56,
+              "near_line_index": 56,
+              "near_text": "O"
+            }
+          ]
+        },
+        {
+          "line_index": 8,
+          "text": "MUSHROOM SOUP",
+          "bbox": [
+            989.9167202,
+            1478.50591749,
+            1449.5824319600001,
+            1512.92976655
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1414.0,
+                968.0,
+                1462.0
+              ],
+              "score": 0.9,
+              "line_index": 8,
+              "near_line_index": 8,
+              "near_text": "MUSHROOM SOUP"
+            }
+          ]
+        },
+        {
+          "line_index": 10,
+          "text": "46 Kcal",
+          "bbox": [
+            988.1951374800001,
+            1595.54709434,
+            1106.98515548,
+            1619.6438132399999
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "celery",
+              "bbox": [
+                1178.0,
+                1586.0,
+                1220.0,
+                1628.0
+              ],
+              "score": 0.5792,
+              "line_index": 10,
+              "near_line_index": 10,
+              "near_text": "46 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1136.0,
+                1586.0,
+                1178.0,
+                1629.0
+              ],
+              "score": 0.4742,
+              "line_index": 10,
+              "near_line_index": 10,
+              "near_text": "46 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 57,
+          "text": "O",
+          "bbox": [
+            929.6609198400001,
+            1728.07908922,
+            958.9280576,
+            1764.22412664
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                917.0,
+                1721.0,
+                969.0,
+                1771.0
+              ],
+              "score": 0.9,
+              "line_index": 57,
+              "near_line_index": 57,
+              "near_text": "O"
+            }
+          ]
+        },
+        {
+          "line_index": 16,
+          "text": "48 Kcal",
+          "bbox": [
+            988.1951374800001,
+            1850.28383115,
+            1105.26357276,
+            1874.38055005
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1133.0,
+                1842.0,
+                1175.0,
+                1884.0
+              ],
+              "score": 0.6481,
+              "line_index": 16,
+              "near_line_index": 16,
+              "near_text": "48 Kcal"
+            },
+            {
+              "label": "soy",
+              "bbox": [
+                1172.0,
+                1842.0,
+                1214.0,
+                1884.0
+              ],
+              "score": 0.5283,
+              "line_index": 16,
+              "near_line_index": 16,
+              "near_text": "48 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 58,
+          "text": "\u2611",
+          "bbox": [
+            926.2177544,
+            1981.0945558100002,
+            957.206417,
+            2017.23971602
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                918.0,
+                1974.0,
+                969.0,
+                2024.0
+              ],
+              "score": 0.9,
+              "line_index": 58,
+              "near_line_index": 58,
+              "near_text": "\u2611"
+            }
+          ]
+        },
+        {
+          "line_index": 59,
+          "text": "\u2465",
+          "bbox": [
+            1172.405704,
+            2099.8571666000003,
+            1199.95120116,
+            2125.674992
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "sesame",
+              "bbox": [
+                1170.0,
+                2093.0,
+                1214.0,
+                2135.0
+              ],
+              "score": 0.6742,
+              "line_index": 59,
+              "near_line_index": 59,
+              "near_text": "\u2465"
+            },
+            {
+              "label": "egg",
+              "bbox": [
+                1131.0,
+                2093.0,
+                1173.0,
+                2135.0
+              ],
+              "score": 0.476,
+              "line_index": 59,
+              "near_line_index": 59,
+              "near_text": "\u2465"
+            }
+          ]
+        },
+        {
+          "line_index": 20,
+          "text": "60 Kcal",
+          "bbox": [
+            989.9167202,
+            2103.2993796,
+            1108.7067382,
+            2125.674992
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "egg",
+              "bbox": [
+                1132.0,
+                2094.0,
+                1172.0,
+                2134.0
+              ],
+              "score": 0.476,
+              "line_index": 20,
+              "near_line_index": 20,
+              "near_text": "60 Kcal"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1171.0,
+                2094.0,
+                1211.0,
+                2134.0
+              ],
+              "score": 0.6742,
+              "line_index": 20,
+              "near_line_index": 20,
+              "near_text": "60 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 60,
+          "text": "\u25c9",
+          "bbox": [
+            912.444919,
+            2755.6321010499996,
+            943.43366842,
+            2791.7771794
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                903.0,
+                2749.0,
+                953.0,
+                2799.0
+              ],
+              "score": 0.9,
+              "line_index": 60,
+              "near_line_index": 60,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 26,
+          "text": "176 Kcal",
+          "bbox": [
+            972.7007772400001,
+            2877.8370067,
+            1100.0988246,
+            2901.93356188
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1118.0,
+                2869.0,
+                1160.0,
+                2911.0
+              ],
+              "score": 0.5617,
+              "line_index": 26,
+              "near_line_index": 26,
+              "near_text": "176 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1197.0,
+                2869.0,
+                1240.0,
+                2911.0
+              ],
+              "score": 0.4626,
+              "line_index": 26,
+              "near_line_index": 26,
+              "near_text": "176 Kcal"
+            },
+            {
+              "label": "nuts",
+              "bbox": [
+                1158.0,
+                2869.0,
+                1200.0,
+                2911.0
+              ],
+              "score": 0.5142,
+              "line_index": 26,
+              "near_line_index": 26,
+              "near_text": "176 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 27,
+          "text": "BURRATA SALAD",
+          "bbox": [
+            972.7007772400001,
+            3003.4841253500003,
+            1409.9857399999999,
+            3037.90785162
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                904.0,
+                2998.0,
+                952.0,
+                3045.0
+              ],
+              "score": 0.9,
+              "line_index": 27,
+              "near_line_index": 27,
+              "near_text": "BURRATA SALAD"
+            }
+          ]
+        },
+        {
+          "line_index": 28,
+          "text": "500",
+          "bbox": [
+            1936.79349618,
+            3003.4841253500003,
+            2012.5437436,
+            3031.02301632
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 61,
+          "text": "\u25c9",
+          "bbox": [
+            912.444919,
+            3005.20527278,
+            943.43366842,
+            3037.90785162
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                904.0,
+                2998.0,
+                952.0,
+                3045.0
+              ],
+              "score": 0.9,
+              "line_index": 61,
+              "near_line_index": 61,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 30,
+          "text": "129 Kcal",
+          "bbox": [
+            972.7007772400001,
+            3115.3615734,
+            1100.0988246,
+            3139.45841509
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1121.0,
+                3107.0,
+                1163.0,
+                3149.0
+              ],
+              "score": 0.574,
+              "line_index": 30,
+              "near_line_index": 30,
+              "near_text": "129 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1199.0,
+                3106.0,
+                1241.0,
+                3148.0
+              ],
+              "score": 0.4603,
+              "line_index": 30,
+              "near_line_index": 30,
+              "near_text": "129 Kcal"
+            },
+            {
+              "label": "nuts",
+              "bbox": [
+                1160.0,
+                3107.0,
+                1202.0,
+                3149.0
+              ],
+              "score": 0.5578,
+              "line_index": 30,
+              "near_line_index": 30,
+              "near_text": "129 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 62,
+          "text": "\u2611",
+          "bbox": [
+            910.72336522,
+            3230.68160282,
+            938.26889132,
+            3266.8267220999996
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                902.0,
+                3225.0,
+                953.0,
+                3275.0
+              ],
+              "score": 0.9,
+              "line_index": 62,
+              "near_line_index": 62,
+              "near_text": "\u2611"
+            }
+          ]
+        },
+        {
+          "line_index": 34,
+          "text": "Anchovies, Poached Egg",
+          "bbox": [
+            972.7007772400001,
+            3340.83814902,
+            1437.5312661,
+            3373.540646
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "fish",
+              "bbox": [
+                1276.0,
+                3393.0,
+                1322.0,
+                3441.0
+              ],
+              "score": 0.4803,
+              "line_index": 34,
+              "near_line_index": 34,
+              "near_text": "Anchovies, Poached Egg"
+            },
+            {
+              "label": "egg",
+              "bbox": [
+                1237.0,
+                3393.0,
+                1283.0,
+                3441.0
+              ],
+              "score": 0.439,
+              "line_index": 34,
+              "near_line_index": 34,
+              "near_text": "Anchovies, Poached Egg"
+            }
+          ]
+        },
+        {
+          "line_index": 63,
+          "text": "10**",
+          "bbox": [
+            1167.24089796,
+            3399.35875791,
+            1311.8548304,
+            3435.50387719
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "mustard",
+              "bbox": [
+                1157.0,
+                3392.0,
+                1206.0,
+                3441.0
+              ],
+              "score": 0.6262,
+              "line_index": 63,
+              "near_line_index": 63,
+              "near_text": "10**"
+            },
+            {
+              "label": "gluten",
+              "bbox": [
+                1118.0,
+                3392.0,
+                1166.0,
+                3440.0
+              ],
+              "score": 0.5993,
+              "line_index": 63,
+              "near_line_index": 63,
+              "near_text": "10**"
+            },
+            {
+              "label": "fish",
+              "bbox": [
+                1275.0,
+                3392.0,
+                1323.0,
+                3441.0
+              ],
+              "score": 0.4803,
+              "line_index": 63,
+              "near_line_index": 63,
+              "near_text": "10**"
+            }
+          ]
+        },
+        {
+          "line_index": 35,
+          "text": "124 Kcal",
+          "bbox": [
+            972.7007772400001,
+            3402.8010937,
+            1100.0988246,
+            3426.8978125999997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "egg",
+              "bbox": [
+                1239.0,
+                3395.0,
+                1281.0,
+                3437.0
+              ],
+              "score": 0.439,
+              "line_index": 35,
+              "near_line_index": 35,
+              "near_text": "124 Kcal"
+            },
+            {
+              "label": "fish",
+              "bbox": [
+                1278.0,
+                3395.0,
+                1320.0,
+                3438.0
+              ],
+              "score": 0.4803,
+              "line_index": 35,
+              "near_line_index": 35,
+              "near_text": "124 Kcal"
+            },
+            {
+              "label": "gluten",
+              "bbox": [
+                1121.0,
+                3395.0,
+                1163.0,
+                3437.0
+              ],
+              "score": 0.5993,
+              "line_index": 35,
+              "near_line_index": 35,
+              "near_text": "124 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1200.0,
+                3395.0,
+                1242.0,
+                3438.0
+              ],
+              "score": 0.3935,
+              "line_index": 35,
+              "near_line_index": 35,
+              "near_text": "124 Kcal"
+            },
+            {
+              "label": "mustard",
+              "bbox": [
+                1160.0,
+                3395.0,
+                1202.0,
+                3437.0
+              ],
+              "score": 0.6262,
+              "line_index": 35,
+              "near_line_index": 35,
+              "near_text": "124 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 64,
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 66,
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 43,
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 45,
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 1,
+          "text": "SOUPS",
+          "bbox": [
+            1258.4854188,
+            783.1434051800001,
+            1635.5145811999998,
+            862.31831532
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 2,
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            913.9541298400001,
+            1819.7252056,
+            958.7051909200001
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 5,
+          "text": "Beans, Potato, Cheese, Tomato",
+          "bbox": [
+            991.6383608,
+            1242.7023345,
+            1573.537256,
+            1273.68376591
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 9,
+          "text": "Mushroom, Cream, Aromatic Vegetables",
+          "bbox": [
+            991.6383608,
+            1538.7476328799999,
+            1749.1396774000002,
+            1571.45037544
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 13,
+          "text": "VEGETABLE WONTON SOUP",
+          "bbox": [
+            986.47352582,
+            1728.07908922,
+            1712.9863824000001,
+            1762.50293828
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1722.0,
+                968.0,
+                1770.0
+              ],
+              "score": 0.9,
+              "line_index": 13,
+              "near_line_index": 13,
+              "near_text": "VEGETABLE WONTON SOUP"
+            }
+          ]
+        },
+        {
+          "line_index": 14,
+          "text": "500",
+          "bbox": [
+            1940.23669056,
+            1728.07908922,
+            2015.9868511599998,
+            1753.89695555
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 15,
+          "text": "Vegetable Wonton, Clear Soup, Scallion",
+          "bbox": [
+            989.9167202,
+            1791.7632631899999,
+            1737.08868518,
+            1826.1871122500002
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                920.0,
+                1723.0,
+                968.0,
+                1770.0
+              ],
+              "score": 0.9,
+              "line_index": 15,
+              "near_line_index": 15,
+              "near_text": "Vegetable Wonton, Clear Soup, Scallion"
+            }
+          ]
+        },
+        {
+          "line_index": 17,
+          "text": "SWEET CORN CHICKEN SOUP",
+          "bbox": [
+            986.47352582,
+            1979.37340838,
+            1738.8101232,
+            2015.5185685899999
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                918.0,
+                1974.0,
+                969.0,
+                2024.0
+              ],
+              "score": 0.9,
+              "line_index": 17,
+              "near_line_index": 17,
+              "near_text": "SWEET CORN CHICKEN SOUP"
+            }
+          ]
+        },
+        {
+          "line_index": 18,
+          "text": "550",
+          "bbox": [
+            1940.23669056,
+            1979.37340838,
+            2012.5437436,
+            2006.912504
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 19,
+          "text": "Creamy Corn, Chicken, Scallion",
+          "bbox": [
+            989.9167202,
+            2044.7788935,
+            1571.8156154,
+            2079.2026607
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                919.0,
+                1976.0,
+                968.0,
+                2023.0
+              ],
+              "score": 0.9,
+              "line_index": 19,
+              "near_line_index": 19,
+              "near_text": "Creamy Corn, Chicken, Scallion"
+            }
+          ]
+        },
+        {
+          "line_index": 21,
+          "text": "SALADS",
+          "bbox": [
+            1205.1160072,
+            2411.39320115,
+            1656.1736896,
+            2490.5679885000004
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 22,
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1053.6156859999999,
+            2540.48265559,
+            1804.2307296,
+            2586.9548641
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 23,
+          "text": "BABY SPINACH SALAD",
+          "bbox": [
+            972.7007772400001,
+            2755.6321010499996,
+            1547.7132258000001,
+            2790.05582732
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                904.0,
+                2750.0,
+                952.0,
+                2798.0
+              ],
+              "score": 0.9,
+              "line_index": 23,
+              "near_line_index": 23,
+              "near_text": "BABY SPINACH SALAD"
+            }
+          ]
+        },
+        {
+          "line_index": 24,
+          "text": "500",
+          "bbox": [
+            1936.79349618,
+            2755.6321010499996,
+            2012.5437436,
+            2783.1712376
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 25,
+          "text": "Spinach, Date, Walnut, Sumac Lemon",
+          "bbox": [
+            972.7007772400001,
+            2821.0376271,
+            1675.1112731599999,
+            2853.74012408
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                904.0,
+                2753.0,
+                952.0,
+                2798.0
+              ],
+              "score": 0.9,
+              "line_index": 25,
+              "near_line_index": 25,
+              "near_text": "Spinach, Date, Walnut, Sumac Lemon"
+            }
+          ]
+        },
+        {
+          "line_index": 29,
+          "text": "Fresh Burrata, Tomato, Olive Oil",
+          "bbox": [
+            974.42235996,
+            3063.7259226,
+            1575.2587519,
+            3094.70731308
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                905.0,
+                2999.0,
+                951.0,
+                3044.0
+              ],
+              "score": 0.9,
+              "line_index": 29,
+              "near_line_index": 29,
+              "near_text": "Fresh Burrata, Tomato, Olive Oil"
+            }
+          ]
+        },
+        {
+          "line_index": 31,
+          "text": "CLASSIC CAESAR SALAD",
+          "bbox": [
+            970.97919452,
+            3230.68160282,
+            1606.24747238,
+            3266.8267220999996
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                902.0,
+                3225.0,
+                953.0,
+                3275.0
+              ],
+              "score": 0.9,
+              "line_index": 31,
+              "near_line_index": 31,
+              "near_text": "CLASSIC CAESAR SALAD"
+            }
+          ]
+        },
+        {
+          "line_index": 32,
+          "text": "650",
+          "bbox": [
+            1940.23669056,
+            3230.68160282,
+            2012.5437436,
+            3258.2207803
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 33,
+          "text": "Romaine, Grilled Chicken, Crispy Bacon,",
+          "bbox": [
+            974.42235996,
+            3296.0870470100003,
+            1721.594296,
+            3330.510937
+          ],
+          "column_index": 2,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                903.0,
+                3228.0,
+                952.0,
+                3274.0
+              ],
+              "score": 0.9,
+              "line_index": 33,
+              "near_line_index": 33,
+              "near_text": "Romaine, Grilled Chicken, Crispy Bacon,"
+            }
+          ]
+        },
+        {
+          "line_index": 39,
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 65,
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 42,
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 53,
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 47,
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 67,
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 68,
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 54,
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "column_index": 3,
+          "layout_role": "body"
+        }
+      ],
+      "icons": [
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1118.0,
+            968.0,
+            1166.0
+          ],
+          "score": 0.9,
+          "line_index": 3,
+          "near_line_index": 3,
+          "near_text": "MINESTRONE ALLA"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1118.0,
+            968.0,
+            1166.0
+          ],
+          "score": 0.9,
+          "line_index": 4,
+          "near_line_index": 4,
+          "near_text": "GENOVESE SOUP"
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1177.0,
+            1289.0,
+            1219.0,
+            1331.0
+          ],
+          "score": 0.4892,
+          "line_index": 6,
+          "near_line_index": 6,
+          "near_text": "48 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1135.0,
+            1289.0,
+            1177.0,
+            1331.0
+          ],
+          "score": 0.4854,
+          "line_index": 6,
+          "near_line_index": 6,
+          "near_text": "48 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1414.0,
+            968.0,
+            1462.0
+          ],
+          "score": 0.9,
+          "line_index": 7,
+          "near_line_index": 7,
+          "near_text": "HOMEMADE"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1414.0,
+            968.0,
+            1462.0
+          ],
+          "score": 0.9,
+          "line_index": 8,
+          "near_line_index": 8,
+          "near_text": "MUSHROOM SOUP"
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1178.0,
+            1586.0,
+            1220.0,
+            1628.0
+          ],
+          "score": 0.5792,
+          "line_index": 10,
+          "near_line_index": 10,
+          "near_text": "46 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1136.0,
+            1586.0,
+            1178.0,
+            1629.0
+          ],
+          "score": 0.4742,
+          "line_index": 10,
+          "near_line_index": 10,
+          "near_text": "46 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1722.0,
+            968.0,
+            1770.0
+          ],
+          "score": 0.9,
+          "line_index": 13,
+          "near_line_index": 13,
+          "near_text": "VEGETABLE WONTON SOUP"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1723.0,
+            968.0,
+            1770.0
+          ],
+          "score": 0.9,
+          "line_index": 15,
+          "near_line_index": 15,
+          "near_text": "Vegetable Wonton, Clear Soup, Scallion"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1133.0,
+            1842.0,
+            1175.0,
+            1884.0
+          ],
+          "score": 0.6481,
+          "line_index": 16,
+          "near_line_index": 16,
+          "near_text": "48 Kcal"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1172.0,
+            1842.0,
+            1214.0,
+            1884.0
+          ],
+          "score": 0.5283,
+          "line_index": 16,
+          "near_line_index": 16,
+          "near_text": "48 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            918.0,
+            1974.0,
+            969.0,
+            2024.0
+          ],
+          "score": 0.9,
+          "line_index": 17,
+          "near_line_index": 17,
+          "near_text": "SWEET CORN CHICKEN SOUP"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            919.0,
+            1976.0,
+            968.0,
+            2023.0
+          ],
+          "score": 0.9,
+          "line_index": 19,
+          "near_line_index": 19,
+          "near_text": "Creamy Corn, Chicken, Scallion"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1171.0,
+            2094.0,
+            1211.0,
+            2134.0
+          ],
+          "score": 0.6742,
+          "line_index": 20,
+          "near_line_index": 20,
+          "near_text": "60 Kcal"
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1132.0,
+            2094.0,
+            1172.0,
+            2134.0
+          ],
+          "score": 0.476,
+          "line_index": 20,
+          "near_line_index": 20,
+          "near_text": "60 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            904.0,
+            2750.0,
+            952.0,
+            2798.0
+          ],
+          "score": 0.9,
+          "line_index": 23,
+          "near_line_index": 23,
+          "near_text": "BABY SPINACH SALAD"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            904.0,
+            2753.0,
+            952.0,
+            2798.0
+          ],
+          "score": 0.9,
+          "line_index": 25,
+          "near_line_index": 25,
+          "near_text": "Spinach, Date, Walnut, Sumac Lemon"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1118.0,
+            2869.0,
+            1160.0,
+            2911.0
+          ],
+          "score": 0.5617,
+          "line_index": 26,
+          "near_line_index": 26,
+          "near_text": "176 Kcal"
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1158.0,
+            2869.0,
+            1200.0,
+            2911.0
+          ],
+          "score": 0.5142,
+          "line_index": 26,
+          "near_line_index": 26,
+          "near_text": "176 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1197.0,
+            2869.0,
+            1240.0,
+            2911.0
+          ],
+          "score": 0.4626,
+          "line_index": 26,
+          "near_line_index": 26,
+          "near_text": "176 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            904.0,
+            2998.0,
+            952.0,
+            3045.0
+          ],
+          "score": 0.9,
+          "line_index": 27,
+          "near_line_index": 27,
+          "near_text": "BURRATA SALAD"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            905.0,
+            2999.0,
+            951.0,
+            3044.0
+          ],
+          "score": 0.9,
+          "line_index": 29,
+          "near_line_index": 29,
+          "near_text": "Fresh Burrata, Tomato, Olive Oil"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1121.0,
+            3107.0,
+            1163.0,
+            3149.0
+          ],
+          "score": 0.574,
+          "line_index": 30,
+          "near_line_index": 30,
+          "near_text": "129 Kcal"
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1160.0,
+            3107.0,
+            1202.0,
+            3149.0
+          ],
+          "score": 0.5578,
+          "line_index": 30,
+          "near_line_index": 30,
+          "near_text": "129 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1199.0,
+            3106.0,
+            1241.0,
+            3148.0
+          ],
+          "score": 0.4603,
+          "line_index": 30,
+          "near_line_index": 30,
+          "near_text": "129 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            902.0,
+            3225.0,
+            953.0,
+            3275.0
+          ],
+          "score": 0.9,
+          "line_index": 31,
+          "near_line_index": 31,
+          "near_text": "CLASSIC CAESAR SALAD"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            903.0,
+            3228.0,
+            952.0,
+            3274.0
+          ],
+          "score": 0.9,
+          "line_index": 33,
+          "near_line_index": 33,
+          "near_text": "Romaine, Grilled Chicken, Crispy Bacon,"
+        },
+        {
+          "label": "fish",
+          "bbox": [
+            1276.0,
+            3393.0,
+            1322.0,
+            3441.0
+          ],
+          "score": 0.4803,
+          "line_index": 34,
+          "near_line_index": 34,
+          "near_text": "Anchovies, Poached Egg"
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1237.0,
+            3393.0,
+            1283.0,
+            3441.0
+          ],
+          "score": 0.439,
+          "line_index": 34,
+          "near_line_index": 34,
+          "near_text": "Anchovies, Poached Egg"
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1160.0,
+            3395.0,
+            1202.0,
+            3437.0
+          ],
+          "score": 0.6262,
+          "line_index": 35,
+          "near_line_index": 35,
+          "near_text": "124 Kcal"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1121.0,
+            3395.0,
+            1163.0,
+            3437.0
+          ],
+          "score": 0.5993,
+          "line_index": 35,
+          "near_line_index": 35,
+          "near_text": "124 Kcal"
+        },
+        {
+          "label": "fish",
+          "bbox": [
+            1278.0,
+            3395.0,
+            1320.0,
+            3438.0
+          ],
+          "score": 0.4803,
+          "line_index": 35,
+          "near_line_index": 35,
+          "near_text": "124 Kcal"
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1239.0,
+            3395.0,
+            1281.0,
+            3437.0
+          ],
+          "score": 0.439,
+          "line_index": 35,
+          "near_line_index": 35,
+          "near_text": "124 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1200.0,
+            3395.0,
+            1242.0,
+            3438.0
+          ],
+          "score": 0.3935,
+          "line_index": 35,
+          "near_line_index": 35,
+          "near_text": "124 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1118.0,
+            968.0,
+            1166.0
+          ],
+          "score": 0.9,
+          "line_index": 55,
+          "near_line_index": 55,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            920.0,
+            1414.0,
+            968.0,
+            1462.0
+          ],
+          "score": 0.9,
+          "line_index": 56,
+          "near_line_index": 56,
+          "near_text": "O"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            917.0,
+            1721.0,
+            969.0,
+            1771.0
+          ],
+          "score": 0.9,
+          "line_index": 57,
+          "near_line_index": 57,
+          "near_text": "O"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            918.0,
+            1974.0,
+            969.0,
+            2024.0
+          ],
+          "score": 0.9,
+          "line_index": 58,
+          "near_line_index": 58,
+          "near_text": "\u2611"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1170.0,
+            2093.0,
+            1214.0,
+            2135.0
+          ],
+          "score": 0.6742,
+          "line_index": 59,
+          "near_line_index": 59,
+          "near_text": "\u2465"
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1131.0,
+            2093.0,
+            1173.0,
+            2135.0
+          ],
+          "score": 0.476,
+          "line_index": 59,
+          "near_line_index": 59,
+          "near_text": "\u2465"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            903.0,
+            2749.0,
+            953.0,
+            2799.0
+          ],
+          "score": 0.9,
+          "line_index": 60,
+          "near_line_index": 60,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            904.0,
+            2998.0,
+            952.0,
+            3045.0
+          ],
+          "score": 0.9,
+          "line_index": 61,
+          "near_line_index": 61,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            902.0,
+            3225.0,
+            953.0,
+            3275.0
+          ],
+          "score": 0.9,
+          "line_index": 62,
+          "near_line_index": 62,
+          "near_text": "\u2611"
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1157.0,
+            3392.0,
+            1206.0,
+            3441.0
+          ],
+          "score": 0.6262,
+          "line_index": 63,
+          "near_line_index": 63,
+          "near_text": "10**"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1118.0,
+            3392.0,
+            1166.0,
+            3440.0
+          ],
+          "score": 0.5993,
+          "line_index": 63,
+          "near_line_index": 63,
+          "near_text": "10**"
+        },
+        {
+          "label": "fish",
+          "bbox": [
+            1275.0,
+            3392.0,
+            1323.0,
+            3441.0
+          ],
+          "score": 0.4803,
+          "line_index": 63,
+          "near_line_index": 63,
+          "near_text": "10**"
+        }
+      ]
+    }
+  ]
+}

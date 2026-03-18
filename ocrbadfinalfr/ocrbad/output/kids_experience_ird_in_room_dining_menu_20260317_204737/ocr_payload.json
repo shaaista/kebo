@@ -1,0 +1,19 @@
+{
+  "input_type": "ocr_document",
+  "raw_text": "[PAGE 1]\nIN ROOM DINING\nKIDS EXPERIENCE\n12:00 PM TO 6:00 AM\n\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal\n450\n\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal\n450\n\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal\n450\n\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal\n450\n\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal\n450\n\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal\n450\n\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal\n450\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+  "pages": [
+    {
+      "page": 1,
+      "width": null,
+      "height": null,
+      "raw_text": "[PAGE 1]\nIN ROOM DINING\nKIDS EXPERIENCE\n12:00 PM TO 6:00 AM\n\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal\n450\n\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal\n450\n\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal\n450\n\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal\n450\n\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal\n450\n\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal\n450\n\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal\n450\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "lines": [],
+      "icons": [],
+      "footer": {
+        "has_icons": false,
+        "lines": [],
+        "icons": []
+      }
+    }
+  ]
+}

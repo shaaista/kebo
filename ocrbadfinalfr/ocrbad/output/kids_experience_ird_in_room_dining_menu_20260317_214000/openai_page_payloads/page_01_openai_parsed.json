@@ -1,0 +1,167 @@
+{
+  "menu_name": "IN ROOM DINING - KIDS EXPERIENCE",
+  "items": [
+    {
+      "name": "VEGGIE SLIDERS",
+      "description": "Vegetable Patty, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "148 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u24c7"
+        ]
+      }
+    },
+    {
+      "name": "RAINBOW VEGGIE PIZZA",
+      "description": "Assorted Veggies, Cheese",
+      "price": "450",
+      "kcal": "175 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u24c7"
+        ]
+      }
+    },
+    {
+      "name": "MAC N CHEESE",
+      "description": "Classic Macaroni, Melted Cheddar Cheese",
+      "price": "450",
+      "kcal": "176 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "RED SAUCE SPAGHETTI",
+      "description": "Tomato Sauce, Basil, Cheese, Spaghetti",
+      "price": "450",
+      "kcal": "132 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u24c7"
+        ]
+      }
+    },
+    {
+      "name": "BUCKET OF ASSORTED POTATO FRIES",
+      "description": "Potato Chips, Wedges, Corn, Cheese pop",
+      "price": "450",
+      "kcal": "254 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u2469"
+        ]
+      }
+    },
+    {
+      "name": "MASHED POTATO",
+      "description": "Creamy Mashed, Butter, Cheese",
+      "price": "450",
+      "kcal": "111 Kcal",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9"
+        ]
+      }
+    },
+    {
+      "name": "CRISPY CHICKEN SLIDERS",
+      "description": "Crispy Chicken, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "208 Kcal",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "KIDS EXPERIENCE",
+      "page": 1,
+      "extras": {}
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Fish",
+    "Eggs"
+  ],
+  "notes": [],
+  "page_extras": {
+    "page_intent": "menu_items_page"
+  }
+}

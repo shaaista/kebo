@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ app_name }} - Test Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/chat.css">
 </head>
 <body>
@@ -11,7 +14,10 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>🤖 {{ app_name }}</h2>
+                <div class="sidebar-logo-mark">N</div>
+                <div class="sidebar-title-wrap">
+                    <span class="brand-name"><span class="logo-n">N</span>ex<span class="logo-o">O</span>ria</span>
+                </div>
                 <span class="badge">Test Mode</span>
             </div>
 
@@ -79,6 +85,16 @@
                     <option value="during_stay">During Stay</option>
                     <option value="post_checkout">Post Checkout</option>
                 </select>
+            </div>
+
+            <div class="profile-selector">
+                <h3>Phase Test Profile</h3>
+                <label class="toggle-row" for="auto-phase-profile">
+                    <input type="checkbox" id="auto-phase-profile" checked>
+                    <span>Auto-apply mapped guest profile</span>
+                </label>
+                <div id="phase-profile-status" class="profile-status">Loading mapping...</div>
+                <pre id="phase-profile-details" class="profile-details">No active profile.</pre>
             </div>
         </aside>
 

@@ -1,5 +1,5 @@
 """
-KePSLA Bot v2 - Main Application Entry Point
+NexOria - Main Application Entry Point
 """
 
 from time import perf_counter
@@ -21,6 +21,8 @@ from services.config_service import config_service
 from services.db_config_service import db_config_service
 from services.gateway_service import gateway_service
 from services.observability_service import observability_service
+from services.backend_trace_service import backend_trace_service
+from services.everything_trace_service import everything_trace_service
 
 
 async def _run_startup_kb_enrichment() -> None:
@@ -110,6 +112,50 @@ async def gateway_middleware(request: Request, call_next):
     # local operator UX (same behavior as the earlier stable project variant).
     protected_prefix = path.startswith("/api/chat")
     should_guard = protected_prefix and not is_docs_or_public
+    should_trace_backend = (
+        path.startswith("/api/")
+        or path.startswith("/admin/api/")
+        or path.startswith("/guest-journey/")
+        or path.startswith("/engage-bot/")
+    )
+
+    client_host = (
+        request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+        or (request.client.host if request.client else "unknown")
+    )
+    if should_trace_backend:
+        backend_trace_service.log_event(
+            "http_request_start",
+            {
+                "path": path,
+                "query": dict(request.query_params),
+                "client_host": client_host,
+                "user_agent": request.headers.get("user-agent", ""),
+            },
+            trace_id=trace_id,
+            endpoint=path,
+            method=request.method,
+            component="main.gateway_middleware",
+        )
+        everything_trace_service.log_event(
+            "http_request_start",
+            {
+                "path": path,
+                "query": dict(request.query_params),
+                "client_host": client_host,
+                "user_agent": request.headers.get("user-agent", ""),
+                "headers": {
+                    "x-trace-id": request.headers.get("x-trace-id", ""),
+                    "x-forwarded-for": request.headers.get("x-forwarded-for", ""),
+                    "referer": request.headers.get("referer", ""),
+                    "origin": request.headers.get("origin", ""),
+                },
+            },
+            trace_id=trace_id,
+            endpoint=path,
+            method=request.method,
+            component="main.gateway_middleware",
+        )
 
     if should_guard:
         provided_api_key = request.headers.get("x-api-key")
@@ -122,16 +168,39 @@ async def gateway_middleware(request: Request, call_next):
                     "method": request.method,
                 },
             )
+            if should_trace_backend:
+                backend_trace_service.log_event(
+                    "http_request_denied_auth",
+                    {
+                        "path": path,
+                        "client_host": client_host,
+                    },
+                    trace_id=trace_id,
+                    endpoint=path,
+                    method=request.method,
+                    status_code=401,
+                    component="main.gateway_middleware",
+                    error="unauthorized_api_key",
+                )
+                everything_trace_service.log_event(
+                    "http_request_denied_auth",
+                    {
+                        "path": path,
+                        "client_host": client_host,
+                    },
+                    trace_id=trace_id,
+                    endpoint=path,
+                    method=request.method,
+                    status_code=401,
+                    component="main.gateway_middleware",
+                    error="unauthorized_api_key",
+                )
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Unauthorized: invalid API key.", "trace_id": trace_id},
                 headers={"X-Trace-Id": trace_id},
             )
 
-    client_host = (
-        request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-        or (request.client.host if request.client else "unknown")
-    )
     if should_guard:
         rate_limit_key = f"{client_host}:{path}"
         allowed, retry_after = gateway_service.allow_request(rate_limit_key)
@@ -146,6 +215,35 @@ async def gateway_middleware(request: Request, call_next):
                     "retry_after_seconds": retry_after,
                 },
             )
+            if should_trace_backend:
+                backend_trace_service.log_event(
+                    "http_request_rate_limited",
+                    {
+                        "path": path,
+                        "client_host": client_host,
+                        "retry_after_seconds": retry_after,
+                    },
+                    trace_id=trace_id,
+                    endpoint=path,
+                    method=request.method,
+                    status_code=429,
+                    component="main.gateway_middleware",
+                    error="rate_limited",
+                )
+                everything_trace_service.log_event(
+                    "http_request_rate_limited",
+                    {
+                        "path": path,
+                        "client_host": client_host,
+                        "retry_after_seconds": retry_after,
+                    },
+                    trace_id=trace_id,
+                    endpoint=path,
+                    method=request.method,
+                    status_code=429,
+                    component="main.gateway_middleware",
+                    error="rate_limited",
+                )
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Too many requests.", "retry_after_seconds": retry_after, "trace_id": trace_id},
@@ -169,6 +267,33 @@ async def gateway_middleware(request: Request, call_next):
                 "error": str(exc),
             },
         )
+        if should_trace_backend:
+            backend_trace_service.log_event(
+                "http_request_exception",
+                {
+                    "path": path,
+                    "duration_ms": duration_ms,
+                    "client_host": client_host,
+                },
+                trace_id=trace_id,
+                endpoint=path,
+                method=request.method,
+                component="main.gateway_middleware",
+                error=str(exc),
+            )
+            everything_trace_service.log_event(
+                "http_request_exception",
+                {
+                    "path": path,
+                    "duration_ms": duration_ms,
+                    "client_host": client_host,
+                },
+                trace_id=trace_id,
+                endpoint=path,
+                method=request.method,
+                component="main.gateway_middleware",
+                error=str(exc),
+            )
         raise
 
     duration_ms = round((perf_counter() - start) * 1000.0, 2)
@@ -185,6 +310,33 @@ async def gateway_middleware(request: Request, call_next):
             "client_host": client_host,
         },
     )
+    if should_trace_backend:
+        backend_trace_service.log_event(
+            "http_request_end",
+            {
+                "path": path,
+                "duration_ms": duration_ms,
+                "client_host": client_host,
+            },
+            trace_id=trace_id,
+            endpoint=path,
+            method=request.method,
+            status_code=response.status_code,
+            component="main.gateway_middleware",
+        )
+        everything_trace_service.log_event(
+            "http_request_end",
+            {
+                "path": path,
+                "duration_ms": duration_ms,
+                "client_host": client_host,
+            },
+            trace_id=trace_id,
+            endpoint=path,
+            method=request.method,
+            status_code=response.status_code,
+            component="main.gateway_middleware",
+        )
     return response
 
 # CORS middleware
@@ -226,7 +378,7 @@ async def chat_ui(request: Request):
     """Serve the test chat interface."""
     if not _CHAT_TEMPLATE_FILE.exists():
         return HTMLResponse(
-            "<h3>KePSLA Bot API is running.</h3><p>Chat UI template is unavailable in this deployment bundle.</p>"
+            "<h3>NexOria API is running.</h3><p>Chat UI template is unavailable in this deployment bundle.</p>"
         )
     return templates.TemplateResponse(
         "chat.html",

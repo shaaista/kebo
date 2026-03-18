@@ -1,0 +1,719 @@
+{
+  "mode": "page_by_page",
+  "pages": [
+    {
+      "page": 1,
+      "docai": {
+        "doc": {
+          "mime_type": null,
+          "text_length": 866,
+          "page_count": 1
+        },
+        "pages": [
+          {
+            "page": 1,
+            "page_dimension": {
+              "width": 1,
+              "height": 1,
+              "unit": "NORMALIZED"
+            },
+            "text_length_total": 866,
+            "lines": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "KIDS EXPERIENCE",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "blocks": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "KIDS EXPERIENCE",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  0.0,
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "bbox_normalized": [],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "raw_page": {
+              "documentLayout_entries": [
+                {
+                  "text": "IN ROOM DINING",
+                  "type": "heading-1",
+                  "block_id": "1",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "KIDS EXPERIENCE",
+                  "type": "heading-2",
+                  "block_id": "2",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "12:00 PM TO 6:00 AM",
+                  "type": "heading-3",
+                  "block_id": "3",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                  "type": "paragraph",
+                  "block_id": "5",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "6",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                  "type": "paragraph",
+                  "block_id": "7",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "8",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                  "type": "paragraph",
+                  "block_id": "9",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "10",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                  "type": "paragraph",
+                  "block_id": "11",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "12",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                  "type": "paragraph",
+                  "block_id": "13",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "14",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                  "type": "paragraph",
+                  "block_id": "15",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "16",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                  "type": "paragraph",
+                  "block_id": "17",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "18",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                  "type": "footer",
+                  "block_id": "19",
+                  "bbox_normalized": []
+                }
+              ]
+            }
+          }
+        ],
+        "text": "IN ROOM DINING\nKIDS EXPERIENCE\n12:00 PM TO 6:00 AM\n\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal\n450\n\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal\n450\n\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal\n450\n\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal\n450\n\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal\n450\n\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal\n450\n\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal\n450\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving."
+      }
+    }
+  ]
+}

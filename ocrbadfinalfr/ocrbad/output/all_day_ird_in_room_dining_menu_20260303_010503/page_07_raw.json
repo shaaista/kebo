@@ -1,0 +1,2242 @@
+{
+  "page": 7,
+  "lines": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ],
+      "icons": [],
+      "layout_role": "shared",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "FROM THE MEDITERRANEAN",
+      "bbox": [
+        623.217112,
+        710.85324848,
+        2238.0725847999997,
+        790.0281995500001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "12:00 PM TO 11:30 PM",
+      "bbox": [
+        1069.11007518,
+        831.33684298,
+        1819.7252056,
+        876.0879040599999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "RATATOUILLE",
+      "bbox": [
+        967.5359712,
+        1072.30399105,
+        1323.9060252,
+        1106.72788104
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "(FROM THE MOVIE)",
+      "bbox": [
+        965.81438848,
+        1129.1034525100001,
+        1456.4688786,
+        1170.4121778
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Grilled Med Vegetables,",
+      "bbox": [
+        965.81438848,
+        1191.06643812,
+        1420.3152942,
+        1223.76918068
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Tomato Sauce, Baked",
+      "bbox": [
+        964.09280576,
+        1235.8174992,
+        1380.71863118,
+        1266.7990534
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "70 Kcal",
+      "bbox": [
+        965.81438848,
+        1290.8957722999999,
+        1082.8828527,
+        1314.9924912000001
+      ],
+      "icons": [
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1070.58284362,
+        1988.441354,
+        1098.1220211
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "WILD MUSHROOM RISOTTO",
+      "bbox": [
+        964.09280576,
+        1418.26407931,
+        1666.5032437999998,
+        1452.6879693
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1416.5428909500001,
+        1988.441354,
+        1444.0820275
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Assorted Mushroom, Arborio,",
+      "bbox": [
+        964.09280576,
+        1490.55419508,
+        1530.49731178,
+        1521.53579021
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Cream, Cheese",
+      "bbox": [
+        964.09280576,
+        1533.5840678,
+        1248.1558645999999,
+        1566.2868103600001
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "111 Kcal",
+      "bbox": [
+        964.09280576,
+        1595.54709434,
+        1074.27485228,
+        1617.92266581
+      ],
+      "icons": [
+        "milk",
+        "sulphites"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "GNOCCHI SORRENTINA",
+      "bbox": [
+        965.81438848,
+        1719.47310649,
+        1559.7644206,
+        1753.89695555
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1717.75195906,
+        1988.441354,
+        1745.29097282
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Potato Gnocchi, Tomato Sauce, Cheese",
+      "bbox": [
+        965.81438848,
+        1790.0421157600001,
+        1723.3159366,
+        1822.7446946
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "122 Kcal",
+      "bbox": [
+        962.3711940999999,
+        1850.28383115,
+        1088.0476297999999,
+        1874.38055005
+      ],
+      "icons": [
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2460",
+      "bbox": [
+        1158.63292648,
+        1848.56268372,
+        1184.4568409199999,
+        1876.1018612
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "SPINACH RAVIOLI",
+      "bbox": [
+        964.09280576,
+        1984.53697346,
+        1418.59374042,
+        2018.96086345
+      ],
+      "icons": [
+        "veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1982.8157851,
+        1988.441354,
+        2010.35488072
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Spinach Ravioli, Tomato Sauce,",
+      "bbox": [
+        965.81438848,
+        2051.6637287999997,
+        1566.65086724,
+        2084.3663895
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Cheese",
+      "bbox": [
+        965.81438848,
+        2096.4145443,
+        1101.82037838,
+        2123.95372178
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "144 Kcal",
+      "bbox": [
+        965.81438848,
+        2156.65630062,
+        1096.6556012800002,
+        2179.03199488
+      ],
+      "icons": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "HONEY MUSTARD CHICKEN",
+      "bbox": [
+        967.5359712,
+        2294.3520243,
+        1661.3384956399998,
+        2328.7757915
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2292.6309178,
+        1988.441354,
+        2320.1698496999998
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Honey Mustard Glaze Chicken,",
+      "bbox": [
+        965.81438848,
+        2358.0360754800004,
+        1547.7132258000001,
+        2390.7388999
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Saut\u00e9ed Mushroom, Peas, Dipping Jus",
+      "bbox": [
+        964.09280576,
+        2401.0659482,
+        1697.4919063999998,
+        2435.4897154
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "114 Kcal",
+      "bbox": [
+        964.09280576,
+        2461.30778638,
+        1084.60443542,
+        2485.404669
+      ],
+      "icons": [
+        "egg",
+        "gluten",
+        "mustard"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u24671",
+      "bbox": [
+        1148.3033144,
+        2459.58663895,
+        1213.7239208,
+        2488.846882
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "GRILLED LAMB CHOPS",
+      "bbox": [
+        965.81438848,
+        2600.7245347000003,
+        1537.3836716,
+        2635.1483018999998
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2599.0034281999997,
+        1988.441354,
+        2626.5423601
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Mint Grilled Lamb Chops, Arugula",
+      "bbox": [
+        967.5359712,
+        2664.4087495999997,
+        1613.1338322000001,
+        2697.1114103
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Salad, Dipping Sauce",
+      "bbox": [
+        965.81438848,
+        2709.1598106799997,
+        1370.38907698,
+        2741.86238952
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "241 Kcal",
+      "bbox": [
+        965.81438848,
+        2764.2380837799997,
+        1093.2124069,
+        2788.3346798899997
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "PANKO CRUSTED FISH",
+      "bbox": [
+        967.5359712,
+        2896.76987401,
+        1535.6621757,
+        2931.193764
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "AND CHIPS",
+      "bbox": [
+        964.09280576,
+        2955.29068755,
+        1242.99105856,
+        2989.7144138199997
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Fish Fillet, Panko Crust, Tarter Sauce",
+      "bbox": [
+        969.2576118,
+        3018.9746978,
+        1676.832798,
+        3051.67756315
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "170 Kcal",
+      "bbox": [
+        967.5359712,
+        3080.9378062,
+        1096.6556012800002,
+        3103.31329581
+      ],
+      "icons": [
+        "egg",
+        "fish",
+        "gluten",
+        "mustard"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "110",
+      "bbox": [
+        1163.79770358,
+        3077.4951839,
+        1275.70136176,
+        3105.0345251000003
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2895.04868565,
+        1988.441354,
+        2922.5878222
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "SPICY PRAWN SPAGHETTI",
+      "bbox": [
+        964.09280576,
+        3211.7484489999997,
+        1630.3498041,
+        3246.17246178
+      ],
+      "icons": [
+        "non_veg"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        3220.3543908,
+        1988.441354,
+        3247.89360921
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Grilled Prawn Spicy Tomato Sauce,",
+      "bbox": [
+        964.09280576,
+        3275.4326639,
+        1637.2362218,
+        3309.8564311
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Tossed Spaghetti",
+      "bbox": [
+        964.09280576,
+        3320.1838887,
+        1296.3604991,
+        3352.8865494
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "176 Kcal",
+      "bbox": [
+        964.09280576,
+        3375.2619162200003,
+        1091.4908241800001,
+        3399.35875791
+      ],
+      "icons": [
+        "crustacean",
+        "gluten",
+        "milk"
+      ],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Milk",
+      "bbox": [
+        760.94471356,
+        3765.9729837,
+        805.7060958,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Gluten",
+      "bbox": [
+        891.7858105999999,
+        3765.9729837,
+        967.5359712,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Lupin",
+      "bbox": [
+        1045.0077724,
+        3767.69425392,
+        1108.7067382,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Crustaceans",
+      "bbox": [
+        759.2231019,
+        3815.88769172,
+        903.8370054,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Celery",
+      "bbox": [
+        984.7519431,
+        3815.88769172,
+        1058.7805209800001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Sulpher Dioxide",
+      "bbox": [
+        1189.62161802,
+        3765.9729837,
+        1377.2754367999999,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Soybeans",
+      "bbox": [
+        1146.58176062,
+        3815.88769172,
+        1260.20700152,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "Molluscs",
+      "bbox": [
+        1447.8606756,
+        3765.9729837,
+        1547.7132258000001,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Mustard",
+      "bbox": [
+        1644.1224948000001,
+        3765.9729837,
+        1737.08868518,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Peanuts",
+      "bbox": [
+        1819.7252056,
+        3767.69425392,
+        1912.6913381000002,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Sesame",
+      "bbox": [
+        1358.33791112,
+        3815.88769172,
+        1449.5824319600001,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Tree Nuts",
+      "bbox": [
+        1533.94050616,
+        3815.88769172,
+        1645.8441354,
+        3833.09965718
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Vegetarian",
+      "bbox": [
+        1733.6454908,
+        3817.6088391499998,
+        1861.0434224,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Kindly inform our associates of any allergies you may have.",
+      "bbox": [
+        724.7912159800001,
+        3870.96596482,
+        1430.64490628,
+        3893.3414135
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+      "bbox": [
+        723.06963326,
+        3905.38969109,
+        1516.7245632000001,
+        3927.7653853499996
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        724.7912159800001,
+        3939.8137448,
+        1339.40038544,
+        3960.46800512
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Fish",
+      "bbox": [
+        2124.4474886,
+        3765.9729837,
+        2169.20887084,
+        3784.90626031
+      ],
+      "icons": [],
+      "layout_role": "footer",
+      "column_index": 0,
+      "column_bbox": [
+        0.0,
+        2413.7
+      ]
+    },
+    {
+      "text": "Eggs",
+      "bbox": [
+        1993.6062758,
+        3767.69425392,
+        2048.6972411799998,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "Non-Vegetarian",
+      "bbox": [
+        1960.8958279,
+        3817.6088391499998,
+        2146.82806396,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        903.8370054,
+        1072.30399105,
+        934.825668,
+        1106.72788104
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        903.8370054,
+        1719.47310649,
+        934.825668,
+        1755.61810298
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        903.8370054,
+        1984.53697346,
+        934.825668,
+        2020.6821746
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u24c7",
+      "bbox": [
+        1158.63292648,
+        2153.2139239000003,
+        1187.9000353,
+        2185.9168711099996
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        903.8370054,
+        2294.3520243,
+        934.825668,
+        2330.49718451
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u25a1",
+      "bbox": [
+        903.8370054,
+        2600.7245347000003,
+        934.825668,
+        2636.8694084
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        903.8370054,
+        2896.76987401,
+        934.825668,
+        2932.9148705000002
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        902.1153648,
+        3211.7484489999997,
+        933.10408528,
+        3247.89360921
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u24c7",
+      "bbox": [
+        1198.2295895,
+        3373.540646,
+        1227.49669832,
+        3402.8010937
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1010.5758285999999,
+        3764.2518772,
+        1031.2349948800002,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2465",
+      "bbox": [
+        1409.9857399999999,
+        3765.9729837,
+        1432.366489,
+        3788.3485961
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u2469",
+      "bbox": [
+        946.8768627999999,
+        3814.1664215,
+        972.7007772400001,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 1,
+      "column_bbox": [
+        903.8,
+        1687.2
+      ]
+    },
+    {
+      "text": "\u25c9",
+      "bbox": [
+        1695.7704105,
+        3815.88769172,
+        1718.1510147999998,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    },
+    {
+      "text": "\u2611",
+      "bbox": [
+        1916.1344746,
+        3815.88769172,
+        1936.79349618,
+        3838.2631404
+      ],
+      "icons": [],
+      "layout_role": "body",
+      "column_index": 2,
+      "column_bbox": [
+        1521.5,
+        2087.9
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "text": "IN ROOM DINING",
+      "bbox": [
+        487.21117998,
+        330.46931116,
+        2413.6751509,
+        493.98273745
+      ]
+    },
+    {
+      "text": "FROM THE MEDITERRANEAN",
+      "bbox": [
+        623.217112,
+        710.85324848,
+        2238.0725847999997,
+        790.0281995500001
+      ]
+    },
+    {
+      "text": "12:00 PM TO 11:30 PM",
+      "bbox": [
+        1069.11007518,
+        831.33684298,
+        1819.7252056,
+        876.0879040599999
+      ]
+    },
+    {
+      "text": "\u25a3 RATATOUILLE (FROM THE MOVIE)",
+      "bbox": [
+        965.81438848,
+        1129.1034525100001,
+        1456.4688786,
+        1170.4121778
+      ]
+    },
+    {
+      "text": "Grilled Med Vegetables, Tomato Sauce, Baked 70 Kcal",
+      "bbox": [
+        965.8143884799999,
+        1070.58284362,
+        1456.4688786,
+        1170.4121778
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1070.58284362,
+        1988.441354,
+        1098.1220211
+      ]
+    },
+    {
+      "text": "\u25a3 WILD MUSHROOM RISOTTO",
+      "bbox": [
+        964.09280576,
+        1418.26407931,
+        1666.5032437999998,
+        1452.6879693
+      ]
+    },
+    {
+      "text": "Assorted Mushroom, Arborio, Cream, Cheese 111 Kcal",
+      "bbox": [
+        964.09280576,
+        1490.55419508,
+        1530.49731178,
+        1521.53579021
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1416.5428909500001,
+        1988.441354,
+        1444.0820275
+      ]
+    },
+    {
+      "text": "\u25a3 GNOCCHI SORRENTINA",
+      "bbox": [
+        965.81438848,
+        1719.47310649,
+        1559.7644206,
+        1753.89695555
+      ]
+    },
+    {
+      "text": "Potato Gnocchi, Tomato Sauce, Cheese 122 Kcal",
+      "bbox": [
+        965.81438848,
+        1790.0421157600001,
+        1723.3159366,
+        1822.7446946
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1717.75195906,
+        1988.441354,
+        1745.29097282
+      ]
+    },
+    {
+      "text": "\u25a3 SPINACH RAVIOLI",
+      "bbox": [
+        964.09280576,
+        1984.53697346,
+        1418.59374042,
+        2018.96086345
+      ]
+    },
+    {
+      "text": "Spinach Ravioli, Tomato Sauce, Cheese 144 Kcal",
+      "bbox": [
+        965.81438848,
+        2051.6637287999997,
+        1566.65086724,
+        2084.3663895
+      ]
+    },
+    {
+      "text": "750",
+      "bbox": [
+        1917.8561152,
+        1982.8157851,
+        1988.441354,
+        2010.35488072
+      ]
+    },
+    {
+      "text": "\u25e8 HONEY MUSTARD CHICKEN",
+      "bbox": [
+        965.81438848,
+        2294.3520243,
+        1661.3384956399998,
+        2390.7388999
+      ]
+    },
+    {
+      "text": "Honey Mustard Glaze Chicken, Saut\u00e9ed Mushroom, Peas, Dipping Jus 114 Kcal",
+      "bbox": [
+        964.09280576,
+        2401.0659482,
+        1697.4919063999998,
+        2435.4897154
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2292.6309178,
+        1988.441354,
+        2320.1698496999998
+      ]
+    },
+    {
+      "text": "\u25e8 GRILLED LAMB CHOPS",
+      "bbox": [
+        965.81438848,
+        2600.7245347000003,
+        1537.3836716,
+        2635.1483018999998
+      ]
+    },
+    {
+      "text": "Mint Grilled Lamb Chops, Arugula Salad, Dipping Sauce 241 Kcal",
+      "bbox": [
+        967.5359712,
+        2664.4087495999997,
+        1613.1338322000001,
+        2697.1114103
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2599.0034281999997,
+        1988.441354,
+        2626.5423601
+      ]
+    },
+    {
+      "text": "\u25e8 PANKO CRUSTED FISH AND CHIPS",
+      "bbox": [
+        967.5359712,
+        2896.76987401,
+        1535.6621757,
+        2931.193764
+      ]
+    },
+    {
+      "text": "Fish Fillet, Panko Crust, Tarter Sauce 170 Kcal",
+      "bbox": [
+        969.2576118,
+        3018.9746978,
+        1676.832798,
+        3051.67756315
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        2895.04868565,
+        1988.441354,
+        2922.5878222
+      ]
+    },
+    {
+      "text": "\u25e8 SPICY PRAWN SPAGHETTI",
+      "bbox": [
+        964.09280576,
+        3211.7484489999997,
+        1630.3498041,
+        3246.17246178
+      ]
+    },
+    {
+      "text": "Grilled Prawn Spicy Tomato Sauce, Tossed Spaghetti 176 Kcal",
+      "bbox": [
+        964.09280576,
+        3275.4326639,
+        1637.2362218,
+        3309.8564311
+      ]
+    },
+    {
+      "text": "850",
+      "bbox": [
+        1916.1344746,
+        3220.3543908,
+        1988.441354,
+        3247.89360921
+      ]
+    },
+    {
+      "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u25a3 Vegetarian \u25e8 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "bbox": [
+        1916.1344746,
+        3251.3359977718164,
+        1988.441354,
+        3278.8752161818156
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1068.0,
+        943.0,
+        1116.0
+      ],
+      "score": 0.9,
+      "line_index": 3
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        894.0,
+        1066.0,
+        945.0,
+        1118.0
+      ],
+      "score": 0.9,
+      "line_index": 4
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1101.0,
+        1282.0,
+        1143.0,
+        1324.0
+      ],
+      "score": 0.46479347348213196,
+      "line_index": 7
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1415.0,
+        943.0,
+        1463.0
+      ],
+      "score": 0.9,
+      "line_index": 9
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        897.0,
+        1423.0,
+        942.0,
+        1462.0
+      ],
+      "score": 0.9,
+      "line_index": 11
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1134.0,
+        1584.0,
+        1180.0,
+        1630.0
+      ],
+      "score": 0.5022767782211304,
+      "line_index": 12
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1137.0,
+        1587.0,
+        1177.0,
+        1627.0
+      ],
+      "score": 0.5022767782211304,
+      "line_index": 13
+    },
+    {
+      "label": "sulphites",
+      "bbox": [
+        1097.0,
+        1587.0,
+        1137.0,
+        1627.0
+      ],
+      "score": 0.49393635988235474,
+      "line_index": 13
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1715.0,
+        943.0,
+        1763.0
+      ],
+      "score": 0.9,
+      "line_index": 14
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1722.0,
+        943.0,
+        1763.0
+      ],
+      "score": 0.9,
+      "line_index": 16
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1112.0,
+        1842.0,
+        1154.0,
+        1884.0
+      ],
+      "score": 0.6384501457214355,
+      "line_index": 17
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1152.0,
+        1842.0,
+        1194.0,
+        1884.0
+      ],
+      "score": 0.5861693024635315,
+      "line_index": 17
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1112.0,
+        1842.0,
+        1154.0,
+        1884.0
+      ],
+      "score": 0.6384501457214355,
+      "line_index": 18
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1150.0,
+        1842.0,
+        1194.0,
+        1884.0
+      ],
+      "score": 0.5861693024635315,
+      "line_index": 18
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1980.0,
+        943.0,
+        2028.0
+      ],
+      "score": 0.9,
+      "line_index": 19
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1983.0,
+        943.0,
+        2028.0
+      ],
+      "score": 0.9,
+      "line_index": 21
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1115.0,
+        2147.0,
+        1157.0,
+        2189.0
+      ],
+      "score": 0.6435407400131226,
+      "line_index": 22
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1194.0,
+        2147.0,
+        1236.0,
+        2189.0
+      ],
+      "score": 0.4707792401313782,
+      "line_index": 22
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1154.0,
+        2147.0,
+        1197.0,
+        2189.0
+      ],
+      "score": 0.4427003562450409,
+      "line_index": 22
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1116.0,
+        2148.0,
+        1156.0,
+        2188.0
+      ],
+      "score": 0.6435407400131226,
+      "line_index": 23
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1195.0,
+        2148.0,
+        1235.0,
+        2188.0
+      ],
+      "score": 0.4707792401313782,
+      "line_index": 23
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1155.0,
+        2148.0,
+        1196.0,
+        2188.0
+      ],
+      "score": 0.4427003562450409,
+      "line_index": 23
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2291.0,
+        943.0,
+        2339.0
+      ],
+      "score": 0.9,
+      "line_index": 24
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2290.0,
+        943.0,
+        2339.0
+      ],
+      "score": 0.9,
+      "line_index": 26
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1143.0,
+        2453.0,
+        1185.0,
+        2495.0
+      ],
+      "score": 0.6854417324066162,
+      "line_index": 28
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1103.0,
+        2453.0,
+        1145.0,
+        2495.0
+      ],
+      "score": 0.6361992359161377,
+      "line_index": 28
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1184.0,
+        2453.0,
+        1226.0,
+        2495.0
+      ],
+      "score": 0.49153152108192444,
+      "line_index": 28
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1142.0,
+        2452.0,
+        1186.0,
+        2496.0
+      ],
+      "score": 0.6854417324066162,
+      "line_index": 29
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1102.0,
+        2452.0,
+        1146.0,
+        2496.0
+      ],
+      "score": 0.6361992359161377,
+      "line_index": 29
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1183.0,
+        2452.0,
+        1227.0,
+        2496.0
+      ],
+      "score": 0.49153152108192444,
+      "line_index": 29
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2596.0,
+        943.0,
+        2644.0
+      ],
+      "score": 0.9,
+      "line_index": 30
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2596.0,
+        943.0,
+        2644.0
+      ],
+      "score": 0.9,
+      "line_index": 32
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2893.0,
+        943.0,
+        2941.0
+      ],
+      "score": 0.9,
+      "line_index": 35
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        2893.0,
+        943.0,
+        2941.0
+      ],
+      "score": 0.9,
+      "line_index": 36
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1160.0,
+        3072.0,
+        1200.0,
+        3112.0
+      ],
+      "score": 0.5786380767822266,
+      "line_index": 38
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1120.0,
+        3072.0,
+        1160.0,
+        3112.0
+      ],
+      "score": 0.4987410604953766,
+      "line_index": 38
+    },
+    {
+      "label": "fish",
+      "bbox": [
+        1240.0,
+        3072.0,
+        1280.0,
+        3112.0
+      ],
+      "score": 0.4786883294582367,
+      "line_index": 38
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1200.0,
+        3072.0,
+        1240.0,
+        3112.0
+      ],
+      "score": 0.4785097539424896,
+      "line_index": 38
+    },
+    {
+      "label": "mustard",
+      "bbox": [
+        1159.0,
+        3071.0,
+        1201.0,
+        3113.0
+      ],
+      "score": 0.5786380767822266,
+      "line_index": 39
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1119.0,
+        3071.0,
+        1161.0,
+        3113.0
+      ],
+      "score": 0.4987410604953766,
+      "line_index": 39
+    },
+    {
+      "label": "fish",
+      "bbox": [
+        1239.0,
+        3071.0,
+        1281.0,
+        3113.0
+      ],
+      "score": 0.4786883294582367,
+      "line_index": 39
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        3208.0,
+        943.0,
+        3256.0
+      ],
+      "score": 0.9,
+      "line_index": 41
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        895.0,
+        3207.0,
+        943.0,
+        3256.0
+      ],
+      "score": 0.9,
+      "line_index": 43
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1194.0,
+        3365.0,
+        1240.0,
+        3411.0
+      ],
+      "score": 0.5086371302604675,
+      "line_index": 44
+    },
+    {
+      "label": "crustacean",
+      "bbox": [
+        1153.0,
+        3366.0,
+        1199.0,
+        3412.0
+      ],
+      "score": 0.4882476031780243,
+      "line_index": 44
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1116.0,
+        3368.0,
+        1158.0,
+        3410.0
+      ],
+      "score": 0.6451994776725769,
+      "line_index": 45
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1196.0,
+        3367.0,
+        1238.0,
+        3409.0
+      ],
+      "score": 0.5086371302604675,
+      "line_index": 45
+    },
+    {
+      "label": "crustacean",
+      "bbox": [
+        1155.0,
+        3368.0,
+        1197.0,
+        3410.0
+      ],
+      "score": 0.4882476031780243,
+      "line_index": 45
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        896.0,
+        1068.0,
+        943.0,
+        1116.0
+      ],
+      "score": 0.9,
+      "line_index": 65
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1714.0,
+        944.0,
+        1764.0
+      ],
+      "score": 0.9,
+      "line_index": 66
+    },
+    {
+      "label": "veg",
+      "bbox": [
+        895.0,
+        1979.0,
+        944.0,
+        2029.0
+      ],
+      "score": 0.9,
+      "line_index": 67
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1112.0,
+        2145.0,
+        1160.0,
+        2192.0
+      ],
+      "score": 0.6440180540084839,
+      "line_index": 68
+    },
+    {
+      "label": "egg",
+      "bbox": [
+        1192.0,
+        2145.0,
+        1238.0,
+        2191.0
+      ],
+      "score": 0.4707792401313782,
+      "line_index": 68
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1152.0,
+        2145.0,
+        1199.0,
+        2191.0
+      ],
+      "score": 0.4427003562450409,
+      "line_index": 68
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        2290.0,
+        944.0,
+        2340.0
+      ],
+      "score": 0.9,
+      "line_index": 69
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        2595.0,
+        944.0,
+        2645.0
+      ],
+      "score": 0.9,
+      "line_index": 70
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        2892.0,
+        944.0,
+        2942.0
+      ],
+      "score": 0.9,
+      "line_index": 71
+    },
+    {
+      "label": "non_veg",
+      "bbox": [
+        894.0,
+        3207.0,
+        944.0,
+        3257.0
+      ],
+      "score": 0.9,
+      "line_index": 72
+    },
+    {
+      "label": "gluten",
+      "bbox": [
+        1115.0,
+        3367.0,
+        1159.0,
+        3411.0
+      ],
+      "score": 0.6451994776725769,
+      "line_index": 73
+    },
+    {
+      "label": "milk",
+      "bbox": [
+        1195.0,
+        3366.0,
+        1239.0,
+        3410.0
+      ],
+      "score": 0.5086371302604675,
+      "line_index": 73
+    },
+    {
+      "label": "crustacean",
+      "bbox": [
+        1154.0,
+        3367.0,
+        1198.0,
+        3411.0
+      ],
+      "score": 0.4882476031780243,
+      "line_index": 73
+    }
+  ],
+  "page_text": "IN ROOM DINING\nFROM THE MEDITERRANEAN\n12:00 PM TO 11:30 PM\nRATATOUILLE\n(FROM THE MOVIE)\nGrilled Med Vegetables,\nTomato Sauce, Baked\n70 Kcal\n750\nWILD MUSHROOM RISOTTO\n750\nAssorted Mushroom, Arborio,\nCream, Cheese\n111 Kcal\nGNOCCHI SORRENTINA\n750\nPotato Gnocchi, Tomato Sauce, Cheese\n122 Kcal\n\u2460\nSPINACH RAVIOLI\n750\nSpinach Ravioli, Tomato Sauce,\nCheese\n144 Kcal\nHONEY MUSTARD CHICKEN\n850\nHoney Mustard Glaze Chicken,\nSaut\u00e9ed Mushroom, Peas, Dipping Jus\n114 Kcal\n\u24671\nGRILLED LAMB CHOPS\n850\nMint Grilled Lamb Chops, Arugula\nSalad, Dipping Sauce\n241 Kcal\nPANKO CRUSTED FISH\nAND CHIPS\nFish Fillet, Panko Crust, Tarter Sauce\n170 Kcal\n110\n850\nSPICY PRAWN SPAGHETTI\n850\nGrilled Prawn Spicy Tomato Sauce,\nTossed Spaghetti\n176 Kcal\nMilk\nGluten\nLupin\nCrustaceans\nCelery\nSulpher Dioxide\nSoybeans\nMolluscs\nMustard\nPeanuts\nSesame\nTree Nuts\nVegetarian\nKindly inform our associates of any allergies you may have.\nAll prices are in INR, exclusive of taxes. We levy no service charge.\nThe calorie content is per 100 grams of the serving.\nFish\nEggs\nNon-Vegetarian\n\u25c9\n\u25c9\n\u25c9\n\u24c7\n\u2611\n\u25a1\n\u2611\n\u2611\n\u24c7\n\u2465\n\u2465\n\u2469\n\u25c9\n\u2611"
+}

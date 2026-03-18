@@ -39,6 +39,9 @@ from services.ticketing_agent_service import ticketing_agent_service
 from services.ticketing_service import ticketing_service
 from services.llm_orchestration_service import llm_orchestration_service
 from services.orchestration_policy_service import orchestration_policy_service
+from services.turn_diagnostics_service import turn_diagnostics_service
+from services.backend_trace_service import backend_trace_service
+from services.everything_trace_service import everything_trace_service
 from handlers import handler_registry
 from handlers.base_handler import HandlerResult
 
@@ -312,6 +315,10 @@ class ChatService:
             pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
             entities={},
         )
+        turn_diagnostics_service.update_turn_context(
+            phase_id=str(selected_phase_context.get("selected_phase_id") or ""),
+            phase_name=str(selected_phase_context.get("selected_phase_name") or ""),
+        )
         raw_user_message = str(request.message or "")
         preprocessed_user_message = await self._preprocess_user_message_with_llm(
             raw_user_message,
@@ -323,6 +330,19 @@ class ChatService:
             request.model_copy(update={"message": effective_user_message})
             if effective_user_message != raw_user_message
             else request
+        )
+        self._log_processing_stage(
+            "context_loaded",
+            request=request,
+            context=context,
+            extra={
+                "resolved_hotel_code": resolved_hotel_code,
+                "request_channel": str(request_channel or ""),
+                "selected_phase_id": str(selected_phase_context.get("selected_phase_id") or ""),
+                "selected_phase_name": str(selected_phase_context.get("selected_phase_name") or ""),
+                "db_session_available": db_session is not None,
+                "message_preprocessed": effective_user_message != raw_user_message,
+            },
         )
 
         # 2. Add user message to history
@@ -352,8 +372,34 @@ class ChatService:
             context=context,
             selected_phase_context=selected_phase_context,
         )
+        self._log_processing_stage(
+            "routing_ready",
+            request=request,
+            context=context,
+            extra={
+                "routing_path": str(routing_decision.path.value),
+                "routing_score": float(routing_decision.score),
+                "history_window": int(history_window),
+                "capability_intent_count": len(capabilities_summary.get("intents", [])),
+                "service_catalog_count": len(capabilities_summary.get("service_catalog", [])),
+                "faq_bank_count": len(capabilities_summary.get("faq_bank", [])),
+            },
+        )
 
         no_template_mode = bool(getattr(settings, "chat_no_template_response_mode", False))
+        self._log_processing_stage(
+            "mode_flags",
+            request=request,
+            context=context,
+            extra={
+                "chat_no_template_response_mode": no_template_mode,
+                "chat_llm_orchestration_mode": bool(getattr(settings, "chat_llm_orchestration_mode", False)),
+                "chat_pure_llm_mode": bool(getattr(settings, "chat_pure_llm_mode", False)),
+                "chat_full_kb_llm_mode": bool(getattr(settings, "chat_full_kb_llm_mode", False)),
+                "chat_kb_only_mode": bool(getattr(settings, "chat_kb_only_mode", False)),
+                "chat_multi_ask_orchestration_enabled": bool(getattr(settings, "chat_multi_ask_orchestration_enabled", True)),
+            },
+        )
         if no_template_mode:
             no_template_response = await self._process_policy_verified_llm_message(
                 request=request_for_processing,
@@ -365,6 +411,16 @@ class ChatService:
                 db_session=db_session,
             )
             if no_template_response is not None:
+                self._log_processing_stage(
+                    "mode_return",
+                    request=request,
+                    context=context,
+                    intent_result=IntentResult(intent=no_template_response.intent, confidence=no_template_response.confidence, entities={}),
+                    extra={
+                        "mode": "chat_no_template_response_mode",
+                        "response_source": str((no_template_response.metadata or {}).get("response_source") or "no_template_mode"),
+                    },
+                )
                 return no_template_response
 
         parked_task = self._peek_parked_task(context)
@@ -511,6 +567,10 @@ class ChatService:
                     pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
                     entities={},
                 )
+                turn_diagnostics_service.update_turn_context(
+                    phase_id=str(selected_phase_context.get("selected_phase_id") or ""),
+                    phase_name=str(selected_phase_context.get("selected_phase_name") or ""),
+                )
                 self._sync_active_task_snapshot(
                     context=context,
                     selected_phase_context=selected_phase_context,
@@ -582,6 +642,17 @@ class ChatService:
                     await conversation_memory_service.maybe_refresh_summary(context)
                     await context_manager.save_context(context, db_session=db_session)
                     memory_snapshot = conversation_memory_service.get_snapshot(context)
+                    self._log_processing_stage(
+                        "mode_return",
+                        request=request,
+                        context=context,
+                        intent_result=IntentResult(intent=IntentType.FAQ, confidence=0.9, entities={}),
+                        extra={
+                            "mode": "agent_plugin_runtime",
+                            "response_source": "agent_plugin_runtime",
+                            "next_state": str(plugin_result.next_state.value),
+                        },
+                    )
 
                     return ChatResponse(
                         session_id=request.session_id,
@@ -621,12 +692,22 @@ class ChatService:
                 db_session=db_session,
             )
             if orchestration_response is not None:
+                self._log_processing_stage(
+                    "mode_return",
+                    request=request,
+                    context=context,
+                    intent_result=IntentResult(intent=orchestration_response.intent, confidence=orchestration_response.confidence, entities={}),
+                    extra={
+                        "mode": "chat_llm_orchestration_mode",
+                        "response_source": str((orchestration_response.metadata or {}).get("response_source") or "llm_orchestration_mode"),
+                    },
+                )
                 return orchestration_response
 
         # Optional pure-LLM mode: full KB + full context with no deterministic
         # post-processing overrides in runtime.
         if bool(getattr(settings, "chat_pure_llm_mode", False)):
-            return await self._process_pure_llm_message(
+            pure_llm_response = await self._process_pure_llm_message(
                 request=request_for_processing,
                 context=context,
                 capabilities_summary=capabilities_summary,
@@ -634,10 +715,21 @@ class ChatService:
                 memory_snapshot=memory_snapshot,
                 db_session=db_session,
             )
+            self._log_processing_stage(
+                "mode_return",
+                request=request,
+                context=context,
+                intent_result=IntentResult(intent=pure_llm_response.intent, confidence=pure_llm_response.confidence, entities={}),
+                extra={
+                    "mode": "chat_pure_llm_mode",
+                    "response_source": str((pure_llm_response.metadata or {}).get("response_source") or "pure_llm_mode"),
+                },
+            )
+            return pure_llm_response
 
         # Optional full-file mode: LLM sees complete KB text and handles flow end-to-end.
         if bool(getattr(settings, "chat_full_kb_llm_mode", False)):
-            return await self._process_full_kb_llm_message(
+            full_kb_response = await self._process_full_kb_llm_message(
                 request=request_for_processing,
                 context=context,
                 capabilities_summary=capabilities_summary,
@@ -645,10 +737,21 @@ class ChatService:
                 memory_snapshot=memory_snapshot,
                 db_session=db_session,
             )
+            self._log_processing_stage(
+                "mode_return",
+                request=request,
+                context=context,
+                intent_result=IntentResult(intent=full_kb_response.intent, confidence=full_kb_response.confidence, entities={}),
+                extra={
+                    "mode": "chat_full_kb_llm_mode",
+                    "response_source": str((full_kb_response.metadata or {}).get("response_source") or "full_kb_llm_mode"),
+                },
+            )
+            return full_kb_response
 
         # Optional strict mode: answer only via KB-grounded FAQ retrieval path.
         if bool(getattr(settings, "chat_kb_only_mode", False)):
-            return await self._process_kb_only_message(
+            kb_only_response = await self._process_kb_only_message(
                 request=request_for_processing,
                 context=context,
                 capabilities_summary=capabilities_summary,
@@ -656,6 +759,17 @@ class ChatService:
                 memory_snapshot=memory_snapshot,
                 db_session=db_session,
             )
+            self._log_processing_stage(
+                "mode_return",
+                request=request,
+                context=context,
+                intent_result=IntentResult(intent=kb_only_response.intent, confidence=kb_only_response.confidence, entities={}),
+                extra={
+                    "mode": "chat_kb_only_mode",
+                    "response_source": str((kb_only_response.metadata or {}).get("response_source") or "kb_only_mode"),
+                },
+            )
+            return kb_only_response
 
         multi_ask_response = await self._maybe_handle_multi_ask_message(
             request=request_for_processing,
@@ -667,6 +781,16 @@ class ChatService:
             db_session=db_session,
         )
         if multi_ask_response is not None:
+            self._log_processing_stage(
+                "mode_return",
+                request=request,
+                context=context,
+                intent_result=IntentResult(intent=multi_ask_response.intent, confidence=multi_ask_response.confidence, entities={}),
+                extra={
+                    "mode": "chat_multi_ask_orchestration",
+                    "response_source": str((multi_ask_response.metadata or {}).get("response_source") or "multi_ask_mode"),
+                },
+            )
             return multi_ask_response
 
         # 3a. Deterministic de-escalation from human handoff back to bot flow.
@@ -1475,12 +1599,32 @@ class ChatService:
             "current_time": context_pack.get("current_time", ""),
             "recent_user_goal": context_pack.get("recent_user_goal", ""),
         }
+        self._log_processing_stage(
+            "intent_classification_started",
+            request=request,
+            context=context,
+            extra={
+                "history_window": int(history_window),
+                "llm_context_pending_action": str(context.pending_action or ""),
+                "llm_context_missing_slots_count": len(context_pack.get("missing_slots", [])),
+                "llm_context_phase_services_count": len(context_pack.get("phase_services", [])),
+            },
+        )
 
         # 5. Classify intent using LLM
         intent_result = await self._classify_intent(
             effective_user_message,
             context.to_llm_messages(count=history_window),
             llm_context,
+        )
+        self._log_processing_stage(
+            "intent_classified",
+            request=request,
+            context=context,
+            intent_result=intent_result,
+            extra={
+                "entity_keys": sorted([str(k) for k in (intent_result.entities or {}).keys()])[:80],
+            },
         )
 
         pending_interrupted = False
@@ -1731,6 +1875,17 @@ class ChatService:
                 "memory_facts": memory_snapshot.get("facts", {}),
             }
             metadata.update(low_confidence_rewrite_metadata)
+            self._log_processing_stage(
+                "turn_completed",
+                request=request,
+                context=context,
+                intent_result=intent_result,
+                extra={
+                    "response_source": "low_confidence",
+                    "next_state": str(next_state.value),
+                    "db_session_available": db_session is not None,
+                },
+            )
             return ChatResponse(
                 session_id=request.session_id,
                 message=response_text,
@@ -1823,6 +1978,19 @@ class ChatService:
             if phase_gate is not None
             else None
         )
+        self._log_processing_stage(
+            "policy_checks_completed",
+            request=request,
+            context=context,
+            intent_result=intent_result,
+            extra={
+                "intent_enabled": bool(intent_enabled_check.allowed),
+                "capability_allowed": bool(capability_check.allowed),
+                "state_valid": bool(is_valid),
+                "phase_gate_triggered": phase_gate is not None,
+                "contextual_sanity_triggered": contextual_sanity_issue is not None,
+            },
+        )
 
         # 8. Generate response - try handler first, then complex agent team or LLM fallback
         handler_result: Optional[HandlerResult] = None
@@ -1882,6 +2050,21 @@ class ChatService:
                         capability_check,
                     )
                     response_source = "llm_fallback"
+
+        self._log_processing_stage(
+            "response_drafted",
+            request=request,
+            context=context,
+            intent_result=intent_result,
+            extra={
+                "response_source": response_source,
+                "handler_used": handler_result is not None,
+                "agent_orchestrator_handled": bool(
+                    agent_orchestrator_result and agent_orchestrator_result.handled
+                ),
+                "response_preview": self._trace_preview(response_text, 320),
+            },
+        )
 
         # 8b. Validate final response against capabilities/rules.
         validation = response_validator.validate(
@@ -2035,6 +2218,20 @@ class ChatService:
         metadata.update(response_rewrite_metadata)
         metadata.update(turn_ticketing_status)
         metadata = self._apply_ticket_metadata_contract(metadata)
+        self._log_processing_stage(
+            "turn_completed",
+            request=request,
+            context=context,
+            intent_result=intent_result,
+            extra={
+                "response_source": str(response_source),
+                "next_state": str(next_state.value),
+                "validation_ok": bool(validation.valid),
+                "validator_replaced": bool(validator_replaced),
+                "ticket_created": bool(metadata.get("ticket_created", False)),
+                "db_session_available": db_session is not None,
+            },
+        )
 
         # 13. Build response
         return ChatResponse(
@@ -2046,6 +2243,101 @@ class ChatService:
             suggested_actions=suggested_actions,
             metadata=metadata,
         )
+
+    @staticmethod
+    def _trace_preview(value: Any, max_chars: int = 300) -> str:
+        text = str(value or "").strip()
+        if len(text) <= max_chars:
+            return text
+        omitted = len(text) - max_chars
+        return f"{text[:max_chars]}...[TRUNCATED:{omitted}]"
+
+    def _log_processing_stage(
+        self,
+        stage: str,
+        *,
+        request: ChatRequest | None = None,
+        context: ConversationContext | None = None,
+        intent_result: IntentResult | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> None:
+        request_meta = request.metadata if request is not None and isinstance(request.metadata, dict) else {}
+        trace_id = str(request_meta.get("trace_id") or "").strip()
+        turn_trace_id = str(request_meta.get("turn_trace_id") or "").strip()
+        session_id = str(request.session_id or "").strip() if request is not None else ""
+        hotel_code = (
+            str((context.hotel_code if context is not None else request.hotel_code) or "").strip()
+            if request is not None or context is not None
+            else ""
+        )
+        channel = (
+            str(
+                (
+                    context.channel
+                    if context is not None
+                    else (request.channel or request_meta.get("channel") if request is not None else "")
+                )
+                or ""
+            ).strip()
+        )
+        payload: dict[str, Any] = {
+            "stage": str(stage or "").strip() or "unknown",
+            "request_message_preview": self._trace_preview(
+                request.message if request is not None else "",
+                260,
+            ),
+            "state": str(getattr(context.state, "value", context.state) if context is not None else ""),
+            "pending_action": str(context.pending_action or "") if context is not None else "",
+            "intent": (
+                str(getattr(intent_result.intent, "value", intent_result.intent) or "")
+                if intent_result is not None
+                else ""
+            ),
+            "intent_confidence": (
+                float(intent_result.confidence)
+                if intent_result is not None
+                else None
+            ),
+        }
+        if extra:
+            payload["extra"] = extra
+
+        backend_trace_service.log_event(
+            "chat_service_stage",
+            payload,
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            session_id=session_id,
+            hotel_code=hotel_code,
+            channel=channel,
+            endpoint="/api/chat/message",
+            method="POST",
+            component="services.chat_service",
+        )
+        everything_trace_service.log_event(
+            "chat_service_stage",
+            {
+                **payload,
+                "request_metadata": request_meta,
+                "request_message_full": str(request.message or "") if request is not None else "",
+                "context": {
+                    "state": str(getattr(context.state, "value", context.state) if context is not None else ""),
+                    "pending_action": str(context.pending_action or "") if context is not None else "",
+                    "pending_data": dict(context.pending_data) if context is not None and isinstance(context.pending_data, dict) else {},
+                    "message_count": len(context.messages) if context is not None and isinstance(context.messages, list) else 0,
+                },
+            },
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            session_id=session_id,
+            hotel_code=hotel_code,
+            channel=channel,
+            endpoint="/api/chat/message",
+            method="POST",
+            component="services.chat_service",
+        )
+        if turn_trace_id:
+            turn_diagnostics_service.log_event(f"chat_service_{stage}", payload)
 
     async def _process_kb_only_message(
         self,

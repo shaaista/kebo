@@ -5,6 +5,9 @@ const state = {
     phase: 'pre_booking',
     messages: [],
     isLoading: false,
+    testProfileAutoApply: true,
+    testProfilesByPhase: {},
+    activeTestProfile: null,
 };
 
 // DOM Elements
@@ -25,6 +28,9 @@ const elements = {
     viewHistoryBtn: document.getElementById('view-history-btn'),
     hotelCode: document.getElementById('hotel-code'),
     journeyPhase: document.getElementById('journey-phase'),
+    autoPhaseProfile: document.getElementById('auto-phase-profile'),
+    phaseProfileStatus: document.getElementById('phase-profile-status'),
+    phaseProfileDetails: document.getElementById('phase-profile-details'),
     historyModal: document.getElementById('history-modal'),
     historyContent: document.getElementById('history-content'),
     closeModal: document.getElementById('close-modal'),
@@ -41,12 +47,161 @@ const elements = {
 function init() {
     generateSessionId();
     setupEventListeners();
+    loadTestProfiles();
 }
 
 // Generate unique session ID
 function generateSessionId() {
     state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     updateSessionInfo();
+}
+
+function normalizePhaseId(value) {
+    const raw = String(value || '').trim().toLowerCase().replace(/-/g, '_').replace(/\s+/g, '_');
+    if (!raw) return '';
+    const aliases = {
+        prebooking: 'pre_booking',
+        booking: 'pre_checkin',
+        precheckin: 'pre_checkin',
+        duringstay: 'during_stay',
+        instay: 'during_stay',
+        in_stay: 'during_stay',
+        postcheckout: 'post_checkout',
+    };
+    return aliases[raw] || raw;
+}
+
+function sanitizeTestProfile(input) {
+    if (!input || typeof input !== 'object') return null;
+    const fields = [
+        'guest_id',
+        'entity_id',
+        'organisation_id',
+        'room_number',
+        'guest_phone',
+        'guest_name',
+        'group_id',
+        'ticket_source',
+        'flow',
+    ];
+    const profile = {};
+    fields.forEach((field) => {
+        const value = input[field];
+        if (value === undefined || value === null) return;
+        const text = String(value).trim();
+        if (text) profile[field] = text;
+    });
+    if (!profile.organisation_id && profile.entity_id) {
+        profile.organisation_id = profile.entity_id;
+    }
+    if (!profile.entity_id && profile.organisation_id) {
+        profile.entity_id = profile.organisation_id;
+    }
+    if (!profile.guest_id) return null;
+    return profile;
+}
+
+function getActivePhaseProfile() {
+    const phaseId = normalizePhaseId(state.phase);
+    if (!state.testProfileAutoApply || !phaseId) return null;
+    return state.testProfilesByPhase[phaseId] || null;
+}
+
+function syncPhaseProfileUi() {
+    const profile = getActivePhaseProfile();
+    state.activeTestProfile = profile;
+
+    if (elements.autoPhaseProfile) {
+        elements.autoPhaseProfile.checked = !!state.testProfileAutoApply;
+    }
+
+    if (!elements.phaseProfileStatus || !elements.phaseProfileDetails) return;
+
+    const phaseId = normalizePhaseId(state.phase) || 'unknown';
+    if (!state.testProfileAutoApply) {
+        elements.phaseProfileStatus.textContent = `Auto profile mapping is OFF for ${phaseId}.`;
+        elements.phaseProfileDetails.textContent = 'Auto mapping disabled.';
+        return;
+    }
+
+    if (!profile) {
+        elements.phaseProfileStatus.textContent = `No mapped test profile for ${phaseId}.`;
+        elements.phaseProfileDetails.textContent = 'No active profile.';
+        return;
+    }
+
+    elements.phaseProfileStatus.textContent = `Mapped test profile active for ${phaseId}.`;
+    elements.phaseProfileDetails.textContent = JSON.stringify(profile, null, 2);
+}
+
+async function loadTestProfiles() {
+    try {
+        const response = await fetch('/api/chat/test-profiles');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const mapped = {};
+        const rawProfiles = data && typeof data.profiles_by_phase === 'object'
+            ? data.profiles_by_phase
+            : {};
+
+        Object.entries(rawProfiles).forEach(([phaseKey, profile]) => {
+            const normalizedPhase = normalizePhaseId(phaseKey);
+            if (!normalizedPhase) return;
+            const normalizedProfile = sanitizeTestProfile(profile);
+            if (normalizedProfile) {
+                mapped[normalizedPhase] = normalizedProfile;
+            }
+        });
+
+        state.testProfilesByPhase = mapped;
+        state.testProfileAutoApply = data?.auto_apply_enabled !== false;
+    } catch (error) {
+        console.error('Failed to load chat test profiles:', error);
+        state.testProfilesByPhase = {};
+        state.testProfileAutoApply = false;
+    } finally {
+        syncPhaseProfileUi();
+    }
+}
+
+function buildRequestMetadata(interactionMeta = null) {
+    const phaseId = normalizePhaseId(state.phase) || 'pre_booking';
+    const metadata = {
+        phase: phaseId,
+        chat_test_profile_applied: false,
+        chat_test_profile_phase: phaseId,
+    };
+
+    if (interactionMeta && typeof interactionMeta === 'object') {
+        const sourceType = String(interactionMeta.source_type || '').trim();
+        const sourceLabel = String(interactionMeta.source_label || '').trim();
+        const sourceText = String(interactionMeta.source_text || '').trim();
+        if (sourceType) metadata.ui_source_type = sourceType;
+        if (sourceLabel) metadata.ui_source_label = sourceLabel;
+        if (sourceText) metadata.ui_source_text = sourceText;
+        metadata.ui_event_at = new Date().toISOString();
+    }
+
+    const profile = getActivePhaseProfile();
+    if (!profile) return metadata;
+
+    Object.entries(profile).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        const text = String(value).trim();
+        if (text) metadata[key] = text;
+    });
+
+    if (!metadata.organisation_id && metadata.entity_id) {
+        metadata.organisation_id = metadata.entity_id;
+    }
+    if (!metadata.entity_id && metadata.organisation_id) {
+        metadata.entity_id = metadata.organisation_id;
+    }
+
+    metadata.chat_test_profile_applied = true;
+    return metadata;
 }
 
 // Setup event listeners
@@ -60,7 +215,14 @@ function setupEventListeners() {
     });
     elements.journeyPhase.addEventListener('change', (e) => {
         state.phase = e.target.value || 'pre_booking';
+        syncPhaseProfileUi();
     });
+    if (elements.autoPhaseProfile) {
+        elements.autoPhaseProfile.addEventListener('change', (e) => {
+            state.testProfileAutoApply = !!e.target.checked;
+            syncPhaseProfileUi();
+        });
+    }
 
     // Action buttons
     elements.newSessionBtn.addEventListener('click', () => {
@@ -87,7 +249,11 @@ function setupEventListeners() {
     document.querySelectorAll('.scenario-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const message = btn.dataset.message;
-            sendMessage(message);
+            sendMessage(message, {
+                source_type: 'scenario_button',
+                source_label: String(btn.textContent || '').trim(),
+                source_text: message,
+            });
         });
     });
 
@@ -119,11 +285,15 @@ async function handleSubmit(e) {
     if (!message || state.isLoading) return;
 
     elements.messageInput.value = '';
-    await sendMessage(message);
+    await sendMessage(message, {
+        source_type: 'typed_input',
+        source_label: 'typed_input',
+        source_text: message,
+    });
 }
 
 // Send message to API
-async function sendMessage(message) {
+async function sendMessage(message, interactionMeta = null) {
     if (state.isLoading) return;
 
     state.isLoading = true;
@@ -147,9 +317,7 @@ async function sendMessage(message) {
                 message: message,
                 hotel_code: state.hotelCode,
                 channel: 'web_widget',
-                metadata: {
-                    phase: state.phase,
-                },
+                metadata: buildRequestMetadata(interactionMeta),
             }),
         });
 
@@ -380,7 +548,7 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId) {
         const data = await response.json();
         showSuggestedActions(data.suggestions);
     } catch (e) {
-        // silently fail — suggestions are optional UI
+        // silently fail - suggestions are optional UI
     }
 }
 
@@ -395,7 +563,11 @@ function showSuggestedActions(actions) {
         btn.className = 'suggested-action';
         btn.textContent = action;
         btn.addEventListener('click', () => {
-            sendMessage(action);
+            sendMessage(action, {
+                source_type: 'suggested_action',
+                source_label: action,
+                source_text: action,
+            });
         });
         elements.suggestedActions.appendChild(btn);
     });
@@ -405,7 +577,7 @@ function showSuggestedActions(actions) {
 function clearChat() {
     elements.chatMessages.innerHTML = `
         <div class="welcome-message">
-            <p>👋 Start a conversation to test the bot.</p>
+            <p>Start a conversation to test the bot.</p>
             <p>Use the quick test buttons on the left or type your own messages.</p>
         </div>
     `;
@@ -428,7 +600,7 @@ async function resetSession() {
             elements.ticketStatus.textContent = 'No ticket action';
             elements.ticketStatus.className = 'value ticket-badge idle';
             clearTicketDetails();
-            addMessageToUI('assistant', '🔄 Session state has been reset. How can I help you?');
+            addMessageToUI('assistant', 'Session state has been reset. How can I help you?');
         }
     } catch (error) {
         console.error('Error resetting session:', error);
@@ -450,17 +622,17 @@ async function viewHistory() {
         const data = await response.json();
 
         let html = `
-            <div style="margin-bottom: 15px; padding: 10px; background: #f1f5f9; border-radius: 8px;">
+            <div style="margin-bottom: 15px; padding: 10px; background: #f9f9fa; border-radius: 8px;">
                 <strong>Session ID:</strong> ${data.session_id}<br>
                 <strong>State:</strong> ${data.state}<br>
                 <strong>Hotel:</strong> ${data.hotel_code}<br>
                 <strong>Created:</strong> ${new Date(data.created_at).toLocaleString()}
             </div>
-            <hr style="margin: 15px 0; border: none; border-top: 1px solid #e2e8f0;">
+            <hr style="margin: 15px 0; border: none; border-top: 1px solid #e5e7eb;">
         `;
 
         if (data.messages.length === 0) {
-            html += '<p style="color: #64748b;">No messages yet</p>';
+            html += '<p style="color: #6b7280;">No messages yet</p>';
         } else {
             data.messages.forEach(msg => {
                 html += `
@@ -509,32 +681,32 @@ async function viewTickets() {
         const tickets = data.tickets || [];
 
         if (tickets.length === 0) {
-            elements.ticketsContent.innerHTML = '<p style="color:#64748b;">No tickets yet.</p>';
+            elements.ticketsContent.innerHTML = '<p style="color:#6b7280;">No tickets yet.</p>';
             return;
         }
 
-        let html = `<p style="margin-bottom:12px;color:#64748b;">${tickets.length} ticket(s) found — newest first</p>`;
+        let html = `<p style="margin-bottom:12px;color:#6b7280;">${tickets.length} ticket(s) found - newest first</p>`;
         tickets.forEach(t => {
             const created = t.created_at ? new Date(t.created_at).toLocaleString() : '-';
             const status = t.status || 'open';
-            const statusColor = status === 'open' ? '#16a34a' : '#64748b';
+            const statusColor = status === 'open' ? '#ff5a7e' : '#6b7280';
             const fields = Object.entries(t)
                 .filter(([k]) => !['created_at', 'updated_at', 'ticket_id', 'status', 'id'].includes(k))
                 .map(([k, v]) => {
                     if (!v && v !== 0) return '';
-                    return `<div><span style="color:#64748b;min-width:130px;display:inline-block;">${k}:</span> ${escapeHtml(String(v))}</div>`;
+                    return `<div><span style="color:#6b7280;min-width:130px;display:inline-block;">${k}:</span> ${escapeHtml(String(v))}</div>`;
                 })
                 .filter(Boolean)
                 .join('');
 
             html += `
-                <div style="border:1px solid #e2e8f0;border-radius:8px;padding:14px;margin-bottom:12px;background:#fff;">
+                <div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px;margin-bottom:12px;background:#fff;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <strong style="font-size:15px;">🎫 ${escapeHtml(t.ticket_id || t.id || '-')}</strong>
+                        <strong style="font-size:15px;">${escapeHtml(t.ticket_id || t.id || '-')}</strong>
                         <span style="background:${statusColor};color:#fff;padding:2px 8px;border-radius:12px;font-size:12px;">${escapeHtml(status)}</span>
                     </div>
                     <div style="font-size:13px;line-height:1.7;">${fields}</div>
-                    <div style="font-size:11px;color:#94a3b8;margin-top:6px;">Created: ${created}</div>
+                    <div style="font-size:11px;color:#6b7280;margin-top:6px;">Created: ${created}</div>
                 </div>
             `;
         });
@@ -547,3 +719,4 @@ async function viewTickets() {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', init);
+

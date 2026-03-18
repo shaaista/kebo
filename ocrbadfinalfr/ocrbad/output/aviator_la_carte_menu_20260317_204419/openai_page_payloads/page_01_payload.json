@@ -1,0 +1,13 @@
+{
+  "input_type": "ocr_document",
+  "openai_input_mode": "raw_page_json",
+  "pages": [
+    {
+      "page": 1,
+      "lines": [],
+      "blocks": [],
+      "icons": [],
+      "page_text": ""
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "ICONIQA NEAPOLITAN FLATBREAD",
+      "description": "Sourdough, Tomato Sauce, Mozzarella Cheese",
+      "price": "650",
+      "kcal": "200",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "GRILLED MUSHROOM FLATBREAD",
+      "description": "Mushroom, Tomato, Mozzarella, Basil",
+      "price": "650",
+      "kcal": "208",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "⑪"
+        ]
+      }
+    },
+    {
+      "name": "THE MEDITERRANEAN FLATBREAD",
+      "description": "Artichoke Heart, Kalamata, Roasted Garlic, Feta",
+      "price": "650",
+      "kcal": "187",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "BBQ CHICKEN FLATBREAD",
+      "description": "BBQ Chicken, Tomato, Mozzarella",
+      "price": "750",
+      "kcal": "157",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "□"
+        ]
+      }
+    },
+    {
+      "name": "LOW CARB PIZZA BOWL",
+      "description": "Lean Turkey, Jalapeño, Cheese",
+      "price": "650",
+      "kcal": "110",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 4,
+      "dish_type": "FLATBREADS",
+      "extras": {
+        "unparsed_marks": [
+          "☑"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Section header FLATBREADS applies to all listed dishes in the single main column. Prices aligned in a right-side price strip were matched vertically to nearest items. Allergen icons on kcal lines were used for allergens; veg/non-veg icons on title lines used for diet tags. Unclear glyphs kept in extras.unparsed_marks.",
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Crustaceans",
+      "Celery",
+      "Sulpher Dioxide",
+      "Soybeans",
+      "Molluscs",
+      "Sesame",
+      "Tree Nuts",
+      "Mustard",
+      "Peanuts",
+      "Vegetarian",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ]
+  }
+}

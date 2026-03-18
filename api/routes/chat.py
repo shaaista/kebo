@@ -6,7 +6,7 @@ Endpoints for chat functionality and testing.
 
 import json
 from fastapi import APIRouter, HTTPException, Depends, Request
-from typing import Optional, List
+from typing import Any, Optional, List
 from pydantic import BaseModel
 
 from schemas.chat import ChatRequest, ChatResponse
@@ -14,7 +14,11 @@ from llm.client import llm_client
 from services.chat_service import chat_service
 from services.evaluation_metrics_service import evaluation_metrics_service
 from services.observability_service import observability_service
+from services.backend_trace_service import backend_trace_service
+from services.everything_trace_service import everything_trace_service
 from services.conversation_audit_service import conversation_audit_service
+from services.turn_diagnostics_service import turn_diagnostics_service
+from services.response_beautifier_service import response_beautifier_service
 from config.settings import settings
 from core.context_manager import context_manager
 from models.database import get_db
@@ -23,6 +27,127 @@ from sqlalchemy.exc import OperationalError
 
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
+
+_DEFAULT_CHAT_TEST_PHASE_PROFILES: dict[str, dict[str, str]] = {
+    "pre_checkin": {
+        "guest_id": "921346",
+        "entity_id": "5703",
+        "organisation_id": "5703",
+        "ticket_source": "whatsapp_bot",
+    },
+    "during_stay": {
+        "guest_id": "921348",
+        "entity_id": "5703",
+        "organisation_id": "5703",
+        "ticket_source": "whatsapp_bot",
+    },
+    "post_checkout": {
+        "guest_id": "921347",
+        "entity_id": "5703",
+        "organisation_id": "5703",
+        "ticket_source": "whatsapp_bot",
+    },
+}
+
+
+def _normalize_phase_identifier(value: Any) -> str:
+    raw = str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+    if not raw:
+        return ""
+    aliases = {
+        "prebooking": "pre_booking",
+        "booking": "pre_checkin",
+        "precheckin": "pre_checkin",
+        "duringstay": "during_stay",
+        "instay": "during_stay",
+        "in_stay": "during_stay",
+        "postcheckout": "post_checkout",
+    }
+    return aliases.get(raw, raw)
+
+
+def _normalize_chat_test_profile(profile: Any) -> dict[str, str]:
+    if not isinstance(profile, dict):
+        return {}
+
+    # Keep only integration-relevant profile fields to avoid leaking arbitrary keys.
+    keys = {
+        "guest_id",
+        "entity_id",
+        "organisation_id",
+        "room_number",
+        "guest_phone",
+        "guest_name",
+        "group_id",
+        "ticket_source",
+        "flow",
+    }
+    normalized: dict[str, str] = {}
+    for key in keys:
+        value = profile.get(key)
+        if value in (None, ""):
+            continue
+        text = str(value).strip()
+        if text:
+            normalized[key] = text
+
+    # Accept alternate spellings for organisation/entity IDs.
+    if "organisation_id" not in normalized:
+        alt = str(profile.get("organization_id") or profile.get("org_id") or "").strip()
+        if alt:
+            normalized["organisation_id"] = alt
+    if "entity_id" not in normalized:
+        alt = str(profile.get("organisation_id") or profile.get("organization_id") or profile.get("org_id") or "").strip()
+        if alt:
+            normalized["entity_id"] = alt
+    if "organisation_id" not in normalized and "entity_id" in normalized:
+        normalized["organisation_id"] = normalized["entity_id"]
+
+    # Profiles are only valid when guest_id is present.
+    if not str(normalized.get("guest_id") or "").strip():
+        return {}
+
+    return normalized
+
+
+def _load_chat_test_phase_profiles() -> dict[str, dict[str, str]]:
+    raw = str(getattr(settings, "chat_test_phase_profiles_json", "") or "").strip()
+    parsed: Any = {}
+    if raw:
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            parsed = {}
+
+    if not parsed:
+        parsed = dict(_DEFAULT_CHAT_TEST_PHASE_PROFILES)
+
+    normalized: dict[str, dict[str, str]] = {}
+
+    if isinstance(parsed, list):
+        for row in parsed:
+            if not isinstance(row, dict):
+                continue
+            phase_id = _normalize_phase_identifier(row.get("phase") or row.get("phase_id"))
+            if not phase_id:
+                continue
+            profile = _normalize_chat_test_profile(row)
+            if profile:
+                normalized[phase_id] = profile
+        return normalized
+
+    if not isinstance(parsed, dict):
+        return normalized
+
+    for phase_key, profile_payload in parsed.items():
+        phase_id = _normalize_phase_identifier(phase_key)
+        if not phase_id:
+            continue
+        profile = _normalize_chat_test_profile(profile_payload)
+        if profile:
+            normalized[phase_id] = profile
+
+    return normalized
 
 
 def _record_evaluation_event(request: ChatRequest, response: ChatResponse, trace_id: str) -> None:
@@ -45,6 +170,89 @@ def _record_evaluation_event(request: ChatRequest, response: ChatResponse, trace
                 "error": str(record_error),
             },
         )
+
+
+def _trace_chat_event(
+    event: str,
+    *,
+    trace_id: str = "",
+    turn_trace_id: str = "",
+    http_request: Request | None = None,
+    request: ChatRequest | None = None,
+    response: ChatResponse | None = None,
+    status_code: int | None = None,
+    error: str = "",
+    extra: dict[str, Any] | None = None,
+) -> None:
+    request_meta = request.metadata if request is not None and isinstance(request.metadata, dict) else {}
+    response_meta = response.metadata if response is not None and isinstance(response.metadata, dict) else {}
+    endpoint = (
+        str(http_request.url.path or "").strip()
+        if http_request is not None and getattr(http_request, "url", None) is not None
+        else "/api/chat/message"
+    )
+    method = (
+        str(http_request.method or "").strip()
+        if http_request is not None
+        else "POST"
+    )
+    payload = {
+        "request_message": str(request.message or "").strip() if request is not None else "",
+        "request_message_length": len(str(request.message or "")) if request is not None else 0,
+        "request_metadata_keys": sorted([str(k) for k in request_meta.keys()])[:80],
+        "response_message_length": len(str(response.message or "")) if response is not None else 0,
+        "response_state": str(getattr(response.state, "value", response.state) or "") if response is not None else "",
+        "response_intent": str(response_meta.get("classified_intent") or "") if response_meta else "",
+        "response_source": str(response_meta.get("response_source") or "") if response_meta else "",
+        "routing_path": str(response_meta.get("routing_path") or "") if response_meta else "",
+        "ticket_created": bool(response_meta.get("ticket_created", False)) if response_meta else False,
+    }
+    if extra:
+        payload.update(extra)
+    session_id = str(request.session_id or "").strip() if request is not None else ""
+    hotel_code = str(request.hotel_code or "").strip() if request is not None else ""
+    channel = (
+        str(request.channel or request_meta.get("channel") or "").strip()
+        if request is not None
+        else ""
+    )
+
+    backend_trace_service.log_event(
+        event,
+        payload,
+        trace_id=trace_id,
+        turn_trace_id=turn_trace_id,
+        session_id=session_id,
+        hotel_code=hotel_code,
+        channel=channel,
+        endpoint=endpoint,
+        method=method,
+        status_code=status_code,
+        component="api.routes.chat.send_message",
+        error=error,
+    )
+    everything_trace_service.log_event(
+        event,
+        {
+            **payload,
+            "request_metadata": request_meta,
+            "response_metadata": response_meta,
+            "request_message_full": str(request.message or "") if request is not None else "",
+            "response_message_full": str(response.message or "") if response is not None else "",
+        },
+        trace_id=trace_id,
+        turn_trace_id=turn_trace_id,
+        session_id=session_id,
+        hotel_code=hotel_code,
+        channel=channel,
+        endpoint=endpoint,
+        method=method,
+        status_code=status_code,
+        component="api.routes.chat.send_message",
+        error=error,
+    )
+    if turn_trace_id:
+        turn_diagnostics_service.log_event(event, payload)
 
 
 def _enrich_service_llm_display_fields(response: ChatResponse) -> None:
@@ -96,14 +304,36 @@ async def send_message(
     Process a chat message and return bot response.
     DB session is injected so handlers can persist orders, guests, etc.
     """
+    trace_id = getattr(http_request.state, "trace_id", "")
+    if not isinstance(request.metadata, dict):
+        request.metadata = {}
+    turn_trace_id, turn_token = turn_diagnostics_service.begin_turn(
+        request=request,
+        api_trace_id=trace_id,
+    )
+    if trace_id:
+        request.metadata.setdefault("trace_id", trace_id)
+    request.metadata.setdefault("turn_trace_id", turn_trace_id)
+    _trace_chat_event(
+        "chat_message_received",
+        trace_id=trace_id,
+        turn_trace_id=turn_trace_id,
+        http_request=http_request,
+        request=request,
+        status_code=0,
+        extra={
+            "db_session_available": db is not None,
+        },
+    )
     try:
-        trace_id = getattr(http_request.state, "trace_id", "")
         response = await chat_service.process_message(request, db_session=db)
+        response.message = response_beautifier_service.beautify_response_text(response.message)
         if not isinstance(response.metadata, dict):
             response.metadata = {}
         _enrich_service_llm_display_fields(response)
         if trace_id:
             response.metadata.setdefault("trace_id", trace_id)
+        response.metadata.setdefault("turn_trace_id", turn_trace_id)
         _record_evaluation_event(request, response, trace_id)
         observability_service.log_event(
             "chat_message_processed",
@@ -124,18 +354,37 @@ async def send_message(
             trace_id=trace_id,
             db_fallback=False,
         )
+        _trace_chat_event(
+            "chat_message_processed",
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            http_request=http_request,
+            request=request,
+            response=response,
+            status_code=200,
+            extra={
+                "db_fallback": False,
+            },
+        )
+        turn_diagnostics_service.log_turn_end(
+            request=request,
+            response=response,
+            db_fallback=False,
+            error="",
+        )
         return response
     except OperationalError as e:
         print(f"API DB Error (fallback to in-memory): {e}")
         try:
-            trace_id = getattr(http_request.state, "trace_id", "")
             response = await chat_service.process_message(request, db_session=None)
+            response.message = response_beautifier_service.beautify_response_text(response.message)
             if not isinstance(response.metadata, dict):
                 response.metadata = {}
             _enrich_service_llm_display_fields(response)
             response.metadata["db_fallback"] = True
             if trace_id:
                 response.metadata.setdefault("trace_id", trace_id)
+            response.metadata.setdefault("turn_trace_id", turn_trace_id)
             _record_evaluation_event(request, response, trace_id)
             observability_service.log_event(
                 "chat_message_processed_db_fallback",
@@ -152,6 +401,25 @@ async def send_message(
                 trace_id=trace_id,
                 db_fallback=True,
             )
+            _trace_chat_event(
+                "chat_message_processed_db_fallback",
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                http_request=http_request,
+                request=request,
+                response=response,
+                status_code=200,
+                extra={
+                    "db_fallback": True,
+                    "primary_db_error": str(e),
+                },
+            )
+            turn_diagnostics_service.log_turn_end(
+                request=request,
+                response=response,
+                db_fallback=True,
+                error=f"primary_db_failed: {str(e)}",
+            )
             return response
         except Exception as fallback_error:
             print(f"API Fallback Error: {fallback_error}")
@@ -166,9 +434,28 @@ async def send_message(
             )
             conversation_audit_service.log_failed_turn(
                 request=request,
-                trace_id=getattr(http_request.state, "trace_id", ""),
+                trace_id=trace_id,
                 error=str(fallback_error),
                 db_fallback=True,
+            )
+            _trace_chat_event(
+                "chat_message_failed_db_fallback",
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                http_request=http_request,
+                request=request,
+                status_code=503,
+                error=str(fallback_error),
+                extra={
+                    "db_fallback": True,
+                    "primary_db_error": str(e),
+                },
+            )
+            turn_diagnostics_service.log_turn_end(
+                request=request,
+                response=None,
+                db_fallback=True,
+                error=str(fallback_error),
             )
             raise HTTPException(
                 status_code=503,
@@ -189,11 +476,31 @@ async def send_message(
         )
         conversation_audit_service.log_failed_turn(
             request=request,
-            trace_id=getattr(http_request.state, "trace_id", ""),
+            trace_id=trace_id,
             error=str(e),
             db_fallback=False,
         )
+        _trace_chat_event(
+            "chat_message_failed",
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            http_request=http_request,
+            request=request,
+            status_code=500,
+            error=str(e),
+            extra={
+                "db_fallback": False,
+            },
+        )
+        turn_diagnostics_service.log_turn_end(
+            request=request,
+            response=None,
+            db_fallback=False,
+            error=str(e),
+        )
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        turn_diagnostics_service.clear_turn(turn_token)
 
 
 @router.get("/session/{session_id}")
@@ -310,6 +617,45 @@ async def reset_session(session_id: str, db: AsyncSession = Depends(get_db)):
         db_fallback = True
 
     return {"message": "Session reset", "state": "idle", "db_fallback": db_fallback}
+
+
+@router.get("/test-profiles")
+async def get_chat_test_phase_profiles():
+    """
+    Return phase-to-profile mapping used by the chat test UI to auto-apply
+    guest/entity metadata for dashboard ticket validation.
+    """
+    try:
+        from services.config_service import config_service
+
+        configured_phases = config_service.get_journey_phases()
+    except Exception:
+        configured_phases = []
+
+    phases_payload: list[dict[str, str]] = []
+    if isinstance(configured_phases, list):
+        for phase in configured_phases:
+            if not isinstance(phase, dict):
+                continue
+            phase_id = _normalize_phase_identifier(phase.get("id"))
+            if not phase_id:
+                continue
+            phase_name = str(phase.get("name") or "").strip() or phase_id.replace("_", " ").title()
+            phases_payload.append({"id": phase_id, "name": phase_name})
+
+    if not phases_payload:
+        phases_payload = [
+            {"id": "pre_booking", "name": "Pre Booking"},
+            {"id": "pre_checkin", "name": "Pre Checkin"},
+            {"id": "during_stay", "name": "During Stay"},
+            {"id": "post_checkout", "name": "Post Checkout"},
+        ]
+
+    return {
+        "auto_apply_enabled": bool(getattr(settings, "chat_test_phase_profile_auto_apply", True)),
+        "profiles_by_phase": _load_chat_test_phase_profiles(),
+        "phases": phases_payload,
+    }
 
 
 class SuggestionsRequest(BaseModel):

@@ -1,0 +1,225 @@
+[PAGE 1]
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING - KIDS EXPERIENCE",
+  "page": 1,
+  "dish_blocks": [
+    {
+      "block_id": "d1",
+      "column_index": 1,
+      "bbox": [903.8370054, 1129.10345251, 1990.1629946, 1290.8957723],
+      "line_indices": [3, 4, 5, 6, 39, 40, 56]
+    },
+    {
+      "block_id": "d2",
+      "column_index": 1,
+      "bbox": [903.8370054, 1390.7248609, 1990.1629946, 1547.35365654],
+      "line_indices": [8, 9, 10, 11, 41, 42, 57, 58]
+    },
+    {
+      "block_id": "d3",
+      "column_index": 1,
+      "bbox": [902.1153648, 1657.51007995, 1990.1629946, 1814.13883466],
+      "line_indices": [12, 13, 14, 15, 16, 43, 59]
+    },
+    {
+      "block_id": "d4",
+      "column_index": 1,
+      "bbox": [903.8370054, 1924.295299, 1990.1629946, 2130.83855708],
+      "line_indices": [17, 18, 19, 20, 25, 44, 60, 61]
+    },
+    {
+      "block_id": "d5",
+      "column_index": 1,
+      "bbox": [902.1153648, 2235.8315382, 1990.1629946, 2490.5679885],
+      "line_indices": [21, 22, 23, 24, 26, 45]
+    },
+    {
+      "block_id": "d6",
+      "column_index": 1,
+      "bbox": [902.1153648, 2593.8396994, 1990.1629946, 2786.6134506],
+      "line_indices": [27, 28, 29, 30, 31, 64]
+    },
+    {
+      "block_id": "d7",
+      "column_index": 1,
+      "bbox": [902.1153648, 2903.65470931, 1990.1629946, 3055.11985801],
+      "line_indices": [32, 33, 34, 35, 36, 47]
+    }
+  ],
+  "other_text_line_indices": [0, 1, 2, 37, 38, 46, 48, 49, 50, 51, 52, 53, 54, 55, 62, 63, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74],
+  "footer_line_indices": [37, 38, 46, 48, 50, 52, 53],
+  "notes": "Grouped by column 1 titles with adjacent descriptions, kcal, and right-aligned prices. Icons and bullets near titles included within blocks where spatially adjacent. Footer/allergen key lines kept separate."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING - KIDS EXPERIENCE",
+  "items": [
+    {
+      "name": "VEGGIE SLIDERS",
+      "description": "Vegetable Patty, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "148 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "Ⓡ"
+        ]
+      }
+    },
+    {
+      "name": "RAINBOW VEGGIE PIZZA",
+      "description": "Assorted Veggies, Cheese",
+      "price": "450",
+      "kcal": "175 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "Ⓡ"
+        ]
+      }
+    },
+    {
+      "name": "MAC N CHEESE",
+      "description": "Classic Macaroni, Melted Cheddar Cheese",
+      "price": "450",
+      "kcal": "176 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "RED SAUCE SPAGHETTI",
+      "description": "Tomato Sauce, Basil, Cheese, Spaghetti",
+      "price": "450",
+      "kcal": "132 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "Ⓡ"
+        ]
+      }
+    },
+    {
+      "name": "BUCKET OF ASSORTED POTATO FRIES",
+      "description": "Potato Chips, Wedges, Corn, Cheese pop",
+      "price": "450",
+      "kcal": "254 Kcal",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉",
+          "⑩"
+        ]
+      }
+    },
+    {
+      "name": "MASHED POTATO",
+      "description": "Creamy Mashed, Butter, Cheese",
+      "price": "450",
+      "kcal": "111 Kcal",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {
+        "unparsed_marks": [
+          "◉"
+        ]
+      }
+    },
+    {
+      "name": "CRISPY CHICKEN SLIDERS",
+      "description": "Crispy Chicken, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "208 Kcal",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 1,
+      "dish_type": "KIDS EXPERIENCE",
+      "extras": {}
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Fish",
+    "Eggs"
+  ],
+  "notes": "Page intent classified as menu_items_page. Single primary column with right-aligned price strip. Dietary icons used to set veg/non_veg and allergens captured from icon list on kcal lines where present. Unclear symbols retained in extras.unparsed_marks.",
+  "page_extras": {
+    "page_intent": "menu_items_page"
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING - KIDS EXPERIENCE", "items": [], "other_text": [ "IN ROOM DINING", "12:00 PM TO 6:00 AM" ], "footer_text": [], "notes": "", "page_extras": [] }

@@ -13,6 +13,7 @@ import csv
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from difflib import SequenceMatcher
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -43,6 +44,8 @@ class TicketingResult:
 
 class TicketingService:
     """Async client for external ticketing + handoff APIs."""
+
+    _DUPLICATE_CREATE_WINDOW_SECONDS = 120
 
     _LOCAL_TICKET_CSV_HEADERS: tuple[str, ...] = (
         "id",
@@ -96,6 +99,9 @@ class TicketingService:
         "response_json",
     )
 
+    def __init__(self) -> None:
+        self._recent_create_cache: dict[str, dict[str, Any]] = {}
+
     @staticmethod
     def _ticket_debug_enabled() -> bool:
         return bool(getattr(settings, "ticketing_debug_log_enabled", True))
@@ -145,6 +151,96 @@ class TicketingService:
                 handle.write("\n")
         except Exception:
             logger.exception("Failed writing ticket debug log event=%s path=%s", event, path)
+
+    @staticmethod
+    def _ticket_duplicate_window_seconds() -> int:
+        raw = getattr(settings, "ticketing_duplicate_window_seconds", 120)
+        try:
+            value = int(raw)
+        except (TypeError, ValueError):
+            value = TicketingService._DUPLICATE_CREATE_WINDOW_SECONDS
+        return max(0, value)
+
+    def _cleanup_recent_create_cache(self) -> None:
+        if not self._recent_create_cache:
+            return
+        window_seconds = self._ticket_duplicate_window_seconds()
+        if window_seconds <= 0:
+            self._recent_create_cache.clear()
+            return
+        now_ts = datetime.now(UTC).timestamp()
+        stale_keys = [
+            key
+            for key, record in self._recent_create_cache.items()
+            if (now_ts - float(record.get("created_ts") or 0.0)) > window_seconds
+        ]
+        for key in stale_keys:
+            self._recent_create_cache.pop(key, None)
+
+    @classmethod
+    def _build_create_dedupe_fingerprint(cls, payload: dict[str, Any]) -> str:
+        if not isinstance(payload, dict):
+            return ""
+        normalized = {
+            "session_id": cls._safe_str(payload.get("session_id")).lower(),
+            "guest_id": cls._safe_str(payload.get("guest_id")).lower(),
+            "entity_id": cls._safe_str(
+                payload.get("entity_id")
+                or payload.get("organisation_id")
+                or payload.get("organization_id")
+                or payload.get("org_id")
+            ).lower(),
+            "room_number": cls._safe_str(payload.get("room_number")).lower(),
+            "issue": cls._safe_str(payload.get("issue")).lower(),
+            "phase": cls._safe_str(payload.get("phase")).lower(),
+            "category": cls._safe_str(payload.get("categorization") or payload.get("category")).lower(),
+            "sub_category": cls._safe_str(
+                payload.get("sub_categorization") or payload.get("sub_category")
+            ).lower(),
+            "service_id": cls._safe_str(payload.get("service_id") or payload.get("service")).lower(),
+        }
+        if not normalized["issue"]:
+            return ""
+        serialized = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        return hashlib.sha1(serialized.encode("utf-8")).hexdigest()
+
+    def _find_recent_duplicate_result(self, payload: dict[str, Any]) -> TicketingResult | None:
+        self._cleanup_recent_create_cache()
+        fingerprint = self._build_create_dedupe_fingerprint(payload)
+        if not fingerprint:
+            return None
+        cached = self._recent_create_cache.get(fingerprint)
+        if not isinstance(cached, dict):
+            return None
+        response = dict(cached.get("response") or {})
+        response["duplicate_suppressed"] = True
+        return TicketingResult(
+            success=True,
+            ticket_id=self._safe_str(cached.get("ticket_id")),
+            assigned_id=self._safe_str(cached.get("assigned_id")),
+            status_code=int(cached.get("status_code") or 200),
+            payload=dict(payload or {}),
+            response=response,
+        )
+
+    def _remember_recent_create_result(self, payload: dict[str, Any], result: TicketingResult) -> None:
+        if not isinstance(payload, dict):
+            return
+        if not bool(result and result.success):
+            return
+        ticket_id = self._safe_str(result.ticket_id)
+        if not ticket_id:
+            return
+        fingerprint = self._build_create_dedupe_fingerprint(payload)
+        if not fingerprint:
+            return
+        self._recent_create_cache[fingerprint] = {
+            "created_ts": datetime.now(UTC).timestamp(),
+            "ticket_id": ticket_id,
+            "assigned_id": self._safe_str(result.assigned_id),
+            "status_code": int(result.status_code or 200),
+            "response": dict(result.response or {}),
+        }
 
     def is_ticketing_enabled(self, capabilities: dict[str, Any] | None = None) -> bool:
         """Ticketing is enabled only when endpoint exists and tool toggle allows it."""
@@ -238,6 +334,17 @@ class TicketingService:
                 response=response_payload,
             )
 
+        duplicate_result = self._find_recent_duplicate_result(payload)
+        if duplicate_result is not None:
+            self._write_ticket_debug_event(
+                "ticket_create_deduplicated",
+                ticket_id=duplicate_result.ticket_id,
+                assigned_id=duplicate_result.assigned_id,
+                payload=payload,
+                context=debug_context,
+            )
+            return duplicate_result
+
         if self._use_local_mode():
             result = await self._create_ticket_local(payload)
             logger.info(
@@ -255,6 +362,7 @@ class TicketingService:
                 result_response=result.response,
                 context=debug_context,
             )
+            self._remember_recent_create_result(payload, result)
             return result
 
         base_url = self._ticketing_base_url()
@@ -285,6 +393,7 @@ class TicketingService:
             result_response=result.response,
             context={**debug_context, "request_url": url},
         )
+        self._remember_recent_create_result(payload, result)
         return result
 
     async def update_ticket(
@@ -476,32 +585,76 @@ class TicketingService:
         """
         Build a Lumira-style ticket payload from context + normalized fields.
         """
+        pending = context.pending_data if isinstance(context.pending_data, dict) else {}
         integration = self.get_integration_context(context)
+        latest_ticket = self.get_latest_ticket(context)
 
-        guest_id = (
-            integration.get("guest_id")
-            or integration.get("user_id")
-            or integration.get("wa_number")
-            or context.guest_phone
-            or ""
+        guest_id = self._first_non_empty(
+            integration.get("guest_id"),
+            pending.get("guest_id"),
+            latest_ticket.get("guest_id"),
+            integration.get("user_id"),
+            integration.get("wa_number"),
+            context.guest_phone,
         )
-        organisation_id = (
-            integration.get("organisation_id")
-            or integration.get("organization_id")
-            or integration.get("org_id")
-            or integration.get("entity_id")
-            or context.hotel_code
-            or ""
+        organisation_id = self._first_non_empty(
+            integration.get("organisation_id"),
+            integration.get("organization_id"),
+            integration.get("org_id"),
+            integration.get("entity_id"),
+            pending.get("organisation_id"),
+            pending.get("organization_id"),
+            pending.get("org_id"),
+            pending.get("entity_id"),
+            latest_ticket.get("organisation_id"),
+            latest_ticket.get("organization_id"),
+            latest_ticket.get("org_id"),
+            latest_ticket.get("entity_id"),
+            context.hotel_code,
         )
-        room_number = (
-            context.room_number
-            or integration.get("room_number")
-            or ""
+        room_number = self._first_non_empty(
+            context.room_number,
+            pending.get("room_number"),
+            integration.get("room_number"),
+            latest_ticket.get("room_number"),
         )
 
         now_utc = datetime.now(UTC).strftime("%H:%M:%S %d-%m-%Y")
         issue_text = str(issue or "").strip() or str(message or "").strip()
-        message_text = str(message or "").strip() or issue_text
+        if not room_number:
+            room_number = self._extract_room_number_from_text(issue_text)
+        if not room_number:
+            room_number = self._extract_room_number_from_text(message)
+
+        department_allocated = self._first_non_empty(
+            department_id,
+            pending.get("department_id"),
+            pending.get("ticket_department_id"),
+            integration.get("department_id"),
+            integration.get("department_allocated"),
+            latest_ticket.get("department_id"),
+            latest_ticket.get("department_allocated"),
+        )
+        department_manager_value = self._first_non_empty(
+            department_manager,
+            pending.get("department_head"),
+            pending.get("department_manager"),
+            integration.get("department_head"),
+            integration.get("department_manager"),
+            latest_ticket.get("department_manager"),
+        )
+        sentiment_value = self._first_non_empty(
+            sentiment_score,
+            pending.get("sentiment_score"),
+            pending.get("ticket_sentiment_score"),
+            integration.get("sentiment_score"),
+            latest_ticket.get("sentiment_score"),
+        )
+        message_text = self._build_ticket_message_context(
+            context=context,
+            explicit_message=message,
+            issue_text=issue_text,
+        )
         source_value = self._resolve_ticket_source(
             explicit_source=source,
             integration=integration,
@@ -522,9 +675,9 @@ class TicketingService:
             "organisation_id": str(organisation_id or "").strip(),
             "issue": issue_text,
             "message": message_text,
-            "sentiment_score": str(sentiment_score or "").strip(),
-            "department_allocated": str(department_id or "").strip(),
-            "department_manager": str(department_manager or "").strip(),
+            "sentiment_score": str(sentiment_value or "").strip(),
+            "department_allocated": str(department_allocated or "").strip(),
+            "department_manager": str(department_manager_value or "").strip(),
             "assigned_to": str(assigned_to or "").strip(),
             "priority": priority_value,
             "categorization": category_value,
@@ -562,6 +715,88 @@ class TicketingService:
             payload["cost"] = float(cost)
 
         return payload
+
+    @classmethod
+    def _first_non_empty(cls, *values: Any) -> str:
+        for value in values:
+            text = cls._safe_str(value)
+            if text:
+                return text
+        return ""
+
+    @classmethod
+    def _extract_room_number_from_text(cls, value: Any) -> str:
+        text = cls._safe_str(value)
+        if not text:
+            return ""
+        match = re.search(
+            r"\broom(?:\s*(?:number|no\.?))?\s*(?:is|=|:)?\s*([A-Za-z0-9-]{2,10})\b",
+            text,
+            flags=re.IGNORECASE,
+        )
+        if not match:
+            return ""
+        candidate = cls._safe_str(match.group(1))
+        if not candidate:
+            return ""
+        if not re.fullmatch(r"[A-Za-z0-9-]{2,10}", candidate):
+            return ""
+        return candidate.upper()
+
+    def _build_ticket_message_context(
+        self,
+        *,
+        context: ConversationContext,
+        explicit_message: str,
+        issue_text: str,
+        max_messages: int = 12,
+        max_chars: int = 3200,
+    ) -> str:
+        explicit = self._safe_str(explicit_message)
+        issue = self._safe_str(issue_text)
+
+        lines: list[str] = []
+        for msg in context.get_recent_messages(max_messages):
+            role_raw = self._safe_str(getattr(msg, "role", ""))
+            role = role_raw.lower()
+            if role.endswith("user"):
+                prefix = "User"
+            elif role.endswith("assistant"):
+                prefix = "AI"
+            elif role:
+                prefix = role.title()
+            else:
+                prefix = "AI"
+
+            content = self._safe_str(getattr(msg, "content", ""))
+            if not content:
+                continue
+            lines.append(f"{prefix}: {content}")
+
+        # Ensure the latest explicit message and issue summary are both represented.
+        if explicit:
+            explicit_line = f"User: {explicit}"
+            if explicit_line not in lines:
+                lines.append(explicit_line)
+        if issue:
+            issue_line = f"Issue Summary: {issue}"
+            if issue_line not in lines:
+                lines.append(issue_line)
+
+        if not lines:
+            text = explicit or issue
+            return text[:max_chars]
+
+        combined = "\n".join(lines).strip()
+        if len(combined) <= max_chars:
+            return combined
+
+        # Keep the most recent context in bounds.
+        trimmed = combined[-max_chars:]
+        newline_pos = trimmed.find("\n")
+        if 0 <= newline_pos < 120:
+            trimmed = trimmed[newline_pos + 1 :]
+        return trimmed.strip()
 
     @staticmethod
     def get_integration_context(context: ConversationContext) -> dict[str, Any]:

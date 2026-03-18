@@ -843,6 +843,8 @@ class MenuOCRPluginService:
             priced_count = len([item for item in items if isinstance(item, dict) and str(item.get("price") or "").strip()])
 
         fact_lines = self._build_fact_lines(menu_formatted, max_facts=max_facts)
+        raw_text_path = output_dir / "docai_text_raw.txt"
+        raw_ocr_text = raw_text_path.read_text(encoding="utf-8").strip() if raw_text_path.exists() else ""
         duration_sec = round(time.perf_counter() - started_at, 2)
         run_log["status"] = "ok"
         run_log["finished_at"] = self._now_iso()
@@ -863,6 +865,7 @@ class MenuOCRPluginService:
 
         return {
             "status": "ok",
+            "raw_text": raw_ocr_text,
             "fact_lines": fact_lines,
             "ocr_raw_output": menu_formatted,
             "ocr_raw_output_text": json.dumps(menu_formatted, indent=2, ensure_ascii=False),

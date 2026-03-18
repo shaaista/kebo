@@ -1,0 +1,2814 @@
+{
+  "input_type": "ocr_document",
+  "payload_mode": "layout_full",
+  "pages": [
+    {
+      "page": 2,
+      "width": null,
+      "height": null,
+      "raw_text": "[PAGE 2]\nIN ROOM DINING\nSMALL PLATES\n12:00 PM TO 11:30 PM\n\u25a3 BAKED BRUSCHETTA\n550 Sliced Baked, Mozzarella, Marinated Cherry Tomato 156 Kcal\n\u25a3 ULTIMATE VEGGIE NACHOS\n550 Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked 142 Kcal\n\u25a3 HUMMUS\n550 Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket 99 Kcal\n\u25a3 MANGO PICKLE PANEER TIKKA\n550 Cottage Cheese, Spices, Mango Pickle 162 Kcal\n\u25a3 MALAI BROCCOLI KEBAB\n550 Broccoli Florets, Creamy Cheese Yoghurt, Mild Spices 171 Kcal\n\u25a3 MATTAR TIKKI\n550 Green Peas, Chilli, Spices, Panko Crust 119 Kcal\n\u25b5 KOREAN CHICKEN BAO\n650 Steam Bao, Crispy Chicken 241 Kcal\n\u25b5 GENERAL TSO\u2019S CHICKEN\n650 Chicken Tossed With Soy, Ginger, Hoisin 275 Kcal\n\u25b5 BANNO KEBAB\n650 Saffron Scented Chicken, Egg Coated Tandoor Cooked 138 Kcal\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u25a3 Vegetarian \u25b5 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "lines": [
+        {
+          "line_index": 0,
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "column_index": 0,
+          "layout_role": "shared"
+        },
+        {
+          "line_index": 47,
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 48,
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 51,
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 52,
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 64,
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 49,
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 55,
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 57,
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 59,
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 60,
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 61,
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 62,
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 1,
+          "text": "SMALL PLATES",
+          "bbox": [
+            1027.7918005,
+            772.81623409,
+            1866.2081994999999,
+            851.99118516
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 2,
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            891.5785993,
+            1819.7252056,
+            938.0509306
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 4,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1122.21874,
+            1988.441354,
+            1149.75775376
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 67,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1123.9398465000002,
+            934.825668,
+            1161.80615414
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                894.0,
+                1119.0,
+                944.0,
+                1169.0
+              ],
+              "score": 0.9,
+              "line_index": 67,
+              "near_line_index": 67,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 3,
+          "text": "BAKED BRUSCHETTA",
+          "bbox": [
+            965.81438848,
+            1123.9398465000002,
+            1502.9517278,
+            1158.36373649
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1120.0,
+                943.0,
+                1168.0
+              ],
+              "score": 0.9,
+              "line_index": 3,
+              "near_line_index": 3,
+              "near_text": "BAKED BRUSCHETTA"
+            }
+          ]
+        },
+        {
+          "line_index": 5,
+          "text": "Sliced Baked, Mozzarella, Marinated",
+          "bbox": [
+            964.09280576,
+            1189.34529069,
+            1652.7304083999998,
+            1220.3267221
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                896.0,
+                1122.0,
+                942.0,
+                1167.0
+              ],
+              "score": 0.9,
+              "line_index": 5,
+              "near_line_index": 5,
+              "near_text": "Sliced Baked, Mozzarella, Marinated"
+            }
+          ]
+        },
+        {
+          "line_index": 6,
+          "text": "Cherry Tomato",
+          "bbox": [
+            964.09280576,
+            1234.0963108400001,
+            1251.5990300400001,
+            1266.7990534
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1119.0,
+                1277.0,
+                1165.0,
+                1323.0
+              ],
+              "score": 0.5877,
+              "line_index": 6,
+              "near_line_index": 6,
+              "near_text": "Cherry Tomato"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1160.0,
+                1277.0,
+                1206.0,
+                1324.0
+              ],
+              "score": 0.4748,
+              "line_index": 6,
+              "near_line_index": 6,
+              "near_text": "Cherry Tomato"
+            }
+          ]
+        },
+        {
+          "line_index": 7,
+          "text": "156 Kcal",
+          "bbox": [
+            962.3711940999999,
+            1289.17446115,
+            1089.76921252,
+            1311.5500326200001
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1122.0,
+                1280.0,
+                1162.0,
+                1320.0
+              ],
+              "score": 0.5877,
+              "line_index": 7,
+              "near_line_index": 7,
+              "near_text": "156 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1163.0,
+                1280.0,
+                1203.0,
+                1321.0
+              ],
+              "score": 0.4748,
+              "line_index": 7,
+              "near_line_index": 7,
+              "near_text": "156 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 9,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1404.4945315,
+            1988.441354,
+            1432.03362712
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 68,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1406.21576079,
+            934.825668,
+            1442.36079821
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                894.0,
+                1401.0,
+                944.0,
+                1451.0
+              ],
+              "score": 0.9,
+              "line_index": 68,
+              "near_line_index": 68,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 8,
+          "text": "ULTIMATE VEGGIE NACHOS",
+          "bbox": [
+            965.81438848,
+            1406.21576079,
+            1668.2248844,
+            1440.63960985
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1402.0,
+                943.0,
+                1450.0
+              ],
+              "score": 0.9,
+              "line_index": 8,
+              "near_line_index": 8,
+              "near_text": "ULTIMATE VEGGIE NACHOS"
+            }
+          ]
+        },
+        {
+          "line_index": 10,
+          "text": "Crispy Nachos, Kidney Bean,",
+          "bbox": [
+            964.09280576,
+            1471.6210821900002,
+            1513.281282,
+            1504.32378382
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1403.0,
+                943.0,
+                1450.0
+              ],
+              "score": 0.9,
+              "line_index": 10,
+              "near_line_index": 10,
+              "near_text": "Crispy Nachos, Kidney Bean,"
+            }
+          ]
+        },
+        {
+          "line_index": 11,
+          "text": "Tomato Salsa, Cheese Baked",
+          "bbox": [
+            964.09280576,
+            1516.3721842,
+            1516.7245632000001,
+            1547.35365654
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 12,
+          "text": "142 Kcal",
+          "bbox": [
+            962.3711940999999,
+            1571.45037544,
+            1091.4908241800001,
+            1593.82594691
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1125.0,
+                1560.0,
+                1169.0,
+                1604.0
+              ],
+              "score": 0.5409,
+              "line_index": 12,
+              "near_line_index": 12,
+              "near_text": "142 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 14,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1690.21282251,
+            1988.441354,
+            1717.75195906
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 69,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1691.93396994,
+            936.5473086,
+            1728.07908922
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                894.0,
+                1687.0,
+                944.0,
+                1737.0
+              ],
+              "score": 0.9,
+              "line_index": 69,
+              "near_line_index": 69,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 13,
+          "text": "HUMMUS",
+          "bbox": [
+            965.81438848,
+            1691.93396994,
+            1186.17845258,
+            1726.357819
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1688.0,
+                943.0,
+                1736.0
+              ],
+              "score": 0.9,
+              "line_index": 13,
+              "near_line_index": 13,
+              "near_text": "HUMMUS"
+            }
+          ]
+        },
+        {
+          "line_index": 15,
+          "text": "Chickpeas, Tahini, Lemon,",
+          "bbox": [
+            964.09280576,
+            1757.3393732000002,
+            1459.9120151,
+            1790.0421157600001
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1689.0,
+                943.0,
+                1736.0
+              ],
+              "score": 0.9,
+              "line_index": 15,
+              "near_line_index": 15,
+              "near_text": "Chickpeas, Tahini, Lemon,"
+            }
+          ]
+        },
+        {
+          "line_index": 16,
+          "text": "Olive Oil, Pita Pocket",
+          "bbox": [
+            964.09280576,
+            1802.0903933499999,
+            1368.6675232,
+            1833.07194755
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 70,
+          "text": "\u2460",
+          "bbox": [
+            1155.1897321000001,
+            1855.4473553,
+            1184.4568409199999,
+            1882.98653278
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "celery",
+              "bbox": [
+                1110.0,
+                1849.0,
+                1152.0,
+                1891.0
+              ],
+              "score": 0.5733,
+              "line_index": 70,
+              "near_line_index": 70,
+              "near_text": "\u2460"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1150.0,
+                1848.0,
+                1194.0,
+                1892.0
+              ],
+              "score": 0.5138,
+              "line_index": 70,
+              "near_line_index": 70,
+              "near_text": "\u2460"
+            }
+          ]
+        },
+        {
+          "line_index": 17,
+          "text": "99 Kcal",
+          "bbox": [
+            964.09280576,
+            1857.16866645,
+            1079.43965832,
+            1881.26538535
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "celery",
+              "bbox": [
+                1110.0,
+                1849.0,
+                1152.0,
+                1891.0
+              ],
+              "score": 0.5733,
+              "line_index": 17,
+              "near_line_index": 17,
+              "near_text": "99 Kcal"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1150.0,
+                1848.0,
+                1194.0,
+                1892.0
+              ],
+              "score": 0.5138,
+              "line_index": 17,
+              "near_line_index": 17,
+              "near_text": "99 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 23,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            1979.37340838,
+            1988.441354,
+            2006.912504
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 71,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            1981.0945558100002,
+            934.825668,
+            2017.23971602
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                894.0,
+                1977.0,
+                944.0,
+                2026.0
+              ],
+              "score": 0.9,
+              "line_index": 71,
+              "near_line_index": 71,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 18,
+          "text": "MANGO PICKLE",
+          "bbox": [
+            965.81438848,
+            1981.0945558100002,
+            1356.6163284,
+            2015.5185685899999
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1978.0,
+                943.0,
+                2025.0
+              ],
+              "score": 0.9,
+              "line_index": 18,
+              "near_line_index": 18,
+              "near_text": "MANGO PICKLE"
+            }
+          ]
+        },
+        {
+          "line_index": 19,
+          "text": "PANEER TIKKA",
+          "bbox": [
+            965.81438848,
+            2039.6152874900001,
+            1342.84355088,
+            2074.0391365500004
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                1978.0,
+                943.0,
+                2025.0
+              ],
+              "score": 0.9,
+              "line_index": 19,
+              "near_line_index": 19,
+              "near_text": "PANEER TIKKA"
+            }
+          ]
+        },
+        {
+          "line_index": 20,
+          "text": "Cottage Cheese, Spices,",
+          "bbox": [
+            964.09280576,
+            2103.2993796,
+            1425.48010024,
+            2136.0020403000003
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 21,
+          "text": "Mango Pickle",
+          "bbox": [
+            965.81438848,
+            2146.3290886,
+            1215.4455613999999,
+            2180.7532651
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "mustard",
+              "bbox": [
+                1156.0,
+                2191.0,
+                1202.0,
+                2237.0
+              ],
+              "score": 0.6364,
+              "line_index": 21,
+              "near_line_index": 21,
+              "near_text": "Mango Pickle"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1117.0,
+                2191.0,
+                1163.0,
+                2237.0
+              ],
+              "score": 0.5101,
+              "line_index": 21,
+              "near_line_index": 21,
+              "near_text": "Mango Pickle"
+            }
+          ]
+        },
+        {
+          "line_index": 22,
+          "text": "162 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2201.4073617,
+            1089.76921252,
+            2225.50428525
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1119.0,
+                2193.0,
+                1161.0,
+                2235.0
+              ],
+              "score": 0.5101,
+              "line_index": 22,
+              "near_line_index": 22,
+              "near_text": "162 Kcal"
+            },
+            {
+              "label": "mustard",
+              "bbox": [
+                1158.0,
+                2193.0,
+                1200.0,
+                2235.0
+              ],
+              "score": 0.6364,
+              "line_index": 22,
+              "near_line_index": 22,
+              "near_text": "162 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 25,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            2318.4487432,
+            1988.441354,
+            2345.9876751
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 72,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2320.1698496999998,
+            934.825668,
+            2356.3149280499997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                894.0,
+                2315.0,
+                944.0,
+                2365.0
+              ],
+              "score": 0.9,
+              "line_index": 72,
+              "near_line_index": 72,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 24,
+          "text": "MALAI BROCCOLI KEBAB",
+          "bbox": [
+            965.81438848,
+            2320.1698496999998,
+            1604.5259185999998,
+            2354.59373969
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                2316.0,
+                943.0,
+                2364.0
+              ],
+              "score": 0.9,
+              "line_index": 24,
+              "near_line_index": 24,
+              "near_text": "MALAI BROCCOLI KEBAB"
+            }
+          ]
+        },
+        {
+          "line_index": 26,
+          "text": "Broccoli Florets, Creamy Cheese",
+          "bbox": [
+            965.81438848,
+            2383.8540646,
+            1590.7531989600002,
+            2416.5568890199997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                2315.0,
+                943.0,
+                2364.0
+              ],
+              "score": 0.9,
+              "line_index": 26,
+              "near_line_index": 26,
+              "near_text": "Broccoli Florets, Creamy Cheese"
+            }
+          ]
+        },
+        {
+          "line_index": 27,
+          "text": "Yoghurt, Mild Spices",
+          "bbox": [
+            962.3711940999999,
+            2428.6052894,
+            1358.33791112,
+            2461.30778638
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 73,
+          "text": "\u2463",
+          "bbox": [
+            1150.024955,
+            2478.5198337,
+            1175.84886944,
+            2507.78007675
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "nuts",
+              "bbox": [
+                1106.0,
+                2472.0,
+                1150.0,
+                2516.0
+              ],
+              "score": 0.6679,
+              "line_index": 73,
+              "near_line_index": 73,
+              "near_text": "\u2463"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1144.0,
+                2472.0,
+                1188.0,
+                2516.0
+              ],
+              "score": 0.4892,
+              "line_index": 73,
+              "near_line_index": 73,
+              "near_text": "\u2463"
+            }
+          ]
+        },
+        {
+          "line_index": 28,
+          "text": "171 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2481.9620467,
+            1081.1612410399998,
+            2506.05892932
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1145.0,
+                2473.0,
+                1187.0,
+                2515.0
+              ],
+              "score": 0.4892,
+              "line_index": 28,
+              "near_line_index": 28,
+              "near_text": "171 Kcal"
+            },
+            {
+              "label": "nuts",
+              "bbox": [
+                1107.0,
+                2473.0,
+                1149.0,
+                2515.0
+              ],
+              "score": 0.6679,
+              "line_index": 28,
+              "near_line_index": 28,
+              "near_text": "171 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 30,
+          "text": "550",
+          "bbox": [
+            1916.1344746,
+            2597.28207612,
+            1988.441354,
+            2624.8212535999996
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 29,
+          "text": "MATTAR TIKKI",
+          "bbox": [
+            965.81438848,
+            2599.0034281999997,
+            1325.62760792,
+            2633.4271954
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                2595.0,
+                943.0,
+                2643.0
+              ],
+              "score": 0.9,
+              "line_index": 29,
+              "near_line_index": 29,
+              "near_text": "MATTAR TIKKI"
+            }
+          ]
+        },
+        {
+          "line_index": 74,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2600.7245347000003,
+            936.5473086,
+            2633.4271954
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                2595.0,
+                943.0,
+                2643.0
+              ],
+              "score": 0.9,
+              "line_index": 74,
+              "near_line_index": 74,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 31,
+          "text": "Green Peas, Chilli, Spices,",
+          "bbox": [
+            964.09280576,
+            2662.68752031,
+            1453.0255974,
+            2695.3903038000003
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "veg",
+              "bbox": [
+                895.0,
+                2594.0,
+                943.0,
+                2643.0
+              ],
+              "score": 0.9,
+              "line_index": 31,
+              "near_line_index": 31,
+              "near_text": "Green Peas, Chilli, Spices,"
+            }
+          ]
+        },
+        {
+          "line_index": 32,
+          "text": "Panko Crust",
+          "bbox": [
+            965.81438848,
+            2707.43866325,
+            1194.786453,
+            2734.9777998
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1098.0,
+                2752.0,
+                1144.0,
+                2797.0
+              ],
+              "score": 0.5564,
+              "line_index": 32,
+              "near_line_index": 32,
+              "near_text": "Panko Crust"
+            }
+          ]
+        },
+        {
+          "line_index": 33,
+          "text": "119 Kcal",
+          "bbox": [
+            962.3711940999999,
+            2762.51693635,
+            1082.8828527,
+            2784.8923440999997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1099.0,
+                2753.0,
+                1143.0,
+                2796.0
+              ],
+              "score": 0.5575,
+              "line_index": 33,
+              "near_line_index": 33,
+              "near_text": "119 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 35,
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            2883.0003262,
+            1988.441354,
+            2910.5396674
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 75,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            2884.72155549,
+            933.10408528,
+            2920.8667157
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                891.0,
+                2879.0,
+                944.0,
+                2930.0
+              ],
+              "score": 0.9,
+              "line_index": 75,
+              "near_line_index": 75,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 34,
+          "text": "KOREAN CHICKEN BAO",
+          "bbox": [
+            965.81438848,
+            2884.72155549,
+            1559.7644206,
+            2919.1456092
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                2880.0,
+                943.0,
+                2929.0
+              ],
+              "score": 0.9,
+              "line_index": 34,
+              "near_line_index": 34,
+              "near_text": "KOREAN CHICKEN BAO"
+            }
+          ]
+        },
+        {
+          "line_index": 36,
+          "text": "Steam Bao, Crispy Chicken",
+          "bbox": [
+            962.3711940999999,
+            2948.40585225,
+            1478.84945396,
+            2981.1083083
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                2880.0,
+                943.0,
+                2929.0
+              ],
+              "score": 0.9,
+              "line_index": 36,
+              "near_line_index": 36,
+              "near_text": "Steam Bao, Crispy Chicken"
+            },
+            {
+              "label": "soy",
+              "bbox": [
+                1275.0,
+                2989.0,
+                1321.0,
+                3035.0
+              ],
+              "score": 0.5468,
+              "line_index": 36,
+              "near_line_index": 36,
+              "near_text": "Steam Bao, Crispy Chicken"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1238.0,
+                2989.0,
+                1279.0,
+                3035.0
+              ],
+              "score": 0.5225,
+              "line_index": 36,
+              "near_line_index": 36,
+              "near_text": "Steam Bao, Crispy Chicken"
+            }
+          ]
+        },
+        {
+          "line_index": 76,
+          "text": ". . .",
+          "bbox": [
+            1153.46814938,
+            2998.3204374800002,
+            1263.6501959,
+            3025.8595331
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "soy",
+              "bbox": [
+                1277.0,
+                2991.0,
+                1319.0,
+                3033.0
+              ],
+              "score": 0.5468,
+              "line_index": 76,
+              "near_line_index": 76,
+              "near_text": ". . ."
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1234.0,
+                2990.0,
+                1278.0,
+                3034.0
+              ],
+              "score": 0.5225,
+              "line_index": 76,
+              "near_line_index": 76,
+              "near_text": ". . ."
+            },
+            {
+              "label": "celery",
+              "bbox": [
+                1149.0,
+                2990.0,
+                1193.0,
+                3034.0
+              ],
+              "score": 0.4681,
+              "line_index": 76,
+              "near_line_index": 76,
+              "near_text": ". . ."
+            },
+            {
+              "label": "gluten",
+              "bbox": [
+                1108.0,
+                2991.0,
+                1150.0,
+                3033.0
+              ],
+              "score": 0.4607,
+              "line_index": 76,
+              "near_line_index": 76,
+              "near_text": ". . ."
+            }
+          ]
+        },
+        {
+          "line_index": 37,
+          "text": "241 Kcal",
+          "bbox": [
+            964.09280576,
+            3001.7628142,
+            1091.4908241800001,
+            3025.8595331
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "celery",
+              "bbox": [
+                1150.0,
+                2991.0,
+                1192.0,
+                3033.0
+              ],
+              "score": 0.4681,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "241 Kcal"
+            },
+            {
+              "label": "gluten",
+              "bbox": [
+                1108.0,
+                2991.0,
+                1150.0,
+                3033.0
+              ],
+              "score": 0.4607,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "241 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1193.0,
+                2991.0,
+                1235.0,
+                3033.0
+              ],
+              "score": 0.4786,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "241 Kcal"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1234.0,
+                2990.0,
+                1278.0,
+                3034.0
+              ],
+              "score": 0.5225,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "241 Kcal"
+            },
+            {
+              "label": "soy",
+              "bbox": [
+                1277.0,
+                2991.0,
+                1319.0,
+                3033.0
+              ],
+              "score": 0.5468,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "241 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 39,
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            3122.2464087,
+            1988.441354,
+            3149.7855861800003
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 77,
+          "text": "\u25a1",
+          "bbox": [
+            903.8370054,
+            3123.9675152,
+            934.825668,
+            3160.1127982000003
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                891.0,
+                3118.0,
+                944.0,
+                3168.0
+              ],
+              "score": 0.9,
+              "line_index": 77,
+              "near_line_index": 77,
+              "near_text": "\u25a1"
+            }
+          ]
+        },
+        {
+          "line_index": 38,
+          "text": "GENERAL TSO\u2019S CHICKEN",
+          "bbox": [
+            965.81438848,
+            3123.9675152,
+            1616.5771134000001,
+            3158.3916917
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                3119.0,
+                943.0,
+                3167.0
+              ],
+              "score": 0.9,
+              "line_index": 38,
+              "near_line_index": 38,
+              "near_text": "GENERAL TSO\u2019S CHICKEN"
+            }
+          ]
+        },
+        {
+          "line_index": 40,
+          "text": "Chicken Tossed With Soy,",
+          "bbox": [
+            964.09280576,
+            3187.65185289,
+            1461.633511,
+            3220.3543908
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                3119.0,
+                943.0,
+                3167.0
+              ],
+              "score": 0.9,
+              "line_index": 40,
+              "near_line_index": 40,
+              "near_text": "Chicken Tossed With Soy,"
+            }
+          ]
+        },
+        {
+          "line_index": 41,
+          "text": "Ginger, Hoisin",
+          "bbox": [
+            964.09280576,
+            3232.40275025,
+            1227.49669832,
+            3265.1056156
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "soy",
+              "bbox": [
+                1155.0,
+                3279.0,
+                1201.0,
+                3325.0
+              ],
+              "score": 0.5332,
+              "line_index": 41,
+              "near_line_index": 41,
+              "near_text": "Ginger, Hoisin"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1113.0,
+                3279.0,
+                1159.0,
+                3325.0
+              ],
+              "score": 0.5246,
+              "line_index": 41,
+              "near_line_index": 41,
+              "near_text": "Ginger, Hoisin"
+            }
+          ]
+        },
+        {
+          "line_index": 42,
+          "text": "275 Kcal",
+          "bbox": [
+            964.09280576,
+            3289.20217078,
+            1098.377184,
+            3313.2990534
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "sesame",
+              "bbox": [
+                1115.0,
+                3281.0,
+                1157.0,
+                3323.0
+              ],
+              "score": 0.5247,
+              "line_index": 42,
+              "near_line_index": 42,
+              "near_text": "275 Kcal"
+            },
+            {
+              "label": "soy",
+              "bbox": [
+                1157.0,
+                3281.0,
+                1199.0,
+                3323.0
+              ],
+              "score": 0.5332,
+              "line_index": 42,
+              "near_line_index": 42,
+              "near_text": "275 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 78,
+          "text": "1",
+          "bbox": [
+            1160.3545092000002,
+            3289.20217078,
+            1191.34322968,
+            3316.7412664
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "soy",
+              "bbox": [
+                1157.0,
+                3281.0,
+                1199.0,
+                3323.0
+              ],
+              "score": 0.5332,
+              "line_index": 78,
+              "near_line_index": 78,
+              "near_text": "1"
+            },
+            {
+              "label": "sesame",
+              "bbox": [
+                1115.0,
+                3281.0,
+                1157.0,
+                3323.0
+              ],
+              "score": 0.5247,
+              "line_index": 78,
+              "near_line_index": 78,
+              "near_text": "1"
+            }
+          ]
+        },
+        {
+          "line_index": 63,
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            3406.243716,
+            1988.441354,
+            3433.7824841799998
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 79,
+          "text": "\u25c9",
+          "bbox": [
+            903.8370054,
+            3407.9648225,
+            929.6609198400001,
+            3444.1096961999997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                891.0,
+                3404.0,
+                944.0,
+                3454.0
+              ],
+              "score": 0.9,
+              "line_index": 79,
+              "near_line_index": 79,
+              "near_text": "\u25c9"
+            }
+          ]
+        },
+        {
+          "line_index": 43,
+          "text": "BANNO KEBAB",
+          "bbox": [
+            965.81438848,
+            3407.9648225,
+            1344.5651335999999,
+            3444.1096961999997
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                893.0,
+                3404.0,
+                944.0,
+                3454.0
+              ],
+              "score": 0.9,
+              "line_index": 43,
+              "near_line_index": 43,
+              "near_text": "BANNO KEBAB"
+            }
+          ]
+        },
+        {
+          "line_index": 44,
+          "text": "Saron Scented Chicken, Egg",
+          "bbox": [
+            962.3711940999999,
+            3471.64879182,
+            1533.94050616,
+            3506.0728046
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                3403.0,
+                943.0,
+                3453.0
+              ],
+              "score": 0.9,
+              "line_index": 44,
+              "near_line_index": 44,
+              "near_text": "Saron Scented Chicken, Egg"
+            }
+          ]
+        },
+        {
+          "line_index": 45,
+          "text": "Coated Tandoor Cooked",
+          "bbox": [
+            964.09280576,
+            3516.3998529,
+            1434.08807172,
+            3543.93907131
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 46,
+          "text": "138 Kcal",
+          "bbox": [
+            964.09280576,
+            3574.92050272,
+            1091.4908241800001,
+            3599.01734441
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "egg",
+              "bbox": [
+                1159.0,
+                3565.0,
+                1201.0,
+                3607.0
+              ],
+              "score": 0.4831,
+              "line_index": 46,
+              "near_line_index": 46,
+              "near_text": "138 Kcal"
+            },
+            {
+              "label": "milk",
+              "bbox": [
+                1115.0,
+                3565.0,
+                1157.0,
+                3607.0
+              ],
+              "score": 0.5654,
+              "line_index": 46,
+              "near_line_index": 46,
+              "near_text": "138 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 80,
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 50,
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 81,
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 82,
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 54,
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 56,
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 53,
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 65,
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 58,
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 83,
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 84,
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 66,
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        }
+      ],
+      "icons": [
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1120.0,
+            943.0,
+            1168.0
+          ],
+          "score": 0.9,
+          "line_index": 3,
+          "near_line_index": 3,
+          "near_text": "BAKED BRUSCHETTA"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            896.0,
+            1122.0,
+            942.0,
+            1167.0
+          ],
+          "score": 0.9,
+          "line_index": 5,
+          "near_line_index": 5,
+          "near_text": "Sliced Baked, Mozzarella, Marinated"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1119.0,
+            1277.0,
+            1165.0,
+            1323.0
+          ],
+          "score": 0.5877,
+          "line_index": 6,
+          "near_line_index": 6,
+          "near_text": "Cherry Tomato"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1160.0,
+            1277.0,
+            1206.0,
+            1324.0
+          ],
+          "score": 0.4748,
+          "line_index": 6,
+          "near_line_index": 6,
+          "near_text": "Cherry Tomato"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1122.0,
+            1280.0,
+            1162.0,
+            1320.0
+          ],
+          "score": 0.5877,
+          "line_index": 7,
+          "near_line_index": 7,
+          "near_text": "156 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1163.0,
+            1280.0,
+            1203.0,
+            1321.0
+          ],
+          "score": 0.4748,
+          "line_index": 7,
+          "near_line_index": 7,
+          "near_text": "156 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1402.0,
+            943.0,
+            1450.0
+          ],
+          "score": 0.9,
+          "line_index": 8,
+          "near_line_index": 8,
+          "near_text": "ULTIMATE VEGGIE NACHOS"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1403.0,
+            943.0,
+            1450.0
+          ],
+          "score": 0.9,
+          "line_index": 10,
+          "near_line_index": 10,
+          "near_text": "Crispy Nachos, Kidney Bean,"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1125.0,
+            1560.0,
+            1169.0,
+            1604.0
+          ],
+          "score": 0.5409,
+          "line_index": 12,
+          "near_line_index": 12,
+          "near_text": "142 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1688.0,
+            943.0,
+            1736.0
+          ],
+          "score": 0.9,
+          "line_index": 13,
+          "near_line_index": 13,
+          "near_text": "HUMMUS"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1689.0,
+            943.0,
+            1736.0
+          ],
+          "score": 0.9,
+          "line_index": 15,
+          "near_line_index": 15,
+          "near_text": "Chickpeas, Tahini, Lemon,"
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1110.0,
+            1849.0,
+            1152.0,
+            1891.0
+          ],
+          "score": 0.5733,
+          "line_index": 17,
+          "near_line_index": 17,
+          "near_text": "99 Kcal"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1150.0,
+            1848.0,
+            1194.0,
+            1892.0
+          ],
+          "score": 0.5138,
+          "line_index": 17,
+          "near_line_index": 17,
+          "near_text": "99 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1978.0,
+            943.0,
+            2025.0
+          ],
+          "score": 0.9,
+          "line_index": 18,
+          "near_line_index": 18,
+          "near_text": "MANGO PICKLE"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            1978.0,
+            943.0,
+            2025.0
+          ],
+          "score": 0.9,
+          "line_index": 19,
+          "near_line_index": 19,
+          "near_text": "PANEER TIKKA"
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1156.0,
+            2191.0,
+            1202.0,
+            2237.0
+          ],
+          "score": 0.6364,
+          "line_index": 21,
+          "near_line_index": 21,
+          "near_text": "Mango Pickle"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1117.0,
+            2191.0,
+            1163.0,
+            2237.0
+          ],
+          "score": 0.5101,
+          "line_index": 21,
+          "near_line_index": 21,
+          "near_text": "Mango Pickle"
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1158.0,
+            2193.0,
+            1200.0,
+            2235.0
+          ],
+          "score": 0.6364,
+          "line_index": 22,
+          "near_line_index": 22,
+          "near_text": "162 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1119.0,
+            2193.0,
+            1161.0,
+            2235.0
+          ],
+          "score": 0.5101,
+          "line_index": 22,
+          "near_line_index": 22,
+          "near_text": "162 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2316.0,
+            943.0,
+            2364.0
+          ],
+          "score": 0.9,
+          "line_index": 24,
+          "near_line_index": 24,
+          "near_text": "MALAI BROCCOLI KEBAB"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2315.0,
+            943.0,
+            2364.0
+          ],
+          "score": 0.9,
+          "line_index": 26,
+          "near_line_index": 26,
+          "near_text": "Broccoli Florets, Creamy Cheese"
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1107.0,
+            2473.0,
+            1149.0,
+            2515.0
+          ],
+          "score": 0.6679,
+          "line_index": 28,
+          "near_line_index": 28,
+          "near_text": "171 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1145.0,
+            2473.0,
+            1187.0,
+            2515.0
+          ],
+          "score": 0.4892,
+          "line_index": 28,
+          "near_line_index": 28,
+          "near_text": "171 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2595.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 29,
+          "near_line_index": 29,
+          "near_text": "MATTAR TIKKI"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2594.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 31,
+          "near_line_index": 31,
+          "near_text": "Green Peas, Chilli, Spices,"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1098.0,
+            2752.0,
+            1144.0,
+            2797.0
+          ],
+          "score": 0.5564,
+          "line_index": 32,
+          "near_line_index": 32,
+          "near_text": "Panko Crust"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1099.0,
+            2753.0,
+            1143.0,
+            2796.0
+          ],
+          "score": 0.5575,
+          "line_index": 33,
+          "near_line_index": 33,
+          "near_text": "119 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2880.0,
+            943.0,
+            2929.0
+          ],
+          "score": 0.9,
+          "line_index": 34,
+          "near_line_index": 34,
+          "near_text": "KOREAN CHICKEN BAO"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            2880.0,
+            943.0,
+            2929.0
+          ],
+          "score": 0.9,
+          "line_index": 36,
+          "near_line_index": 36,
+          "near_text": "Steam Bao, Crispy Chicken"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1275.0,
+            2989.0,
+            1321.0,
+            3035.0
+          ],
+          "score": 0.5468,
+          "line_index": 36,
+          "near_line_index": 36,
+          "near_text": "Steam Bao, Crispy Chicken"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1238.0,
+            2989.0,
+            1279.0,
+            3035.0
+          ],
+          "score": 0.5225,
+          "line_index": 36,
+          "near_line_index": 36,
+          "near_text": "Steam Bao, Crispy Chicken"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1277.0,
+            2991.0,
+            1319.0,
+            3033.0
+          ],
+          "score": 0.5468,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "241 Kcal"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1234.0,
+            2990.0,
+            1278.0,
+            3034.0
+          ],
+          "score": 0.5225,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "241 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1193.0,
+            2991.0,
+            1235.0,
+            3033.0
+          ],
+          "score": 0.4786,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "241 Kcal"
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1150.0,
+            2991.0,
+            1192.0,
+            3033.0
+          ],
+          "score": 0.4681,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "241 Kcal"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1108.0,
+            2991.0,
+            1150.0,
+            3033.0
+          ],
+          "score": 0.4607,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "241 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3119.0,
+            943.0,
+            3167.0
+          ],
+          "score": 0.9,
+          "line_index": 38,
+          "near_line_index": 38,
+          "near_text": "GENERAL TSO\u2019S CHICKEN"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3119.0,
+            943.0,
+            3167.0
+          ],
+          "score": 0.9,
+          "line_index": 40,
+          "near_line_index": 40,
+          "near_text": "Chicken Tossed With Soy,"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1155.0,
+            3279.0,
+            1201.0,
+            3325.0
+          ],
+          "score": 0.5332,
+          "line_index": 41,
+          "near_line_index": 41,
+          "near_text": "Ginger, Hoisin"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1113.0,
+            3279.0,
+            1159.0,
+            3325.0
+          ],
+          "score": 0.5246,
+          "line_index": 41,
+          "near_line_index": 41,
+          "near_text": "Ginger, Hoisin"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1157.0,
+            3281.0,
+            1199.0,
+            3323.0
+          ],
+          "score": 0.5332,
+          "line_index": 42,
+          "near_line_index": 42,
+          "near_text": "275 Kcal"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1115.0,
+            3281.0,
+            1157.0,
+            3323.0
+          ],
+          "score": 0.5247,
+          "line_index": 42,
+          "near_line_index": 42,
+          "near_text": "275 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            893.0,
+            3404.0,
+            944.0,
+            3454.0
+          ],
+          "score": 0.9,
+          "line_index": 43,
+          "near_line_index": 43,
+          "near_text": "BANNO KEBAB"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            3403.0,
+            943.0,
+            3453.0
+          ],
+          "score": 0.9,
+          "line_index": 44,
+          "near_line_index": 44,
+          "near_text": "Saron Scented Chicken, Egg"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1115.0,
+            3565.0,
+            1157.0,
+            3607.0
+          ],
+          "score": 0.5654,
+          "line_index": 46,
+          "near_line_index": 46,
+          "near_text": "138 Kcal"
+        },
+        {
+          "label": "egg",
+          "bbox": [
+            1159.0,
+            3565.0,
+            1201.0,
+            3607.0
+          ],
+          "score": 0.4831,
+          "line_index": 46,
+          "near_line_index": 46,
+          "near_text": "138 Kcal"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1119.0,
+            944.0,
+            1169.0
+          ],
+          "score": 0.9,
+          "line_index": 67,
+          "near_line_index": 67,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1401.0,
+            944.0,
+            1451.0
+          ],
+          "score": 0.9,
+          "line_index": 68,
+          "near_line_index": 68,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1687.0,
+            944.0,
+            1737.0
+          ],
+          "score": 0.9,
+          "line_index": 69,
+          "near_line_index": 69,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1110.0,
+            1849.0,
+            1152.0,
+            1891.0
+          ],
+          "score": 0.5733,
+          "line_index": 70,
+          "near_line_index": 70,
+          "near_text": "\u2460"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1150.0,
+            1848.0,
+            1194.0,
+            1892.0
+          ],
+          "score": 0.5138,
+          "line_index": 70,
+          "near_line_index": 70,
+          "near_text": "\u2460"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            1977.0,
+            944.0,
+            2026.0
+          ],
+          "score": 0.9,
+          "line_index": 71,
+          "near_line_index": 71,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            894.0,
+            2315.0,
+            944.0,
+            2365.0
+          ],
+          "score": 0.9,
+          "line_index": 72,
+          "near_line_index": 72,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "nuts",
+          "bbox": [
+            1106.0,
+            2472.0,
+            1150.0,
+            2516.0
+          ],
+          "score": 0.6679,
+          "line_index": 73,
+          "near_line_index": 73,
+          "near_text": "\u2463"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1144.0,
+            2472.0,
+            1188.0,
+            2516.0
+          ],
+          "score": 0.4892,
+          "line_index": 73,
+          "near_line_index": 73,
+          "near_text": "\u2463"
+        },
+        {
+          "label": "veg",
+          "bbox": [
+            895.0,
+            2595.0,
+            943.0,
+            2643.0
+          ],
+          "score": 0.9,
+          "line_index": 74,
+          "near_line_index": 74,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            2879.0,
+            944.0,
+            2930.0
+          ],
+          "score": 0.9,
+          "line_index": 75,
+          "near_line_index": 75,
+          "near_text": "\u25c9"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1277.0,
+            2991.0,
+            1319.0,
+            3033.0
+          ],
+          "score": 0.5468,
+          "line_index": 76,
+          "near_line_index": 76,
+          "near_text": ". . ."
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1234.0,
+            2990.0,
+            1278.0,
+            3034.0
+          ],
+          "score": 0.5225,
+          "line_index": 76,
+          "near_line_index": 76,
+          "near_text": ". . ."
+        },
+        {
+          "label": "celery",
+          "bbox": [
+            1149.0,
+            2990.0,
+            1193.0,
+            3034.0
+          ],
+          "score": 0.4681,
+          "line_index": 76,
+          "near_line_index": 76,
+          "near_text": ". . ."
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1108.0,
+            2991.0,
+            1150.0,
+            3033.0
+          ],
+          "score": 0.4607,
+          "line_index": 76,
+          "near_line_index": 76,
+          "near_text": ". . ."
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            3118.0,
+            944.0,
+            3168.0
+          ],
+          "score": 0.9,
+          "line_index": 77,
+          "near_line_index": 77,
+          "near_text": "\u25a1"
+        },
+        {
+          "label": "soy",
+          "bbox": [
+            1157.0,
+            3281.0,
+            1199.0,
+            3323.0
+          ],
+          "score": 0.5332,
+          "line_index": 78,
+          "near_line_index": 78,
+          "near_text": "1"
+        },
+        {
+          "label": "sesame",
+          "bbox": [
+            1115.0,
+            3281.0,
+            1157.0,
+            3323.0
+          ],
+          "score": 0.5247,
+          "line_index": 78,
+          "near_line_index": 78,
+          "near_text": "1"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            3404.0,
+            944.0,
+            3454.0
+          ],
+          "score": 0.9,
+          "line_index": 79,
+          "near_line_index": 79,
+          "near_text": "\u25c9"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+[PASS 1]
+{
+  "menu_name": "IN ROOM DINING",
+  "page": 2,
+  "dish_blocks": [
+    {
+      "block_id": "d1",
+      "column_index": 1,
+      "bbox": [903.8370054, 1259.9142181, 1988.441354, 1457.8514934500001],
+      "line_indices": [31, 4, 5, 6, 7, 8, 33, 34]
+    },
+    {
+      "block_id": "d2",
+      "column_index": 1,
+      "bbox": [903.8370054, 1550.79607419, 1988.441354, 1734.9637607999998],
+      "line_indices": [35, 9, 10, 11, 12, 13]
+    }
+  ],
+  "other_text_line_indices": [1, 2, 3],
+  "footer_line_indices": [14, 15, 16, 18, 19, 21, 22, 24, 26, 27, 28, 29, 30],
+  "notes": "Grouped by column 1 titles with adjacent price/description/kcal lines. Icons and marker glyphs near titles included within dish blocks when proximal."
+}
+
+[PASS 2]
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "BUTTER CHICKEN PULAO",
+      "description": "Chicken Tikka, Smooth Makhani Gravy, Served With Pulao",
+      "price": "850",
+      "kcal": "159",
+      "allergens": ["milk", "mustard"],
+      "veg": null,
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": ["□", "⑥ ⑪"]
+      }
+    },
+    {
+      "name": "LAMB MINCE SHEPHERD’S PIE",
+      "description": "Minced Lamb, Rosemary, Tomato Jus, Mashed Potato Baked",
+      "price": "850",
+      "kcal": "149",
+      "allergens": ["milk"],
+      "veg": null,
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "15 MINUTES MEALS",
+      "extras": {
+        "unparsed_marks": ["◉"]
+      }
+    }
+  ],
+  "other_text": [
+    "SERVED IN SUSTAINABLE MEAL BOXES",
+    "12:00 PM TO 6:00 AM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Eggs",
+    "Fish",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Non-Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "Page intent: menu_items_page. Single main column of items under '15 MINUTES MEALS'. Prices aligned to the right within the same column. Dietary/allergen icons captured per item from line icons; legend terms placed in footer.",
+  "page_extras": {
+    "page": 2,
+    "legend_marks": ["⑥", "⑩", "◉", "☑"]
+  }
+}
+
+[PASS 4]
+{ "menu_name": "IN ROOM DINING", "items": [], "other_text": [ "SERVED IN SUSTAINABLE MEAL BOXES", "12:00 PM TO 6:00 AM" ], "footer_text": "Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.", "notes": "No additional menu items detected within the provided other_text lines based on layout and coordinates.", "page_extras": [] }

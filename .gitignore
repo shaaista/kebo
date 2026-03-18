@@ -64,3 +64,7 @@ config/knowledge_base/uploads/
 Thumbs.db
 Desktop.ini
 nul
+
+# Google Cloud / service credentials
+**/service_account.json
+**/credentials.json

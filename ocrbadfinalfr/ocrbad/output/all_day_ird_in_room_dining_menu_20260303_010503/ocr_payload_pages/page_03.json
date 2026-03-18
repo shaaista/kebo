@@ -1,0 +1,1000 @@
+{
+  "input_type": "ocr_document",
+  "payload_mode": "layout_full",
+  "pages": [
+    {
+      "page": 3,
+      "width": null,
+      "height": null,
+      "raw_text": "[PAGE 3]\nIN ROOM DINING\nSMALL PLATES\n12:00 PM TO 11:30 PM\n\u25b5 PEPPER CHICKEN TIKKA Creamy Chicken, Crushed Pink Pepper 150 Kcal\n650\n\u25b5 MUTTON PEPPER SUKKHA Tender Lamb, Pepper Masala, Tempered Mustard, Curry Leaves 141 Kcal\n750\n\u25b5 CRISPY CALAMARI Squid Rings, Semolina Flour, Lemon 261 Kcal\n650\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u22a1 Vegetarian \u25b5 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+      "lines": [
+        {
+          "line_index": 0,
+          "text": "IN ROOM DINING",
+          "bbox": [
+            487.21117998,
+            330.46931116,
+            2413.6751509,
+            493.98273745
+          ],
+          "column_index": 0,
+          "layout_role": "shared"
+        },
+        {
+          "line_index": 17,
+          "text": "Milk",
+          "bbox": [
+            760.94471356,
+            3765.9729837,
+            805.7060958,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 18,
+          "text": "Gluten",
+          "bbox": [
+            891.7858105999999,
+            3765.9729837,
+            967.5359712,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 24,
+          "text": "Molluscs",
+          "bbox": [
+            1447.8606756,
+            3765.9729837,
+            1547.7132258000001,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 33,
+          "text": "Mustard",
+          "bbox": [
+            1644.1224948000001,
+            3765.9729837,
+            1737.08868518,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 35,
+          "text": "Fish",
+          "bbox": [
+            2124.4474886,
+            3765.9729837,
+            2169.20887084,
+            3784.90626031
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 19,
+          "text": "Lupin",
+          "bbox": [
+            1045.0077724,
+            3767.69425392,
+            1108.7067382,
+            3788.3485961
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 21,
+          "text": "Celery",
+          "bbox": [
+            984.7519431,
+            3815.88769172,
+            1058.7805209800001,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 25,
+          "text": "Sesame",
+          "bbox": [
+            1358.33791112,
+            3815.88769172,
+            1449.5824319600001,
+            3833.09965718
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 34,
+          "text": "Vegetarian",
+          "bbox": [
+            1733.6454908,
+            3817.6088391499998,
+            1861.0434224,
+            3838.2631404
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 27,
+          "text": "Kindly inform our associates of any allergies you may have.",
+          "bbox": [
+            724.7912159800001,
+            3870.96596482,
+            1430.64490628,
+            3893.3414135
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 28,
+          "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+          "bbox": [
+            723.06963326,
+            3905.38969109,
+            1516.7245632000001,
+            3927.7653853499996
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 29,
+          "text": "The calorie content is per 100 grams of the serving.",
+          "bbox": [
+            724.7912159800001,
+            3939.8137448,
+            1339.40038544,
+            3960.46800512
+          ],
+          "column_index": 0,
+          "layout_role": "footer"
+        },
+        {
+          "line_index": 1,
+          "text": "SMALL PLATES",
+          "bbox": [
+            1027.7918005,
+            772.81623409,
+            1866.2081994999999,
+            851.99118516
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 2,
+          "text": "12:00 PM TO 11:30 PM",
+          "bbox": [
+            1069.11007518,
+            891.5785993,
+            1819.7252056,
+            938.0509306
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 4,
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            1129.1034525100001,
+            1988.441354,
+            1156.64258906
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 3,
+          "text": "PEPPER CHICKEN TIKKA",
+          "bbox": [
+            965.81438848,
+            1130.82459994,
+            1580.4236447600001,
+            1165.2485717900001
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1127.0,
+                943.0,
+                1175.0
+              ],
+              "score": 0.9,
+              "line_index": 3,
+              "near_line_index": 3,
+              "near_text": "PEPPER CHICKEN TIKKA"
+            }
+          ]
+        },
+        {
+          "line_index": 37,
+          "text": "\u2611",
+          "bbox": [
+            903.8370054,
+            1132.54587016,
+            933.10408528,
+            1166.96971922
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                892.0,
+                1127.0,
+                943.0,
+                1175.0
+              ],
+              "score": 0.9,
+              "line_index": 37,
+              "near_line_index": 37,
+              "near_text": "\u2611"
+            }
+          ]
+        },
+        {
+          "line_index": 5,
+          "text": "Creamy Chicken, Crushed Pink Pepper",
+          "bbox": [
+            964.09280576,
+            1196.2300031999998,
+            1704.37829516,
+            1228.93274576
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1128.0,
+                943.0,
+                1175.0
+              ],
+              "score": 0.9,
+              "line_index": 5,
+              "near_line_index": 5,
+              "near_text": "Creamy Chicken, Crushed Pink Pepper"
+            }
+          ]
+        },
+        {
+          "line_index": 6,
+          "text": "150 Kcal",
+          "bbox": [
+            964.09280576,
+            1256.47188231,
+            1093.2124069,
+            1280.56860121
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1118.0,
+                1245.0,
+                1163.0,
+                1291.0
+              ],
+              "score": 0.6448,
+              "line_index": 6,
+              "near_line_index": 6,
+              "near_text": "150 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 8,
+          "text": "750",
+          "bbox": [
+            1917.8561152,
+            1387.2826479,
+            1988.441354,
+            1414.8217435200002
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 38,
+          "text": "\u2611",
+          "bbox": [
+            903.8370054,
+            1389.0037544000002,
+            934.825668,
+            1425.14891461
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                891.0,
+                1384.0,
+                944.0,
+                1434.0
+              ],
+              "score": 0.9,
+              "line_index": 38,
+              "near_line_index": 38,
+              "near_text": "\u2611"
+            }
+          ]
+        },
+        {
+          "line_index": 7,
+          "text": "MUTTON PEPPER SUKKHA",
+          "bbox": [
+            965.81438848,
+            1389.0037544000002,
+            1628.6281056199998,
+            1423.4276443899998
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1385.0,
+                943.0,
+                1433.0
+              ],
+              "score": 0.9,
+              "line_index": 7,
+              "near_line_index": 7,
+              "near_text": "MUTTON PEPPER SUKKHA"
+            }
+          ]
+        },
+        {
+          "line_index": 9,
+          "text": "Tender Lamb, Pepper Masala, Tempered",
+          "bbox": [
+            964.09280576,
+            1454.40919859,
+            1740.5318506200001,
+            1487.1119002199998
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1386.0,
+                943.0,
+                1433.0
+              ],
+              "score": 0.9,
+              "line_index": 9,
+              "near_line_index": 9,
+              "near_text": "Tender Lamb, Pepper Masala, Tempered"
+            }
+          ]
+        },
+        {
+          "line_index": 10,
+          "text": "Mustard, Curry Leaves",
+          "bbox": [
+            965.81438848,
+            1499.1602187400001,
+            1392.76979704,
+            1531.8629613
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 11,
+          "text": "141 Kcal",
+          "bbox": [
+            969.2576118,
+            1554.23849184,
+            1089.76921252,
+            1578.3352107399999
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "milk",
+              "bbox": [
+                1110.0,
+                1544.0,
+                1154.0,
+                1587.0
+              ],
+              "score": 0.4983,
+              "line_index": 11,
+              "near_line_index": 11,
+              "near_text": "141 Kcal"
+            },
+            {
+              "label": "mustard",
+              "bbox": [
+                1151.0,
+                1544.0,
+                1193.0,
+                1586.0
+              ],
+              "score": 0.5912,
+              "line_index": 11,
+              "near_line_index": 11,
+              "near_text": "141 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 30,
+          "text": "650",
+          "bbox": [
+            1916.1344746,
+            1673.00081612,
+            1988.441354,
+            1700.5399936
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 39,
+          "text": "\u2611",
+          "bbox": [
+            903.8370054,
+            1674.72208634,
+            933.10408528,
+            1709.1459354
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                892.0,
+                1671.0,
+                943.0,
+                1719.0
+              ],
+              "score": 0.9,
+              "line_index": 39,
+              "near_line_index": 39,
+              "near_text": "\u2611"
+            }
+          ]
+        },
+        {
+          "line_index": 12,
+          "text": "CRISPY CALAMARI",
+          "bbox": [
+            965.81438848,
+            1674.72208634,
+            1435.80968338,
+            1709.1459354
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1671.0,
+                943.0,
+                1719.0
+              ],
+              "score": 0.9,
+              "line_index": 12,
+              "near_line_index": 12,
+              "near_text": "CRISPY CALAMARI"
+            }
+          ]
+        },
+        {
+          "line_index": 13,
+          "text": "Squid Rings, Semolina",
+          "bbox": [
+            964.09280576,
+            1740.12740774,
+            1387.6049910000002,
+            1772.8301503
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "non_veg",
+              "bbox": [
+                894.0,
+                1672.0,
+                943.0,
+                1719.0
+              ],
+              "score": 0.9,
+              "line_index": 13,
+              "near_line_index": 13,
+              "near_text": "Squid Rings, Semolina"
+            }
+          ]
+        },
+        {
+          "line_index": 14,
+          "text": "Flour, Lemon",
+          "bbox": [
+            965.81438848,
+            1784.8785097500001,
+            1213.7239208,
+            1815.85998209
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "molluscs",
+              "bbox": [
+                1155.0,
+                1838.0,
+                1186.0,
+                1866.0
+              ],
+              "score": 0.4606,
+              "line_index": 14,
+              "near_line_index": 14,
+              "near_text": "Flour, Lemon"
+            }
+          ]
+        },
+        {
+          "line_index": 16,
+          "text": "\u2465",
+          "bbox": [
+            1153.46814938,
+            1836.51424241,
+            1186.17845258,
+            1865.77456732
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "molluscs",
+              "bbox": [
+                1155.0,
+                1838.0,
+                1186.0,
+                1866.0
+              ],
+              "score": 0.4606,
+              "line_index": 16,
+              "near_line_index": 16,
+              "near_text": "\u2465"
+            }
+          ]
+        },
+        {
+          "line_index": 15,
+          "text": "261 Kcal",
+          "bbox": [
+            964.09280576,
+            1839.9567009900002,
+            1091.4908241800001,
+            1864.05341989
+          ],
+          "column_index": 1,
+          "layout_role": "body",
+          "icons": [
+            {
+              "label": "gluten",
+              "bbox": [
+                1114.0,
+                1831.0,
+                1156.0,
+                1873.0
+              ],
+              "score": 0.5253,
+              "line_index": 15,
+              "near_line_index": 15,
+              "near_text": "261 Kcal"
+            },
+            {
+              "label": "molluscs",
+              "bbox": [
+                1149.0,
+                1831.0,
+                1191.0,
+                1873.0
+              ],
+              "score": 0.6764,
+              "line_index": 15,
+              "near_line_index": 15,
+              "near_text": "261 Kcal"
+            }
+          ]
+        },
+        {
+          "line_index": 40,
+          "text": "\u2465",
+          "bbox": [
+            1010.5758285999999,
+            3764.2518772,
+            1031.2349948800002,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 22,
+          "text": "Sulpher Dioxide",
+          "bbox": [
+            1189.62161802,
+            3765.9729837,
+            1377.2754367999999,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 41,
+          "text": "\u2465",
+          "bbox": [
+            1409.9857399999999,
+            3765.9729837,
+            1432.366489,
+            3788.3485961
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 42,
+          "text": "\u2469",
+          "bbox": [
+            946.8768627999999,
+            3814.1664215,
+            972.7007772400001,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 20,
+          "text": "Crustaceans",
+          "bbox": [
+            759.2231019,
+            3815.88769172,
+            903.8370054,
+            3833.09965718
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 23,
+          "text": "Soybeans",
+          "bbox": [
+            1146.58176062,
+            3815.88769172,
+            1260.20700152,
+            3838.2631404
+          ],
+          "column_index": 1,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 31,
+          "text": "Peanuts",
+          "bbox": [
+            1819.7252056,
+            3767.69425392,
+            1912.6913381000002,
+            3784.90626031
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 32,
+          "text": "Eggs",
+          "bbox": [
+            1993.6062758,
+            3767.69425392,
+            2048.6972411799998,
+            3788.3485961
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 26,
+          "text": "Tree Nuts",
+          "bbox": [
+            1533.94050616,
+            3815.88769172,
+            1645.8441354,
+            3833.09965718
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 43,
+          "text": "\u25c9",
+          "bbox": [
+            1695.7704105,
+            3815.88769172,
+            1718.1510147999998,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 44,
+          "text": "\u2611",
+          "bbox": [
+            1916.1344746,
+            3815.88769172,
+            1936.79349618,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        },
+        {
+          "line_index": 36,
+          "text": "Non-Vegetarian",
+          "bbox": [
+            1960.8958279,
+            3817.6088391499998,
+            2146.82806396,
+            3838.2631404
+          ],
+          "column_index": 2,
+          "layout_role": "body"
+        }
+      ],
+      "icons": [
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1127.0,
+            943.0,
+            1175.0
+          ],
+          "score": 0.9,
+          "line_index": 3,
+          "near_line_index": 3,
+          "near_text": "PEPPER CHICKEN TIKKA"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1128.0,
+            943.0,
+            1175.0
+          ],
+          "score": 0.9,
+          "line_index": 5,
+          "near_line_index": 5,
+          "near_text": "Creamy Chicken, Crushed Pink Pepper"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1118.0,
+            1245.0,
+            1163.0,
+            1291.0
+          ],
+          "score": 0.6448,
+          "line_index": 6,
+          "near_line_index": 6,
+          "near_text": "150 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1385.0,
+            943.0,
+            1433.0
+          ],
+          "score": 0.9,
+          "line_index": 7,
+          "near_line_index": 7,
+          "near_text": "MUTTON PEPPER SUKKHA"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1386.0,
+            943.0,
+            1433.0
+          ],
+          "score": 0.9,
+          "line_index": 9,
+          "near_line_index": 9,
+          "near_text": "Tender Lamb, Pepper Masala, Tempered"
+        },
+        {
+          "label": "mustard",
+          "bbox": [
+            1151.0,
+            1544.0,
+            1193.0,
+            1586.0
+          ],
+          "score": 0.5912,
+          "line_index": 11,
+          "near_line_index": 11,
+          "near_text": "141 Kcal"
+        },
+        {
+          "label": "milk",
+          "bbox": [
+            1110.0,
+            1544.0,
+            1154.0,
+            1587.0
+          ],
+          "score": 0.4983,
+          "line_index": 11,
+          "near_line_index": 11,
+          "near_text": "141 Kcal"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1671.0,
+            943.0,
+            1719.0
+          ],
+          "score": 0.9,
+          "line_index": 12,
+          "near_line_index": 12,
+          "near_text": "CRISPY CALAMARI"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            894.0,
+            1672.0,
+            943.0,
+            1719.0
+          ],
+          "score": 0.9,
+          "line_index": 13,
+          "near_line_index": 13,
+          "near_text": "Squid Rings, Semolina"
+        },
+        {
+          "label": "molluscs",
+          "bbox": [
+            1155.0,
+            1838.0,
+            1186.0,
+            1866.0
+          ],
+          "score": 0.4606,
+          "line_index": 14,
+          "near_line_index": 14,
+          "near_text": "Flour, Lemon"
+        },
+        {
+          "label": "molluscs",
+          "bbox": [
+            1149.0,
+            1831.0,
+            1191.0,
+            1873.0
+          ],
+          "score": 0.6764,
+          "line_index": 15,
+          "near_line_index": 15,
+          "near_text": "261 Kcal"
+        },
+        {
+          "label": "gluten",
+          "bbox": [
+            1114.0,
+            1831.0,
+            1156.0,
+            1873.0
+          ],
+          "score": 0.5253,
+          "line_index": 15,
+          "near_line_index": 15,
+          "near_text": "261 Kcal"
+        },
+        {
+          "label": "molluscs",
+          "bbox": [
+            1155.0,
+            1838.0,
+            1186.0,
+            1866.0
+          ],
+          "score": 0.4606,
+          "line_index": 16,
+          "near_line_index": 16,
+          "near_text": "\u2465"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            1127.0,
+            943.0,
+            1175.0
+          ],
+          "score": 0.9,
+          "line_index": 37,
+          "near_line_index": 37,
+          "near_text": "\u2611"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            891.0,
+            1384.0,
+            944.0,
+            1434.0
+          ],
+          "score": 0.9,
+          "line_index": 38,
+          "near_line_index": 38,
+          "near_text": "\u2611"
+        },
+        {
+          "label": "non_veg",
+          "bbox": [
+            892.0,
+            1671.0,
+            943.0,
+            1719.0
+          ],
+          "score": 0.9,
+          "line_index": 39,
+          "near_line_index": 39,
+          "near_text": "\u2611"
+        }
+      ]
+    }
+  ]
+}

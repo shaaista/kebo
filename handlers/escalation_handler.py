@@ -1,5 +1,5 @@
 """
-Escalation Handler for KePSLA Bot v2
+Escalation Handler for NexOria
 
 Handles HUMAN_REQUEST intent by reading the escalation configuration
 from config_service and returning an appropriate escalation response.

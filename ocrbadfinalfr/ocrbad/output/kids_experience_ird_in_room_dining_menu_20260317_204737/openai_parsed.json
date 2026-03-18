@@ -1,0 +1,13 @@
+{
+  "menu_name": "restaurant table booking",
+  "items": [],
+  "other_text": [],
+  "footer_text": [],
+  "notes": [],
+  "page_extras": {
+    "page_intent": "intro_or_story_page",
+    "columns_detected": 0,
+    "section_headers": [],
+    "reasoning": "The ocr_page payload contains no lines or blocks to form menu items. No coordinates, prices, or dish-like phrases present."
+  }
+}

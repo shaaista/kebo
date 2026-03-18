@@ -1,0 +1,83 @@
+{
+  "menu_name": "IN ROOM DINING",
+  "items": [
+    {
+      "name": "PEPPER CHICKEN TIKKA",
+      "description": "Creamy Chicken, Crushed Pink Pepper",
+      "price": "650",
+      "kcal": "150",
+      "allergens": [
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "SMALL PLATES",
+      "page": 3,
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MUTTON PEPPER SUKKHA",
+      "description": "Tender Lamb, Pepper Masala, Tempered Mustard, Curry Leaves",
+      "price": "750",
+      "kcal": "141",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "SMALL PLATES",
+      "page": 3,
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "CRISPY CALAMARI",
+      "description": "Squid Rings, Semolina Flour, Lemon",
+      "price": "650",
+      "kcal": "261",
+      "allergens": [
+        "gluten",
+        "molluscs"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "SMALL PLATES",
+      "page": 3,
+      "extras": {
+        "unparsed_marks": [
+          "\u2465"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Sesame",
+    "Tree Nuts",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving.",
+    "Peanuts",
+    "Eggs",
+    "Mustard",
+    "Vegetarian",
+    "Fish",
+    "Non-Vegetarian"
+  ],
+  "notes": [],
+  "page_extras": {}
+}

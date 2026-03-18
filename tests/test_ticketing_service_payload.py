@@ -1,5 +1,7 @@
-from schemas.chat import ConversationContext
-from services.ticketing_service import ticketing_service
+import pytest
+
+from schemas.chat import ConversationContext, MessageRole
+from services.ticketing_service import TicketingResult, TicketingService, ticketing_service
 
 
 def test_build_payload_includes_engage_compat_fields_from_integration():
@@ -89,3 +91,103 @@ def test_build_payload_normalizes_phase_priority_category_and_source_defaults():
     assert payload["priority"] == "CRITICAL"
     assert payload["categorization"] == "request"
     assert payload["source"] == "manual"
+
+
+@pytest.mark.asyncio
+async def test_create_ticket_deduplicates_same_issue_within_window(monkeypatch):
+    service = TicketingService()
+    context = ConversationContext(
+        session_id="sess-dedupe",
+        hotel_code="DEFAULT",
+        channel="web_widget",
+        pending_data={"_integration": {"phase": "during_stay", "guest_id": "921348", "organisation_id": "5703"}},
+    )
+    payload = service.build_lumira_ticket_payload(
+        context=context,
+        issue="Order for Veggie Sliders and Mac 'n' Cheese to be delivered to room 1205 at 10:15 PM.",
+        message="Deliver at 10:15 PM.",
+        category="request",
+        sub_category="inroom_dining",
+        phase="during_stay",
+    )
+
+    call_count = {"count": 0}
+
+    async def _fake_request_json(_method, _url, _payload, *, debug_context=None):  # noqa: ARG001
+        call_count["count"] += 1
+        return TicketingResult(
+            success=True,
+            ticket_id="T-123",
+            assigned_id="",
+            status_code=200,
+            payload=dict(_payload or {}),
+            response={"id": "T-123"},
+        )
+
+    monkeypatch.setattr(service, "_use_local_mode", lambda: False)
+    monkeypatch.setattr(service, "_ticketing_base_url", lambda: "https://example.test")
+    monkeypatch.setattr(service, "_request_json", _fake_request_json)
+
+    first = await service.create_ticket(dict(payload))
+    second_payload = dict(payload)
+    second_payload["message"] = "Yes, confirm my order."
+    second = await service.create_ticket(second_payload)
+
+    assert first.success is True
+    assert second.success is True
+    assert first.ticket_id == "T-123"
+    assert second.ticket_id == "T-123"
+    assert second.response.get("duplicate_suppressed") is True
+    assert call_count["count"] == 1
+
+
+def test_build_payload_includes_recent_conversation_in_message():
+    context = ConversationContext(
+        session_id="sess-conv-1",
+        hotel_code="DEFAULT",
+        pending_data={"_integration": {"organisation_id": "5703", "phase": "during_stay"}},
+    )
+    context.add_message(MessageRole.USER, "hi i need food")
+    context.add_message(MessageRole.ASSISTANT, "Sure, what would you like from in-room dining?")
+    context.add_message(MessageRole.USER, "veg sliders and mac n cheese at 10:15 pm")
+
+    payload = ticketing_service.build_lumira_ticket_payload(
+        context=context,
+        issue="Order for Veg Sliders and Mac n Cheese at 10:15 PM",
+        message="confirm order",
+        category="request",
+        sub_category="inroom_dining",
+        priority="medium",
+    )
+
+    assert "User: hi i need food" in payload["message"]
+    assert "AI: Sure, what would you like from in-room dining?" in payload["message"]
+    assert "User: veg sliders and mac n cheese at 10:15 pm" in payload["message"]
+    assert "Issue Summary: Order for Veg Sliders and Mac n Cheese at 10:15 PM" in payload["message"]
+
+
+def test_build_payload_falls_back_fields_from_context_when_not_explicit():
+    context = ConversationContext(
+        session_id="sess-fallback-1",
+        hotel_code="DEFAULT",
+        pending_data={
+            "room_number": "1205",
+            "department_id": "24",
+            "sentiment_score": "0.82",
+            "_integration": {"organisation_id": "5703", "phase": "during_stay"},
+        },
+    )
+
+    payload = ticketing_service.build_lumira_ticket_payload(
+        context=context,
+        issue="Please send housekeeping to room 1205",
+        message="need cleaning help",
+        category="request",
+        sub_category="housekeeping",
+        priority="medium",
+    )
+
+    assert payload["room_number"] == "1205"
+    assert payload["department_allocated"] == "24"
+    assert payload["department_id"] == "24"
+    assert payload["sentiment_score"] == "0.82"

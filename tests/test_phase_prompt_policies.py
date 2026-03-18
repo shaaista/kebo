@@ -215,6 +215,117 @@ async def test_service_agent_forces_source_and_confirmation_pending_action(monke
 
 
 @pytest.mark.asyncio
+async def test_service_agent_generated_prompt_gets_runtime_json_contract(monkeypatch):
+    context = ConversationContext(
+        session_id="phase-prompt-generated-contract-1",
+        hotel_code="DEFAULT",
+        state=ConversationState.IDLE,
+        pending_data={"_integration": {"phase": "during_stay"}},
+    )
+    capabilities = {
+        "service_catalog": [
+            {
+                "id": "inroom_dining",
+                "name": "Inroom Dining",
+                "type": "service",
+                "phase_id": "during_stay",
+                "is_active": True,
+                "ticketing_enabled": True,
+                "generated_system_prompt": (
+                    "You are the dedicated assistant for in-room dining. "
+                    "Answer from knowledge base and collect order details only when needed."
+                ),
+                "extracted_knowledge": "Veggie sliders - 450 INR",
+            },
+        ],
+        "journey_phases": [
+            {"id": "during_stay", "name": "During Stay", "is_active": True},
+        ],
+        "service_kb_records": [],
+    }
+    memory_snapshot = {"summary": "", "facts": {}}
+    call_count = {"value": 0}
+    captured_service_messages: dict[str, object] = {}
+
+    async def _fake_chat_with_json(messages, model=None, temperature=None):
+        _ = model, temperature
+        call_count["value"] += 1
+        if call_count["value"] == 1:
+            return {
+                "normalized_query": "i need food",
+                "intent": "order_food",
+                "confidence": 0.95,
+                "action": "dispatch_handler",
+                "target_service_id": "inroom_dining",
+                "response_text": "",
+                "pending_action": None,
+                "pending_data_updates": {},
+                "missing_fields": [],
+                "suggested_actions": [],
+                "use_handler": True,
+                "handler_intent": "order_food",
+                "interrupt_pending": False,
+                "resume_pending": False,
+                "cancel_pending": False,
+                "requires_human_handoff": False,
+                "ticket": {"required": False, "ready_to_create": False},
+                "metadata": {"source": "orchestrator"},
+            }
+        if call_count["value"] == 2:
+            captured_service_messages["messages"] = messages
+            return {
+                "normalized_query": "i need food",
+                "intent": "order_food",
+                "confidence": 0.95,
+                "action": "respond_only",
+                "target_service_id": "inroom_dining",
+                "response_text": "Sure, I can help with in-room dining.",
+                "pending_action": None,
+                "pending_data_updates": {},
+                "missing_fields": [],
+                "suggested_actions": [],
+                "use_handler": False,
+                "handler_intent": "",
+                "interrupt_pending": False,
+                "resume_pending": False,
+                "cancel_pending": False,
+                "requires_human_handoff": False,
+                "ticket": {"required": False, "ready_to_create": False},
+                "metadata": {"source": "service_agent"},
+            }
+        raise AssertionError("Unexpected extra LLM call")
+
+    monkeypatch.setattr("services.llm_orchestration_service.settings.openai_api_key", "test-key")
+    monkeypatch.setattr("services.llm_orchestration_service.settings.chat_llm_orchestration_mode", False)
+    monkeypatch.setattr("services.llm_orchestration_service.settings.chat_no_template_response_mode", True)
+    monkeypatch.setattr("services.llm_orchestration_service.settings.chat_llm_service_agent_enabled", True)
+    monkeypatch.setattr("services.llm_orchestration_service.settings.chat_llm_answer_first_guard_enabled", False)
+
+    async def _no_suggestions(**kwargs):
+        _ = kwargs
+        return []
+
+    monkeypatch.setattr(llm_orchestration_service, "_run_next_action_suggestion_agent", _no_suggestions)
+    monkeypatch.setattr("services.llm_orchestration_service.llm_client.chat_with_json", _fake_chat_with_json)
+
+    decision = await llm_orchestration_service.orchestrate_turn(
+        user_message="i need food",
+        context=context,
+        capabilities_summary=capabilities,
+        memory_snapshot=memory_snapshot,
+        selected_phase_context={"selected_phase_id": "during_stay", "selected_phase_name": "During Stay"},
+    )
+
+    assert decision is not None
+    assert call_count["value"] == 2
+    service_messages = captured_service_messages.get("messages")
+    assert isinstance(service_messages, list) and len(service_messages) == 2
+    service_system_prompt = str(service_messages[0].get("content") or "")
+    assert "json" in service_system_prompt.lower()
+    assert '"response_text"' in service_system_prompt
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_falls_back_to_next_action_suggestion_agent(monkeypatch):
     context = ConversationContext(
         session_id="phase-prompt-suggestions-1",

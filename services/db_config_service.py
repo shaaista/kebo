@@ -43,6 +43,8 @@ class DBConfigService:
         self._current_hotel_id: Optional[int] = None
         self._json_config: Optional[Dict] = None
 
+    _SERVICE_DELETE_TOMBSTONES_KEY = "service_delete_tombstones"
+
     @staticmethod
     def _normalize_identifier(value: Any) -> str:
         """Normalize IDs to stable lowercase snake-style identifiers."""
@@ -381,7 +383,138 @@ class DBConfigService:
                     or str(prompt_pack.get("extracted_knowledge") or "").strip()
                     or bool(prompt_pack.get("required_slots"))
                 )
+        if row.generated_system_prompt:
+            result["generated_system_prompt"] = row.generated_system_prompt
         return result
+
+    def _read_service_delete_tombstones(
+        self,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> tuple[set[str], bool]:
+        """
+        Read service delete tombstones from JSON config.
+        Returns (deleted_service_ids, suppress_all_services_flag).
+        """
+        source = config if isinstance(config, dict) else self._load_json_config()
+        raw = source.get(self._SERVICE_DELETE_TOMBSTONES_KEY)
+
+        deleted_ids: set[str] = set()
+        suppress_all = False
+        if isinstance(raw, dict):
+            suppress_all = bool(raw.get("suppress_all", False))
+            raw_ids = raw.get("ids", [])
+        elif isinstance(raw, list):
+            # Backward-compatible legacy list-only format.
+            raw_ids = raw
+        else:
+            raw_ids = []
+
+        if isinstance(raw_ids, list):
+            for item in raw_ids:
+                normalized = self._normalize_identifier(item)
+                if normalized:
+                    deleted_ids.add(normalized)
+        return deleted_ids, suppress_all
+
+    def _write_service_delete_tombstones(
+        self,
+        config: Dict[str, Any],
+        deleted_ids: set[str],
+        suppress_all: bool,
+    ) -> bool:
+        """Persist service delete tombstones to JSON config."""
+        normalized_ids = sorted(
+            {
+                self._normalize_identifier(item)
+                for item in (deleted_ids or set())
+                if self._normalize_identifier(item)
+            }
+        )
+        normalized_suppress_all = bool(suppress_all)
+        existing_raw = config.get(self._SERVICE_DELETE_TOMBSTONES_KEY)
+        existing_payload = (
+            existing_raw if isinstance(existing_raw, dict) else {}
+        )
+
+        if not normalized_ids and not normalized_suppress_all:
+            if self._SERVICE_DELETE_TOMBSTONES_KEY in config:
+                config.pop(self._SERVICE_DELETE_TOMBSTONES_KEY, None)
+                self._save_json_config(config)
+                return True
+            return False
+
+        payload = {
+            "ids": normalized_ids,
+            "suppress_all": normalized_suppress_all,
+        }
+        if existing_payload == payload:
+            return False
+        config[self._SERVICE_DELETE_TOMBSTONES_KEY] = payload
+        self._save_json_config(config)
+        return True
+
+    def mark_service_deleted(self, service_id: str) -> bool:
+        """Mark one service ID as deleted until DB is reconciled."""
+        normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return False
+        try:
+            config = self._load_json_config()
+            deleted_ids, suppress_all = self._read_service_delete_tombstones(config)
+            deleted_ids.add(normalized_id)
+            self._write_service_delete_tombstones(config, deleted_ids, suppress_all)
+            return True
+        except Exception as e:
+            print(f"[JSON] Failed to mark service tombstone for {normalized_id}: {e}")
+            return False
+
+    def unmark_service_deleted(
+        self,
+        service_id: str,
+        *,
+        clear_suppress_all: bool = False,
+    ) -> bool:
+        """Remove one service ID tombstone after DB and JSON are in sync."""
+        normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id and not clear_suppress_all:
+            return False
+        try:
+            config = self._load_json_config()
+            deleted_ids, suppress_all = self._read_service_delete_tombstones(config)
+            changed = False
+            if normalized_id and normalized_id in deleted_ids:
+                deleted_ids.discard(normalized_id)
+                changed = True
+            if clear_suppress_all and suppress_all:
+                suppress_all = False
+                changed = True
+            if changed:
+                self._write_service_delete_tombstones(config, deleted_ids, suppress_all)
+            return True
+        except Exception as e:
+            print(f"[JSON] Failed to clear service tombstone for {normalized_id}: {e}")
+            return False
+
+    def mark_all_services_deleted(self) -> bool:
+        """Mark 'clear all services' intent until DB rows are fully deleted."""
+        try:
+            config = self._load_json_config()
+            deleted_ids, _ = self._read_service_delete_tombstones(config)
+            self._write_service_delete_tombstones(config, deleted_ids, True)
+            return True
+        except Exception as e:
+            print(f"[JSON] Failed to mark clear-all tombstone: {e}")
+            return False
+
+    def clear_service_delete_tombstones(self) -> bool:
+        """Clear all service delete tombstones."""
+        try:
+            config = self._load_json_config()
+            self._write_service_delete_tombstones(config, set(), False)
+            return True
+        except Exception as e:
+            print(f"[JSON] Failed to clear service tombstones: {e}")
+            return False
 
     def _sync_services_to_json(self, services: List[Dict[str, Any]]) -> None:
         """Write current service list to JSON so config_service / LLM path stays fresh."""
@@ -470,6 +603,13 @@ class DBConfigService:
     async def get_services(self) -> List[Dict[str, Any]]:
         """Load services from new_bot_services (DB-primary). Syncs JSON on load."""
         hotel_id = await self.get_current_hotel_id()
+        tombstone_ids: set[str] = set()
+        suppress_all = False
+        try:
+            json_config = self._load_json_config()
+            tombstone_ids, suppress_all = self._read_service_delete_tombstones(json_config)
+        except Exception as e:
+            print(f"[JSON] Failed to read service tombstones: {e}")
         try:
             async with AsyncSessionLocal() as session:
                 result = await session.execute(
@@ -479,6 +619,53 @@ class DBConfigService:
                 )
                 rows = result.scalars().all()
                 services = [self._service_to_dict(row) for row in rows]
+                suppress_all_reconciled = False
+
+                if suppress_all:
+                    try:
+                        await session.execute(
+                            delete(BotService).where(BotService.hotel_id == hotel_id)
+                        )
+                        await session.commit()
+                        suppress_all_reconciled = True
+                    except Exception as purge_error:
+                        await session.rollback()
+                        print(f"[DB] Failed clearing services while suppress_all is active: {purge_error}")
+                    services = []
+                elif tombstone_ids:
+                    stale_ids = {
+                        self._normalize_identifier(item.get("id"))
+                        for item in services
+                        if self._normalize_identifier(item.get("id")) in tombstone_ids
+                    }
+                    if stale_ids:
+                        try:
+                            await session.execute(
+                                delete(BotService).where(
+                                    BotService.hotel_id == hotel_id,
+                                    BotService.service_id.in_(sorted(stale_ids)),
+                                )
+                            )
+                            await session.commit()
+                            for stale_id in stale_ids:
+                                self.unmark_service_deleted(stale_id)
+                        except Exception as purge_error:
+                            await session.rollback()
+                            print(f"[DB] Failed purging tombstoned services {sorted(stale_ids)}: {purge_error}")
+                        services = [
+                            item
+                            for item in services
+                            if self._normalize_identifier(item.get("id")) not in stale_ids
+                        ]
+                    else:
+                        services = [
+                            item
+                            for item in services
+                            if self._normalize_identifier(item.get("id")) not in tombstone_ids
+                        ]
+
+                if suppress_all_reconciled:
+                    self.clear_service_delete_tombstones()
                 # Keep JSON in sync so the LLM prompt builder always reads current data.
                 self._sync_services_to_json(services)
                 return services
@@ -537,6 +724,8 @@ class DBConfigService:
             print(f"[DB] add_service failed for {service_id}: {e}")
             return False
 
+        # Re-adding a service should release any prior deletion tombstones.
+        self.unmark_service_deleted(service_id, clear_suppress_all=True)
         # Sync JSON so LLM reads fresh data.
         all_services = await self.get_services()
         self._sync_services_to_json(all_services)
@@ -588,6 +777,34 @@ class DBConfigService:
             print(f"[DB] update_service failed for {normalized_id}: {e}")
             return False
 
+        self.unmark_service_deleted(normalized_id, clear_suppress_all=True)
+        all_services = await self.get_services()
+        self._sync_services_to_json(all_services)
+        return True
+
+    async def save_generated_prompt(self, service_id: str, prompt: str) -> bool:
+        """Store or clear the LLM-generated system prompt for a service."""
+        normalized_id = self._normalize_identifier(service_id)
+        if not normalized_id:
+            return False
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(BotService).where(
+                        BotService.hotel_id == hotel_id,
+                        BotService.service_id == normalized_id,
+                    )
+                )
+                row = result.scalar_one_or_none()
+                if not row:
+                    return False
+                row.generated_system_prompt = str(prompt).strip() or None
+                await session.commit()
+                print(f"[DB] Saved generated prompt for service {normalized_id} ({len(prompt)} chars)")
+        except Exception as e:
+            print(f"[DB] save_generated_prompt failed for {normalized_id}: {e}")
+            return False
         all_services = await self.get_services()
         self._sync_services_to_json(all_services)
         return True
@@ -597,6 +814,7 @@ class DBConfigService:
         normalized_id = self._normalize_identifier(service_id)
         if not normalized_id:
             return False
+        self.mark_service_deleted(normalized_id)
         hotel_id = await self.get_current_hotel_id()
         deleted_rows = 0
         try:
@@ -614,6 +832,8 @@ class DBConfigService:
             print(f"[DB] delete_service failed for {normalized_id}: {e}")
             return False
 
+        # DB and JSON are now reconciled for this id.
+        self.unmark_service_deleted(normalized_id)
         all_services = await self.get_services()
         self._sync_services_to_json(all_services)
         self._prune_json_service_artifacts(service_ids_to_remove={normalized_id})
@@ -621,6 +841,7 @@ class DBConfigService:
 
     async def clear_services(self) -> bool:
         """Delete all services for this hotel."""
+        self.mark_all_services_deleted()
         hotel_id = await self.get_current_hotel_id()
         service_ids_to_remove: set[str] = set()
         try:
@@ -642,6 +863,7 @@ class DBConfigService:
             print(f"[DB] clear_services failed: {e}")
             return False
 
+        self.clear_service_delete_tombstones()
         self._sync_services_to_json([])
         self._prune_json_service_artifacts(
             service_ids_to_remove=service_ids_to_remove,

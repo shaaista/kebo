@@ -1,0 +1,3645 @@
+{
+  "mode": "page_by_page",
+  "pages": [
+    {
+      "page": 1,
+      "docai": {
+        "doc": {
+          "mime_type": null,
+          "text_length": 866,
+          "page_count": 1
+        },
+        "pages": [
+          {
+            "page": 1,
+            "page_dimension": {
+              "width": 1681.0,
+              "height": 2378.0,
+              "unit": "POINT"
+            },
+            "text_length_total": 866,
+            "lines": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "KIDS EXPERIENCE",
+                "bbox": [
+                  531.99998868,
+                  443.99999456,
+                  1113.0000179,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.31647828,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.31647828,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  698.0000006600001,
+                  977.0000577000001,
+                  717.00000664
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.30151388
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.30151388
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  656.00000246,
+                  1155.9999979,
+                  672.00001876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.28259042
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                "bbox": [
+                  1111.999991,
+                  672.00001876,
+                  1155.9999979,
+                  807.9999314
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.3397813
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  807.9999314,
+                  1155.9999979,
+                  823.99999526
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.34650967
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.34650967
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1004.9999909,
+                  1025.0000041,
+                  1023.0000240999999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.43019345
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.43019345
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  962.9999927,
+                  1155.9999979,
+                  977.99996488
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.41126996
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.41126996
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1160.0000522,
+                  884.99998673,
+                  1177.99999028
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.49537426
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.49537426
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1118.0000539999999,
+                  1155.9999979,
+                  1133.9999514
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.4768713
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.4768713
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                "bbox": [
+                  1111.999991,
+                  1133.9999514,
+                  1155.9999979,
+                  1299.0000972
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.47687130000000005
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.47687130000000005
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5462574
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1299.0000972,
+                  1155.9999979,
+                  1314.9999946
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5529857
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5529857
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1546.0000084800001,
+                  826.0000302,
+                  1564.9999431200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65811604
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65811604
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1506.9999524,
+                  1155.9999979,
+                  1523.0000876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6404542
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.6404542
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1725.99996,
+                  963.0000173000001,
+                  1745.0000611
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.73380995
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.73380995
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1686.99997526,
+                  1155.9999979,
+                  1702.999944
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.716148
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.716148
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  1111.999991,
+                  1704.999944,
+                  1155.9999979,
+                  1720.99991274
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.7169890428931875
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.7169890428931875
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.7237173728931875
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.7237173728931875
+                  }
+                ],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "blocks": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "heading-1",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "KIDS EXPERIENCE",
+                "bbox": [
+                  531.99998868,
+                  443.99999456,
+                  1113.0000179,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.31647828,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.31647828,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "heading-2",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "heading-3",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  698.0000006600001,
+                  977.0000577000001,
+                  717.00000664
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.30151388
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.30151388
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  656.00000246,
+                  1155.9999979,
+                  672.00001876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.28259042
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                "bbox": [
+                  1111.999991,
+                  672.00001876,
+                  1155.9999979,
+                  807.9999314
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.3397813
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  807.9999314,
+                  1155.9999979,
+                  823.99999526
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.34650967
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.34650967
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1004.9999909,
+                  1025.0000041,
+                  1023.0000240999999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.43019345
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.43019345
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  962.9999927,
+                  1155.9999979,
+                  977.99996488
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.41126996
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.41126996
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1160.0000522,
+                  884.99998673,
+                  1177.99999028
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.49537426
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.49537426
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1118.0000539999999,
+                  1155.9999979,
+                  1133.9999514
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.4768713
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.4768713
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                "bbox": [
+                  1111.999991,
+                  1133.9999514,
+                  1155.9999979,
+                  1299.0000972
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.47687130000000005
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.47687130000000005
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5462574
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1299.0000972,
+                  1155.9999979,
+                  1314.9999946
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5529857
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5529857
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1546.0000084800001,
+                  826.0000302,
+                  1564.9999431200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65811604
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65811604
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1506.9999524,
+                  1155.9999979,
+                  1523.0000876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6404542
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.6404542
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1725.99996,
+                  963.0000173000001,
+                  1745.0000611
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.73380995
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.73380995
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1686.99997526,
+                  1155.9999979,
+                  1702.999944
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.716148
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.716148
+                  }
+                ],
+                "layout_role": "paragraph",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  1111.999991,
+                  1704.999944,
+                  1155.9999979,
+                  1720.99991274
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.7169890428931875
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.7169890428931875
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.7237173728931875
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.7237173728931875
+                  }
+                ],
+                "layout_role": "footer",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  0.0
+                ]
+              }
+            ],
+            "raw_page": {
+              "documentLayout_entries": [
+                {
+                  "text": "IN ROOM DINING",
+                  "type": "heading-1",
+                  "block_id": "1",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "KIDS EXPERIENCE",
+                  "type": "heading-2",
+                  "block_id": "2",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "12:00 PM TO 6:00 AM",
+                  "type": "heading-3",
+                  "block_id": "3",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal",
+                  "type": "paragraph",
+                  "block_id": "5",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "6",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal",
+                  "type": "paragraph",
+                  "block_id": "7",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "8",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal",
+                  "type": "paragraph",
+                  "block_id": "9",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "10",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal",
+                  "type": "paragraph",
+                  "block_id": "11",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "12",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal",
+                  "type": "paragraph",
+                  "block_id": "13",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "14",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal",
+                  "type": "paragraph",
+                  "block_id": "15",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "16",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal",
+                  "type": "paragraph",
+                  "block_id": "17",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "450",
+                  "type": "paragraph",
+                  "block_id": "18",
+                  "bbox_normalized": []
+                },
+                {
+                  "text": "Milk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving.",
+                  "type": "footer",
+                  "block_id": "19",
+                  "bbox_normalized": []
+                }
+              ]
+            },
+            "width": 1681.0,
+            "height": 2378.0,
+            "ocr_lines": [
+              {
+                "text": "IN ROOM DINING",
+                "bbox": [
+                  282.99999777,
+                  192.00000536,
+                  1401.9999753499999,
+                  286.99998769999996
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.16835217,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.08074012
+                  },
+                  {
+                    "x": 0.83402735,
+                    "y": 0.12068965
+                  },
+                  {
+                    "x": 0.16835217,
+                    "y": 0.12068965
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "KIDS EXPERIENCE",
+                "bbox": [
+                  531.99998868,
+                  443.99999456,
+                  1113.0000179,
+                  489.999979
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.31647828,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.18671152
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.2060555
+                  },
+                  {
+                    "x": 0.31647828,
+                    "y": 0.2060555
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "12:00 PM TO 6:00 AM",
+                "bbox": [
+                  615.00001927,
+                  513.99999156,
+                  1053.9999437,
+                  539.99999724
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.36585367,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.21614802
+                  },
+                  {
+                    "x": 0.6270077,
+                    "y": 0.22708158
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.22708158
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "VEGGIE SLIDERS",
+                "bbox": [
+                  558.9999921499999,
+                  656.99997524,
+                  804.0000099399999,
+                  677.00002534
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.27628258
+                  },
+                  {
+                    "x": 0.47828674,
+                    "y": 0.27628258
+                  },
+                  {
+                    "x": 0.47828674,
+                    "y": 0.28469303
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.28469303
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  656.00000246,
+                  1155.9999979,
+                  672.00001876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.27586207
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.28259042
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.28259042
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vegetable Patty, Mini Burger, Cheese",
+                "bbox": [
+                  558.9999921499999,
+                  698.0000006600001,
+                  977.0000577000001,
+                  717.00000664
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.29352397
+                  },
+                  {
+                    "x": 0.5812017,
+                    "y": 0.30151388
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.30151388
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "148 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  734.9999684999999,
+                  634.00002607,
+                  747.99999512
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.30908325
+                  },
+                  {
+                    "x": 0.37715647,
+                    "y": 0.30908325
+                  },
+                  {
+                    "x": 0.37715647,
+                    "y": 0.31455004
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.31455004
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "RAINBOW VEGGIE PIZZA",
+                "bbox": [
+                  560.99999552,
+                  807.9999314,
+                  930.00005415,
+                  829.00000184
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.55324215,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.55324215,
+                    "y": 0.34861228
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.34861228
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  807.9999314,
+                  1155.9999979,
+                  823.99999526
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.34650967
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.34650967
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Assorted Veggies, Cheese",
+                "bbox": [
+                  558.9999921499999,
+                  850.0000247199999,
+                  850.99997987,
+                  868.99998314
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.35744324
+                  },
+                  {
+                    "x": 0.50624627,
+                    "y": 0.35744324
+                  },
+                  {
+                    "x": 0.50624627,
+                    "y": 0.36543313
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.36543313
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "175 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  884.00002666,
+                  632.0000226999999,
+                  896.99998194
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.37174097
+                  },
+                  {
+                    "x": 0.3759667,
+                    "y": 0.37174097
+                  },
+                  {
+                    "x": 0.3759667,
+                    "y": 0.37720773
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.37720773
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "MAC N CHEESE",
+                "bbox": [
+                  560.99999552,
+                  962.9999927,
+                  783.00001658,
+                  984.0000393600001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.46579418,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.46579418,
+                    "y": 0.41379312
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.41379312
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  962.9999927,
+                  1155.9999979,
+                  977.99996488
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.41126996
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.41126996
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Classic Macaroni, Melted Cheddar Cheese",
+                "bbox": [
+                  560.00000224,
+                  1004.9999909,
+                  1025.0000041,
+                  1023.0000240999999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.42262405
+                  },
+                  {
+                    "x": 0.6097561,
+                    "y": 0.43019345
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.43019345
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "176 Kcal",
+                "bbox": [
+                  560.00000224,
+                  1037.99999628,
+                  634.00002607,
+                  1051.99999568
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.43650126
+                  },
+                  {
+                    "x": 0.37715647,
+                    "y": 0.43650126
+                  },
+                  {
+                    "x": 0.37715647,
+                    "y": 0.44238856
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.44238856
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u24c7",
+                "bbox": [
+                  668.99997578,
+                  1035.9999556,
+                  686.9999892999999,
+                  1054.00003636
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.39797738,
+                    "y": 0.4356602
+                  },
+                  {
+                    "x": 0.4086853,
+                    "y": 0.4356602
+                  },
+                  {
+                    "x": 0.4086853,
+                    "y": 0.44322962
+                  },
+                  {
+                    "x": 0.39797738,
+                    "y": 0.44322962
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "RED SAUCE SPAGHETTI",
+                "bbox": [
+                  560.99999552,
+                  1118.0000539999999,
+                  905.9999968999999,
+                  1139.00000554
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.5389649,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.5389649,
+                    "y": 0.47897393
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.47897393
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Tomato Sauce, Basil, Cheese,",
+                "bbox": [
+                  560.00000224,
+                  1160.0000522,
+                  884.99998673,
+                  1177.99999028
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.4878049
+                  },
+                  {
+                    "x": 0.52647233,
+                    "y": 0.49537426
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.49537426
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Spaghetti",
+                "bbox": [
+                  560.00000224,
+                  1185.00003754,
+                  665.99997913,
+                  1205.0000163000002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.49831793
+                  },
+                  {
+                    "x": 0.39619273,
+                    "y": 0.49831793
+                  },
+                  {
+                    "x": 0.39619273,
+                    "y": 0.50672835
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.50672835
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "132 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1221.9999816000002,
+                  632.0000226999999,
+                  1235.0000320000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.5138772
+                  },
+                  {
+                    "x": 0.3759667,
+                    "y": 0.5138772
+                  },
+                  {
+                    "x": 0.3759667,
+                    "y": 0.519344
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.519344
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "BUCKET OF ASSORTED",
+                "bbox": [
+                  560.99999552,
+                  1300.0000462,
+                  902.0000574,
+                  1319.9999774
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.5466779
+                  },
+                  {
+                    "x": 0.5365854,
+                    "y": 0.5466779
+                  },
+                  {
+                    "x": 0.5365854,
+                    "y": 0.5550883
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.5550883
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "POTATO FRIES",
+                "bbox": [
+                  560.99999552,
+                  1333.0000278,
+                  778.0000165600001,
+                  1354.00007446
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.5605551
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.5605551
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.56938607
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.56938607
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Potato Chips, Wedges, Corn,",
+                "bbox": [
+                  563.0000157,
+                  1372.00003632,
+                  882.9999833599999,
+                  1390.9999234
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3349197,
+                    "y": 0.57695544
+                  },
+                  {
+                    "x": 0.52528256,
+                    "y": 0.57695544
+                  },
+                  {
+                    "x": 0.52528256,
+                    "y": 0.5849453
+                  },
+                  {
+                    "x": 0.3349197,
+                    "y": 0.5849453
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Cheese pop",
+                "bbox": [
+                  561.9999888,
+                  1397.99994688,
+                  691.99998932,
+                  1417.0000241999999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.58788896
+                  },
+                  {
+                    "x": 0.41165972,
+                    "y": 0.58788896
+                  },
+                  {
+                    "x": 0.41165972,
+                    "y": 0.5958789
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.5958789
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "254 Kcal",
+                "bbox": [
+                  561.9999888,
+                  1430.9999522599999,
+                  640.00001937,
+                  1445.0000229999998
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3343248,
+                    "y": 0.60176617
+                  },
+                  {
+                    "x": 0.38072577,
+                    "y": 0.60176617
+                  },
+                  {
+                    "x": 0.38072577,
+                    "y": 0.6076535
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.6076535
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1118.0000539999999,
+                  1155.9999979,
+                  1133.9999514
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.4768713
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.4768713
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1299.0000972,
+                  1155.9999979,
+                  1314.9999946
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5462574
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.5529857
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.5529857
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "MASHED POTATO",
+                "bbox": [
+                  560.99999552,
+                  1507.99997274,
+                  820.0000368999999,
+                  1528.0000704000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33372992,
+                    "y": 0.63414633
+                  },
+                  {
+                    "x": 0.4878049,
+                    "y": 0.63414633
+                  },
+                  {
+                    "x": 0.4878049,
+                    "y": 0.6425568
+                  },
+                  {
+                    "x": 0.33372992,
+                    "y": 0.6425568
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1506.9999524,
+                  1155.9999979,
+                  1523.0000876
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6337258
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.6404542
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.6404542
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Creamy Mashed, Butter,",
+                "bbox": [
+                  560.00000224,
+                  1546.0000084800001,
+                  826.0000302,
+                  1564.9999431200001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65012616
+                  },
+                  {
+                    "x": 0.4913742,
+                    "y": 0.65811604
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.65811604
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Cheese",
+                "bbox": [
+                  560.00000224,
+                  1570.9999462600001,
+                  639.0000429,
+                  1587.9998640000001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.66063917
+                  },
+                  {
+                    "x": 0.3801309,
+                    "y": 0.66063917
+                  },
+                  {
+                    "x": 0.3801309,
+                    "y": 0.667788
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.667788
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "111 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1605.0000671,
+                  623.00001594,
+                  1618.9999476
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.67493695
+                  },
+                  {
+                    "x": 0.37061274,
+                    "y": 0.67493695
+                  },
+                  {
+                    "x": 0.37061274,
+                    "y": 0.6808242
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.6808242
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "CRISPY CHICKEN SLIDERS",
+                "bbox": [
+                  560.00000224,
+                  1687.9999956000001,
+                  942.9999836000001,
+                  1708.99997092
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.7098402
+                  },
+                  {
+                    "x": 0.5609756,
+                    "y": 0.7098402
+                  },
+                  {
+                    "x": 0.5609756,
+                    "y": 0.71867114
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.71867114
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Crispy Chicken, Mini Burger, Cheese",
+                "bbox": [
+                  560.00000224,
+                  1725.99996,
+                  963.0000173000001,
+                  1745.0000611
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33313504,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.72582
+                  },
+                  {
+                    "x": 0.5728733,
+                    "y": 0.73380995
+                  },
+                  {
+                    "x": 0.33313504,
+                    "y": 0.73380995
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "208 Kcal",
+                "bbox": [
+                  558.9999921499999,
+                  1760.99993472,
+                  639.0000429,
+                  1775.00000546
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.33254015,
+                    "y": 0.74053824
+                  },
+                  {
+                    "x": 0.3801309,
+                    "y": 0.74053824
+                  },
+                  {
+                    "x": 0.3801309,
+                    "y": 0.74642557
+                  },
+                  {
+                    "x": 0.33254015,
+                    "y": 0.74642557
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Milk",
+                "bbox": [
+                  442.00002194,
+                  2187.9999402,
+                  467.9999817,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.26293874,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.2784057,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.2784057,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.26293874,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Gluten",
+                "bbox": [
+                  517.9999819,
+                  2187.9999402,
+                  561.9999888,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3081499,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.3343248,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.3081499,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Lupin",
+                "bbox": [
+                  607.0000226,
+                  2188.99998432,
+                  644.0000093,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3610946,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.3831053,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.3831053,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.3610946,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Crustaceans",
+                "bbox": [
+                  441.00001184999996,
+                  2216.99998312,
+                  525.0000021,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.26234385,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.26234385,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Celery",
+                "bbox": [
+                  572.0000056499999,
+                  2216.99998312,
+                  615.00001927,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.34027365,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.36585367,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.34027365,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Sulpher Dioxide",
+                "bbox": [
+                  690.99997923,
+                  2187.9999402,
+                  800.0000031999999,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.41106483,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4759072,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4759072,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.41106483,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Soybeans",
+                "bbox": [
+                  665.99997913,
+                  2216.99998312,
+                  731.99998948,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.39619273,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.43545508,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.43545508,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.39619273,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Molluscs",
+                "bbox": [
+                  840.9999294,
+                  2187.9999402,
+                  898.9999767,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5002974,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.5348007,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.5348007,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.5002974,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Mustard",
+                "bbox": [
+                  954.9999702,
+                  2187.9999402,
+                  1009.00002757,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5681142,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.60023797,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.5681142,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Peanuts",
+                "bbox": [
+                  1057.0000244,
+                  2188.99998432,
+                  1111.00004815,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6287924,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.66091615,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.66091615,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.6287924,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Sesame",
+                "bbox": [
+                  789.00000988,
+                  2216.99998312,
+                  842.00002354,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.46936348,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.50089234,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.50089234,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.46936348,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Tree Nuts",
+                "bbox": [
+                  890.99999684,
+                  2216.99998312,
+                  955.9999971,
+                  2226.9999962800002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.53004164,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5687091,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5687091,
+                    "y": 0.93650126
+                  },
+                  {
+                    "x": 0.53004164,
+                    "y": 0.93650126
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Vegetarian",
+                "bbox": [
+                  1007.0000242000001,
+                  2217.9999559,
+                  1080.9999976000001,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.5990482,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.6430696,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.6430696,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.5990482,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Kindly inform our associates of any allergies you may have.",
+                "bbox": [
+                  421.00001177,
+                  2249.0000157199997,
+                  831.00003022,
+                  2261.999971
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.25044617,
+                    "y": 0.94575274
+                  },
+                  {
+                    "x": 0.49434862,
+                    "y": 0.94575274
+                  },
+                  {
+                    "x": 0.49434862,
+                    "y": 0.9512195
+                  },
+                  {
+                    "x": 0.25044617,
+                    "y": 0.9512195
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "All prices are in INR, exclusive of taxes. We levy no service charge.",
+                "bbox": [
+                  420.00001849,
+                  2268.9999231399997,
+                  880.9999968000001,
+                  2282.0000210999997
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.24985129,
+                    "y": 0.95416313
+                  },
+                  {
+                    "x": 0.5240928,
+                    "y": 0.95416313
+                  },
+                  {
+                    "x": 0.5240928,
+                    "y": 0.95962995
+                  },
+                  {
+                    "x": 0.24985129,
+                    "y": 0.95962995
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "The calorie content is per 100 grams of the serving.",
+                "bbox": [
+                  421.00001177,
+                  2289.0000208,
+                  778.0000165600001,
+                  2300.99997952
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.25044617,
+                    "y": 0.9625736
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.9625736
+                  },
+                  {
+                    "x": 0.46281976,
+                    "y": 0.96761984
+                  },
+                  {
+                    "x": 0.25044617,
+                    "y": 0.96761984
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "450",
+                "bbox": [
+                  1111.999991,
+                  1686.99997526,
+                  1155.9999979,
+                  1702.999944
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.661511,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.70941967
+                  },
+                  {
+                    "x": 0.6876859,
+                    "y": 0.716148
+                  },
+                  {
+                    "x": 0.661511,
+                    "y": 0.716148
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Fish",
+                "bbox": [
+                  1234.0000789,
+                  2187.9999402,
+                  1260.00003866,
+                  2199.00002126
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.7340869,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.74955386,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.74955386,
+                    "y": 0.92472667
+                  },
+                  {
+                    "x": 0.7340869,
+                    "y": 0.92472667
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Eggs",
+                "bbox": [
+                  1158.0000516999999,
+                  2188.99998432,
+                  1190.00002157,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6888757,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.70791197,
+                    "y": 0.92052144
+                  },
+                  {
+                    "x": 0.70791197,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.6888757,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "Non-Vegetarian",
+                "bbox": [
+                  1138.99996085,
+                  2217.9999559,
+                  1246.9999915399999,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.67757285,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.74182034,
+                    "y": 0.93271655
+                  },
+                  {
+                    "x": 0.74182034,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.67757285,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  525.0000021,
+                  656.99997524,
+                  542.9999819999999,
+                  677.99999812
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.27628258
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.27628258
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.28511354
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.28511354
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u24c7",
+                "bbox": [
+                  667.9999825000001,
+                  733.00002294,
+                  684.99998593,
+                  750.0000358
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3973825,
+                    "y": 0.30824223
+                  },
+                  {
+                    "x": 0.40749553,
+                    "y": 0.30824223
+                  },
+                  {
+                    "x": 0.40749553,
+                    "y": 0.3153911
+                  },
+                  {
+                    "x": 0.3973825,
+                    "y": 0.3153911
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  525.0000021,
+                  807.9999314,
+                  542.9999819999999,
+                  829.9999984
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.3397813
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.3490328
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.3490328
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u24c7",
+                "bbox": [
+                  668.99997578,
+                  881.0000132,
+                  687.9999825799999,
+                  898.99999884
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.39797738,
+                    "y": 0.3704794
+                  },
+                  {
+                    "x": 0.40928018,
+                    "y": 0.3704794
+                  },
+                  {
+                    "x": 0.40928018,
+                    "y": 0.37804878
+                  },
+                  {
+                    "x": 0.39797738,
+                    "y": 0.37804878
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  523.9999752,
+                  962.9999927,
+                  542.9999819999999,
+                  984.0000393600001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3117192,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.40496215
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.41379312
+                  },
+                  {
+                    "x": 0.3117192,
+                    "y": 0.41379312
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  525.0000021,
+                  1118.0000539999999,
+                  542.9999819999999,
+                  1139.9999783199999
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.470143
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.47939444
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.47939444
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u24c7",
+                "bbox": [
+                  668.99997578,
+                  1221.0000326,
+                  684.99998593,
+                  1238.0000216800001
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.39797738,
+                    "y": 0.5134567
+                  },
+                  {
+                    "x": 0.40749553,
+                    "y": 0.5134567
+                  },
+                  {
+                    "x": 0.40749553,
+                    "y": 0.52060556
+                  },
+                  {
+                    "x": 0.39797738,
+                    "y": 0.52060556
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  523.9999752,
+                  1300.0000462,
+                  542.9999819999999,
+                  1321.0000453000002
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3117192,
+                    "y": 0.5466779
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.5466779
+                  },
+                  {
+                    "x": 0.323022,
+                    "y": 0.55550885
+                  },
+                  {
+                    "x": 0.3117192,
+                    "y": 0.55550885
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2469",
+                "bbox": [
+                  679.9999691,
+                  1429.99997948,
+                  695.99997925,
+                  1446.999921
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.4045211,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.41403925,
+                    "y": 0.60134566
+                  },
+                  {
+                    "x": 0.41403925,
+                    "y": 0.6084945
+                  },
+                  {
+                    "x": 0.4045211,
+                    "y": 0.6084945
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  525.0000021,
+                  1507.99997274,
+                  544.0000089,
+                  1529.0000194
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3123141,
+                    "y": 0.63414633
+                  },
+                  {
+                    "x": 0.3236169,
+                    "y": 0.63414633
+                  },
+                  {
+                    "x": 0.3236169,
+                    "y": 0.6429773
+                  },
+                  {
+                    "x": 0.3123141,
+                    "y": 0.6429773
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2465",
+                "bbox": [
+                  586.9999889,
+                  2186.9999912,
+                  599.0000091200001,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3491969,
+                    "y": 0.9196804
+                  },
+                  {
+                    "x": 0.35633552,
+                    "y": 0.9196804
+                  },
+                  {
+                    "x": 0.35633552,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.3491969,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2465",
+                "bbox": [
+                  819.00001,
+                  2187.9999402,
+                  832.0000235,
+                  2200.9999906
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.48721,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4949435,
+                    "y": 0.9201009
+                  },
+                  {
+                    "x": 0.4949435,
+                    "y": 0.9255677
+                  },
+                  {
+                    "x": 0.48721,
+                    "y": 0.9255677
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2469",
+                "bbox": [
+                  550.0000021999999,
+                  2215.999939,
+                  565.0000022600001,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.3271862,
+                    "y": 0.9318755
+                  },
+                  {
+                    "x": 0.33610946,
+                    "y": 0.9318755
+                  },
+                  {
+                    "x": 0.33610946,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.3271862,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u25c9",
+                "bbox": [
+                  985.0000207500001,
+                  2216.99998312,
+                  997.9999502,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.58596075,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5936942,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.5936942,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.58596075,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              },
+              {
+                "text": "\u2611",
+                "bbox": [
+                  1113.0000179,
+                  2216.99998312,
+                  1124.99995407,
+                  2229.9999384
+                ],
+                "bbox_normalized": [
+                  {
+                    "x": 0.6621059,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.66924447,
+                    "y": 0.93229604
+                  },
+                  {
+                    "x": 0.66924447,
+                    "y": 0.9377628
+                  },
+                  {
+                    "x": 0.6621059,
+                    "y": 0.9377628
+                  }
+                ],
+                "layout_role": "line",
+                "column_index": 0,
+                "column_bbox": [
+                  0.0,
+                  1681.0
+                ]
+              }
+            ]
+          }
+        ],
+        "text": "IN ROOM DINING\nKIDS EXPERIENCE\n12:00 PM TO 6:00 AM\n\u2611 VEGGIE SLIDERS Vegetable Patty, Mini Burger, Cheese 148 Kcal\n450\n\u2611 RAINBOW VEGGIE PIZZA Assorted Veggies, Cheese 175 Kcal\n450\n\u2611 MAC N CHEESE Classic Macaroni, Melted Cheddar Cheese 176 Kcal\n450\n\u2611 RED SAUCE SPAGHETTI Tomato Sauce, Basil, Cheese, Spaghetti 132 Kcal\n450\n\u2611 BUCKET OF ASSORTED POTATO FRIES Potato Chips, Wedges, Corn, Cheese pop 254 Kcal\n450\n\u2611 MASHED POTATO Creamy Mashed, Butter, Cheese 111 Kcal\n450\n\u2611 CRISPY CHICKEN SLIDERS Crispy Chicken, Mini Burger, Cheese 208 Kcal\n450\nMilk Gluten Lupin Sulpher Dioxide Molluscs Mustard Peanuts Eggs Fish Crustaceans Celery Soybeans Sesame Tree Nuts \u2611 Vegetarian \u2611 Non-Vegetarian Kindly inform our associates of any allergies you may have. All prices are in INR, exclusive of taxes. We levy no service charge. The calorie content is per 100 grams of the serving."
+      }
+    }
+  ]
+}

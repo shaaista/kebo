@@ -1,0 +1,125 @@
+{
+  "menu_name": "IN ROOM DINING - FROM THE ORIENT",
+  "items": [
+    {
+      "name": "Nasi Goreng",
+      "description": "Fried Rice, Prawn Cracker, Chicken Satay, Peanut Sauce",
+      "price": "900",
+      "kcal": "150",
+      "allergens": [
+        "crustacean",
+        "egg",
+        "gluten",
+        "peanut",
+        "soy"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "FROM THE ORIENT",
+      "page": 6,
+      "extras": {
+        "unparsed_marks": [
+          "\u2611"
+        ]
+      }
+    },
+    {
+      "name": "Kung Pao Chicken",
+      "description": "Chicken, Sichuan Peppercorns, Cashewnuts, Sticky Rice",
+      "price": "900",
+      "kcal": "145",
+      "allergens": [
+        "gluten",
+        "nuts",
+        "soy"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "FROM THE ORIENT",
+      "page": 6,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "M \u2467"
+        ]
+      }
+    },
+    {
+      "name": "Wokked Sweet and Sour Prawns",
+      "description": "Prawn, Bell Pepper, Pineapple, Chilli Vinegar",
+      "price": "875",
+      "kcal": "92",
+      "allergens": [
+        "crustacean",
+        "gluten",
+        "sesame"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "FROM THE ORIENT",
+      "page": 6,
+      "extras": {
+        "unparsed_marks": [
+          "\u2611"
+        ]
+      }
+    },
+    {
+      "name": "Shanghai Fried Noodles",
+      "description": "Prawn, Dark Soy, Udon Noodle, Spring Onion",
+      "price": "875",
+      "kcal": "103",
+      "allergens": [
+        "crustacean",
+        "gluten",
+        "soy"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "FROM THE ORIENT",
+      "page": 6,
+      "extras": {
+        "unparsed_marks": [
+          "\u25c9",
+          "\u24c7"
+        ]
+      }
+    }
+  ],
+  "other_text": [
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": [],
+  "page_extras": {
+    "legend_terms": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Crustaceans",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Mustard",
+      "Peanuts",
+      "Vegetarian",
+      "Fish",
+      "Eggs",
+      "Non-Vegetarian"
+    ],
+    "unparsed_footer_icons": [
+      "\u2465",
+      "\u2465",
+      "\u2469",
+      "\u25c9",
+      "\u2611"
+    ]
+  }
+}

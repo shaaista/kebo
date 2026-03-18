@@ -1,0 +1,393 @@
+[PASS 1]
+{
+  "menu_name": "Unknown",
+  "page": 1,
+  "dish_blocks": [
+    {
+      "block_id": "b1",
+      "column_index": 1,
+      "bbox": [289.32777645, 458.0613765, 1172.81082, 687.0921056999999],
+      "line_indices": [26, 31, 0]
+    },
+    {
+      "block_id": "b2",
+      "column_index": 1,
+      "bbox": [292.7721606, 687.0921056999999, 1212.42116535, 948.8414753999999],
+      "line_indices": [32, 33, 34, 35, 1]
+    },
+    {
+      "block_id": "b3",
+      "column_index": 1,
+      "bbox": [292.7721606, 1041.8313906, 1296.80844675, 1167.5399462999999],
+      "line_indices": [36, 38]
+    },
+    {
+      "block_id": "b4",
+      "column_index": 1,
+      "bbox": [287.60558147999996, 1270.8620379000001, 1295.0862691500001, 1468.896156],
+      "line_indices": [39, 40, 41, 2]
+    },
+    {
+      "block_id": "b5",
+      "column_index": 1,
+      "bbox": [291.04995405, 1553.2758423, 1053.9797549999998, 1746.1437903],
+      "line_indices": [42, 44, 46, 3]
+    },
+    {
+      "block_id": "b6",
+      "column_index": 1,
+      "bbox": [289.32777645, 1854.6320520000002, 1367.4182205, 2050.943895],
+      "line_indices": [48, 52]
+    },
+    {
+      "block_id": "b7",
+      "column_index": 1,
+      "bbox": [289.32777645, 2135.3238269999997, 1363.97383635, 2331.63595665],
+      "line_indices": [53, 55]
+    },
+    {
+      "block_id": "b8",
+      "column_index": 1,
+      "bbox": [289.32777645, 2429.792001, 1239.97618065, 2620.9378377],
+      "line_indices": [57, 59, 60]
+    },
+    {
+      "block_id": "b9",
+      "column_index": 1,
+      "bbox": [292.7721606, 2720.8158704999996, 1353.64071285, 2911.961871],
+      "line_indices": [62, 64, 65]
+    },
+    {
+      "block_id": "b10",
+      "column_index": 1,
+      "bbox": [289.32777645, 3013.5616875, 1370.86260465, 3206.4298812],
+      "line_indices": [67, 69]
+    },
+    {
+      "block_id": "b11",
+      "column_index": 1,
+      "bbox": [287.60558147999996, 3313.1961134999997, 1388.0844675, 3512.9518515],
+      "line_indices": [71, 73, 74]
+    },
+    {
+      "block_id": "b12",
+      "column_index": 1,
+      "bbox": [289.32777645, 3604.219983, 1248.5871554999999, 3800.531826],
+      "line_indices": [75, 77, 5]
+    },
+    {
+      "block_id": "b13",
+      "column_index": 2,
+      "bbox": [1663.6346205000002, 1551.55385385, 2602.2277814999998, 1684.1504862],
+      "line_indices": [45, 47, 4]
+    },
+    {
+      "block_id": "b14",
+      "column_index": 2,
+      "bbox": [1779.021504, 1777.1404833000001, 2605.6721367, 1963.1202317999998],
+      "line_indices": [6, 36, 49]
+    },
+    {
+      "block_id": "b15",
+      "column_index": 2,
+      "bbox": [1971.90652425, 2061.27619425, 2605.6721367, 2259.3103533000003],
+      "line_indices": [11, 12, 13, 50]
+    },
+    {
+      "block_id": "b16",
+      "column_index": 2,
+      "bbox": [2285.34504765, 2362.6325268, 2605.6721367, 2550.3342228],
+      "line_indices": [56, 58]
+    },
+    {
+      "block_id": "b17",
+      "column_index": 2,
+      "bbox": [2187.1803165, 2646.7681968, 2603.9500169999997, 2846.5243443000004],
+      "line_indices": [61, 63]
+    },
+    {
+      "block_id": "b18",
+      "column_index": 2,
+      "bbox": [1722.1891799999999, 2937.792312, 2605.6721367, 3137.5482547499996],
+      "line_indices": [66, 68]
+    },
+    {
+      "block_id": "b19",
+      "column_index": 2,
+      "bbox": [2035.6276455, 3237.42645135, 2603.9500169999997, 3433.73837625],
+      "line_indices": [70, 72]
+    },
+    {
+      "block_id": "b20",
+      "column_index": 2,
+      "bbox": [2097.6263865, 3519.840051, 2605.6721367, 3724.7622867],
+      "line_indices": [14, 16, 17, 18, 19, 78]
+    }
+  ],
+  "other_text_line_indices": [21, 22, 23, 24, 25, 27, 28, 29, 30, 37, 43, 51, 54, 76],
+  "footer_line_indices": [20, 79],
+  "notes": "Grouped by column and vertical proximity. Some minor OCR fragments (e.g., single words or symbols) left in other_text_line_indices."
+}
+
+[PASS 2]
+{
+  "menu_name": "AVIATOR",
+  "items": [
+    {
+      "name": "TOFU & PEANUT LETTUCE CUPS (VG)",
+      "description": "ginger-chilli, peanut-sesame, lime",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "VG",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {
+        "unparsed_marks": ["~"]
+      }
+    },
+    {
+      "name": "BABY SPINACH SALAD WITH DATES & ALMONDS (V)",
+      "description": "carmelised dates, toasted almonds, lemon, sumac",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {
+        "unparsed_marks": ["~"]
+      }
+    },
+    {
+      "name": "HEIRLOOM TOMATO & STRACCIATELLA (V)",
+      "description": "basil oil, black olive caramel",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {
+        "unparsed_marks": ["~"]
+      }
+    },
+    {
+      "name": "ASPARAGUS FRIES, PECORINO DUST, LEMON AIOLI (V)",
+      "description": "ultra-crisp spears, pepper, lemon",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {
+        "unparsed_marks": ["~"]
+      }
+    },
+    {
+      "name": "RUSSET POTATO, TRUFFLE, CAVIAR (S)",
+      "description": "crisp potato, hot truffle sauce, oscietra",
+      "price": "495",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "S",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "SMOKED CHICKEN & GREEN TOMATO",
+      "description": "chilled slices, dill oil, kombu-chicken dashi gel, pickled green tomatoes",
+      "price": "450",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {
+        "unparsed_marks": ["~"]
+      }
+    },
+    {
+      "name": "SEA BASS CRUDO (S)",
+      "description": "chilled slices, finger-lime pearls, aromatic oil",
+      "price": "750",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "S",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "TAGLIATELLE & TRUFFLE (V)",
+      "description": "rich yolk pasta, beurre monté, shaved truffle",
+      "price": "950",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "BUTTERNUT SQUASH “CARBONARA” (V)",
+      "description": "butternut cream, pecorino, black pepper",
+      "price": "650",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "ASPARAGUS & PARMESAN CUSTARD (V)",
+      "description": "raw-shaved tips, warm parmesan custard, citrus crumb",
+      "price": "650",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "CHARRED BABY CORN, BLACK GARLIC BUTTER (V)",
+      "description": "brown-butter glaze, manchego snow",
+      "price": "650",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "CAULIFLOWER STEAK, BROWN-BUTTER TRUFFLE EMULSION (V)",
+      "description": "capers, toasted hazelnut crumb",
+      "price": "750",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "COURGETTE & CHICKPEA PANCAKES (V)",
+      "description": "socca-style, dill yoghurt, herb salad",
+      "price": "450",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "TOMATO BENEDICT CROISSANT (V)",
+      "description": "poached egg, crushed tomatoes, chili hollandaise",
+      "price": "450",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "AVIATOR BIG MACWICH (V)",
+      "description": "seasonal veggie patties, mozzarella, beet slaw, rocket",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "ICONIQ CLUB",
+      "description": "grilled chicken, herb mayo, bacon, tomatoes, rocket",
+      "price": "450",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "LOBSTER ROLL (S)",
+      "description": "warm buttered brioche, truffle mayo, butter garlic, chive",
+      "price": "650",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "S",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "PRAWN & SCOTCH BONNET BUNS (S)",
+      "description": "steamed buns, prawn salad, scotch-bonnet mayo",
+      "price": "550",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "S",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "SMOKED CHICKEN BUN",
+      "description": "wood smoked chicken, garlic cream, thyme, parmesan",
+      "price": "450",
+      "kcal": "",
+      "allergens": [],
+      "veg": "",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    },
+    {
+      "name": "CHILI CHEESE BUN (V)",
+      "description": "green chilli, cheddar-mozzarella-belper knolle, scallion, chaat spice",
+      "price": "350",
+      "kcal": "",
+      "allergens": [],
+      "veg": "V",
+      "non_veg": "",
+      "page": 1,
+      "dish_type": "",
+      "extras": {}
+    }
+  ],
+  "other_text": [],
+  "footer_text": [
+    "Please let us know of any allergies BEFORE you order. Some dishes can be made Vegan or Gluten Free. Taxes are charged extra"
+  ],
+  "notes": "page_intent=menu_items_page. Two-column layout detected; items extracted top-to-bottom within each column. Prices normalized from inline ~ tokens and standalone numerals.",
+  "page_extras": []
+}

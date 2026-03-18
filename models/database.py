@@ -1,5 +1,5 @@
 """
-Async database layer for KePSLA Bot v2 (MySQL).
+Async database layer for NexOria (MySQL).
 
 Defines:
 - Async engine + session factory
@@ -425,6 +425,7 @@ class BotService(Base, TimestampMixin):
     ticketing_enabled = Column(Boolean, nullable=False, server_default=text("1"))
     ticketing_policy = Column(Text, nullable=True)
     service_prompt_pack = Column(JSON, nullable=True)
+    generated_system_prompt = Column(Text, nullable=True)
 
     hotel = relationship("Hotel", back_populates="bot_services")
 

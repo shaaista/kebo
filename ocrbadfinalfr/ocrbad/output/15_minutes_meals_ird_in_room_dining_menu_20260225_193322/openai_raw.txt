@@ -1,0 +1,8 @@
+{
+  "menu_name": "In Room Dining",
+  "items": [],
+  "other_text": [],
+  "footer_text": [],
+  "notes": [],
+  "page_extras": {}
+}

@@ -1,0 +1,201 @@
+{
+  "menu_name": "IN ROOM DINING - SMALL PLATES (12:00 PM TO 11:30 PM)",
+  "items": [
+    {
+      "name": "BAKED BRUSCHETTA",
+      "description": "Sliced Baked, Mozzarella, Marinated Cherry Tomato",
+      "price": "550",
+      "kcal": "156",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "ULTIMATE VEGGIE NACHOS",
+      "description": "Crispy Nachos, Kidney Bean, Tomato Salsa, Cheese Baked",
+      "price": "550",
+      "kcal": "142",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "HUMMUS",
+      "description": "Chickpeas, Tahini, Lemon, Olive Oil, Pita Pocket",
+      "price": "550",
+      "kcal": "99",
+      "allergens": [
+        "celery",
+        "sesame"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MANGO PICKLE PANEER TIKKA",
+      "description": "Cottage Cheese, Spices, Mango Pickle",
+      "price": "550",
+      "kcal": "162",
+      "allergens": [
+        "milk",
+        "mustard"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MALAI BROCCOLI KEBAB",
+      "description": "Broccoli Florets, Creamy Cheese Yoghurt, Mild Spices",
+      "price": "550",
+      "kcal": "171",
+      "allergens": [
+        "milk",
+        "nuts"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "MATTAR TIKKI",
+      "description": "Green Peas, Chilli, Spices, Panko Crust",
+      "price": "550",
+      "kcal": "119",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "veg",
+      "non_veg": "",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "KOREAN CHICKEN BAO",
+      "description": "Steam Bao, Crispy Chicken",
+      "price": "650",
+      "kcal": "241",
+      "allergens": [
+        "celery",
+        "gluten",
+        "milk",
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "GENERAL TSO’S CHICKEN",
+      "description": "Chicken Tossed With Soy, Ginger, Hoisin",
+      "price": "650",
+      "kcal": "275",
+      "allergens": [
+        "sesame",
+        "soy"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    },
+    {
+      "name": "BANNO KEBAB",
+      "description": "Saffron Scented Chicken, Egg Coated Tandoor Cooked",
+      "price": "650",
+      "kcal": "138",
+      "allergens": [
+        "egg",
+        "milk"
+      ],
+      "veg": "",
+      "non_veg": "non_veg",
+      "page": 2,
+      "dish_type": "SMALL PLATES",
+      "extras": {
+        "unparsed_marks": []
+      }
+    }
+  ],
+  "other_text": [
+    "IN ROOM DINING",
+    "SMALL PLATES",
+    "12:00 PM TO 11:30 PM"
+  ],
+  "footer_text": [
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": "page_intent: menu_items_page. Single main column of items with adjacent right-side price strip lines aligned per item. Vegetarian/non-vegetarian markers taken from line icons. Allergen icons captured per item from corresponding kcal/allergen lines.",
+  "page_extras": {
+    "legend": [
+      "Milk",
+      "Gluten",
+      "Lupin",
+      "Sulpher Dioxide",
+      "Molluscs",
+      "Mustard",
+      "Peanuts",
+      "Crustaceans",
+      "Celery",
+      "Soybeans",
+      "Sesame",
+      "Tree Nuts",
+      "Vegetarian",
+      "Non-Vegetarian",
+      "Fish",
+      "Eggs"
+    ],
+    "unassigned_symbols": [
+      "◉",
+      "①",
+      "④",
+      ". . .",
+      "□",
+      "1",
+      "⑥",
+      "⑩",
+      "☑"
+    ]
+  }
+}
