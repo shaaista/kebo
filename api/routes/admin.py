@@ -1431,11 +1431,6 @@ async def preview_extract_service_kb(payload: dict):
         )
         final_reason = "ok_llm"
         final_text = str(extracted_knowledge or "").strip()
-        minimum_expected_chars = max(700, int(len(context_text) * 0.20))
-        # Fallback to verbatim context when LLM output appears too sparse.
-        if len(final_text) < minimum_expected_chars:
-            final_text = context_text
-            final_reason = "ok_verbatim_fallback"
 
         everything_trace_service.log_event(
             "service_kb_preview_extract_complete",
@@ -1443,8 +1438,7 @@ async def preview_extract_service_kb(payload: dict):
                 **context_summary,
                 "result_reason": final_reason,
                 "result_chars": len(final_text),
-                "llm_extracted_chars": len(str(extracted_knowledge or "").strip()),
-                "fallback_threshold_chars": minimum_expected_chars,
+                "llm_extracted_chars": len(final_text),
             },
             component="api.routes.admin.preview_extract_service_kb",
         )
