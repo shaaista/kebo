@@ -1343,10 +1343,10 @@ async def preview_extract_service_kb(payload: dict):
     extraction_mode = str(
         payload.get("extraction_mode")
         or payload.get("mode")
-        or "verbatim"
+        or "llm"
     ).strip().lower()
     if extraction_mode not in {"verbatim", "llm"}:
-        extraction_mode = "verbatim"
+        extraction_mode = "llm"
 
     try:
         requested_max_books = int(payload.get("max_books") or 24)
