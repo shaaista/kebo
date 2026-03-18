@@ -415,7 +415,7 @@ class ChatService:
                     "mode_return",
                     request=request,
                     context=context,
-                    intent_result=IntentResult(intent=no_template_response.intent, confidence=no_template_response.confidence, entities={}),
+                    intent_result=IntentResult(intent=getattr(no_template_response, "intent", IntentType.GENERAL_QUERY), confidence=getattr(no_template_response, "confidence", 0.9), entities={}),
                     extra={
                         "mode": "chat_no_template_response_mode",
                         "response_source": str((no_template_response.metadata or {}).get("response_source") or "no_template_mode"),
