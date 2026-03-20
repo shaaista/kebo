@@ -1512,10 +1512,16 @@ class LLMOrchestrationService:
                 confirm_template = str(confirmation_format.get("template") or "").strip()
                 ticket_lines.append(
                     f"\nOnce all fields are collected, summarise everything clearly and ask the guest to confirm.\n"
+                    f"The summary MUST explicitly list every collected detail: guest name, phone number, email, "
+                    f"room/service type, bed preference, number of guests, check-in date, check-out date, "
+                    f"and any other field present in pending_data_raw or known_context. "
+                    f"Never say 'the above details' — always spell them out.\n"
                     f"Confirmation phrase the guest must say: '{confirmation_phrase}'\n"
                     f"Set pending_action='{confirmation_pending_action}' while waiting for confirmation.\n"
                     f"When the guest confirms: set action=create_ticket, ticket.required=true, "
-                    f"ticket.ready_to_create=true, pending_action=null."
+                    f"ticket.ready_to_create=true, pending_action=null. "
+                    f"The confirmation response_text MUST again list ALL collected details: name, phone, email, "
+                    f"room/service, dates, bed type, guest count — every field from pending_data_raw."
                 )
                 if confirm_template:
                     ticket_lines.append(f"Confirmation template: {confirm_template}")
@@ -1669,7 +1675,7 @@ class LLMOrchestrationService:
 
         # ── DATE VALIDATION ───────────────────────────────────────────────────
         lines.append(
-            "\n=== DATE VALIDATION ===\n"
+            "\n=== DATE & INPUT VALIDATION ===\n"
             "The payload includes `current_date` (today's date) and `current_day` (day of week). "
             "Use these to validate any dates the guest provides:\n"
             "  - If a check-in or check-out date is in the past (before current_date), do NOT store it in "
@@ -1683,7 +1689,12 @@ class LLMOrchestrationService:
             "If the intent is clear, parse the date rather than asking for clarification.\n"
             "  - If check-out is on the same day or before check-in, flag it and ask for correction.\n"
             "  - If the guest says 'tomorrow', 'next Friday', 'next week', etc., resolve against current_date "
-            "and store the resolved YYYY-MM-DD value."
+            "and store the resolved YYYY-MM-DD value.\n"
+            "PHONE NUMBER VALIDATION:\n"
+            "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
+            "  - If the guest provides a phone number that is not 10 digits, do NOT store it in pending_data_updates. "
+            "Keep the phone field in missing_fields and ask the guest to provide a valid 10-digit phone number.\n"
+            "  - If pending_data_raw already contains an invalid phone number, treat that slot as still-empty."
         )
 
         # ── RESPONSE SCHEMA ───────────────────────────────────────────────────
@@ -1744,7 +1755,7 @@ class LLMOrchestrationService:
             )
         return (
             _guest_facts_rule
-            + "=== DATE VALIDATION (MANDATORY) ===\n"
+            + "=== DATE & INPUT VALIDATION (MANDATORY) ===\n"
             "The payload includes `current_date` (today's date) and `current_day` (day of week). "
             "Use these to validate any dates the guest provides:\n"
             "  - If a check-in or check-out date is in the past (before current_date), do NOT store it in "
@@ -1758,7 +1769,12 @@ class LLMOrchestrationService:
             "If the intent is clear, parse the date rather than asking for clarification.\n"
             "  - If check-out is on the same day or before check-in, flag it and ask for correction.\n"
             "  - If the guest says 'tomorrow', 'next Friday', 'next week', etc., resolve against current_date "
-            "and store the resolved YYYY-MM-DD value.\n\n"
+            "and store the resolved YYYY-MM-DD value.\n"
+            "PHONE NUMBER VALIDATION:\n"
+            "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
+            "  - If the guest provides a phone number that is not 10 digits, do NOT store it in pending_data_updates. "
+            "Keep the phone field in missing_fields and ask the guest to provide a valid 10-digit phone number.\n"
+            "  - If pending_data_raw already contains an invalid phone number, treat that slot as still-empty.\n\n"
             + "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
             "Return STRICT JSON only.\n"
             "Use exactly this JSON object shape:\n"
@@ -1793,10 +1809,12 @@ class LLMOrchestrationService:
             f"- NEVER ask for confirmation (pending_action=\"{confirm_action}\") while ANY required field is still missing.\n"
             "  Collect all missing fields first. Only transition to the confirmation step when every required field has a value.\n"
             f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list EVERY collected "
-            "detail from pending_data_raw and known_context explicitly — name, room number, service, date, time, "
-            "and any other collected fields. Never say 'the above details' without listing them.\n"
-            "- When action=\"create_ticket\" (guest confirmed), response_text MUST include ALL collected details: "
-            "guest name, room number, service/item, date, time — every field present in pending_data_raw.\n"
+            "detail from pending_data_raw and known_context explicitly — guest name, phone number, email, "
+            "room/service type, bed preference, number of guests, check-in date, check-out date, and any other "
+            "collected field. Never say 'the above details' — always spell each one out.\n"
+            "- When action=\"create_ticket\" (guest confirmed), response_text MUST again include ALL collected "
+            "details: name, phone number, email, room/service type, bed type, dates, guest count — every field "
+            "present in pending_data_raw and known_context. Do not omit contact details.\n"
             "PRESENT BEFORE ASK RULE (mandatory):\n"
             "Before asking the guest to choose a menu item, treatment, room type, package, or any option from a list —\n"
             "FIRST share the full list of available options from the KB. Never ask 'which one?' before showing the options.\n"
