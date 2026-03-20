@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-20T12:13:11.272941+00:00",
+  "saved_at": "2026-03-20T13:17:05.432757+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -57362,6 +57362,716 @@
       ],
       "created_at": "2026-03-20T12:08:23",
       "updated_at": "2026-03-20T12:13:11.205541Z"
+    },
+    "session_1774011373247_eykulldxd": {
+      "session_id": "session_1774011373247_eykulldxd",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_confirmation",
+      "pending_action": "confirm_booking",
+      "pending_data": {
+        "service_id": "room_booking_request",
+        "check_in": "2026-03-01",
+        "check_out": "2026-03-02",
+        "stay_checkin_date": "2026-03-20",
+        "stay_checkout_date": "2026-03-22",
+        "stay_date_range": "2026-03-01 to 2026-03-02",
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget",
+          "check_in": "2026-03-01",
+          "check_out": "2026-03-02",
+          "stay_checkin_date": "2026-03-01",
+          "stay_checkout_date": "2026-03-02"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "2",
+            "stay_checkin_date": "2026-03-20",
+            "stay_checkout_date": "2026-03-22",
+            "stay_date_range": "Mar 01 to Mar 02",
+            "booking_day": "Mar 01 to Mar 02",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.786869+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787309+00:00"
+            },
+            {
+              "key": "stay_checkin_date",
+              "old_value": null,
+              "new_value": "Mar 01",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787325+00:00"
+            },
+            {
+              "key": "stay_checkout_date",
+              "old_value": null,
+              "new_value": "Mar 02",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787333+00:00"
+            },
+            {
+              "key": "stay_date_range",
+              "old_value": null,
+              "new_value": "Mar 01 to Mar 02",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787338+00:00"
+            },
+            {
+              "key": "booking_day",
+              "old_value": null,
+              "new_value": "Mar 01 to Mar 02",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787343+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+              "timestamp": "2026-03-20T12:56:48.787349+00:00"
+            },
+            {
+              "key": "stay_checkin_date",
+              "old_value": "Mar 01",
+              "new_value": "2026-03-01",
+              "change_type": "set",
+              "source_message": "match 20-22",
+              "timestamp": "2026-03-20T12:57:18.490847+00:00"
+            },
+            {
+              "key": "stay_checkout_date",
+              "old_value": "Mar 02",
+              "new_value": "2026-03-02",
+              "change_type": "set",
+              "source_message": "match 20-22",
+              "timestamp": "2026-03-20T12:57:18.490858+00:00"
+            },
+            {
+              "key": "stay_checkin_date",
+              "old_value": "2026-03-01",
+              "new_value": "2026-03-20",
+              "change_type": "set",
+              "source_message": "It seems there is a mismatch in the dates. You mentioned 'match 20-22', but the current booking dates are March 1 to March 2, 2026. Could you please clarify the correct dates for your booking?",
+              "timestamp": "2026-03-20T12:57:38.380536+00:00"
+            },
+            {
+              "key": "stay_checkout_date",
+              "old_value": "2026-03-02",
+              "new_value": "2026-03-22",
+              "change_type": "set",
+              "source_message": "It seems there is a mismatch in the dates. You mentioned 'match 20-22', but the current booking dates are March 1 to March 2, 2026. Could you please clarify the correct dates for your booking?",
+              "timestamp": "2026-03-20T12:57:38.380552+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-20T12:57:38.380584+00:00",
+          "last_user_message": "match 20-22",
+          "last_assistant_message": "It seems there is a mismatch in the dates. You mentioned 'match 20-22', but the current booking dates are March 1 to March 2, 2026. Could you please clarify the correct dates for your booking?"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "confirm_booking",
+            "pending_data": {
+              "service_id": "room_booking_request",
+              "check_in": "2026-03-01",
+              "check_out": "2026-03-02",
+              "stay_checkin_date": "2026-03-20",
+              "stay_checkout_date": "2026-03-22",
+              "stay_date_range": "2026-03-01 to 2026-03-02"
+            },
+            "state": "awaiting_confirmation",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your confirm booking flow",
+            "updated_at": "2026-03-20T12:57:38.380065+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-20T12:57:38.380101+00:00"
+        },
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "347d248b-f427-4521-9d79-3bb09d8970db",
+          "role": "user",
+          "content": "book a king lux suite for me from march 1-2 for 2 people, conact details are dwas,43964873687, d@gmail.com",
+          "timestamp": "2026-03-20T12:56:48.786806Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book a King Lux Suite for me from March 1-2 for 2 people, contact details are Dwas, 43964873687, d@gmail.com"
+          }
+        },
+        {
+          "id": "01ae8d35-e7b6-43e8-8180-4f2980278b03",
+          "role": "assistant",
+          "content": "It seems the dates you provided for the booking (March 1-2) have already passed. Could you please provide new dates for your stay? Once I have the correct dates, I can assist you further with the booking.",
+          "timestamp": "2026-03-20T12:57:04.417289Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-fe43af507850",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "a6815b0c-671f-48ac-8391-0248b8038cd4",
+          "role": "user",
+          "content": "match 20-22",
+          "timestamp": "2026-03-20T12:57:18.490701Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "6266a036-19fb-4d5e-92ae-9b05d156ca2f",
+          "role": "assistant",
+          "content": "It seems there is a mismatch in the dates. You mentioned 'match 20-22', but the current booking dates are March 1 to March 2, 2026. Could you please clarify the correct dates for your booking?",
+          "timestamp": "2026-03-20T12:57:38.380410Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-4e8f63ad2d64",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-20T12:56:44.294753Z",
+      "updated_at": "2026-03-20T12:57:38.380614Z"
+    },
+    "session_1774011736148_bn9hckkae": {
+      "session_id": "session_1774011736148_bn9hckkae",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget",
+          "check_in": "2026-04-03",
+          "check_out": "2026-04-04",
+          "stay_checkin_date": "2026-04-03",
+          "stay_checkout_date": "2026-04-04"
+        },
+        "_memory": {
+          "summary": "The user aims to book an Ultimate Suite for two people, with Saja as the contact person. The initial request was for March 3-4, but the user has corrected the dates to April 3-4. The contact details provided are Saja's phone number, 99999999, and email, saj@gmail.com. The assistant has asked for confirmation of the new dates, April 3rd to April 4th, to proceed with the booking. The user has yet to confirm these dates.",
+          "facts": {
+            "phase": "pre_booking",
+            "party_size": "2",
+            "last_user_topic": "reservation",
+            "guest_name": "Saja",
+            "phone": "99999999",
+            "email": "saj@gmail.com",
+            "stay_checkin_date": "2026-04-03",
+            "stay_checkout_date": "2026-04-04",
+            "latest_ticket": {
+              "id": "5644",
+              "status": "open",
+              "category": "room_booking",
+              "sub_category": "reservation",
+              "priority": "medium",
+              "department_id": "",
+              "assigned_id": "",
+              "room_number": "",
+              "source": "llm_orchestration",
+              "updated_at": "2026-03-20T13:17:05.396980+00:00"
+            },
+            "last_ticket_id": "5644",
+            "ticket_history": [
+              {
+                "id": "5644",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "reservation",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-20T13:17:05.396980+00:00"
+              }
+            ]
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "book a ultimate suite for marc 3-4 for 2 people, conatct saja, 99999999, saj @gmail.com",
+              "timestamp": "2026-03-20T13:02:43.845100+00:00"
+            },
+            {
+              "key": "party_size",
+              "old_value": null,
+              "new_value": "2",
+              "change_type": "set",
+              "source_message": "book a ultimate suite for marc 3-4 for 2 people, conatct saja, 99999999, saj @gmail.com",
+              "timestamp": "2026-03-20T13:02:43.845316+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a ultimate suite for marc 3-4 for 2 people, conatct saja, 99999999, saj @gmail.com",
+              "timestamp": "2026-03-20T13:02:43.845322+00:00"
+            },
+            {
+              "key": "guest_name",
+              "old_value": null,
+              "new_value": "Saja",
+              "change_type": "set",
+              "source_message": "Book an Ultimate Suite for March 3-4 for 2 people, contact Saja, 99999999, saj@gmail.com",
+              "timestamp": "2026-03-20T13:03:06.395725+00:00"
+            },
+            {
+              "key": "phone",
+              "old_value": null,
+              "new_value": "99999999",
+              "change_type": "set",
+              "source_message": "Book an Ultimate Suite for March 3-4 for 2 people, contact Saja, 99999999, saj@gmail.com",
+              "timestamp": "2026-03-20T13:03:06.395761+00:00"
+            },
+            {
+              "key": "email",
+              "old_value": null,
+              "new_value": "saj@gmail.com",
+              "change_type": "set",
+              "source_message": "Book an Ultimate Suite for March 3-4 for 2 people, contact Saja, 99999999, saj@gmail.com",
+              "timestamp": "2026-03-20T13:03:06.395790+00:00"
+            },
+            {
+              "key": "stay_checkin_date",
+              "old_value": null,
+              "new_value": "2026-04-03",
+              "change_type": "set",
+              "source_message": "Thank you for confirming the booking details. Here is a summary of your reservation:\n- Guest Name: Saja\n- Contact: 99999999, saj@gmail.com\n- Room Type: Ultimate Suite\n- Check-in Date: April 3, 2026\n- Check-out Date: April 4, 2026\n- Party Size: 2\nI will now proceed to create the booking ticket for yo",
+              "timestamp": "2026-03-20T13:15:37.326240+00:00"
+            },
+            {
+              "key": "stay_checkout_date",
+              "old_value": null,
+              "new_value": "2026-04-04",
+              "change_type": "set",
+              "source_message": "Thank you for confirming the booking details. Here is a summary of your reservation:\n- Guest Name: Saja\n- Contact: 99999999, saj@gmail.com\n- Room Type: Ultimate Suite\n- Check-in Date: April 3, 2026\n- Check-out Date: April 4, 2026\n- Party Size: 2\nI will now proceed to create the booking ticket for yo",
+              "timestamp": "2026-03-20T13:15:37.326254+00:00"
+            },
+            {
+              "key": "latest_ticket",
+              "old_value": null,
+              "new_value": {
+                "id": "5644",
+                "status": "open",
+                "category": "room_booking",
+                "sub_category": "reservation",
+                "priority": "medium",
+                "department_id": "",
+                "assigned_id": "",
+                "room_number": "",
+                "source": "llm_orchestration",
+                "updated_at": "2026-03-20T13:17:05.396980+00:00"
+              },
+              "change_type": "set",
+              "source_message": "Your booking request has been received (Reference: #5644). Details: Ultimate Suite, check-in: 2026-04-03, check-out: 2026-04-04. Our staff team will verify it and get back to you shortly.",
+              "timestamp": "2026-03-20T13:17:05.397004+00:00"
+            },
+            {
+              "key": "last_ticket_id",
+              "old_value": null,
+              "new_value": "5644",
+              "change_type": "set",
+              "source_message": "Your booking request has been received (Reference: #5644). Details: Ultimate Suite, check-in: 2026-04-03, check-out: 2026-04-04. Our staff team will verify it and get back to you shortly.",
+              "timestamp": "2026-03-20T13:17:05.397010+00:00"
+            },
+            {
+              "key": "ticket_history",
+              "old_value": null,
+              "new_value": [
+                {
+                  "id": "5644",
+                  "status": "open",
+                  "category": "room_booking",
+                  "sub_category": "reservation",
+                  "priority": "medium",
+                  "department_id": "",
+                  "assigned_id": "",
+                  "room_number": "",
+                  "source": "llm_orchestration",
+                  "updated_at": "2026-03-20T13:17:05.396980+00:00"
+                }
+              ],
+              "change_type": "set",
+              "source_message": "Your booking request has been received (Reference: #5644). Details: Ultimate Suite, check-in: 2026-04-03, check-out: 2026-04-04. Our staff team will verify it and get back to you shortly.",
+              "timestamp": "2026-03-20T13:17:05.397017+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-20T13:17:05.397026+00:00",
+          "last_user_message": "yes confirm",
+          "last_assistant_message": "Your booking request has been received (Reference: #5644). Details: Ultimate Suite, check-in: 2026-04-03, check-out: 2026-04-04. Our staff team will verify it and get back to you shortly."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-20T13:17:05.396856+00:00"
+        },
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "4a8a416e-5166-4d89-9440-812d20934717",
+          "role": "user",
+          "content": "book a ultimate suite for marc 3-4 for 2 people, conatct saja, 99999999, saj @gmail.com",
+          "timestamp": "2026-03-20T13:02:43.845064Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book an Ultimate Suite for March 3-4 for 2 people, contact Saja, 99999999, saj@gmail.com"
+          }
+        },
+        {
+          "id": "93ddd541-b7d1-486f-9e84-df1a632c8d78",
+          "role": "assistant",
+          "content": "It seems like you want to book an Ultimate Suite for March 3-4, but those dates are in the past. Could you please provide a future date for your stay?",
+          "timestamp": "2026-03-20T13:03:07.723922Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-7430d23e5eb5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "af4f66a3-b5f6-42b8-a9ac-0316654fec58",
+          "role": "user",
+          "content": "Can I book for April?",
+          "timestamp": "2026-03-20T13:13:14.337761Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "63dfd1a1-e8a5-4ef4-b259-01665b2fcaeb",
+          "role": "assistant",
+          "content": "Certainly, you can book for April. Could you please specify the exact check-in and check-out dates you have in mind?",
+          "timestamp": "2026-03-20T13:13:41.344763Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-12b2aba54efb",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "07a63e99-acaa-4531-9a77-ba69af473e00",
+          "role": "user",
+          "content": "3-4",
+          "timestamp": "2026-03-20T13:13:56.908553Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "b5148ad5-8200-4b50-a6a4-5dc0cfe4f150",
+          "role": "assistant",
+          "content": "Thank you for choosing to book an Ultimate Suite. Could you please confirm if you would like to check in on April 3rd and check out on April 4th? Once confirmed, I will proceed with the booking details.",
+          "timestamp": "2026-03-20T13:14:23.262676Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-3c7927ca4446",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7b782a43-81a8-412a-a929-f828e1bc8758",
+          "role": "user",
+          "content": "yes",
+          "timestamp": "2026-03-20T13:15:08.379587Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes."
+          }
+        },
+        {
+          "id": "509d8924-6c2c-4277-9a22-a4ee3f2e32e4",
+          "role": "assistant",
+          "content": "Thank you for confirming the booking details. Here is a summary of your reservation:\n- Guest Name: Saja\n- Contact: 99999999, saj@gmail.com\n- Room Type: Ultimate Suite\n- Check-in Date: April 3, 2026\n- Check-out Date: April 4, 2026\n- Party Size: 2\nI will now proceed to create the booking ticket for you.\nPlease confirm the above to proceed.",
+          "timestamp": "2026-03-20T13:15:37.326116Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-31275d9f9cba",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": false,
+            "ticket_create_skipped": true,
+            "ticket_create_skip_reason": "ticket_not_ready_to_create",
+            "ticket_source": "llm_orchestration",
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "26361dd2-8e98-4ad6-9d6c-8aee6f67bf6f",
+          "role": "user",
+          "content": "yes confirm",
+          "timestamp": "2026-03-20T13:16:18.000009Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Yes, confirm."
+          }
+        },
+        {
+          "id": "c62ce92d-1acf-4df5-ad49-c9df458789de",
+          "role": "assistant",
+          "content": "Your booking request has been received (Reference: #5644). Details: Ultimate Suite, check-in: 2026-04-03, check-out: 2026-04-04. Our staff team will verify it and get back to you shortly.",
+          "timestamp": "2026-03-20T13:17:05.396953Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "create_ticket",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-1753b007d3e5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "ticket_created": true,
+            "ticket_id": "5644",
+            "ticket_status": "open",
+            "ticket_category": "room_booking",
+            "ticket_sub_category": "reservation",
+            "ticket_priority": "MEDIUM",
+            "ticket_source": "llm_orchestration",
+            "ticket_api_status_code": 200,
+            "ticket_api_response": {
+              "guestName": "ChaitraNag2",
+              "roomNumber": "",
+              "issue": "Booking request for Ultimate Suite from April 3, 2026, to April 4, 2026, for guest Saja.",
+              "message": "User: book a ultimate suite for marc 3-4 for 2 people, conatct saja, 99999999, saj @gmail.com AI: It seems like you want to book an Ultimate Suite for March 3-4, but those dates are in the past. Could you please provide a future date for your stay? User: Can I book for April? AI: Certainly, you can book for April. Could you please specify the exact check-in and check-out dates you have in mind? User: 3-4 AI: Thank you for choosing to book an Ultimate Suite. Could you please confirm if you would like to check in on April 3rd and check out on April 4th? Once confirmed, I will proceed with the booking details. User: yes AI: Thank you for confirming the booking details. Here is a summary of your reservation: - Guest Name: Saja - Contact: 99999999, saj@gmail.com - Room Type: Ultimate Suite - Check-in Date: April 3, 2026 - Check-out Date: April 4, 2026 - Party Size: 2 I will now proceed to create the booking ticket for you. Please confirm the above to proceed. User: yes confirm User: Yes, confirm. Issue Summary: Booking request for Ultimate Suite from April 3, 2026, to April 4, 2026, for guest Saja.",
+              "sentimentScore": 0.0,
+              "departmentAllocated": 19,
+              "departmentManager": null,
+              "assignedTo": "ChaitraNag",
+              "priority": "MEDIUM",
+              "ticketStatus": "open",
+              "managerNotes": "",
+              "assigneeNotes": null,
+              "createdDate": 1774012619966,
+              "slaDue": 1774014119966,
+              "categorization": "room_booking",
+              "feedback": null,
+              "escalated": null,
+              "customerFeedback": null,
+              "customerRating": 0,
+              "phase": "Pre Booking",
+              "assignedId": 5530,
+              "orgId": 6276,
+              "departmentId": 18,
+              "outletId": 0,
+              "compensationType": null,
+              "compensationCurrency": null,
+              "compensationAmount": 0.0,
+              "groupId": null,
+              "messageId": null,
+              "source": "whatsapp_bot",
+              "cancelled_notes": "",
+              "emailId": null,
+              "mobileNumber": null,
+              "city": null,
+              "id": 5644
+            },
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-20T13:02:39.670346Z",
+      "updated_at": "2026-03-20T13:17:05.397033Z"
     }
   }
 }

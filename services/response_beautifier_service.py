@@ -24,6 +24,11 @@ class ResponseBeautifierService:
     )
 
     @staticmethod
+    def _strip_markdown_headers(text: str) -> str:
+        """Convert markdown headers (# / ## / ###) to plain text lines."""
+        return re.sub(r"(?m)^#{1,6}\s+", "", str(text or ""))
+
+    @staticmethod
     def _strip_markdown_emphasis(text: str) -> str:
         cleaned = str(text or "")
         cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned, flags=re.DOTALL)
@@ -128,7 +133,8 @@ class ResponseBeautifierService:
     def beautify_response_text(self, text: str) -> str:
         if not str(text or "").strip():
             return ""
-        cleaned = self._strip_markdown_emphasis(text)
+        cleaned = self._strip_markdown_headers(text)
+        cleaned = self._strip_markdown_emphasis(cleaned)
         cleaned = self._normalize_bullet_markers(cleaned)
         cleaned = self._format_collection_request(cleaned)
         cleaned = self._cleanup_spacing(cleaned)
@@ -282,9 +288,10 @@ class ResponseBeautifierService:
             "Goal: make the response look like clean ChatGPT-style output.\n"
             "Formatting style requirements:\n"
             "- Use short readable blocks.\n"
-            "- For dense informational content, use clear headings and bullet points.\n"
+            "- For dense informational content, use bold labels and bullet points.\n"
             "- Keep wording close to source; this is formatting-first, not rewriting.\n"
             "Hard constraints:\n"
+            "- Do NOT use markdown headers (#, ##, ###) — never output lines starting with #.\n"
             "- Do NOT add any new fact or claim.\n"
             "- Do NOT remove any existing fact or claim.\n"
             "- Preserve all numbers, ranges, names, dates, policies, constraints, and IDs.\n"
