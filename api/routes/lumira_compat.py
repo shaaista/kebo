@@ -23,6 +23,7 @@ from services.lumira_compat_adapter import (
     build_guest_journey_chat_request,
     build_guest_journey_response,
 )
+from schemas.chat import ChatResponse
 
 router = APIRouter(tags=["Lumira Compatibility"])
 
@@ -30,6 +31,22 @@ router = APIRouter(tags=["Lumira Compatibility"])
 def _normalize_error(exc: Exception) -> str:
     detail = str(exc).strip()
     return detail or exc.__class__.__name__
+
+
+async def _attach_display_message(response: ChatResponse) -> None:
+    if not isinstance(response.metadata, dict):
+        response.metadata = {}
+    canonical = str(response.message or "").strip()
+    display_message, beautifier_meta = await response_beautifier_service.beautify_display_text(
+        canonical,
+        state=str(getattr(response.state, "value", response.state) or ""),
+        metadata=response.metadata,
+    )
+    response.display_message = str(display_message or canonical).strip()
+    response.metadata["display_message"] = response.display_message
+    response.metadata["canonical_message"] = canonical
+    if isinstance(beautifier_meta, dict):
+        response.metadata.update(beautifier_meta)
 
 
 @router.post("/guest-journey/message")
@@ -51,7 +68,7 @@ async def guest_journey_message(
         chat_response = await chat_service.process_message(chat_request, db_session=None)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=_normalize_error(exc)) from exc
-    chat_response.message = response_beautifier_service.beautify_response_text(chat_response.message)
+    await _attach_display_message(chat_response)
 
     return build_guest_journey_response(chat_response, source_payload=payload)
 
@@ -83,7 +100,7 @@ async def engage_message(
         chat_response = await chat_service.process_message(chat_request, db_session=None)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=_normalize_error(exc)) from exc
-    chat_response.message = response_beautifier_service.beautify_response_text(chat_response.message)
+    await _attach_display_message(chat_response)
 
     return build_engage_response(
         chat_response,

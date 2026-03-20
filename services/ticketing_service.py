@@ -313,7 +313,16 @@ class TicketingService:
             payload=payload,
             context=debug_context,
         )
-        gate = self.detect_service_ticketing_disabled(payload)
+        payload_effective = dict(payload or {})
+        if not self._use_local_mode():
+            payload_effective = await self._apply_department_mapping(payload_effective)
+        self._write_ticket_debug_event(
+            "ticket_create_payload_resolved",
+            payload=payload_effective,
+            context=debug_context,
+        )
+
+        gate = self.detect_service_ticketing_disabled(payload_effective)
         if gate is not None:
             response_payload = {
                 "skip_reason": "phase_service_ticketing_disabled",
@@ -323,30 +332,30 @@ class TicketingService:
                 "ticket_create_blocked",
                 reason="phase_service_ticketing_disabled",
                 gate=gate,
-                payload=payload,
+                payload=payload_effective,
                 context=debug_context,
             )
             return TicketingResult(
                 success=False,
                 status_code=409,
                 error="phase_service_ticketing_disabled",
-                payload=dict(payload or {}),
+                payload=dict(payload_effective or {}),
                 response=response_payload,
             )
 
-        duplicate_result = self._find_recent_duplicate_result(payload)
+        duplicate_result = self._find_recent_duplicate_result(payload_effective)
         if duplicate_result is not None:
             self._write_ticket_debug_event(
                 "ticket_create_deduplicated",
                 ticket_id=duplicate_result.ticket_id,
                 assigned_id=duplicate_result.assigned_id,
-                payload=payload,
+                payload=payload_effective,
                 context=debug_context,
             )
             return duplicate_result
 
         if self._use_local_mode():
-            result = await self._create_ticket_local(payload)
+            result = await self._create_ticket_local(payload_effective)
             logger.info(
                 "Ticket create completed in local mode: success=%s ticket_id=%s error=%s",
                 result.success,
@@ -362,7 +371,7 @@ class TicketingService:
                 result_response=result.response,
                 context=debug_context,
             )
-            self._remember_recent_create_result(payload, result)
+            self._remember_recent_create_result(payload_effective, result)
             return result
 
         base_url = self._ticketing_base_url()
@@ -370,7 +379,7 @@ class TicketingService:
             self._write_ticket_debug_event(
                 "ticket_create_failed_missing_base_url",
                 error="TICKETING_BASE_URL is not configured",
-                payload=payload,
+                payload=payload_effective,
                 context=debug_context,
             )
             return TicketingResult(success=False, error="TICKETING_BASE_URL is not configured")
@@ -380,7 +389,7 @@ class TicketingService:
         result = await self._request_json(
             "POST",
             url,
-            payload,
+            payload_effective,
             debug_context=debug_context,
         )
         self._write_ticket_debug_event(
@@ -393,7 +402,7 @@ class TicketingService:
             result_response=result.response,
             context={**debug_context, "request_url": url},
         )
-        self._remember_recent_create_result(payload, result)
+        self._remember_recent_create_result(payload_effective, result)
         return result
 
     async def update_ticket(
@@ -588,6 +597,11 @@ class TicketingService:
         pending = context.pending_data if isinstance(context.pending_data, dict) else {}
         integration = self.get_integration_context(context)
         latest_ticket = self.get_latest_ticket(context)
+        phase_value = self._normalize_phase(
+            phase
+            or integration.get("phase")
+            or self._default_phase_for_context(integration)
+        )
 
         guest_id = self._first_non_empty(
             integration.get("guest_id"),
@@ -597,6 +611,22 @@ class TicketingService:
             integration.get("wa_number"),
             context.guest_phone,
         )
+        if not guest_id:
+            guest_id = self._derive_generated_guest_id(
+                context=context,
+                integration=integration,
+                pending=pending,
+                phase_value=phase_value,
+            )
+            if guest_id and isinstance(context.pending_data, dict):
+                integration_snapshot = context.pending_data.get("_integration", {})
+                integration_update = (
+                    dict(integration_snapshot) if isinstance(integration_snapshot, dict) else {}
+                )
+                integration_update["guest_id"] = guest_id
+                context.pending_data["_integration"] = integration_update
+                context.pending_data.setdefault("guest_id", guest_id)
+                integration = integration_update
         organisation_id = self._first_non_empty(
             integration.get("organisation_id"),
             integration.get("organization_id"),
@@ -660,11 +690,6 @@ class TicketingService:
             integration=integration,
             channel=context.channel,
         )
-        phase_value = self._normalize_phase(
-            phase
-            or integration.get("phase")
-            or self._default_phase_for_context(integration)
-        )
         priority_value = self._normalize_priority(priority)
         category_value = self._normalize_category(category)
         status_value = self._normalize_ticket_status(ticket_status)
@@ -723,6 +748,43 @@ class TicketingService:
             if text:
                 return text
         return ""
+
+    @classmethod
+    def _derive_generated_guest_id(
+        cls,
+        *,
+        context: ConversationContext,
+        integration: dict[str, Any],
+        pending: dict[str, Any],
+        phase_value: str,
+    ) -> str:
+        seed_parts = [
+            cls._safe_str(getattr(context, "session_id", "")),
+            cls._safe_str(getattr(context, "hotel_code", "")),
+            cls._safe_str(phase_value),
+            cls._safe_str(integration.get("conversation_id")),
+            cls._safe_str(integration.get("group_id")),
+            cls._safe_str(
+                pending.get("guest_phone")
+                or integration.get("guest_phone")
+                or integration.get("wa_number")
+                or getattr(context, "guest_phone", "")
+            ),
+            cls._safe_str(
+                pending.get("room_number")
+                or integration.get("room_number")
+                or getattr(context, "room_number", "")
+            ),
+        ]
+        seed = "|".join(part for part in seed_parts if part)
+        if not seed:
+            return ""
+        digest = hashlib.sha1(seed.encode("utf-8")).hexdigest()
+        try:
+            numeric_value = int(digest[:15], 16) % 900000000 + 100000000
+        except (TypeError, ValueError):
+            return ""
+        return str(numeric_value)
 
     @classmethod
     def _extract_room_number_from_text(cls, value: Any) -> str:
@@ -847,6 +909,242 @@ class TicketingService:
                 or ""
             ).strip()
         return normalized
+
+    async def _apply_department_mapping(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """
+        Resolve a department for the payload when caller/LLM did not set one.
+        """
+        payload_next = dict(payload or {})
+        existing_department_id = self._safe_str(
+            payload_next.get("department_allocated") or payload_next.get("department_id")
+        )
+        if existing_department_id and existing_department_id not in {"0", "null", "none"}:
+            return payload_next
+
+        entity_id = self._first_non_empty(
+            payload_next.get("entity_id"),
+            payload_next.get("organisation_id"),
+            payload_next.get("organization_id"),
+            payload_next.get("org_id"),
+        )
+        if not entity_id:
+            return payload_next
+
+        try:
+            from integrations.lumira_ticketing_repository import lumira_ticketing_repository
+            from models.database import AsyncSessionLocal
+
+            async with AsyncSessionLocal() as db_session:
+                departments = await lumira_ticketing_repository.fetch_departments_of_entity(
+                    db_session,
+                    entity_id=entity_id,
+                )
+        except Exception as exc:
+            self._write_ticket_debug_event(
+                "ticket_department_mapping_lookup_failed",
+                entity_id=entity_id,
+                error=str(exc),
+            )
+            return payload_next
+
+        matched_department = await self._llm_resolve_department_for_ticket_payload(
+            payload=payload_next,
+            departments=departments,
+        )
+        mapping_source = "llm"
+        if not isinstance(matched_department, dict):
+            matched_department = self._resolve_department_for_ticket_payload(
+                payload=payload_next,
+                departments=departments,
+            )
+            mapping_source = "heuristic_fallback"
+        if not isinstance(matched_department, dict):
+            self._write_ticket_debug_event(
+                "ticket_department_mapping_unresolved",
+                entity_id=entity_id,
+                payload=payload_next,
+            )
+            return payload_next
+
+        self._write_ticket_debug_event(
+            "ticket_department_mapping_resolved",
+            source=mapping_source,
+            entity_id=entity_id,
+            matched_department=matched_department,
+        )
+
+        mapped_department_id = self._safe_str(matched_department.get("department_id"))
+        if mapped_department_id:
+            payload_next["department_allocated"] = mapped_department_id
+            payload_next["department_id"] = mapped_department_id
+        if not self._safe_str(payload_next.get("department_manager")):
+            mapped_department_manager = self._safe_str(
+                matched_department.get("department_head")
+                or matched_department.get("department_name")
+            )
+            if mapped_department_manager:
+                payload_next["department_manager"] = mapped_department_manager
+        return payload_next
+
+    async def _llm_resolve_department_for_ticket_payload(
+        self,
+        *,
+        payload: dict[str, Any],
+        departments: list[dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        if not bool(getattr(settings, "openai_api_key", "")):
+            return None
+        if not isinstance(departments, list) or not departments:
+            return None
+
+        by_id: dict[str, dict[str, Any]] = {}
+        by_name: dict[str, dict[str, Any]] = {}
+        normalized_departments: list[dict[str, str]] = []
+        for department in departments:
+            if not isinstance(department, dict):
+                continue
+            dep_id = self._safe_str(department.get("department_id"))
+            dep_name = self._safe_str(department.get("department_name"))
+            if not dep_id or not dep_name:
+                continue
+            normalized_departments.append(
+                {
+                    "department_id": dep_id,
+                    "department_name": dep_name,
+                }
+            )
+            by_id[dep_id] = department
+            by_name[dep_name.lower()] = department
+        if not normalized_departments:
+            return None
+
+        issue_text = self._safe_str(payload.get("issue"))
+        message_text = self._safe_str(payload.get("message"))
+        if len(issue_text) > 700:
+            issue_text = issue_text[:700]
+        if len(message_text) > 2400:
+            message_text = message_text[:2400]
+
+        prompt_payload = {
+            "ticket_context": {
+                "issue": issue_text,
+                "message": message_text,
+                "category": self._safe_str(payload.get("categorization") or payload.get("category")),
+                "sub_category": self._safe_str(payload.get("sub_categorization") or payload.get("sub_category")),
+                "service_id": self._safe_str(payload.get("service_id")),
+                "service_name": self._safe_str(payload.get("service_name")),
+                "phase": self._safe_str(payload.get("phase")),
+            },
+            "available_departments": normalized_departments,
+        }
+        system_prompt = (
+            "You are a strict department mapper for hotel support tickets.\n"
+            "From available_departments, choose exactly one best department for this ticket.\n"
+            "Rules:\n"
+            "1) You MUST select one department_id from available_departments.\n"
+            "2) Never return empty department_id.\n"
+            "3) Never invent IDs or names.\n"
+            "4) If ambiguous, choose the most operationally relevant department.\n"
+            "Return ONLY JSON: {\"department_id\":\"...\",\"department_name\":\"...\",\"reason\":\"short\"}"
+        )
+
+        try:
+            from llm.client import llm_client
+
+            llm_result = await llm_client.chat_with_json(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": json.dumps(prompt_payload, ensure_ascii=False)},
+                ],
+                temperature=0.0,
+                trace_context={
+                    "responder_type": "service",
+                    "agent": "ticket_department_mapper",
+                },
+            )
+        except Exception as exc:
+            self._write_ticket_debug_event(
+                "ticket_department_mapping_llm_failed",
+                error=str(exc),
+            )
+            return None
+
+        if not isinstance(llm_result, dict):
+            return None
+
+        selected_dep_id = self._safe_str(llm_result.get("department_id") or llm_result.get("id"))
+        selected_dep_name = self._safe_str(llm_result.get("department_name"))
+        if selected_dep_id and selected_dep_id in by_id:
+            return by_id[selected_dep_id]
+        if selected_dep_name and selected_dep_name.lower() in by_name:
+            return by_name[selected_dep_name.lower()]
+        return None
+
+    @classmethod
+    def _resolve_department_for_ticket_payload(
+        cls,
+        *,
+        payload: dict[str, Any],
+        departments: list[dict[str, Any]],
+    ) -> dict[str, Any] | None:
+        if not isinstance(departments, list) or not departments:
+            return None
+
+        explicit_department_id = cls._safe_str(
+            payload.get("department_id") or payload.get("department_allocated")
+        )
+        if explicit_department_id and explicit_department_id not in {"0", "null", "none"}:
+            for department in departments:
+                if cls._safe_str(department.get("department_id")) == explicit_department_id:
+                    return department
+
+        text = " ".join(
+            cls._safe_str(payload.get(field))
+            for field in (
+                "issue",
+                "message",
+                "categorization",
+                "category",
+                "sub_categorization",
+                "sub_category",
+                "service_id",
+                "service_name",
+            )
+        ).lower()
+        if not text:
+            return departments[0]
+
+        # Direct department-name mention match.
+        for department in sorted(
+            departments,
+            key=lambda item: len(cls._safe_str(item.get("department_name"))),
+            reverse=True,
+        ):
+            department_name = cls._safe_str(department.get("department_name")).lower()
+            if department_name and department_name in text:
+                return department
+
+        keyword_groups: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+            (("housekeeping", "cleaning", "towel", "linen", "bed", "laundry"), ("housekeeping",)),
+            (("ac", "air conditioner", "maintenance", "plumbing", "electrical", "repair"), ("maintenance", "engineering")),
+            (("food", "meal", "room service", "breakfast", "dinner", "restaurant", "dining", "menu"), ("room service", "f&b", "food", "dining", "restaurant", "ird")),
+            (("spa", "wellness", "massage", "therapy"), ("spa", "wellness")),
+            (("taxi", "airport", "pickup", "drop", "transport", "cab", "chauffeur"), ("transport", "concierge", "travel")),
+            (("billing", "bill", "invoice", "payment", "refund"), ("front desk", "finance", "accounts", "guest relations")),
+            (("booking", "reservation", "check in", "check out"), ("front office", "reception", "reservation", "sales", "guest relations")),
+            (("security", "unsafe", "emergency"), ("security",)),
+            (("complaint", "issue"), ("guest relations", "front desk")),
+        ]
+
+        for issue_keywords, department_keywords in keyword_groups:
+            if not any(token in text for token in issue_keywords):
+                continue
+            for department in departments:
+                department_name = cls._safe_str(department.get("department_name")).lower()
+                if any(keyword in department_name for keyword in department_keywords):
+                    return department
+
+        return departments[0]
 
     async def _request_json(
         self,

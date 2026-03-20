@@ -261,10 +261,11 @@ def build_guest_journey_response(
         metadata.get("ticket_sub_category")
         or metadata.get("ticketing_matched_case")
     )
+    display_text = _clean_str(chat_response.display_message or chat_response.message)
 
     payload: dict[str, Any] = {
         "is_ticket_intent": ticket_created,
-        "response": _clean_str(chat_response.message),
+        "response": display_text,
         "category": category,
         "sub_category": sub_category,
         "room_number": room_number,
@@ -318,9 +319,10 @@ def build_engage_response(
 
     total_cost = _to_float(metadata.get("total_cost") or metadata.get("cost")) or 0.0
     total_tokens = _to_int(metadata.get("total_tokens")) or 0
+    display_text = _clean_str(chat_response.display_message or chat_response.message)
 
     payload: dict[str, Any] = {
-        "message": _clean_str(chat_response.message),
+        "message": display_text,
         "render": metadata.get("render"),
         "city": _clean_str(source.get("city") or metadata.get("city")),
         "country": _clean_str(source.get("country") or metadata.get("country")),
@@ -344,4 +346,3 @@ def build_engage_response(
     if ticket_summary:
         payload["ticket_summary"] = ticket_summary
     return payload
-

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import uuid
+from datetime import date
 from difflib import SequenceMatcher
 from typing import Any
 
@@ -295,31 +296,47 @@ class BookingHandler(BaseHandler):
                 return hours_violation
 
             booking_ref = f"BK-{uuid.uuid4().hex[:8].upper()}"
-            service_name = booking_data.get("service_name", booking_data.get("restaurant_name", "the service"))
-            party = booking_data.get("party_size", "")
-            time = booking_data.get("time", "")
-
-            details_parts = []
-            if service_name:
-                details_parts.append(f"Service: {service_name}")
-            if party:
-                details_parts.append(f"Guests: {party}")
-            if time:
-                details_parts.append(f"Time: {time}")
-            details_text = "\n".join(details_parts)
+            service_name = self._first_non_empty(
+                booking_data.get("service_name"),
+                booking_data.get("restaurant_name"),
+                "the service",
+            )
+            party = self._first_non_empty(
+                booking_data.get("party_size"),
+                booking_data.get("guest_count"),
+                booking_data.get("guests"),
+            )
+            time = self._first_non_empty(
+                booking_data.get("time"),
+                booking_data.get("booking_time"),
+            )
+            detail_lines, detail_meta = self._build_booking_confirmation_detail_lines(
+                booking_data=booking_data,
+                context=context,
+            )
+            details_text = "\n".join(f"- {line}" for line in detail_lines)
             ticket_meta = await self._maybe_create_booking_ticket(
                 context=context,
                 capabilities=capabilities,
                 booking_data=booking_data,
                 booking_ref=booking_ref,
             )
+            staff_followup_line = self._build_booking_staff_followup_line(
+                booking_data=booking_data,
+                capabilities=capabilities,
+            )
+            created_ticket_id = str(ticket_meta.get("ticket_id") or "").strip()
+            ticket_reference_line = (
+                f"Ticket Reference: #{created_ticket_id}\n" if created_ticket_id else ""
+            )
 
             return HandlerResult(
                 response_text=(
-                    f"Your booking has been confirmed successfully!\n\n"
+                    f"Your booking request has been received successfully.\n\n"
                     f"Booking Reference: {booking_ref}\n"
-                    f"{details_text}\n\n"
-                    "You'll receive a confirmation shortly. "
+                    f"Details:\n{details_text}\n\n"
+                    f"{staff_followup_line}\n"
+                    f"{ticket_reference_line}"
                     "Is there anything else I can help you with?"
                 ),
                 next_state=ConversationState.COMPLETED,
@@ -333,6 +350,12 @@ class BookingHandler(BaseHandler):
                     "booking_party_size": party,
                     "booking_time": time,
                     "booking_date": booking_data.get("date", ""),
+                    "booking_guest_name": detail_meta.get("guest_name", ""),
+                    "booking_guest_phone": detail_meta.get("guest_phone", ""),
+                    "booking_guest_email": detail_meta.get("guest_email", ""),
+                    "booking_room_type": detail_meta.get("room_type", ""),
+                    "booking_check_in": detail_meta.get("check_in", ""),
+                    "booking_check_out": detail_meta.get("check_out", ""),
                     **ticket_meta,
                 },
             )
@@ -355,6 +378,202 @@ class BookingHandler(BaseHandler):
             pending_action=None,
             pending_data={},
         )
+
+    def _build_booking_staff_followup_line(
+        self,
+        *,
+        booking_data: dict[str, Any],
+        capabilities: dict[str, Any],
+    ) -> str:
+        service_name = str(
+            booking_data.get("service_name")
+            or booking_data.get("restaurant_name")
+            or ""
+        ).strip()
+        matched_service = self._find_service(service_name, capabilities) if service_name else None
+        service_description = ""
+        if isinstance(matched_service, dict):
+            service_description = str(
+                matched_service.get("description")
+                or matched_service.get("service_description")
+                or matched_service.get("details")
+                or matched_service.get("service_context")
+                or ""
+            ).strip()
+        policy_text = f"{service_name} {service_description}".lower()
+        explicit_staff_markers = (
+            "staff",
+            "team",
+            "human",
+            "manual",
+            "front desk",
+            "concierge",
+            "forward",
+            "sent to",
+            "assign",
+        )
+        if any(marker in policy_text for marker in explicit_staff_markers):
+            return "I've forwarded this request to our staff team, and they will follow up shortly."
+        return "Our team will follow up with you shortly."
+
+    def _build_booking_confirmation_detail_lines(
+        self,
+        *,
+        booking_data: dict[str, Any],
+        context: ConversationContext,
+    ) -> tuple[list[str], dict[str, str]]:
+        pending = booking_data if isinstance(booking_data, dict) else {}
+        integration = ticketing_service.get_integration_context(context)
+        sub_category = self._infer_booking_sub_category(pending)
+
+        service_name = self._first_non_empty(
+            pending.get("service_name"),
+            pending.get("restaurant_name"),
+            pending.get("booking_service"),
+        )
+        room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_name"),
+        )
+        guests = self._first_non_empty(
+            pending.get("party_size"),
+            pending.get("guest_count"),
+            pending.get("guests"),
+        )
+        booking_time = self._first_non_empty(
+            pending.get("time"),
+            pending.get("booking_time"),
+        )
+        booking_date = self._first_non_empty(
+            pending.get("date"),
+            pending.get("booking_date"),
+        )
+        check_in = self._first_non_empty(
+            pending.get("check_in"),
+            pending.get("stay_checkin_date"),
+            pending.get("checkin_date"),
+        )
+        check_out = self._first_non_empty(
+            pending.get("check_out"),
+            pending.get("stay_checkout_date"),
+            pending.get("checkout_date"),
+        )
+        stay_range = self._first_non_empty(
+            pending.get("stay_date_range"),
+        )
+        guest_name = self._first_non_empty(
+            pending.get("guest_name"),
+            pending.get("name"),
+            pending.get("full_name"),
+            integration.get("guest_name"),
+            context.guest_name,
+        )
+        guest_phone = self._first_non_empty(
+            pending.get("guest_phone"),
+            pending.get("phone"),
+            pending.get("contact"),
+            pending.get("contact_number"),
+            pending.get("mobile"),
+            integration.get("guest_phone"),
+            integration.get("wa_number"),
+            context.guest_phone,
+        )
+        guest_email = self._first_non_empty(
+            pending.get("guest_email"),
+            pending.get("email"),
+            pending.get("contact_email"),
+            integration.get("guest_email"),
+            integration.get("email"),
+        )
+        if not guest_email:
+            guest_email = self._extract_email_from_user_messages(context)
+        if not guest_phone:
+            guest_phone = self._extract_phone_from_user_messages(context)
+
+        details: list[str] = []
+
+        if sub_category == "room_booking":
+            if room_type:
+                details.append(f"Room Type: {room_type}")
+            elif service_name:
+                details.append(f"Room Type: {service_name}")
+            if check_in:
+                details.append(f"Check-in: {self._format_booking_date_for_display(check_in)}")
+            if check_out:
+                details.append(f"Check-out: {self._format_booking_date_for_display(check_out)}")
+            if not check_in and not check_out and stay_range:
+                details.append(f"Stay Dates: {stay_range}")
+        else:
+            if service_name:
+                details.append(f"Service: {service_name}")
+            if booking_date and booking_date.lower() not in {"today", "tonight"}:
+                details.append(f"Date: {self._format_booking_date_for_display(booking_date)}")
+            if booking_time:
+                details.append(f"Time: {booking_time}")
+
+        if guests:
+            details.append(f"Guests: {guests}")
+        if guest_name:
+            details.append(f"Guest Name: {guest_name}")
+        if guest_phone:
+            details.append(f"Phone: {guest_phone}")
+        if guest_email:
+            details.append(f"Email: {guest_email}")
+
+        if not details:
+            fallback = service_name or "Booking request"
+            details.append(f"Service: {fallback}")
+
+        return details, {
+            "guest_name": guest_name,
+            "guest_phone": guest_phone,
+            "guest_email": guest_email,
+            "room_type": room_type,
+            "check_in": check_in,
+            "check_out": check_out,
+        }
+
+    @staticmethod
+    def _extract_email_from_user_messages(context: ConversationContext) -> str:
+        pattern = re.compile(r"\b([A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,})\b", flags=re.IGNORECASE)
+        for msg in reversed(context.messages):
+            if msg.role != MessageRole.USER:
+                continue
+            text = str(msg.content or "").strip()
+            if not text:
+                continue
+            match = pattern.search(text)
+            if match:
+                return str(match.group(1) or "").strip()
+        return ""
+
+    @staticmethod
+    def _extract_phone_from_user_messages(context: ConversationContext) -> str:
+        for msg in reversed(context.messages):
+            if msg.role != MessageRole.USER:
+                continue
+            text = str(msg.content or "").strip()
+            if not text:
+                continue
+            for match in re.finditer(r"(?<!\d)\+?\d[\d\s\-\(\)]{6,20}\d(?!\d)", text):
+                candidate = str(match.group(0) or "").strip()
+                digits = re.sub(r"\D", "", candidate)
+                if 7 <= len(digits) <= 15:
+                    return f"+{digits}" if candidate.startswith("+") else digits
+        return ""
+
+    @staticmethod
+    def _format_booking_date_for_display(value: Any) -> str:
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        iso_candidate = text.split("T", 1)[0]
+        try:
+            parsed = date.fromisoformat(iso_candidate)
+        except ValueError:
+            return text
+        month = parsed.strftime("%B")
+        return f"{month} {parsed.day}, {parsed.year}"
 
     async def _maybe_create_booking_ticket(
         self,
@@ -416,6 +635,12 @@ class BookingHandler(BaseHandler):
             booking_ref=booking_ref,
             sub_category=sub_category,
         )
+        integration = ticketing_service.get_integration_context(context)
+        phase_value = self._first_non_empty(
+            booking_data.get("phase"),
+            context.pending_data.get("phase") if isinstance(context.pending_data, dict) else "",
+            integration.get("phase"),
+        )
 
         try:
             payload = ticketing_service.build_lumira_ticket_payload(
@@ -425,7 +650,7 @@ class BookingHandler(BaseHandler):
                 category="request",
                 sub_category=sub_category,
                 priority="medium",
-                phase="during_stay",
+                phase=phase_value,
             )
             create_result = await ticketing_service.create_ticket(payload)
         except Exception as exc:

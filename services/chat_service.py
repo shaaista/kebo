@@ -6,6 +6,7 @@ Uses handler registry for structured intents, falls back to LLM for unhandled on
 Now uses config_service for business configuration (synced with Admin Portal).
 """
 
+import hashlib
 import json
 import logging
 import re
@@ -31,6 +32,7 @@ from llm.client import llm_client
 from agents.complex_query_orchestrator import complex_query_orchestrator
 from config.settings import settings
 from services.config_service import config_service
+from services.db_config_service import db_config_service
 from services.conversation_memory_service import conversation_memory_service
 from services.agent_plugin_service import agent_plugin_service
 from services.response_validator import response_validator
@@ -329,6 +331,11 @@ class ChatService:
             request.model_copy(update={"message": effective_user_message})
             if effective_user_message != raw_user_message
             else request
+        )
+        self._sync_stay_window_from_messages(
+            context=context,
+            raw_message=raw_user_message,
+            processed_message=effective_user_message,
         )
         self._log_processing_stage(
             "context_loaded",
@@ -3212,7 +3219,12 @@ class ChatService:
         next_state = self._derive_orchestration_state(decision=decision, current_state=context.state)
         if handler_result is not None:
             handler_text = str(handler_result.response_text or "").strip()
-            if not prefer_llm_response or not response_text:
+            handler_metadata = handler_result.metadata if isinstance(handler_result.metadata, dict) else {}
+            handler_pending_action = str(handler_result.pending_action or "").strip().lower()
+            force_handler_response = bool(handler_metadata.get("room_booking_flow"))
+            if not force_handler_response and self._is_room_booking_pending_action(handler_pending_action):
+                force_handler_response = True
+            if force_handler_response or not prefer_llm_response or not response_text:
                 response_text = handler_text or response_text
             next_state = handler_result.next_state
             if handler_result.pending_action is not None:
@@ -3347,29 +3359,88 @@ class ChatService:
                             # For all other tickets (complaints, lost items, etc.): use the LLM's own response_text
                             # and just append the reference number — do NOT overwrite with a booking message.
                             ticket_ref = f" (Reference: #{created_ticket_id})" if created_ticket_id else ""
+                            category_norm = self._normalize_service_identifier(category)
+                            sub_category_norm = self._normalize_service_identifier(sub_category)
+                            pending_public = (
+                                context.pending_data if isinstance(context.pending_data, dict) else {}
+                            )
+                            _has_booking_fields = bool(
+                                pending_public.get("room_type")
+                                or pending_public.get("room_name")
+                                or pending_public.get("check_in")
+                                or pending_public.get("check_out")
+                                or pending_public.get("stay_checkin_date")
+                                or pending_public.get("stay_checkout_date")
+                                or pending_public.get("check_in_date")
+                                or pending_public.get("check_out_date")
+                                or pending_public.get("booking_date")
+                                or pending_public.get("booking_time")
+                                or pending_public.get("time")
+                            )
+                            _is_booking_category = (
+                                category_norm in {
+                                    "request",
+                                    "room_booking",
+                                    "table_booking",
+                                    "spa_booking",
+                                    "transport_booking",
+                                }
+                                or "booking" in category_norm
+                                or "reservation" in category_norm
+                            )
+                            _is_booking_sub_category = (
+                                "booking" in sub_category_norm
+                                or "reservation" in sub_category_norm
+                                or sub_category_norm in {
+                                    "room_booking",
+                                    "table_booking",
+                                    "spa_booking",
+                                    "transport_booking",
+                                }
+                            )
                             _is_booking_ticket = (
-                                category in ("request",)
-                                and bool(
-                                    isinstance(context.pending_data, dict)
-                                    and (
-                                        context.pending_data.get("room_type")
-                                        or context.pending_data.get("check_in_date")
-                                        or context.pending_data.get("check_out_date")
-                                    )
-                                )
+                                _is_booking_category
+                                or _is_booking_sub_category
+                                or _has_booking_fields
                             )
                             if _is_booking_ticket:
                                 _pub = {k: v for k, v in (context.pending_data or {}).items() if not k.startswith("_")}
                                 _parts = []
-                                if _pub.get("room_type"): _parts.append(str(_pub["room_type"]))
-                                if _pub.get("check_in_date"): _parts.append(f"check-in: {_pub['check_in_date']}")
-                                if _pub.get("check_out_date"): _parts.append(f"check-out: {_pub['check_out_date']}")
-                                if _pub.get("guest_count"): _parts.append(f"{_pub['guest_count']} guest(s)")
+                                room_label = self._first_non_empty(
+                                    _pub.get("room_type"),
+                                    _pub.get("room_name"),
+                                    _pub.get("service_name"),
+                                )
+                                check_in_value = self._first_non_empty(
+                                    _pub.get("check_in"),
+                                    _pub.get("stay_checkin_date"),
+                                    _pub.get("check_in_date"),
+                                    _pub.get("checkin_date"),
+                                )
+                                check_out_value = self._first_non_empty(
+                                    _pub.get("check_out"),
+                                    _pub.get("stay_checkout_date"),
+                                    _pub.get("check_out_date"),
+                                    _pub.get("checkout_date"),
+                                )
+                                guest_count_value = self._first_non_empty(
+                                    _pub.get("guest_count"),
+                                    _pub.get("party_size"),
+                                    _pub.get("guests"),
+                                )
+                                if room_label:
+                                    _parts.append(str(room_label))
+                                if check_in_value:
+                                    _parts.append(f"check-in: {check_in_value}")
+                                if check_out_value:
+                                    _parts.append(f"check-out: {check_out_value}")
+                                if guest_count_value:
+                                    _parts.append(f"{guest_count_value} guest(s)")
                                 _summary = ", ".join(_parts)
                                 response_text = (
-                                    f"Your booking has been confirmed{ticket_ref}! "
+                                    f"Your booking request has been received{ticket_ref}. "
                                     + (f"Details: {_summary}. " if _summary else "")
-                                    + "Our team will follow up with you shortly."
+                                    + "Our staff team will verify it and get back to you shortly."
                                 )
                             else:
                                 # Non-booking ticket: keep the LLM's response_text and inject the ticket reference.
@@ -5325,6 +5396,13 @@ class ChatService:
             or entities.get("guest_phone")
             or ""
         ).strip()
+        resolved_guest_id = str(
+            pending.get("guest_id")
+            or integration.get("guest_id")
+            or integration.get("user_id")
+            or entities.get("guest_id")
+            or ""
+        ).strip()
         resolved_name = str(
             pending.get("guest_name")
             or integration.get("guest_name")
@@ -5334,7 +5412,7 @@ class ChatService:
         ).strip()
 
         if is_prebooking:
-            if not (resolved_phone or resolved_name):
+            if not (resolved_phone or resolved_name or resolved_guest_id):
                 missing.append("guest_identity")
             return missing
 
@@ -5344,11 +5422,11 @@ class ChatService:
             return missing
 
         if phase_norm == "post_checkout":
-            if not (resolved_phone or resolved_name or resolved_room):
+            if not (resolved_phone or resolved_name or resolved_room or resolved_guest_id):
                 missing.append("guest_identity")
             return missing
 
-        if not (resolved_room or (resolved_phone and resolved_name)):
+        if not (resolved_room or (resolved_phone and resolved_name) or resolved_guest_id):
             missing.append("contact_or_room")
         return missing
 
@@ -5635,6 +5713,9 @@ class ChatService:
             "successfully booked",
             "booking confirmed",
             "reservation confirmed",
+            "booking request has been received",
+            "request has been received",
+            "staff team will verify it and get back",
         )
         if any(marker in text for marker in positive_markers):
             return True
@@ -7972,8 +8053,8 @@ class ChatService:
         if not details_text:
             details_text = "your requested stay"
         return (
-            f"Your room booking has been confirmed: {details_text}. "
-            "You'll receive a confirmation shortly. Is there anything else I can help you with?"
+            f"Your room booking request has been received: {details_text}. "
+            "Our staff team will verify it and get back to you shortly. Is there anything else I can help you with?"
         )
 
     @staticmethod
@@ -8153,7 +8234,11 @@ class ChatService:
         # Secondary source: KB-wide extraction via LLM for broader semantic coverage.
         if len(option_map) < 4 and settings.openai_api_key:
             tenant_id = str(hotel_code or "default").strip() or "default"
-            kb_text = config_service.get_full_kb_text()
+            kb_text = await self._load_kb_text_with_db_preference(
+                db_session=db_session,
+                hotel_code=tenant_id,
+                max_chars=90000,
+            )
             if kb_text:
                 phase_label = str(selected_phase_name or "").strip() or (
                     str(selected_phase_id or "").replace("_", " ").title()
@@ -8524,6 +8609,37 @@ class ChatService:
             pending.get("booking_day"),
             facts.get("booking_day"),
         )
+        integration = pending.get("_integration", {})
+        if not isinstance(integration, dict):
+            integration = {}
+        phase_hint = self._normalize_phase_identifier(
+            pending.get("phase")
+            or integration.get("phase")
+            or facts.get("phase")
+        )
+        flow_hint = self._normalize_flow_identifier(
+            integration.get("flow")
+            or integration.get("bot_mode")
+        )
+        if phase_hint in {"during_stay", "post_checkout"}:
+            requires_contact_details = False
+        elif phase_hint in {"pre_booking", "pre_checkin"}:
+            requires_contact_details = True
+        elif flow_hint in {"engage", "booking", "booking_bot", "pre_booking", "prebooking"}:
+            requires_contact_details = True
+        else:
+            requires_contact_details = True
+        guest_name = self._first_non_empty(
+            pending.get("guest_name"),
+            integration.get("guest_name"),
+            facts.get("guest_name"),
+        )
+        guest_phone = self._first_non_empty(
+            pending.get("guest_phone"),
+            integration.get("guest_phone"),
+            integration.get("wa_number"),
+            facts.get("guest_phone"),
+        )
 
         missing: list[str] = []
         if not room_type:
@@ -8534,6 +8650,11 @@ class ChatService:
             missing.append("checkin_date")
         if not checkout_date and not date_range:
             missing.append("checkout_date")
+        if requires_contact_details:
+            if not guest_name:
+                missing.append("guest_name")
+            if not guest_phone:
+                missing.append("guest_phone")
         return missing
 
     def _build_room_booking_missing_details_prompt(
@@ -8576,6 +8697,10 @@ class ChatService:
             asks.append("check-in date")
         if "checkout_date" in missing_fields:
             asks.append("check-out date")
+        if "guest_name" in missing_fields:
+            asks.append("full name")
+        if "guest_phone" in missing_fields:
+            asks.append("contact phone number")
 
         if asks:
             parts.append("Please share your " + ", ".join(asks) + ".")
@@ -8583,6 +8708,164 @@ class ChatService:
             parts.append("Please share your check-in and check-out dates.")
 
         return " ".join(parts).strip()
+
+    @staticmethod
+    def _build_room_booking_missing_suggested_actions(missing_fields: list[str]) -> list[str]:
+        actions: list[str] = []
+        if "room_type" in missing_fields:
+            actions.append("Share preferred room type")
+        if "guest_count" in missing_fields:
+            actions.append("Share number of guests")
+        if "checkin_date" in missing_fields or "checkout_date" in missing_fields:
+            actions.append("Share check-in and check-out dates")
+        if "guest_name" in missing_fields:
+            actions.append("Share full name")
+        if "guest_phone" in missing_fields:
+            actions.append("Share contact number")
+        deduped: list[str] = []
+        seen: set[str] = set()
+        for item in actions:
+            key = str(item or "").strip().lower()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            deduped.append(str(item))
+        return deduped[:6]
+
+    @staticmethod
+    def _format_calendar_date_full(value: date) -> str:
+        try:
+            return value.strftime("%B %d, %Y")
+        except Exception:
+            return str(value)
+
+    @staticmethod
+    def _clear_room_booking_date_fields(
+        pending_data: dict[str, Any],
+        *,
+        clear_check_in: bool = False,
+        clear_check_out: bool = False,
+    ) -> None:
+        if not isinstance(pending_data, dict):
+            return
+        if clear_check_in:
+            pending_data.pop("check_in", None)
+            pending_data.pop("stay_checkin_date", None)
+            pending_data.pop("checkin_date", None)
+        if clear_check_out:
+            pending_data.pop("check_out", None)
+            pending_data.pop("stay_checkout_date", None)
+            pending_data.pop("checkout_date", None)
+        if clear_check_in or clear_check_out:
+            pending_data.pop("stay_date_range", None)
+
+    def _validate_room_booking_dates_in_pending(
+        self,
+        pending_data: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        pending = pending_data if isinstance(pending_data, dict) else {}
+        check_in_text = self._first_non_empty(
+            pending.get("check_in"),
+            pending.get("stay_checkin_date"),
+            pending.get("checkin_date"),
+        )
+        check_out_text = self._first_non_empty(
+            pending.get("check_out"),
+            pending.get("stay_checkout_date"),
+            pending.get("checkout_date"),
+        )
+        if not check_in_text and not check_out_text:
+            return None
+
+        today_local = date.today()
+        current_year = today_local.year
+        parsed_check_in = (
+            self._parse_compact_calendar_date(check_in_text, reference_year=current_year)
+            if check_in_text
+            else None
+        )
+        parsed_check_out = (
+            self._parse_compact_calendar_date(check_out_text, reference_year=current_year)
+            if check_out_text
+            else None
+        )
+
+        if (
+            parsed_check_in is not None
+            and parsed_check_out is not None
+            and parsed_check_out < parsed_check_in
+            and not re.search(r"\b\d{4}\b", str(check_out_text))
+        ):
+            try:
+                adjusted_checkout = parsed_check_out.replace(year=parsed_check_out.year + 1)
+                if adjusted_checkout > parsed_check_in:
+                    parsed_check_out = adjusted_checkout
+            except ValueError:
+                pass
+
+        if parsed_check_in is not None:
+            normalized_check_in = parsed_check_in.isoformat()
+            pending["check_in"] = normalized_check_in
+            pending["stay_checkin_date"] = normalized_check_in
+        if parsed_check_out is not None:
+            normalized_check_out = parsed_check_out.isoformat()
+            pending["check_out"] = normalized_check_out
+            pending["stay_checkout_date"] = normalized_check_out
+        if parsed_check_in is not None and parsed_check_out is not None:
+            pending["stay_date_range"] = f"{parsed_check_in.isoformat()} to {parsed_check_out.isoformat()}"
+
+        today_label = self._format_calendar_date_full(today_local)
+        if parsed_check_in is not None and parsed_check_in < today_local:
+            check_in_label = self._format_calendar_date_full(parsed_check_in)
+            self._clear_room_booking_date_fields(pending, clear_check_in=True, clear_check_out=False)
+            return {
+                "code": "room_booking_checkin_in_past",
+                "response_text": (
+                    f"Your check-in date ({check_in_label}) is in the past. "
+                    f"Today's date is {today_label}. Please share a future check-in date."
+                ),
+                "suggested_actions": [
+                    "Share future check-in date",
+                    "Share check-in and check-out dates",
+                ],
+            }
+
+        if parsed_check_out is not None and parsed_check_out < today_local:
+            check_out_label = self._format_calendar_date_full(parsed_check_out)
+            self._clear_room_booking_date_fields(pending, clear_check_in=False, clear_check_out=True)
+            return {
+                "code": "room_booking_checkout_in_past",
+                "response_text": (
+                    f"Your check-out date ({check_out_label}) is in the past. "
+                    f"Today's date is {today_label}. Please share a future check-out date."
+                ),
+                "suggested_actions": [
+                    "Share future check-out date",
+                    "Share check-in and check-out dates",
+                ],
+            }
+
+        if (
+            parsed_check_in is not None
+            and parsed_check_out is not None
+            and parsed_check_out <= parsed_check_in
+        ):
+            check_in_label = self._format_calendar_date_full(parsed_check_in)
+            check_out_label = self._format_calendar_date_full(parsed_check_out)
+            self._clear_room_booking_date_fields(pending, clear_check_in=False, clear_check_out=True)
+            return {
+                "code": "room_booking_checkout_not_after_checkin",
+                "response_text": (
+                    f"Check-out must be after check-in. I currently have check-in on {check_in_label} "
+                    f"and check-out on {check_out_label}. Please share a check-out date after check-in."
+                ),
+                "suggested_actions": [
+                    "Share updated check-out date",
+                    "Share check-in and check-out dates",
+                ],
+            }
+
+        return None
 
     @staticmethod
     def _looks_like_availability_request(message: str) -> bool:
@@ -9016,6 +9299,15 @@ class ChatService:
                 inferred_from_context = self._select_room_type_from_preference(preference, room_candidates)
                 if inferred_from_context:
                     updates["room_type"] = inferred_from_context
+
+        if not str(updates.get("guest_phone") or "").strip():
+            guest_phone = self._extract_guest_phone_candidate(msg)
+            if guest_phone:
+                updates["guest_phone"] = guest_phone
+        if not str(updates.get("guest_name") or "").strip():
+            guest_name = self._extract_guest_name_candidate(msg)
+            if guest_name:
+                updates["guest_name"] = guest_name
 
         return updates
 
@@ -9714,15 +10006,38 @@ class ChatService:
                     )
 
             if referenced_room_type and referenced_room_detail:
-                response_text = (
-                    f"{referenced_room_type}: {referenced_room_detail}\n\n"
-                    "If you'd like to book this room, please share your number of guests, "
-                    "check-in date, and check-out date."
-                )
                 pending_data = dict(context.pending_data) if isinstance(context.pending_data, dict) else {}
                 pending_data["requested_room_type"] = referenced_room_type
+                if not self._is_generic_room_reference(referenced_room_type):
+                    pending_data["room_type"] = referenced_room_type
                 if isinstance(room_reference.get("candidates"), list):
                     pending_data["room_type_candidates"] = room_reference["candidates"]
+                pending_data = self._enrich_pending_with_known_facts(
+                    pending_data=pending_data,
+                    context=context,
+                    memory_snapshot={"facts": self._memory_facts_from_context(context)},
+                    entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
+                )
+                missing_fields = self._missing_room_booking_fields(
+                    pending_data=pending_data,
+                    memory_facts=self._memory_facts_from_context(context),
+                )
+                if missing_fields:
+                    booking_prompt = self._build_room_booking_missing_details_prompt(
+                        missing_fields=missing_fields,
+                        pending_data=pending_data,
+                    )
+                    suggested_actions = (
+                        self._build_room_booking_missing_suggested_actions(missing_fields)
+                        or ["Share check-in and check-out dates", "Share number of guests"]
+                    )
+                else:
+                    booking_prompt = (
+                        f"I can proceed with {referenced_room_type}. "
+                        "If everything looks good, please type \"yes confirm\" to continue."
+                    )
+                    suggested_actions = ["yes confirm", "cancel"]
+                response_text = f"{referenced_room_type}: {referenced_room_detail}\n\n{booking_prompt}".strip()
                 return HandlerResult(
                     response_text=response_text,
                     next_state=context.state if context.state in {
@@ -9730,13 +10045,14 @@ class ChatService:
                         ConversationState.AWAITING_SELECTION,
                         ConversationState.AWAITING_CONFIRMATION,
                     } else ConversationState.AWAITING_INFO,
-                    pending_action=context.pending_action,
+                    pending_action="collect_room_booking_details",
                     pending_data=pending_data,
-                    suggested_actions=["Select this room type", "Show all room types", "Share number of guests"],
+                    suggested_actions=suggested_actions[:4],
                     metadata={
                         "room_booking_context_preserved": True,
                         "response_source": "room_option_reference_followup",
                         "room_type": referenced_room_type,
+                        "room_booking_missing_fields": missing_fields,
                     },
                 )
 
@@ -10053,10 +10369,41 @@ class ChatService:
             pending["check_in"] = str(pending.get("stay_checkin_date") or "").strip()
         if str(pending.get("stay_checkout_date") or "").strip() and not str(pending.get("check_out") or "").strip():
             pending["check_out"] = str(pending.get("stay_checkout_date") or "").strip()
+        pending = self._enrich_pending_with_known_facts(
+            pending_data=pending,
+            context=context,
+            memory_snapshot={"facts": self._memory_facts_from_context(context)},
+            entities=intent_result.entities if isinstance(intent_result.entities, dict) else {},
+        )
+        date_validation_issue = self._validate_room_booking_dates_in_pending(pending)
+        if date_validation_issue is not None:
+            response_text = str(date_validation_issue.get("response_text") or "").strip()
+            suggestions = date_validation_issue.get("suggested_actions")
+            suggested_actions = (
+                [str(item).strip() for item in suggestions if str(item).strip()]
+                if isinstance(suggestions, list)
+                else []
+            )
+            if not response_text:
+                response_text = (
+                    f"Today's date is {self._format_calendar_date_full(date.today())}. "
+                    "Please share valid future check-in and check-out dates."
+                )
+            return HandlerResult(
+                response_text=response_text,
+                next_state=ConversationState.AWAITING_INFO,
+                pending_action="collect_room_booking_details",
+                pending_data=pending,
+                suggested_actions=suggested_actions or ["Share check-in and check-out dates"],
+                metadata={
+                    "room_booking_flow": True,
+                    "room_booking_date_validation": str(date_validation_issue.get("code") or ""),
+                },
+            )
 
         missing = self._missing_room_booking_fields(
             pending_data=pending,
-            memory_facts={},
+            memory_facts=self._memory_facts_from_context(context),
         )
         pending_action = str(context.pending_action or "").strip().lower()
         if (
@@ -10086,7 +10433,10 @@ class ChatService:
                 next_state=ConversationState.AWAITING_INFO,
                 pending_action="collect_room_booking_details",
                 pending_data=pending,
-                suggested_actions=["Show available room types", "Share number of guests", "Share check-in and check-out dates"],
+                suggested_actions=(
+                    self._build_room_booking_missing_suggested_actions(missing)
+                    or ["Show available room types", "Share number of guests", "Share check-in and check-out dates"]
+                ),
                 metadata={"room_booking_flow": True},
             )
 
@@ -10448,7 +10798,21 @@ class ChatService:
         has_structured_detail = ChatService._looks_like_service_detail_reply(msg_lower) and bool(
             re.search(r"\b\d{1,2}\b", msg_lower)
         )
-        return has_guest_detail or has_date_detail or has_structured_detail
+        contact_detail_query = any(
+            marker in msg_lower
+            for marker in (
+                "contact info",
+                "contact information",
+                "my contact",
+                "phone number",
+                "mobile number",
+                "my number",
+                "my name",
+                "name and contact",
+                "do you have my contact",
+            )
+        )
+        return has_guest_detail or has_date_detail or has_structured_detail or contact_detail_query
 
     def _recent_user_turn_mentions_room_booking(self, context: ConversationContext, current_message: str) -> bool:
         current_norm = re.sub(r"\s+", " ", str(current_message or "").strip().lower())
@@ -12580,6 +12944,30 @@ class ChatService:
         if not text:
             return None
 
+        requested_dates = self._extract_explicit_dates_from_message(text)
+        room_booking_context = (
+            self._is_room_booking_pending_action(context.pending_action)
+            or self._looks_like_room_stay_booking_request(text)
+            or any(marker in msg_lower for marker in ("check in", "check-in", "check out", "check-out"))
+        )
+        if room_booking_context and requested_dates:
+            today_local = date.today()
+            contains_past_date = any(day < today_local for day in requested_dates)
+            if contains_past_date:
+                today_label = self._format_calendar_date_full(today_local)
+                return {
+                    "code": "room_booking_date_in_past",
+                    "response_text": (
+                        f"I noticed at least one stay date is in the past. "
+                        f"Today's date is {today_label}. "
+                        "Please share check-in and check-out dates from today onward."
+                    ),
+                    "suggested_actions": [
+                        "Share check-in and check-out dates",
+                        "Modify stay dates",
+                    ],
+                }
+
         actionable_intents = {
             IntentType.ORDER_FOOD,
             IntentType.TABLE_BOOKING,
@@ -12600,7 +12988,6 @@ class ChatService:
                 pending_data=pending,
                 entities=entity_map,
             )
-            requested_dates = self._extract_explicit_dates_from_message(text)
             if stay_window is not None and requested_dates:
                 check_in, check_out = stay_window
                 out_of_window = [day for day in requested_dates if day < check_in or day > check_out]
@@ -15643,6 +16030,243 @@ class ChatService:
             normalized.setdefault("ticket_created", False)
         return normalized
 
+    @staticmethod
+    def _normalize_flow_identifier(value: Any) -> str:
+        return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+    @staticmethod
+    def _build_generated_guest_id(seed: str) -> str:
+        text = str(seed or "").strip()
+        if not text:
+            return ""
+        digest = hashlib.sha1(text.encode("utf-8")).hexdigest()
+        try:
+            numeric_value = int(digest[:15], 16) % 900000000 + 100000000
+        except (TypeError, ValueError):
+            return ""
+        return str(numeric_value)
+
+    @classmethod
+    def _should_auto_generate_guest_id(cls, *, phase_hint: Any, flow_hint: Any) -> bool:
+        phase_norm = cls._normalize_phase_identifier(phase_hint)
+        if phase_norm == "pre_booking":
+            return True
+        flow_norm = cls._normalize_flow_identifier(flow_hint)
+        return flow_norm in {"engage", "booking", "booking_bot", "pre_booking", "prebooking"}
+
+    def _derive_context_guest_id(
+        self,
+        *,
+        context: ConversationContext,
+        integration: dict[str, Any],
+    ) -> str:
+        seed_parts = [
+            str(context.session_id or "").strip(),
+            str(context.hotel_code or "").strip(),
+            str(integration.get("conversation_id") or "").strip(),
+            str(integration.get("group_id") or "").strip(),
+            str(integration.get("guest_phone") or integration.get("wa_number") or context.guest_phone or "").strip(),
+            str(integration.get("room_number") or context.room_number or "").strip(),
+        ]
+        seed = "|".join(part for part in seed_parts if part)
+        return self._build_generated_guest_id(seed or str(context.session_id or "").strip())
+
+    @classmethod
+    def _extract_stay_window_updates_from_message(cls, message: str) -> dict[str, str]:
+        text = str(message or "").strip()
+        if not text:
+            return {}
+        normalized = re.sub(r"\s+", " ", text).strip()
+        lowered = normalized.lower()
+
+        month_token = (
+            r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|"
+            r"aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+        )
+        date_token = (
+            rf"(?:\d{{4}}-\d{{1,2}}-\d{{1,2}}|"
+            rf"{month_token}\s+\d{{1,2}}(?:st|nd|rd|th)?(?:\s*,?\s*\d{{4}})?|"
+            rf"\d{{1,2}}(?:st|nd|rd|th)?\s+{month_token}(?:\s*,?\s*\d{{4}})?)"
+        )
+
+        def _parse_iso(value: str) -> str:
+            parsed = cls._parse_compact_calendar_date(
+                value,
+                reference_year=date.today().year,
+            )
+            return parsed.isoformat() if parsed is not None else ""
+
+        updates: dict[str, str] = {}
+
+        check_in_patterns = (
+            rf"\b(?:check[\s-]?in|arrival|arrive(?:\s+on)?)\b[^.!?\n\r]*?(?P<date>{date_token})",
+        )
+        check_out_patterns = (
+            rf"\b(?:check[\s-]?out|departure|depart(?:\s+on)?)\b[^.!?\n\r]*?(?P<date>{date_token})",
+        )
+
+        for pattern in check_in_patterns:
+            match = re.search(pattern, lowered, flags=re.IGNORECASE)
+            if not match:
+                continue
+            parsed = _parse_iso(str(match.group("date") or "").strip())
+            if parsed:
+                updates["check_in"] = parsed
+                break
+
+        for pattern in check_out_patterns:
+            match = re.search(pattern, lowered, flags=re.IGNORECASE)
+            if not match:
+                continue
+            parsed = _parse_iso(str(match.group("date") or "").strip())
+            if parsed:
+                updates["check_out"] = parsed
+                break
+
+        stay_markers = (
+            "check in",
+            "check-in",
+            "check out",
+            "check-out",
+            "stay",
+            "arrival",
+            "departure",
+            "arrive",
+            "depart",
+        )
+        has_stay_marker = any(marker in lowered for marker in stay_markers)
+        if has_stay_marker and ("check_in" not in updates or "check_out" not in updates):
+            range_patterns = (
+                rf"\bfrom\s+(?P<start>{date_token})\s*(?:to|till|until|-)\s*(?P<end>{date_token})",
+                rf"\bbetween\s+(?P<start>{date_token})\s+and\s+(?P<end>{date_token})",
+                rf"\b(?P<start>{date_token})\s*(?:to|till|until|-)\s*(?P<end>{date_token})\b",
+            )
+            for pattern in range_patterns:
+                match = re.search(pattern, lowered, flags=re.IGNORECASE)
+                if not match:
+                    continue
+                start_value = _parse_iso(str(match.group("start") or "").strip())
+                end_value = _parse_iso(str(match.group("end") or "").strip())
+                if start_value and end_value:
+                    updates.setdefault("check_in", start_value)
+                    updates.setdefault("check_out", end_value)
+                    break
+
+        return updates
+
+    @staticmethod
+    def _extract_guest_phone_candidate(message: str) -> str:
+        text = str(message or "").strip()
+        if not text:
+            return ""
+        compact = re.sub(r"[\s\-\(\)]", "", text)
+        if re.fullmatch(r"\+?\d{7,15}", compact):
+            return compact
+
+        lower = text.lower()
+        has_phone_marker = any(
+            marker in lower
+            for marker in ("phone", "mobile", "contact", "number", "whatsapp", "wa ")
+        )
+        for match in re.finditer(r"(?<!\d)\+?\d[\d\s\-\(\)]{8,20}\d(?!\d)", text):
+            candidate = str(match.group(0) or "").strip()
+            digits = re.sub(r"\D", "", candidate)
+            if len(digits) < 7 or len(digits) > 15:
+                continue
+            if has_phone_marker or len(digits) >= 11:
+                return f"+{digits}" if candidate.startswith("+") else digits
+        return ""
+
+    @staticmethod
+    def _extract_guest_name_candidate(message: str) -> str:
+        text = str(message or "").strip()
+        if not text:
+            return ""
+        patterns = (
+            r"\bmy name is\s+(?P<name>[A-Za-z][A-Za-z'\- ]{1,60})",
+            r"\bname is\s+(?P<name>[A-Za-z][A-Za-z'\- ]{1,60})",
+            r"\bname\s*:\s*(?P<name>[A-Za-z][A-Za-z'\- ]{1,60})",
+            r"\bthis is\s+(?P<name>[A-Za-z][A-Za-z'\- ]{1,60})",
+        )
+        for pattern in patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if not match:
+                continue
+            candidate = str(match.group("name") or "").strip()
+            if not candidate:
+                continue
+            candidate = re.split(r"[,.!?;\n\r]", candidate, maxsplit=1)[0].strip()
+            candidate = re.split(
+                r"\b(?:and|phone|mobile|contact|number|whatsapp|wa)\b",
+                candidate,
+                maxsplit=1,
+                flags=re.IGNORECASE,
+            )[0].strip()
+            tokens = [tok for tok in re.findall(r"[A-Za-z']+", candidate) if len(tok) >= 2]
+            if not tokens or len(tokens) > 4:
+                continue
+            return " ".join(token[:1].upper() + token[1:] for token in tokens)
+        return ""
+
+    def _sync_stay_window_from_messages(
+        self,
+        *,
+        context: ConversationContext,
+        raw_message: str,
+        processed_message: str,
+    ) -> None:
+        if not isinstance(context.pending_data, dict):
+            context.pending_data = {}
+        pending = context.pending_data
+        integration_raw = pending.get("_integration", {})
+        integration: dict[str, Any] = dict(integration_raw) if isinstance(integration_raw, dict) else {}
+
+        merged_updates: dict[str, str] = {}
+        for candidate in (processed_message, raw_message):
+            extracted = self._extract_stay_window_updates_from_message(candidate)
+            if not extracted:
+                continue
+            for key, value in extracted.items():
+                if value and not merged_updates.get(key):
+                    merged_updates[key] = value
+        if not merged_updates:
+            return
+
+        check_in_text = str(merged_updates.get("check_in") or "").strip()
+        check_out_text = str(merged_updates.get("check_out") or "").strip()
+
+        if check_in_text:
+            pending["check_in"] = check_in_text
+            pending["stay_checkin_date"] = check_in_text
+            integration["check_in"] = check_in_text
+            integration["stay_checkin_date"] = check_in_text
+        if check_out_text:
+            pending["check_out"] = check_out_text
+            pending["stay_checkout_date"] = check_out_text
+            integration["check_out"] = check_out_text
+            integration["stay_checkout_date"] = check_out_text
+
+        pending["_integration"] = integration
+        stay_window = self._resolve_known_stay_window(
+            context=context,
+            pending_data=pending,
+            entities={},
+        )
+        if stay_window is not None:
+            normalized_check_in = stay_window[0].isoformat()
+            normalized_check_out = stay_window[1].isoformat()
+            pending["check_in"] = normalized_check_in
+            pending["check_out"] = normalized_check_out
+            pending["stay_checkin_date"] = normalized_check_in
+            pending["stay_checkout_date"] = normalized_check_out
+            pending["stay_date_range"] = f"{normalized_check_in} to {normalized_check_out}"
+            integration["check_in"] = normalized_check_in
+            integration["check_out"] = normalized_check_out
+            integration["stay_checkin_date"] = normalized_check_in
+            integration["stay_checkout_date"] = normalized_check_out
+
+        pending["_integration"] = integration
+
     def _ingest_request_metadata(self, context: ConversationContext, request: ChatRequest) -> None:
         """
         Persist integration identifiers from ChatRequest metadata into context.
@@ -15664,7 +16288,9 @@ class ChatService:
             "group_id": ("group_id",),
             "conversation_id": ("conversation_id",),
             "agent_id": ("agent_id", "staff_id"),
-            "phase": ("phase",),
+            "phase": ("phase", "phase_id"),
+            "check_in": ("check_in", "stay_checkin_date", "checkin_date"),
+            "check_out": ("check_out", "stay_checkout_date", "checkout_date"),
             "message_id": ("message_id",),
             "ticket_source": ("ticket_source", "source"),
             "flow": ("flow", "bot_mode"),
@@ -15694,12 +16320,291 @@ class ChatService:
             if room_number:
                 context.room_number = room_number
 
+        phase_hint = self._normalize_phase_identifier(
+            integration.get("phase")
+            or metadata.get("phase")
+            or metadata.get("phase_id")
+            or context.pending_data.get("phase")
+        )
+        flow_hint = self._normalize_flow_identifier(
+            integration.get("flow")
+            or metadata.get("flow")
+            or metadata.get("bot_mode")
+        )
+        if not str(integration.get("guest_id") or "").strip() and self._should_auto_generate_guest_id(
+            phase_hint=phase_hint,
+            flow_hint=flow_hint,
+        ):
+            generated_guest_id = self._derive_context_guest_id(
+                context=context,
+                integration=integration,
+            )
+            if generated_guest_id:
+                integration["guest_id"] = generated_guest_id
+                context.pending_data.setdefault("guest_id", generated_guest_id)
+
+        check_in_text = str(integration.get("check_in") or "").strip()
+        check_out_text = str(integration.get("check_out") or "").strip()
+        if check_in_text:
+            context.pending_data["check_in"] = check_in_text
+            context.pending_data["stay_checkin_date"] = check_in_text
+            integration["stay_checkin_date"] = check_in_text
+        if check_out_text:
+            context.pending_data["check_out"] = check_out_text
+            context.pending_data["stay_checkout_date"] = check_out_text
+            integration["stay_checkout_date"] = check_out_text
+
         context.pending_data["_integration"] = integration
+        stay_window = self._resolve_known_stay_window(
+            context=context,
+            pending_data=context.pending_data,
+            entities={},
+        )
+        if stay_window is not None:
+            normalized_check_in = stay_window[0].isoformat()
+            normalized_check_out = stay_window[1].isoformat()
+            context.pending_data["check_in"] = normalized_check_in
+            context.pending_data["check_out"] = normalized_check_out
+            context.pending_data["stay_checkin_date"] = normalized_check_in
+            context.pending_data["stay_checkout_date"] = normalized_check_out
+            context.pending_data["stay_date_range"] = f"{normalized_check_in} to {normalized_check_out}"
+            integration["check_in"] = normalized_check_in
+            integration["check_out"] = normalized_check_out
+            integration["stay_checkin_date"] = normalized_check_in
+            integration["stay_checkout_date"] = normalized_check_out
+            context.pending_data["_integration"] = integration
+
+    @staticmethod
+    def _normalize_runtime_service_id(value: Any) -> str:
+        return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+    @classmethod
+    def _merge_service_catalog_from_db(
+        cls,
+        *,
+        base_catalog: Any,
+        db_services: Any,
+    ) -> list[dict[str, Any]]:
+        base_rows = [dict(row) for row in (base_catalog or []) if isinstance(row, dict)]
+        db_rows = [dict(row) for row in (db_services or []) if isinstance(row, dict)]
+
+        base_by_id: dict[str, dict[str, Any]] = {}
+        passthrough_rows: list[dict[str, Any]] = []
+        for row in base_rows:
+            sid = cls._normalize_runtime_service_id(row.get("id"))
+            if sid:
+                base_by_id[sid] = row
+            else:
+                passthrough_rows.append(row)
+
+        merged_rows: list[dict[str, Any]] = []
+        overlay_fields = (
+            "id",
+            "name",
+            "type",
+            "description",
+            "cuisine",
+            "hours",
+            "delivery_zones",
+            "is_active",
+            "is_builtin",
+            "phase_id",
+            "ticketing_enabled",
+            "ticketing_policy",
+            "service_prompt_pack",
+            "service_prompt_pack_custom",
+            "generated_system_prompt",
+        )
+
+        for db_row in db_rows:
+            sid = cls._normalize_runtime_service_id(db_row.get("id"))
+            if not sid:
+                continue
+            merged = dict(base_by_id.pop(sid, {}))
+            for field in overlay_fields:
+                if field in db_row:
+                    merged[field] = db_row.get(field)
+            merged["id"] = str(merged.get("id") or sid).strip() or sid
+            merged_rows.append(merged)
+
+        merged_rows.extend(base_by_id.values())
+        merged_rows.extend(passthrough_rows)
+        return merged_rows
+
+    @staticmethod
+    def _build_restaurants_from_service_catalog(service_catalog: Any) -> list[dict[str, Any]]:
+        rows = [dict(item) for item in (service_catalog or []) if isinstance(item, dict)]
+        restaurants: list[dict[str, Any]] = []
+        for service in rows:
+            service_type = str(service.get("type") or "").strip().lower()
+            if not any(token in service_type for token in ("restaurant", "dining", "food", "outlet")):
+                continue
+
+            hours_value = service.get("hours")
+            if not isinstance(hours_value, dict):
+                hours_value = {}
+
+            delivery_zones = service.get("delivery_zones")
+            if not isinstance(delivery_zones, list):
+                delivery_zones = []
+            normalized_zones = [str(zone).strip().lower() for zone in delivery_zones if str(zone).strip()]
+            delivers_to_room = any(zone in {"room", "room_delivery", "in_room"} for zone in normalized_zones)
+            dine_in_only = "dine_in_only" in normalized_zones or (bool(normalized_zones) and not delivers_to_room)
+
+            restaurants.append(
+                {
+                    "id": service.get("id"),
+                    "name": service.get("name"),
+                    "cuisine": str(service.get("cuisine") or service.get("description") or "").strip(),
+                    "description": service.get("description", ""),
+                    "hours": hours_value,
+                    "is_active": bool(service.get("is_active", True)),
+                    "delivers_to_room": delivers_to_room,
+                    "dine_in_only": dine_in_only,
+                }
+            )
+        return restaurants
+
+    async def _overlay_capabilities_from_db_config(self, capabilities_summary: dict[str, Any]) -> dict[str, Any]:
+        merged = dict(capabilities_summary or {})
+        if not bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
+            return merged
+
+        try:
+            db_business = await db_config_service.get_business_info()
+            if isinstance(db_business, dict) and db_business:
+                merged["business_id"] = str(
+                    db_business.get("id") or merged.get("business_id") or ""
+                ).strip()
+                business_name = str(
+                    db_business.get("name")
+                    or merged.get("business_name")
+                    or merged.get("hotel_name")
+                    or ""
+                ).strip()
+                if business_name:
+                    merged["business_name"] = business_name
+                    merged["hotel_name"] = business_name
+                for key in ("city", "timezone", "currency", "language", "welcome_message", "bot_name"):
+                    value = db_business.get(key)
+                    if value not in (None, ""):
+                        merged[key] = value
+        except Exception:
+            pass
+
+        try:
+            db_capabilities = await db_config_service.get_capabilities()
+            if isinstance(db_capabilities, dict):
+                merged["capabilities"] = db_capabilities
+                services_summary: dict[str, Any] = {}
+                for cap_id, cap_data in db_capabilities.items():
+                    if not isinstance(cap_data, dict):
+                        continue
+                    cap_key = str(cap_id).strip()
+                    if not cap_key:
+                        continue
+                    services_summary[cap_key] = bool(cap_data.get("enabled", False))
+                    if cap_data.get("hours"):
+                        services_summary[f"{cap_key}_hours"] = cap_data.get("hours")
+                merged["services"] = services_summary
+        except Exception:
+            pass
+
+        try:
+            db_intents = await db_config_service.get_intents()
+            if isinstance(db_intents, list):
+                merged["intents"] = db_intents
+        except Exception:
+            pass
+
+        try:
+            db_services = await db_config_service.get_services()
+            if isinstance(db_services, list):
+                merged_catalog = self._merge_service_catalog_from_db(
+                    base_catalog=merged.get("service_catalog", []),
+                    db_services=db_services,
+                )
+                merged["service_catalog"] = merged_catalog
+                merged["restaurants"] = self._build_restaurants_from_service_catalog(merged_catalog)
+        except Exception:
+            pass
+
+        return merged
+
+    async def _load_latest_kb_text_from_db(
+        self,
+        *,
+        db_session,
+        hotel_code: str = "",
+        max_chars: int = 90000,
+    ) -> str:
+        if db_session is None:
+            return ""
+
+        from sqlalchemy import select
+        from models.database import Hotel, KBFile
+
+        code = str(hotel_code or "DEFAULT").strip() or "DEFAULT"
+        hotel_id = None
+        try:
+            result = await db_session.execute(
+                select(Hotel.id).where(Hotel.code == code).limit(1)
+            )
+            hotel_id = result.scalar_one_or_none()
+            if hotel_id is None and code != "DEFAULT":
+                fallback = await db_session.execute(
+                    select(Hotel.id).where(Hotel.code == "DEFAULT").limit(1)
+                )
+                hotel_id = fallback.scalar_one_or_none()
+            if hotel_id is None:
+                any_hotel = await db_session.execute(
+                    select(Hotel.id).order_by(Hotel.id.asc()).limit(1)
+                )
+                hotel_id = any_hotel.scalar_one_or_none()
+            if hotel_id is None:
+                return ""
+
+            row = await db_session.execute(
+                select(KBFile.content)
+                .where(KBFile.hotel_id == hotel_id)
+                .order_by(KBFile.id.desc())
+                .limit(1)
+            )
+            content = str(row.scalar_one_or_none() or "").strip()
+            if not content:
+                return ""
+            if max_chars and max_chars > 0:
+                return content[:max_chars]
+            return content
+        except Exception:
+            return ""
+
+    async def _load_kb_text_with_db_preference(
+        self,
+        *,
+        db_session,
+        hotel_code: str = "",
+        max_chars: int = 90000,
+    ) -> str:
+        kb_text = str(config_service.get_full_kb_text(max_chars=max_chars) or "").strip()
+        db_kb_text = await self._load_latest_kb_text_from_db(
+            db_session=db_session,
+            hotel_code=hotel_code,
+            max_chars=max_chars,
+        )
+        prefer_db_kb = bool(getattr(settings, "chat_db_prefer_kb_content", False))
+        if prefer_db_kb and db_kb_text:
+            return db_kb_text
+        if not kb_text and db_kb_text:
+            return db_kb_text
+        if db_kb_text and len(kb_text) < 2500:
+            return (kb_text + "\n\n" + db_kb_text).strip()[:max_chars]
+        return kb_text
 
     async def _augment_capabilities_from_db(self, capabilities_summary: dict, db_session=None) -> dict:
         """
-        Merge runtime DB service rows into capability summary for backward compatibility
-        with legacy schemas that still store service outlets in `new_bot_restaurants`.
+        Overlay DB runtime configuration and merge legacy restaurant rows so
+        prompt inputs stay DB-aware without breaking existing compatibility.
         """
         if db_session is None:
             return capabilities_summary
@@ -15707,14 +16612,15 @@ class ChatService:
         from sqlalchemy import select
         from models.database import Hotel, Restaurant
 
-        merged = dict(capabilities_summary or {})
+        merged = await self._overlay_capabilities_from_db_config(dict(capabilities_summary or {}))
         service_catalog = list(merged.get("service_catalog", []) or [])
 
         existing_service_ids = {
-            str(service.get("id") or "").strip().lower()
+            self._normalize_runtime_service_id(service.get("id"))
             for service in service_catalog
             if isinstance(service, dict)
         }
+        existing_service_ids.discard("")
 
         hotel_id = merged.get("hotel_id")
         if hotel_id is None:
@@ -15732,6 +16638,9 @@ class ChatService:
             if hotel_row is not None:
                 hotel_id = hotel_row.id
         if hotel_id is None:
+            merged["service_catalog"] = service_catalog
+            if not isinstance(merged.get("restaurants"), list):
+                merged["restaurants"] = self._build_restaurants_from_service_catalog(service_catalog)
             return merged
 
         rows = (
@@ -15741,11 +16650,11 @@ class ChatService:
         ).scalars().all()
 
         for row in rows:
-            service_id = str(row.code or "").strip().lower()
+            service_id = self._normalize_runtime_service_id(row.code)
             if not service_id:
                 continue
             if service_id not in existing_service_ids and not config_service.is_menu_runtime_enabled():
-                # In RAG-first mode, keep JSON/admin services as authoritative.
+                # In RAG-first mode, keep admin services as authoritative.
                 continue
 
             hours_open = row.opens_at.strftime("%H:%M:%S") if row.opens_at else "00:00:00"
@@ -15769,7 +16678,8 @@ class ChatService:
 
         merged["hotel_id"] = hotel_id
         merged["service_catalog"] = service_catalog
-        merged["restaurants"] = []
+        if not isinstance(merged.get("restaurants"), list) or not merged.get("restaurants"):
+            merged["restaurants"] = self._build_restaurants_from_service_catalog(service_catalog)
         return merged
 
 

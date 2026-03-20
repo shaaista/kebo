@@ -733,8 +733,12 @@ async def upload_rag_files(
     except Exception:
         pass
 
-    # Trigger LLM-based service knowledge enrichment after KB upload (non-blocking)
-    asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
+    # Trigger service knowledge refresh after KB upload (non-blocking).
+    # This must never fail the upload response path.
+    try:
+        asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
+    except Exception as enrich_schedule_error:
+        print(f"[KB] Service-KB refresh scheduling failed (non-fatal): {enrich_schedule_error}")
 
     return {
         "tenant_id": normalized_tenant,

@@ -75,6 +75,7 @@ class ChatResponse(BaseModel):
 
     session_id: str
     message: str
+    display_message: str | None = None
     service_llm_label: str | None = None
     service_llm_confidence: float | None = Field(default=None, ge=0.0, le=1.0)
     state: ConversationState

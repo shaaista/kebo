@@ -8,6 +8,7 @@ Adds runtime enforcement for admin NLU do/don't guardrails.
 from __future__ import annotations
 
 import re
+from datetime import date, datetime, timedelta
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -401,6 +402,26 @@ class ResponseValidator:
                 issues=issues,
                 action="replace",
                 replacement_response=phase_cta_rewrite,
+            )
+
+        # Rule 1g: Once stay window is known, avoid proposing transactional dates outside it.
+        stay_window_rewrite = self._build_stay_window_safe_response_if_needed(
+            response_text=response_text,
+            response_lower=response_lower,
+            context=context,
+        )
+        if stay_window_rewrite is not None:
+            issues.append(
+                ValidationIssue(
+                    code="stay_window_date_violation",
+                    message="Response proposes a transactional date outside known stay window.",
+                )
+            )
+            return ValidationResult(
+                valid=False,
+                issues=issues,
+                action="replace",
+                replacement_response=stay_window_rewrite,
             )
 
         # Rule 1e: Keep recommendation scope on the current property only.
@@ -1345,6 +1366,215 @@ class ResponseValidator:
                 "For beach plans specifically, I can share practical options near the hotel area and expected travel time windows."
             )
         return " ".join(part.strip() for part in parts if part and part.strip()).strip()
+
+    @staticmethod
+    def _first_non_empty(*values: object) -> str:
+        for value in values:
+            text = str(value or "").strip()
+            if text:
+                return text
+        return ""
+
+    @staticmethod
+    def _parse_compact_calendar_date(value: object, *, reference_year: int | None = None) -> date | None:
+        text = str(value or "").strip()
+        if not text:
+            return None
+        text = re.sub(r"(\d)(st|nd|rd|th)\b", r"\1", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s+", " ", text).strip()
+
+        iso_match = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", text)
+        if iso_match:
+            try:
+                return date(int(iso_match.group(1)), int(iso_match.group(2)), int(iso_match.group(3)))
+            except ValueError:
+                return None
+
+        month_first_match = re.fullmatch(
+            r"([A-Za-z]{3,9})\s+(\d{1,2})(?:\s*,?\s*(\d{4}))?",
+            text,
+            flags=re.IGNORECASE,
+        )
+        day_first_match = re.fullmatch(
+            r"(\d{1,2})\s+([A-Za-z]{3,9})(?:\s*,?\s*(\d{4}))?",
+            text,
+            flags=re.IGNORECASE,
+        )
+
+        parsed: date | None = None
+        if month_first_match:
+            month_token = month_first_match.group(1)
+            day_token = month_first_match.group(2)
+            year_token = month_first_match.group(3)
+            year = int(year_token) if year_token else int(reference_year or date.today().year)
+            compact = f"{month_token} {day_token} {year}"
+            for parser in ("%b %d %Y", "%B %d %Y"):
+                try:
+                    parsed = datetime.strptime(compact, parser).date()
+                    break
+                except ValueError:
+                    continue
+        elif day_first_match:
+            day_token = day_first_match.group(1)
+            month_token = day_first_match.group(2)
+            year_token = day_first_match.group(3)
+            year = int(year_token) if year_token else int(reference_year or date.today().year)
+            compact = f"{day_token} {month_token} {year}"
+            for parser in ("%d %b %Y", "%d %B %Y"):
+                try:
+                    parsed = datetime.strptime(compact, parser).date()
+                    break
+                except ValueError:
+                    continue
+
+        if parsed is None:
+            return None
+        if reference_year is None and not re.search(r"\b\d{4}\b", text):
+            today_local = date.today()
+            if parsed < (today_local - timedelta(days=183)):
+                try:
+                    parsed = parsed.replace(year=parsed.year + 1)
+                except ValueError:
+                    pass
+        return parsed
+
+    @classmethod
+    def _extract_explicit_dates_from_text(cls, text: str) -> list[date]:
+        normalized = str(text or "").strip().lower()
+        if not normalized:
+            return []
+
+        month_token = (
+            r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|"
+            r"aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+        )
+        patterns = (
+            rf"\b({month_token})\s+(\d{{1,2}})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{{4}}))?\b",
+            rf"\b(\d{{1,2}})(?:st|nd|rd|th)?\s+({month_token})(?:\s*,?\s*(\d{{4}}))?\b",
+            r"\b(\d{4}-\d{1,2}-\d{1,2})\b",
+        )
+
+        dates: list[date] = []
+        seen: set[str] = set()
+
+        for pattern in patterns:
+            for match in re.finditer(pattern, normalized, flags=re.IGNORECASE):
+                chunk = str(match.group(0) or "").strip()
+                parsed = cls._parse_compact_calendar_date(chunk)
+                if parsed is None:
+                    continue
+                key = parsed.isoformat()
+                if key in seen:
+                    continue
+                seen.add(key)
+                dates.append(parsed)
+
+        today_local = date.today()
+        relative_markers = {
+            "today": today_local,
+            "tomorrow": today_local + timedelta(days=1),
+            "day after tomorrow": today_local + timedelta(days=2),
+        }
+        for marker, parsed in relative_markers.items():
+            if marker not in normalized:
+                continue
+            key = parsed.isoformat()
+            if key in seen:
+                continue
+            seen.add(key)
+            dates.append(parsed)
+
+        return dates
+
+    @classmethod
+    def _resolve_known_stay_window(cls, context: ConversationContext) -> tuple[date, date] | None:
+        pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        integration = pending.get("_integration", {})
+        if not isinstance(integration, dict):
+            integration = {}
+        memory = pending.get("_memory", {})
+        if not isinstance(memory, dict):
+            memory = {}
+        facts = memory.get("facts", {})
+        if not isinstance(facts, dict):
+            facts = {}
+
+        check_in_text = cls._first_non_empty(
+            pending.get("check_in"),
+            pending.get("stay_checkin_date"),
+            pending.get("checkin_date"),
+            integration.get("check_in"),
+            integration.get("stay_checkin_date"),
+            facts.get("check_in"),
+            facts.get("stay_checkin_date"),
+            facts.get("checkin_date"),
+        )
+        check_out_text = cls._first_non_empty(
+            pending.get("check_out"),
+            pending.get("stay_checkout_date"),
+            pending.get("checkout_date"),
+            integration.get("check_out"),
+            integration.get("stay_checkout_date"),
+            facts.get("check_out"),
+            facts.get("stay_checkout_date"),
+            facts.get("checkout_date"),
+        )
+        if not check_in_text or not check_out_text:
+            return None
+
+        current_year = date.today().year
+        parsed_check_in = cls._parse_compact_calendar_date(check_in_text, reference_year=current_year)
+        parsed_check_out = cls._parse_compact_calendar_date(check_out_text, reference_year=current_year)
+        if parsed_check_in is None or parsed_check_out is None:
+            return None
+        if parsed_check_out < parsed_check_in:
+            try:
+                parsed_check_out = parsed_check_out.replace(year=parsed_check_out.year + 1)
+            except ValueError:
+                return None
+        if parsed_check_out < parsed_check_in:
+            return None
+        return (parsed_check_in, parsed_check_out)
+
+    def _response_looks_transactional(self, response_lower: str) -> bool:
+        text = str(response_lower or "").strip().lower()
+        if not text:
+            return False
+        if self._response_invites_transaction_action(text):
+            return True
+        if self._looks_like_promise(text):
+            return True
+        return any(term in text for term in self._SERVICE_ACTION_TERMS)
+
+    def _build_stay_window_safe_response_if_needed(
+        self,
+        *,
+        response_text: str,
+        response_lower: str,
+        context: ConversationContext,
+    ) -> Optional[str]:
+        stay_window = self._resolve_known_stay_window(context)
+        if stay_window is None:
+            return None
+        if not self._response_looks_transactional(response_lower):
+            return None
+
+        response_dates = self._extract_explicit_dates_from_text(response_text)
+        if not response_dates:
+            return None
+
+        check_in, check_out = stay_window
+        out_of_window = [day for day in response_dates if day < check_in or day > check_out]
+        if not out_of_window:
+            return None
+
+        check_in_label = check_in.strftime("%b %d")
+        check_out_label = check_out.strftime("%b %d")
+        return (
+            f"Your stay dates are {check_in_label} to {check_out_label}. "
+            "I can help schedule this within those dates. "
+            f"Please share a date between {check_in_label} and {check_out_label}."
+        )
 
 
 # Global instance

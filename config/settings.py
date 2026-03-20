@@ -140,6 +140,12 @@ class Settings(BaseSettings):
     chat_llm_response_surface_max_tokens: int = 420
     chat_llm_response_surface_rewrite_replacements: bool = True
     chat_llm_response_surface_rewrite_llm_outputs: bool = False
+    chat_display_beautifier_enabled: bool = True
+    chat_display_beautifier_use_llm: bool = True
+    chat_display_beautifier_model: str = ""
+    chat_display_beautifier_temperature: float = 0.2
+    chat_display_beautifier_max_tokens: int = 420
+    chat_display_beautifier_min_similarity: float = 0.25
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_collection: str = "kepsla_kb_chunks"
@@ -149,6 +155,10 @@ class Settings(BaseSettings):
     max_conversation_history: int = 20
     context_window_tokens: int = 8000
     session_ttl_hours: int = 24
+    chat_db_first_mode: bool = True
+    chat_db_allow_inmemory_fallback: bool = False
+    chat_db_overlay_runtime_config: bool = True
+    chat_db_prefer_kb_content: bool = True
     conversation_local_store_enabled: bool = True
     chat_test_phase_profile_auto_apply: bool = True
     chat_test_phase_profiles_json: str = ""

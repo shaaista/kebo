@@ -98,7 +98,6 @@ function sanitizeTestProfile(input) {
     if (!profile.entity_id && profile.organisation_id) {
         profile.entity_id = profile.organisation_id;
     }
-    if (!profile.guest_id) return null;
     return profile;
 }
 
@@ -355,7 +354,8 @@ async function sendMessage(message, interactionMeta = null) {
         loadingEl.remove();
 
         // Add bot response to UI
-        addMessageToUI('assistant', data.message, data);
+        const displayMessage = resolveAssistantDisplayMessage(data);
+        addMessageToUI('assistant', displayMessage, data);
 
         // Update session info
         updateSessionInfoFromResponse(data);
@@ -388,6 +388,15 @@ async function sendMessage(message, interactionMeta = null) {
     }
 }
 
+function resolveAssistantDisplayMessage(data) {
+    if (!data || typeof data !== 'object') return '';
+    const displayField = String(data.display_message || '').trim();
+    if (displayField) return displayField;
+    const metadataDisplay = String(data.metadata?.display_message || '').trim();
+    if (metadataDisplay) return metadataDisplay;
+    return String(data.message || '').trim();
+}
+
 // Add message to UI
 function addMessageToUI(role, content, data = null) {
     // Remove welcome message if exists
@@ -397,7 +406,10 @@ function addMessageToUI(role, content, data = null) {
     const messageEl = document.createElement('div');
     messageEl.className = `message ${role}`;
 
-    let html = `<div class="message-content">${escapeHtml(content)}</div>`;
+    const renderedContent = role === 'assistant'
+        ? renderAssistantMessageHtml(content)
+        : escapeHtml(content);
+    let html = `<div class="message-content">${renderedContent}</div>`;
 
     if (role === 'assistant' && data) {
         const label = data.service_llm_label || (data.metadata && data.metadata.service_llm_label);
@@ -413,7 +425,26 @@ function addMessageToUI(role, content, data = null) {
     elements.chatMessages.appendChild(messageEl);
     scrollToBottom();
 
-    state.messages.push({ role, content, data });
+    const canonicalContent = (
+        role === 'assistant' && data && typeof data === 'object'
+    )
+        ? String(data.message || content || '')
+        : String(content || '');
+    state.messages.push({
+        role,
+        content: canonicalContent,
+        display_content: String(content || ''),
+        data,
+    });
+}
+
+function renderAssistantMessageHtml(text) {
+    const escaped = escapeHtml(text);
+    if (!escaped) return '';
+    let rendered = escaped;
+    rendered = rendered.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+    rendered = rendered.replace(/__([\s\S]+?)__/g, '<strong>$1</strong>');
+    return rendered;
 }
 
 // Show loading indicator

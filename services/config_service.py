@@ -3321,6 +3321,34 @@ class ConfigService:
             "compiler_version": compiler_version,
         }
 
+    async def enrich_service_kb_records(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        force: bool = False,
+        max_facts_per_service: Optional[int] = None,
+        preserve_manual: bool = True,
+        published_by: str = "system",
+    ) -> dict[str, Any]:
+        """
+        Backward-compatible async wrapper used by admin routes.
+
+        Older code paths call `enrich_service_kb_records`; current pipeline uses
+        `compile_service_kb_records` as the authoritative service-KB refresh step.
+        """
+        result = self.compile_service_kb_records(
+            service_id=service_id,
+            force=force,
+            max_facts_per_service=max_facts_per_service,
+            preserve_manual=preserve_manual,
+            published_by=published_by,
+        )
+        if not isinstance(result, dict):
+            result = {}
+        result.setdefault("mode", "compile_compat")
+        result.setdefault("service_id", self._normalize_identifier(service_id))
+        return result
+
     # ------------------------------------------------------------------
     # LLM-based service knowledge enrichment
     # ------------------------------------------------------------------

@@ -20,6 +20,7 @@ from services.everything_trace_service import everything_trace_service
 from services.conversation_audit_service import conversation_audit_service
 from services.turn_diagnostics_service import turn_diagnostics_service
 from services.response_beautifier_service import response_beautifier_service
+from services.db_config_service import db_config_service
 from config.settings import settings
 from core.context_manager import context_manager
 from models.database import KBFile, Hotel, get_db
@@ -30,6 +31,13 @@ from sqlalchemy.exc import OperationalError
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
 
 _DEFAULT_CHAT_TEST_PHASE_PROFILES: dict[str, dict[str, str]] = {
+    "pre_booking": {
+        "guest_id": "921345",
+        "entity_id": "5703",
+        "organisation_id": "5703",
+        "ticket_source": "whatsapp_bot",
+        "flow": "booking_bot",
+    },
     "pre_checkin": {
         "guest_id": "921346",
         "entity_id": "5703",
@@ -104,10 +112,6 @@ def _normalize_chat_test_profile(profile: Any) -> dict[str, str]:
     if "organisation_id" not in normalized and "entity_id" in normalized:
         normalized["organisation_id"] = normalized["entity_id"]
 
-    # Profiles are only valid when guest_id is present.
-    if not str(normalized.get("guest_id") or "").strip():
-        return {}
-
     return normalized
 
 
@@ -120,10 +124,16 @@ def _load_chat_test_phase_profiles() -> dict[str, dict[str, str]]:
         except Exception:
             parsed = {}
 
-    if not parsed:
-        parsed = dict(_DEFAULT_CHAT_TEST_PHASE_PROFILES)
+    defaults: dict[str, dict[str, str]] = {}
+    for phase_key, profile_payload in _DEFAULT_CHAT_TEST_PHASE_PROFILES.items():
+        phase_id = _normalize_phase_identifier(phase_key)
+        if not phase_id:
+            continue
+        profile = _normalize_chat_test_profile(profile_payload)
+        if profile:
+            defaults[phase_id] = profile
 
-    normalized: dict[str, dict[str, str]] = {}
+    overrides: dict[str, dict[str, str]] = {}
 
     if isinstance(parsed, list):
         for row in parsed:
@@ -134,21 +144,19 @@ def _load_chat_test_phase_profiles() -> dict[str, dict[str, str]]:
                 continue
             profile = _normalize_chat_test_profile(row)
             if profile:
-                normalized[phase_id] = profile
-        return normalized
+                overrides[phase_id] = profile
+    elif isinstance(parsed, dict):
+        for phase_key, profile_payload in parsed.items():
+            phase_id = _normalize_phase_identifier(phase_key)
+            if not phase_id:
+                continue
+            profile = _normalize_chat_test_profile(profile_payload)
+            if profile:
+                overrides[phase_id] = profile
 
-    if not isinstance(parsed, dict):
-        return normalized
-
-    for phase_key, profile_payload in parsed.items():
-        phase_id = _normalize_phase_identifier(phase_key)
-        if not phase_id:
-            continue
-        profile = _normalize_chat_test_profile(profile_payload)
-        if profile:
-            normalized[phase_id] = profile
-
-    return normalized
+    merged = dict(defaults)
+    merged.update(overrides)
+    return merged
 
 
 def _normalize_service_identifier(value: Any) -> str:
@@ -407,6 +415,23 @@ def _enrich_service_llm_display_fields(response: ChatResponse) -> None:
         metadata["service_llm_confidence"] = parsed_confidence
 
 
+async def _attach_display_message(response: ChatResponse) -> None:
+    """Create display-only beautified message without mutating canonical message."""
+    if not isinstance(response.metadata, dict):
+        response.metadata = {}
+    canonical = str(response.message or "").strip()
+    display_message, beautifier_meta = await response_beautifier_service.beautify_display_text(
+        canonical,
+        state=str(getattr(response.state, "value", response.state) or ""),
+        metadata=response.metadata,
+    )
+    response.display_message = str(display_message or canonical).strip()
+    response.metadata["display_message"] = response.display_message
+    response.metadata["canonical_message"] = canonical
+    if isinstance(beautifier_meta, dict):
+        response.metadata.update(beautifier_meta)
+
+
 @router.post("/message", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
@@ -447,6 +472,13 @@ async def send_message(
         summary = str(meta.get("conversation_summary") or meta.get("summary") or "").strip()
         from services.config_service import config_service as _cs
         _all_svcs = _cs.get_services()
+        if bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
+            try:
+                db_services = await db_config_service.get_services()
+                if isinstance(db_services, list) and db_services:
+                    _all_svcs = db_services
+            except Exception:
+                pass
         available_services = [str(s.get("id") or "") for s in (_all_svcs or []) if s.get("is_active", True)]
         log_chat_turn(
             session_id=str(request.session_id or ""),
@@ -462,7 +494,7 @@ async def send_message(
 
     try:
         response = await chat_service.process_message(request, db_session=db)
-        response.message = response_beautifier_service.beautify_response_text(response.message)
+        await _attach_display_message(response)
         if not isinstance(response.metadata, dict):
             response.metadata = {}
         _enrich_service_llm_display_fields(response)
@@ -527,10 +559,53 @@ async def send_message(
         )
         return response
     except OperationalError as e:
+        db_first_mode = bool(getattr(settings, "chat_db_first_mode", False))
+        allow_inmemory_fallback = bool(getattr(settings, "chat_db_allow_inmemory_fallback", True))
+        if db_first_mode and not allow_inmemory_fallback:
+            observability_service.log_event(
+                "chat_message_failed_db_required",
+                {
+                    "trace_id": trace_id,
+                    "session_id": request.session_id,
+                    "hotel_code": request.hotel_code,
+                    "error": str(e),
+                },
+            )
+            conversation_audit_service.log_failed_turn(
+                request=request,
+                trace_id=trace_id,
+                error=str(e),
+                db_fallback=False,
+            )
+            _trace_chat_event(
+                "chat_message_failed_db_required",
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                http_request=http_request,
+                request=request,
+                status_code=503,
+                error=str(e),
+                extra={
+                    "db_fallback": False,
+                    "db_first_mode": True,
+                    "db_required": True,
+                },
+            )
+            turn_diagnostics_service.log_turn_end(
+                request=request,
+                response=None,
+                db_fallback=False,
+                error=f"db_required: {str(e)}",
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Database is unavailable. DB-first mode requires database connectivity.",
+            )
+
         print(f"API DB Error (fallback to in-memory): {e}")
         try:
             response = await chat_service.process_message(request, db_session=None)
-            response.message = response_beautifier_service.beautify_response_text(response.message)
+            await _attach_display_message(response)
             if not isinstance(response.metadata, dict):
                 response.metadata = {}
             _enrich_service_llm_display_fields(response)
@@ -665,6 +740,13 @@ async def get_session(session_id: str, db: AsyncSession = Depends(get_db)):
     try:
         context = await context_manager.get_context(session_id, db_session=db)
     except OperationalError as e:
+        if bool(getattr(settings, "chat_db_first_mode", False)) and not bool(
+            getattr(settings, "chat_db_allow_inmemory_fallback", True)
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Database is unavailable. DB-first mode requires database connectivity.",
+            )
         print(f"API DB Error (get_session fallback to local store): {e}")
         context = await context_manager.get_context(session_id, db_session=None)
         db_fallback = True
@@ -707,6 +789,13 @@ async def delete_session(session_id: str, db: AsyncSession = Depends(get_db)):
     try:
         deleted = await context_manager.delete_context(session_id, db_session=db)
     except OperationalError as e:
+        if bool(getattr(settings, "chat_db_first_mode", False)) and not bool(
+            getattr(settings, "chat_db_allow_inmemory_fallback", True)
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Database is unavailable. DB-first mode requires database connectivity.",
+            )
         print(f"API DB Error (delete_session fallback to local store): {e}")
         deleted = await context_manager.delete_context(session_id, db_session=None)
         db_fallback = True
@@ -724,6 +813,13 @@ async def list_sessions(db: AsyncSession = Depends(get_db)):
     try:
         sessions = await context_manager.list_sessions(db_session=db)
     except OperationalError as e:
+        if bool(getattr(settings, "chat_db_first_mode", False)) and not bool(
+            getattr(settings, "chat_db_allow_inmemory_fallback", True)
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Database is unavailable. DB-first mode requires database connectivity.",
+            )
         print(f"API DB Error (list_sessions fallback to local store): {e}")
         sessions = await context_manager.list_sessions(db_session=None)
         db_fallback = True
@@ -736,6 +832,13 @@ async def list_sessions(db: AsyncSession = Depends(get_db)):
                 sid, db_session=summary_db_session
             )
         except OperationalError:
+            if bool(getattr(settings, "chat_db_first_mode", False)) and not bool(
+                getattr(settings, "chat_db_allow_inmemory_fallback", True)
+            ):
+                raise HTTPException(
+                    status_code=503,
+                    detail="Database is unavailable. DB-first mode requires database connectivity.",
+                )
             summary = await context_manager.get_conversation_summary(sid, db_session=None)
             db_fallback = True
         summaries.append(summary)
@@ -759,6 +862,13 @@ async def reset_session(session_id: str, db: AsyncSession = Depends(get_db)):
         context.pending_data = {}
         await context_manager.save_context(context, db_session=db)
     except OperationalError as e:
+        if bool(getattr(settings, "chat_db_first_mode", False)) and not bool(
+            getattr(settings, "chat_db_allow_inmemory_fallback", True)
+        ):
+            raise HTTPException(
+                status_code=503,
+                detail="Database is unavailable. DB-first mode requires database connectivity.",
+            )
         print(f"API DB Error (reset_session fallback to local store): {e}")
         context = await context_manager.get_context(session_id, db_session=None)
         if context is None:
@@ -848,6 +958,14 @@ async def get_contextual_suggestions(
         nlu_policy = cap_summary.get("nlu_policy", {})
         if not isinstance(nlu_policy, dict):
             nlu_policy = {}
+        runtime_overlay_db = bool(getattr(settings, "chat_db_overlay_runtime_config", False))
+        if runtime_overlay_db:
+            try:
+                db_caps = await db_config_service.get_capabilities()
+                if isinstance(db_caps, dict):
+                    raw_caps = db_caps
+            except Exception:
+                pass
 
         if request.session_id:
             try:
@@ -918,6 +1036,13 @@ async def get_contextual_suggestions(
                 pass
 
         phases = config_service.get_journey_phases()
+        if runtime_overlay_db:
+            try:
+                db_phases = await db_config_service.get_journey_phases()
+                if isinstance(db_phases, list) and db_phases:
+                    phases = db_phases
+            except Exception:
+                pass
         if not isinstance(phases, list):
             phases = []
         phase_obj = next(
@@ -962,6 +1087,13 @@ async def get_contextual_suggestions(
                 service_kb_by_service[sid] = dict(record)
 
         service_catalog = cap_summary.get("service_catalog", [])
+        if runtime_overlay_db:
+            try:
+                db_services = await db_config_service.get_services()
+                if isinstance(db_services, list):
+                    service_catalog = db_services
+            except Exception:
+                pass
         if not isinstance(service_catalog, list):
             service_catalog = []
         if not service_catalog:
@@ -1040,7 +1172,10 @@ async def get_contextual_suggestions(
             hotel_code=hotel_code,
             max_chars=42000,
         )
-        if not kb_text and db_kb_text:
+        prefer_db_kb = bool(getattr(settings, "chat_db_prefer_kb_content", False))
+        if prefer_db_kb and db_kb_text:
+            kb_text = db_kb_text
+        elif not kb_text and db_kb_text:
             kb_text = db_kb_text
         elif db_kb_text and len(kb_text) < 2500:
             kb_text = (kb_text + "\n\n" + db_kb_text).strip()[:42000]
