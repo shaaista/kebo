@@ -666,8 +666,6 @@ class DBConfigService:
 
                 if suppress_all_reconciled:
                     self.clear_service_delete_tombstones()
-                # Keep JSON in sync so the LLM prompt builder always reads current data.
-                self._sync_services_to_json(services)
                 return services
         except Exception as e:
             print(f"[DB] get_services failed, falling back to JSON: {e}")
@@ -720,8 +718,44 @@ class DBConfigService:
                     session.add(row)
                 await session.commit()
                 print(f"[DB] Upserted service {service_id}")
+                try:
+                    from services.flow_logger import log_service_config_save
+
+                    pack = row.service_prompt_pack if isinstance(row.service_prompt_pack, dict) else {}
+                    extracted_len = len(str((pack or {}).get("extracted_knowledge") or "").strip())
+                    log_service_config_save(
+                        action="add_or_upsert",
+                        source="db",
+                        service_id=service_id,
+                        service_name=str(row.name or service_id).strip(),
+                        description_len=len(str(row.description or "").strip()),
+                        ticketing_policy_len=len(str(row.ticketing_policy or "").strip()),
+                        extracted_knowledge_len=extracted_len,
+                        generated_prompt_len=len(str(row.generated_system_prompt or "").strip()),
+                        success=True,
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             print(f"[DB] add_service failed for {service_id}: {e}")
+            try:
+                from services.flow_logger import log_service_config_save
+
+                pack = prompt_pack if isinstance(prompt_pack, dict) else {}
+                log_service_config_save(
+                    action="add_or_upsert",
+                    source="db",
+                    service_id=service_id,
+                    service_name=str(service.get("name") or service_id).strip(),
+                    description_len=len(str(service.get("description") or "").strip()),
+                    ticketing_policy_len=len(str(service.get("ticketing_policy") or "").strip()),
+                    extracted_knowledge_len=len(str(pack.get("extracted_knowledge") or "").strip()),
+                    generated_prompt_len=0,
+                    success=False,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             return False
 
         # Re-adding a service should release any prior deletion tombstones.
@@ -773,8 +807,44 @@ class DBConfigService:
                     row.service_prompt_pack = pack
                 await session.commit()
                 print(f"[DB] Updated service {normalized_id}: {list(updates.keys())}")
+                try:
+                    from services.flow_logger import log_service_config_save
+
+                    pack = row.service_prompt_pack if isinstance(row.service_prompt_pack, dict) else {}
+                    log_service_config_save(
+                        action="update",
+                        source="db",
+                        service_id=normalized_id,
+                        service_name=str(row.name or normalized_id).strip(),
+                        description_len=len(str(row.description or "").strip()),
+                        ticketing_policy_len=len(str(row.ticketing_policy or "").strip()),
+                        extracted_knowledge_len=len(str((pack or {}).get("extracted_knowledge") or "").strip()),
+                        generated_prompt_len=len(str(row.generated_system_prompt or "").strip()),
+                        success=True,
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             print(f"[DB] update_service failed for {normalized_id}: {e}")
+            try:
+                from services.flow_logger import log_service_config_save
+
+                pack = updates.get("service_prompt_pack", {})
+                pack = pack if isinstance(pack, dict) else {}
+                log_service_config_save(
+                    action="update",
+                    source="db",
+                    service_id=normalized_id,
+                    service_name=str(updates.get("name") or normalized_id).strip(),
+                    description_len=len(str(updates.get("description") or "").strip()),
+                    ticketing_policy_len=len(str(updates.get("ticketing_policy") or "").strip()),
+                    extracted_knowledge_len=len(str(pack.get("extracted_knowledge") or "").strip()),
+                    generated_prompt_len=0,
+                    success=False,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             return False
 
         self.unmark_service_deleted(normalized_id, clear_suppress_all=True)
@@ -802,8 +872,42 @@ class DBConfigService:
                 row.generated_system_prompt = str(prompt).strip() or None
                 await session.commit()
                 print(f"[DB] Saved generated prompt for service {normalized_id} ({len(prompt)} chars)")
+                try:
+                    from services.flow_logger import log_service_config_save
+
+                    pack = row.service_prompt_pack if isinstance(row.service_prompt_pack, dict) else {}
+                    log_service_config_save(
+                        action="save_generated_prompt",
+                        source="db",
+                        service_id=normalized_id,
+                        service_name=str(row.name or normalized_id).strip(),
+                        description_len=len(str(row.description or "").strip()),
+                        ticketing_policy_len=len(str(row.ticketing_policy or "").strip()),
+                        extracted_knowledge_len=len(str((pack or {}).get("extracted_knowledge") or "").strip()),
+                        generated_prompt_len=len(str(row.generated_system_prompt or "").strip()),
+                        success=True,
+                    )
+                except Exception:
+                    pass
         except Exception as e:
             print(f"[DB] save_generated_prompt failed for {normalized_id}: {e}")
+            try:
+                from services.flow_logger import log_service_config_save
+
+                log_service_config_save(
+                    action="save_generated_prompt",
+                    source="db",
+                    service_id=normalized_id,
+                    service_name=normalized_id,
+                    description_len=0,
+                    ticketing_policy_len=0,
+                    extracted_knowledge_len=0,
+                    generated_prompt_len=len(str(prompt or "").strip()),
+                    success=False,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             return False
         all_services = await self.get_services()
         self._sync_services_to_json(all_services)
@@ -873,6 +977,23 @@ class DBConfigService:
 
     # ==================== KB FILES (DB-PRIMARY) ====================
 
+    async def delete_all_kb_files(self) -> int:
+        """Delete all KB file records for this hotel from DB."""
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            from models.database import KBFile
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    delete(KBFile).where(KBFile.hotel_id == hotel_id)
+                )
+                await session.commit()
+                count = int(result.rowcount or 0)
+                print(f"[DB] Deleted {count} KB file record(s) for hotel {hotel_id}")
+                return count
+        except Exception as e:
+            print(f"[DB] delete_all_kb_files failed: {e}")
+            return 0
+
     async def save_kb_file(
         self,
         original_name: str,
@@ -906,16 +1027,44 @@ class DBConfigService:
                     ))
                 await session.commit()
                 print(f"[DB] Saved KB file {stored_name}")
+                try:
+                    from services.flow_logger import log_kb_db_persist
+
+                    log_kb_db_persist(
+                        tenant_id=str(hotel_id),
+                        original_name=str(original_name or ""),
+                        stored_name=str(stored_name or ""),
+                        content_chars=len(str(content or "")),
+                        content_hash=str(content_hash or ""),
+                        success=True,
+                    )
+                except Exception:
+                    pass
                 return True
         except Exception as e:
             print(f"[DB] save_kb_file failed: {e}")
+            try:
+                from services.flow_logger import log_kb_db_persist
+
+                log_kb_db_persist(
+                    tenant_id=str(hotel_id),
+                    original_name=str(original_name or ""),
+                    stored_name=str(stored_name or ""),
+                    content_chars=len(str(content or "")),
+                    content_hash=str(content_hash or ""),
+                    success=False,
+                    error=str(e),
+                )
+            except Exception:
+                pass
             return False
 
     async def restore_kb_files(self, kb_dir: str) -> int:
         """
-        On startup, restore any DB-stored KB files that are missing from disk.
-        Updates knowledge_config.sources to point to the restored paths.
-        Returns the number of files restored.
+        On startup, restore the single most-recent KB file from DB to disk.
+        Any older duplicate records are deleted. Only one KB file is active at a time.
+        Updates knowledge_config.sources to point to the restored path.
+        Returns 1 if a file was written to disk, 0 otherwise.
         """
         hotel_id = await self.get_current_hotel_id()
         try:
@@ -923,30 +1072,36 @@ class DBConfigService:
             from pathlib import Path as _Path
             async with AsyncSessionLocal() as session:
                 result = await session.execute(
-                    select(KBFile).where(KBFile.hotel_id == hotel_id)
+                    select(KBFile).where(KBFile.hotel_id == hotel_id).order_by(KBFile.id.desc())
                 )
                 rows = result.scalars().all()
 
             if not rows:
                 return 0
 
-            restored = 0
-            valid_paths: list[str] = []
-            for row in rows:
-                # Rebuild a canonical local path under kb_dir/uploads/default/
-                dest = _Path(kb_dir) / "uploads" / "default" / row.stored_name
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                if not dest.exists():
-                    dest.write_text(row.content, encoding="utf-8")
-                    restored += 1
-                    print(f"[KB] Restored {row.stored_name} from DB")
-                valid_paths.append(str(dest.resolve()))
+            # Keep only the most recent record; delete all older ones
+            latest = rows[0]
+            stale = rows[1:]
+            if stale:
+                stale_ids = [r.id for r in stale]
+                async with AsyncSessionLocal() as session:
+                    await session.execute(
+                        delete(KBFile).where(KBFile.id.in_(stale_ids))
+                    )
+                    await session.commit()
+                print(f"[KB] Pruned {len(stale)} stale KB record(s) from DB, keeping latest: {latest.stored_name}")
 
-            # Update knowledge_config.sources to valid local paths.
+            dest = _Path(kb_dir) / "uploads" / "default" / latest.stored_name
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            restored = 0
+            if not dest.exists():
+                dest.write_text(latest.content, encoding="utf-8")
+                restored = 1
+                print(f"[KB] Restored {latest.stored_name} from DB")
+
+            # Update knowledge_config.sources to only this file
             from services.config_service import config_service as _cs
-            existing_sources = _cs.get_knowledge_config().get("sources", [])
-            merged = list({p for p in (existing_sources + valid_paths) if _Path(p).exists()})
-            _cs.update_knowledge_config({"sources": merged})
+            _cs.update_knowledge_config({"sources": [str(dest.resolve())]})
             return restored
         except Exception as e:
             print(f"[KB] restore_kb_files failed: {e}")

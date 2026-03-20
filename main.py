@@ -25,40 +25,13 @@ from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
 
 
-async def _run_startup_kb_enrichment() -> None:
-    """
-    On startup, run LLM-based service knowledge enrichment for any services
-    whose extracted_knowledge is stale or missing. Fingerprint-cached so it
-    only re-runs when KB content or service definitions actually change.
-    Runs silently — failures are non-fatal.
-    """
-    try:
-        if not bool(getattr(settings, "kb_indexing_enabled", False)):
-            print("ℹ️  KB indexing disabled (kb_indexing_enabled=false)")
-            return
-        if not str(settings.openai_api_key or "").strip():
-            print("⚠️  KB enrichment skipped: no OpenAI API key configured")
-            return
-        kb_text = config_service.get_full_kb_text(max_chars=1000)
-        if not kb_text.strip():
-            print("ℹ️  KB enrichment skipped: no knowledge base content found")
-            return
-        print("🧠 Running service KB enrichment pipeline...")
-        result = await config_service.enrich_service_kb_records(published_by="system")
-        enriched = result.get("enriched_count", 0)
-        skipped = result.get("skipped_count", 0)
-        if enriched:
-            print(f"✅ KB enrichment complete: {enriched} service(s) enriched, {skipped} unchanged")
-        else:
-            print(f"ℹ️  KB enrichment: all {skipped} service(s) already up to date")
-    except Exception as e:
-        print(f"⚠️  KB enrichment failed (non-fatal): {e}")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup
+    from services.flow_logger import clear_log
+    clear_log()
     print(f"🚀 Starting {settings.app_name}...")
     print(f"📍 Environment: {settings.app_env}")
 
@@ -80,8 +53,7 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"⚠️  Startup DB sync failed (non-fatal): {e}")
 
-    # Run LLM-based service KB enrichment in background — does not block startup
-    asyncio.create_task(_run_startup_kb_enrichment())
+
 
     print(f"🌐 Server: http://{settings.host}:{settings.port}")
     print(f"📚 API Docs: http://localhost:{settings.port}/docs")

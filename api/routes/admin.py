@@ -588,6 +588,19 @@ async def reindex_rag(data: RAGReindexRequest):
         await config_service.ensure_structured_kb_llm_books(max_sources=50, force=True)
     except Exception as exc:
         report["library_reindex_warning"] = str(exc)
+
+    try:
+        from services.flow_logger import log_reindex
+        log_reindex(
+            tenant_id=resolved_tenant,
+            files=report.get("files") or (file_paths or []),
+            chunks_created=int(report.get("chunks_indexed") or 0),
+            backend=str(report.get("backend_used") or "local"),
+            clear_existing=data.clear_existing,
+        )
+    except Exception:
+        pass
+
     return report
 
 
@@ -632,7 +645,7 @@ async def upload_rag_files(
     tenant_id: str = Form(default=""),
     add_to_sources: bool = Form(default=True),
 ):
-    """Upload knowledge files for a tenant. Returns saved file paths."""
+    """Upload knowledge files for a tenant. Completely replaces all previous KB files."""
     if not files:
         raise HTTPException(status_code=400, detail="No files provided")
 
@@ -640,7 +653,27 @@ async def upload_rag_files(
     resolved_tenant = tenant_id or business.get("id") or "default"
     normalized_tenant = _normalize_tenant(resolved_tenant)
 
-    uploads_dir = Path(rag_service.kb_dir) / "uploads" / normalized_tenant
+    # --- WIPE ALL PREVIOUS KB FILES COMPLETELY ---
+    # 1. Delete every previously uploaded KB file from disk (entire uploads dir)
+    uploads_root = Path(rag_service.kb_dir) / "uploads"
+    _files_wiped = 0
+    if uploads_root.exists():
+        import shutil
+        _files_wiped = sum(1 for _ in uploads_root.rglob("*") if _.is_file())
+        shutil.rmtree(str(uploads_root), ignore_errors=True)
+
+    # 2. Delete all KB file records from DB
+    _db_deleted = 0
+    try:
+        _db_deleted = await db_config_service.delete_all_kb_files()
+    except Exception as _del_err:
+        print(f"[DB] KB file delete failed (non-fatal): {_del_err}")
+
+    # 3. Clear all knowledge sources so only the new file will be indexed
+    config_service.update_knowledge_config({"sources": []})
+    # --- END WIPE ---
+
+    uploads_dir = uploads_root / normalized_tenant
     uploads_dir.mkdir(parents=True, exist_ok=True)
 
     saved: list[dict[str, str]] = []
@@ -670,20 +703,35 @@ async def upload_rag_files(
                 content_hash=content_hash,
             )
         except Exception as _kb_err:
-            print(f"[DB] KB file save failed (non-fatal): {_kb_err}")
+            import traceback
+            print(f"[DB] KB file save FAILED: {_kb_err}")
+            print(traceback.format_exc())
 
     if add_to_sources:
-        knowledge = config_service.get_knowledge_config()
-        sources = knowledge.get("sources", [])
-        if not isinstance(sources, list):
-            sources = []
-        existing = {str(item) for item in sources}
-        for entry in saved:
-            if entry["path"] not in existing:
-                sources.append(entry["path"])
-                existing.add(entry["path"])
+        # Set sources to ONLY the newly uploaded files (not appended to old list)
+        sources = [entry["path"] for entry in saved]
         config_service.update_knowledge_config({"sources": sources})
         asyncio.create_task(config_service.ensure_structured_kb_llm_books(max_sources=50, force=True))
+
+    # Log KB upload event to flow.log
+    try:
+        from services.flow_logger import log_kb_upload
+        for entry in saved:
+            raw_content = None
+            try:
+                raw_content = Path(entry["path"]).read_bytes()
+            except Exception:
+                pass
+            log_kb_upload(
+                files_wiped_disk=_files_wiped,
+                db_records_deleted=_db_deleted,
+                new_file_name=entry["original_name"],
+                new_file_bytes=len(raw_content) if raw_content is not None else 0,
+                saved_path=entry["path"],
+                tenant_id=normalized_tenant,
+            )
+    except Exception:
+        pass
 
     # Trigger LLM-based service knowledge enrichment after KB upload (non-blocking)
     asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
@@ -820,10 +868,76 @@ async def _generate_and_save_prompt(service_id: str) -> None:
             return
         prompt = await generate_service_system_prompt(service)
         if prompt:
-            await db_config_service.save_generated_prompt(service_id, prompt)
-            print(f"[PromptWriter] Prompt saved for '{service_id}' ({len(prompt)} chars)")
+            db_prompt_ok = await db_config_service.save_generated_prompt(service_id, prompt)
+            if not db_prompt_ok:
+                # DB save failed (service may only exist in JSON) — persist to JSON directly.
+                config_service.update_service(service_id, {"generated_system_prompt": prompt})
+                print(f"[PromptWriter] Prompt saved to JSON for '{service_id}' ({len(prompt)} chars)")
+            else:
+                print(f"[PromptWriter] Prompt saved to DB for '{service_id}' ({len(prompt)} chars)")
+            try:
+                from services.flow_logger import log_prompt_regen
+                pack = service.get("service_prompt_pack") or {}
+                extracted_kb = str(
+                    service.get("extracted_knowledge")
+                    or (pack.get("extracted_knowledge") if isinstance(pack, dict) else "")
+                    or ""
+                )
+                log_prompt_regen(
+                    service_id=service_id,
+                    service_name=str(service.get("name") or service_id),
+                    extracted_kb_chars=len(extracted_kb),
+                    generated_prompt_chars=len(prompt),
+                )
+            except Exception:
+                pass
     except Exception as e:
         print(f"[PromptWriter] Background generation failed for '{service_id}': {e}")
+
+
+async def _log_service_save_snapshot(
+    *,
+    service_id: str,
+    action: str,
+    source: str,
+    success: bool,
+    error: str = "",
+) -> None:
+    """Write a service persistence snapshot to debugging logs."""
+    try:
+        sid = str(service_id or "").strip().lower()
+        if not sid:
+            return
+        ok, services = await _call_db_config_with_fast_fallback(
+            "get_services",
+            db_config_service.get_services(),
+        )
+        rows = services if (ok and isinstance(services, list)) else config_service.get_services()
+        if not isinstance(rows, list):
+            rows = []
+        svc = next(
+            (item for item in rows if str(item.get("id") or "").strip().lower() == sid),
+            None,
+        )
+        pack = (svc or {}).get("service_prompt_pack") or {}
+        if not isinstance(pack, dict):
+            pack = {}
+        from services.flow_logger import log_service_config_save
+
+        log_service_config_save(
+            action=str(action or "").strip() or "unknown_action",
+            source=str(source or "").strip() or "unknown_source",
+            service_id=sid,
+            service_name=str((svc or {}).get("name") or sid).strip(),
+            description_len=len(str((svc or {}).get("description") or "").strip()),
+            ticketing_policy_len=len(str((svc or {}).get("ticketing_policy") or "").strip()),
+            extracted_knowledge_len=len(str(pack.get("extracted_knowledge") or "").strip()),
+            generated_prompt_len=len(str((svc or {}).get("generated_system_prompt") or "").strip()),
+            success=bool(success),
+            error=str(error or "").strip(),
+        )
+    except Exception:
+        pass
 
 
 @router.get("/api/config/services")
@@ -848,6 +962,14 @@ async def add_config_service(service: AddService):
     )
     if ok and db_saved:
         asyncio.create_task(_generate_and_save_prompt(payload.get("id")))
+        asyncio.create_task(
+            _log_service_save_snapshot(
+                service_id=str(payload.get("id") or ""),
+                action="add_service",
+                source="db",
+                success=True,
+            )
+        )
         return {"message": "Service added to database"}
 
     if config_service.add_service(payload):
@@ -856,6 +978,14 @@ async def add_config_service(service: AddService):
             service_id=service_id_for_enrichment, published_by="system"
         ))
         asyncio.create_task(_generate_and_save_prompt(service_id_for_enrichment))
+        asyncio.create_task(
+            _log_service_save_snapshot(
+                service_id=str(service_id_for_enrichment or ""),
+                action="add_service",
+                source="json_fallback",
+                success=True,
+            )
+        )
         return {"message": "Service added to JSON"}
     raise HTTPException(status_code=500, detail="Failed to add service")
 
@@ -869,6 +999,14 @@ async def update_config_service(service_id: str, update: dict):
     )
     if ok and db_updated:
         asyncio.create_task(_generate_and_save_prompt(service_id))
+        asyncio.create_task(
+            _log_service_save_snapshot(
+                service_id=service_id,
+                action="update_service",
+                source="db",
+                success=True,
+            )
+        )
         return {"message": f"Service {service_id} updated in database"}
 
     if config_service.update_service(service_id, update):
@@ -876,6 +1014,14 @@ async def update_config_service(service_id: str, update: dict):
             service_id=service_id, published_by="system"
         ))
         asyncio.create_task(_generate_and_save_prompt(service_id))
+        asyncio.create_task(
+            _log_service_save_snapshot(
+                service_id=service_id,
+                action="update_service",
+                source="json_fallback",
+                success=True,
+            )
+        )
         return {"message": f"Service {service_id} updated in JSON"}
     raise HTTPException(status_code=404, detail="Service not found")
 
@@ -896,6 +1042,22 @@ async def regenerate_service_prompt(service_id: str):
     if not prompt:
         raise HTTPException(status_code=500, detail="Prompt generation failed")
     await db_config_service.save_generated_prompt(service_id, prompt)
+    try:
+        from services.flow_logger import log_prompt_regen
+        pack = service.get("service_prompt_pack") or {}
+        extracted_kb = str(
+            service.get("extracted_knowledge")
+            or (pack.get("extracted_knowledge") if isinstance(pack, dict) else "")
+            or ""
+        )
+        log_prompt_regen(
+            service_id=service_id,
+            service_name=str(service.get("name") or service_id),
+            extracted_kb_chars=len(extracted_kb),
+            generated_prompt_chars=len(prompt),
+        )
+    except Exception:
+        pass
     return {"generated_system_prompt": prompt}
 
 
@@ -907,7 +1069,30 @@ async def save_service_prompt(service_id: str, body: dict):
         raise HTTPException(status_code=400, detail="prompt field is required")
     saved = await db_config_service.save_generated_prompt(service_id, prompt)
     if not saved:
-        raise HTTPException(status_code=404, detail="Service not found")
+        # DB save failed — fall back to JSON so service prompt is always persisted.
+        json_saved = config_service.update_service(service_id, {"generated_system_prompt": prompt})
+        if not json_saved:
+            await _log_service_save_snapshot(
+                service_id=service_id,
+                action="manual_prompt_save",
+                source="db",
+                success=False,
+                error="service_not_found_in_db_or_json",
+            )
+            raise HTTPException(status_code=404, detail="Service not found")
+        await _log_service_save_snapshot(
+            service_id=service_id,
+            action="manual_prompt_save",
+            source="json_fallback",
+            success=True,
+        )
+        return {"message": "Prompt saved"}
+    await _log_service_save_snapshot(
+        service_id=service_id,
+        action="manual_prompt_save",
+        source="db",
+        success=True,
+    )
     return {"message": "Prompt saved"}
 
 
@@ -1331,129 +1516,181 @@ async def compile_service_kb_records(payload: CompileServiceKBRequest):
     return result
 
 
+def _load_kb_sections_as_dict() -> dict[str, str]:
+    """
+    Parse KB source files into an ordered dict of {section_header: content}.
+    Handles the double-wrapped JSON format: {data: "{editable: {key: value}}"}
+    Falls back to a single '__raw__' entry for plain-text files.
+    """
+    import json as _json
+
+    source_paths = config_service._resolve_knowledge_source_paths(max_sources=25)
+    sections: dict[str, str] = {}
+    for path in source_paths:
+        try:
+            raw = path.read_text(encoding="utf-8", errors="ignore")
+        except Exception:
+            continue
+        if not raw.strip():
+            continue
+        editable: dict | None = None
+        try:
+            outer = _json.loads(raw)
+            if isinstance(outer, dict) and "data" in outer:
+                inner = _json.loads(outer["data"])
+                candidate = inner.get("editable") if isinstance(inner, dict) else None
+                if isinstance(candidate, dict):
+                    editable = candidate
+        except Exception:
+            pass
+        if editable:
+            for k, v in editable.items():
+                val_str = str(v).strip() if v is not None else ""
+                if val_str:
+                    sections[k] = val_str
+        else:
+            sections["__raw__"] = raw.strip()
+    return sections
+
+
+def _load_kb_sections_for_extraction() -> str:
+    """Build a formatted KB string from section dict (used as fallback)."""
+    sections = _load_kb_sections_as_dict()
+    if not sections:
+        return ""
+    parts = []
+    for k, v in sections.items():
+        if k == "__raw__":
+            parts.append(v)
+        else:
+            parts.append(f"=== {k} ===\n{v}")
+    return "\n\n".join(parts)
+
+
+def _pull_kb_log(msg: str) -> None:
+    """Write a timestamped line to logs/pull_from_kb_debug.txt — guaranteed to persist even if stdout is suppressed."""
+    import datetime as _dt
+    try:
+        log_path = Path(__file__).resolve().parent.parent.parent / "logs" / "pull_from_kb_debug.txt"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        ts = _dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with log_path.open("a", encoding="utf-8") as _f:
+            _f.write(f"[{ts}] {msg}\n")
+    except Exception:
+        pass
+    print(f"[PullFromKB] {msg}", flush=True)
+
+
 @router.post("/api/config/service-kb/preview-extract")
 async def preview_extract_service_kb(payload: dict):
     """
-    Run service KB extraction for a service name+description WITHOUT saving.
-    Used by the admin modal 'Pull from KB' button.
-    Returns the extracted knowledge text so the admin can review/edit before saving.
+    Pull from KB: single dedicated LLM call with the full KB in context.
+    Extracts verbatim every piece of information relevant to the given service.
     """
+    _pull_kb_log("=== ENDPOINT HIT ===")
     service_name = str(payload.get("service_name") or "").strip()
     service_description = str(payload.get("service_description") or "").strip()
-    extraction_mode = str(
-        payload.get("extraction_mode")
-        or payload.get("mode")
-        or "llm"
-    ).strip().lower()
-    if extraction_mode not in {"verbatim", "llm"}:
-        extraction_mode = "llm"
-
-    try:
-        requested_max_books = int(payload.get("max_books") or 24)
-    except (TypeError, ValueError):
-        requested_max_books = 24
-    max_books = max(12, min(requested_max_books, 120))
-
-    try:
-        requested_max_chars = int(payload.get("max_chars") or 550000)
-    except (TypeError, ValueError):
-        requested_max_chars = 550000
-    max_chars = max(80000, min(requested_max_chars, 1200000))
-
     existing_menu_facts = [
         str(f).strip()
         for f in (payload.get("existing_menu_facts") or [])
         if str(f).strip()
     ]
+    _pull_kb_log(f"service_name='{service_name}' desc_chars={len(service_description)}")
+
     if not service_name:
-        from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="service_name is required")
 
-    trace_payload = {
-        "service_name": service_name,
-        "service_description_chars": len(service_description),
-        "extraction_mode": extraction_mode,
-        "existing_menu_fact_count": len(existing_menu_facts),
-        "requested_max_books": max_books,
-        "requested_max_chars": max_chars,
-    }
-    everything_trace_service.log_event(
-        "service_kb_preview_extract_start",
-        trace_payload,
-        component="api.routes.admin.preview_extract_service_kb",
-    )
-
-    # Load raw KB text directly — bypasses book indexing/selection so behaviour
-    # is identical on local and server regardless of whether the KB library is indexed.
-    from services.full_kb_llm_service import full_kb_llm_service
-    business = config_service.get_business_info()
-    tenant_id = str(payload.get("tenant_id") or business.get("id") or "default")
-    raw_kb_text, _ = full_kb_llm_service._load_full_kb_text(tenant_id)
-    context_text = raw_kb_text.strip()
-    if not context_text:
-        everything_trace_service.log_event(
-            "service_kb_preview_extract_no_kb_content",
-            trace_payload,
-            component="api.routes.admin.preview_extract_service_kb",
-        )
+    # Load KB with proper section formatting (not the whitespace-collapsed blob)
+    kb_text = _load_kb_sections_for_extraction()
+    _pull_kb_log(f"_load_kb_sections returned {len(kb_text)} chars")
+    if not kb_text.strip():
+        # fallback to config_service method
+        kb_text = config_service.get_full_kb_text()
+        _pull_kb_log(f"fallback get_full_kb_text returned {len(kb_text)} chars")
+    if not kb_text.strip():
+        _pull_kb_log("no_kb_content — returning early")
         return {"extracted_knowledge": "", "reason": "no_kb_content"}
 
-    context_summary = {
-        **trace_payload,
-        "raw_kb_chars": len(context_text),
-    }
-    everything_trace_service.log_event(
-        "service_kb_preview_extract_context_ready",
-        context_summary,
-        component="api.routes.admin.preview_extract_service_kb",
+    _pull_kb_log(f"kb_chars={len(kb_text)} model={settings.openai_model}")
+
+    menu_block = ""
+    if existing_menu_facts:
+        facts_text = "\n".join(f"- {f}" for f in existing_menu_facts[:300])
+        menu_block = (
+            f"\n\nThe following facts were already captured from an uploaded menu file. "
+            f"Do NOT re-extract or repeat these — only extract KB content NOT already covered here:\n\n"
+            f"{facts_text}"
+        )
+
+    system_prompt = (
+        f"You are a knowledge extractor for a hotel chatbot.\n\n"
+        f"SERVICE NAME: {service_name}\n"
+        f"SERVICE DESCRIPTION: {service_description}\n\n"
+        f"YOUR TASK:\n"
+        f"Scan the ENTIRE knowledge base below — every section — and extract every piece of information "
+        f"that belongs to or directly supports '{service_name}'. "
+        f"Section headers are hints but the content itself determines relevance.\n\n"
+        f"STRICT RULES:\n"
+        f"1. Copy text EXACTLY word-for-word. No rephrasing, summarising, or paraphrasing.\n"
+        f"2. Do NOT omit any relevant detail — prices, timings, policies, item names must all be copied in full.\n"
+        f"3. Do NOT invent or add anything not present in the KB.\n"
+        f"4. Extract ALL relevant content from ALL sections — even if the same fact appears in multiple sections, "
+        f"include it from each section it appears in. Then at the end, remove exact duplicate lines/facts, "
+        f"keeping the most complete version of each.\n"
+        f"5. Do NOT include content that is clearly about a completely different service "
+        f"(e.g. restaurant dining menus when extracting for spa, parking details when extracting for medical).\n"
+        f"6. Preserve original structure: section headers, sub-keys, bullet points, values.\n"
+        f"7. If the KB contains absolutely nothing relevant to this service, return exactly: NO_RELEVANT_INFO\n"
+        f"{menu_block}"
+    )
+
+    user_prompt = (
+        f"HOTEL KNOWLEDGE BASE:\n\n{kb_text}\n\n"
+        f"---\n\n"
+        f"Scan the full knowledge base above and extract VERBATIM every piece of information "
+        f"relevant to '{service_name}' ({service_description}). "
+        f"Copy it exactly as written — every name, price, timing, policy and detail."
     )
 
     try:
-        extraction_prompt = await config_service._generate_service_extraction_prompt(
-            service_name=service_name,
-            service_description=service_description,
-            full_kb_text=context_text,
-            existing_menu_facts=existing_menu_facts,
+        _t0 = time.perf_counter()
+        _pull_kb_log(f"calling LLM model={settings.openai_model} system_chars={len(system_prompt)} user_chars={len(user_prompt)}")
+        result = await llm_client.chat(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.0,
+            max_tokens=4000,
+            trace_context={"actor": "pull_from_kb", "service_name": service_name},
         )
-        if not extraction_prompt:
-            everything_trace_service.log_event(
-                "service_kb_preview_extract_empty_prompt",
-                context_summary,
-                component="api.routes.admin.preview_extract_service_kb",
-                error="extraction_prompt_empty",
+        _dur = round((time.perf_counter() - _t0) * 1000)
+        extracted = str(result or "").strip()
+        _pull_kb_log(f"LLM raw response preview: {repr(extracted[:200])}")
+        if extracted.upper().startswith("NO_RELEVANT_INFO"):
+            extracted = ""
+
+        _pull_kb_log(f"LLM done in {_dur}ms extracted_chars={len(extracted)}")
+        try:
+            from services.flow_logger import log_pull_from_kb
+            log_pull_from_kb(
+                service_name=service_name,
+                service_description=service_description,
+                kb_chars=len(kb_text),
+                extracted_chars=len(extracted),
+                extraction_mode="single_llm",
             )
-            return {"extracted_knowledge": "", "reason": "extraction_prompt_empty"}
+        except Exception:
+            pass
 
-        extracted_knowledge = await config_service._extract_service_knowledge_from_kb(
-            extraction_prompt=extraction_prompt,
-            full_kb_text="",
-            knowledge_context=context_text,
-        )
-        final_reason = "ok_llm"
-        final_text = str(extracted_knowledge or "").strip()
-
-        everything_trace_service.log_event(
-            "service_kb_preview_extract_complete",
-            {
-                **context_summary,
-                "result_reason": final_reason,
-                "result_chars": len(final_text),
-                "llm_extracted_chars": len(final_text),
-            },
-            component="api.routes.admin.preview_extract_service_kb",
-        )
         return {
-            "extracted_knowledge": final_text,
-            "reason": final_reason,
-            "extraction_mode": "llm",
+            "extracted_knowledge": extracted,
+            "reason": "ok_llm" if extracted else "no_relevant_info",
+            "extraction_mode": "single_llm",
         }
     except Exception as exc:
-        everything_trace_service.log_event(
-            "service_kb_preview_extract_error",
-            context_summary,
-            component="api.routes.admin.preview_extract_service_kb",
-            error=str(exc),
-        )
+        import traceback as _tb
+        _pull_kb_log(f"EXCEPTION: {exc}\n{_tb.format_exc()}")
         return {"extracted_knowledge": "", "reason": str(exc)}
 
 
@@ -1777,7 +2014,8 @@ async def get_db_status():
                 "new_bot_hotels", "new_bot_restaurants", "new_bot_menu_items",
                 "new_bot_guests", "new_bot_orders", "new_bot_order_items",
                 "new_bot_conversations", "new_bot_messages",
-                "new_bot_business_config", "new_bot_capabilities", "new_bot_intents"
+                "new_bot_business_config", "new_bot_capabilities", "new_bot_intents",
+                "new_bot_services", "new_bot_kb_files",
             ]
 
             counts = {}

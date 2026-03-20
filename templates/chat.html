@@ -116,13 +116,12 @@
 
             <div class="chat-input-container">
                 <form id="chat-form">
-                    <input
-                        type="text"
+                    <textarea
                         id="message-input"
-                        placeholder="Type a message..."
-                        autocomplete="off"
+                        placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+                        rows="1"
                         maxlength="2000"
-                    >
+                    ></textarea>
                     <button type="submit" id="send-btn">Send</button>
                 </form>
             </div>
@@ -164,6 +163,6 @@
         </div>
     </div>
 
-    <script src="/static/js/chat.js?v=20260313_2"></script>
+    <script src="/static/js/chat.js?v=20260319_1"></script>
 </body>
 </html>

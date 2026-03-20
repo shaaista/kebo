@@ -49,8 +49,8 @@ class Settings(BaseSettings):
     # Database (SQLite for dev, PostgreSQL for production)
     database_url: str = "sqlite+aiosqlite:///./kepsla_bot.db"
     database_echo: bool = False
-    admin_db_fast_fallback_timeout_seconds: float = 1.5
-    admin_db_unavailable_backoff_seconds: float = 15.0
+    admin_db_fast_fallback_timeout_seconds: float = 30.0
+    admin_db_unavailable_backoff_seconds: float = 5.0
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

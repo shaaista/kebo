@@ -61,6 +61,10 @@ def _build_connect_args(database_url: str) -> dict[str, Any]:
         return {"connect_timeout": 30}
     if backend in {"postgresql", "postgres"} and "asyncpg" in driver:
         return {"timeout": 30}
+    if backend == "sqlite":
+        # timeout=30 makes SQLite wait up to 30s for a write lock instead of
+        # immediately raising "database is locked" under concurrent load.
+        return {"timeout": 30}
     return {}
 
 
@@ -465,6 +469,19 @@ engine = create_async_engine(
     ACTIVE_DATABASE_URL,
     **_engine_kwargs,
 )
+
+# Enable WAL mode for SQLite so concurrent reads don't block writes.
+try:
+    _parsed_url = make_url(ACTIVE_DATABASE_URL)
+    if str(_parsed_url.get_backend_name() or "").lower() == "sqlite":
+        from sqlalchemy import event as _sa_event
+
+        @_sa_event.listens_for(engine.sync_engine, "connect")
+        def _set_sqlite_wal(dbapi_conn, connection_record):
+            dbapi_conn.execute("PRAGMA journal_mode=WAL")
+            dbapi_conn.execute("PRAGMA busy_timeout=30000")
+except Exception:
+    pass
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

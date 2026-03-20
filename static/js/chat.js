@@ -47,6 +47,7 @@ const elements = {
 function init() {
     generateSessionId();
     setupEventListeners();
+    resizeMessageInput();
     loadTestProfiles();
 }
 
@@ -208,6 +209,8 @@ function buildRequestMetadata(interactionMeta = null) {
 function setupEventListeners() {
     // Form submit
     elements.chatForm.addEventListener('submit', handleSubmit);
+    elements.messageInput.addEventListener('keydown', handleMessageInputKeydown);
+    elements.messageInput.addEventListener('input', resizeMessageInput);
 
     // Hotel selection
     elements.hotelCode.addEventListener('change', (e) => {
@@ -278,6 +281,26 @@ function setupEventListeners() {
     });
 }
 
+function handleMessageInputKeydown(e) {
+    if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+    e.preventDefault();
+    if (state.isLoading) return;
+    const message = elements.messageInput.value.trim();
+    if (!message) return;
+    if (typeof elements.chatForm.requestSubmit === 'function') {
+        elements.chatForm.requestSubmit();
+        return;
+    }
+    elements.chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+}
+
+function resizeMessageInput() {
+    const input = elements.messageInput;
+    if (!input) return;
+    input.style.height = 'auto';
+    input.style.height = `${input.scrollHeight}px`;
+}
+
 // Handle form submit
 async function handleSubmit(e) {
     e.preventDefault();
@@ -285,6 +308,7 @@ async function handleSubmit(e) {
     if (!message || state.isLoading) return;
 
     elements.messageInput.value = '';
+    resizeMessageInput();
     await sendMessage(message, {
         source_type: 'typed_input',
         source_label: 'typed_input',
@@ -336,12 +360,18 @@ async function sendMessage(message, interactionMeta = null) {
         // Update session info
         updateSessionInfoFromResponse(data);
 
-        // Use orchestrator suggestions if present (fully context-aware),
-        // otherwise fall back to the suggestions endpoint with session context
-        if (data.suggested_actions && data.suggested_actions.length > 0) {
-            showSuggestedActions(data.suggested_actions);
+        // Always prefer the dedicated suggestions LLM layer for contextual chips.
+        // Keep deterministic runtime chips only for strict states like confirmation/escalation.
+        const runtimeSuggestions = Array.isArray(data.suggested_actions) ? data.suggested_actions : [];
+        const stateValue = String(data.state || '').toLowerCase();
+        const useRuntimeDirectly = (
+            runtimeSuggestions.length > 0
+            && (stateValue === 'awaiting_confirmation' || stateValue === 'escalated')
+        );
+        if (useRuntimeDirectly) {
+            showSuggestedActions(runtimeSuggestions);
         } else {
-            fetchAndShowSuggestions(data.message, message, state.sessionId);
+            fetchAndShowSuggestions(data.message, message, state.sessionId, runtimeSuggestions);
         }
 
         // Update debug panel
@@ -529,9 +559,11 @@ function resolveCreatedTicketDetails(data) {
     return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
-// Fetch context-aware suggestions from LLM and display them (fallback only)
-async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId) {
+// Fetch context-aware suggestions from LLM and display them.
+// Falls back to runtime suggestions if LLM suggestions are unavailable.
+async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId, fallbackSuggestions = []) {
     elements.suggestedActions.innerHTML = '';
+    let resolved = [];
     try {
         const response = await fetch('/api/chat/suggestions', {
             method: 'POST',
@@ -542,13 +574,27 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId) {
                 hotel_code: state.hotelCode,
                 current_phase: state.phase,
                 session_id: sessionId || state.sessionId,
+                fallback_suggestions: Array.isArray(fallbackSuggestions) ? fallbackSuggestions : [],
             }),
         });
-        if (!response.ok) return;
+        if (!response.ok) {
+            if (Array.isArray(fallbackSuggestions) && fallbackSuggestions.length > 0) {
+                showSuggestedActions(fallbackSuggestions);
+            }
+            return;
+        }
         const data = await response.json();
-        showSuggestedActions(data.suggestions);
+        resolved = Array.isArray(data.suggestions) ? data.suggestions : [];
     } catch (e) {
-        // silently fail - suggestions are optional UI
+        resolved = [];
+    }
+
+    if (resolved.length > 0) {
+        showSuggestedActions(resolved);
+        return;
+    }
+    if (Array.isArray(fallbackSuggestions) && fallbackSuggestions.length > 0) {
+        showSuggestedActions(fallbackSuggestions);
     }
 }
 
@@ -719,4 +765,3 @@ async function viewTickets() {
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', init);
-

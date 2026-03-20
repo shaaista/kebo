@@ -2254,7 +2254,12 @@
                 const res = await fetch(`${API_BASE}/config/service-kb/preview-extract`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ service_name: name, service_description: desc }),
+                    body: JSON.stringify({
+                        service_name: name,
+                        service_description: desc,
+                        extraction_mode: 'verbatim',
+                        max_chars: 1200000,
+                    }),
                 });
                 const data = await res.json();
                 if (data.extracted_knowledge) {
@@ -4439,6 +4444,8 @@
                     body: JSON.stringify({
                         service_name: name,
                         service_description: desc,
+                        extraction_mode: 'verbatim',
+                        max_chars: 1200000,
                         existing_menu_facts: phaseMenuFacts,
                     }),
                 });
@@ -4915,5 +4922,4 @@
     </script>
 </body>
 </html>
-
 

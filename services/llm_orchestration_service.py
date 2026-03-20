@@ -1319,6 +1319,10 @@ class LLMOrchestrationService:
             merged.ticket.sub_category = overlay.ticket.sub_category
         if overlay.ticket.priority:
             merged.ticket.priority = overlay.ticket.priority
+        if overlay.ticket.department_id:
+            merged.ticket.department_id = overlay.ticket.department_id
+        if overlay.ticket.department_name:
+            merged.ticket.department_name = overlay.ticket.department_name
 
         if overlay.metadata:
             merged.metadata.update(overlay.metadata)
@@ -1348,6 +1352,7 @@ class LLMOrchestrationService:
         confirmation_pending_action: str,
         requires_confirmation_step: bool,
         full_kb_text: str,
+        current_phase_id: str = "",
     ) -> str:
         lines: list[str] = []
 
@@ -1424,8 +1429,17 @@ class LLMOrchestrationService:
                 "Even after the guest has expressed clear booking intent, never ask for a slot",
                 "whose answer requires knowledge the guest does not yet have.",
                 "",
-                "If this service has MULTIPLE OPTIONS the guest must choose from",
-                "(restaurants, room types, vehicle types, packages, etc.):",
+                "PRESENT BEFORE ASK (MANDATORY): Before asking the guest to choose or specify",
+                "a menu item, treatment, room type, package, time slot, or ANY preference from a list —",
+                "FIRST share all available options from the KB. The guest cannot choose from options",
+                "they haven't seen. Only ask 'which one?' after you have shown the full list.",
+                "  Examples:",
+                "  - In-room dining: show the full menu section first, then ask which item they want",
+                "  - Spa: list all treatments with duration and price, then ask which they prefer",
+                "  - Restaurant: list all restaurants with timings, then ask which one",
+                "  - Room booking: describe available room types, then ask which to book",
+                "",
+                "If this service has MULTIPLE OPTIONS the guest must choose from:",
                 "  → List ALL available options from the KB first.",
                 "  → Then ask which one they want.",
                 "  → Never ask 'which restaurant?' or 'which room type?' if the guest hasn't seen the list.",
@@ -1434,17 +1448,16 @@ class LLMOrchestrationService:
                 "(charges, cancellation terms, pricing, availability conditions):",
                 "  → State the relevant cost/policy clearly BEFORE asking for their personal details.",
                 "  → The guest must know what they are agreeing to before you take their name or contact.",
-                "",
-                "Examples:",
-                "  - Restaurant booking: list all restaurants + hours first, then ask which one",
-                "  - Early check-in: state the charge and availability condition first, then ask for reservation number",
-                "  - Airport pickup: confirm vehicle type and price before asking for flight details",
                 "--- END INFORM BEFORE COLLECT ---",
                 "",
                 "--- CONFIRMATION RULE (ABSOLUTE — NO EXCEPTIONS) ---",
-                "Before raising ANY ticket, you MUST:",
+                "CRITICAL: NEVER ask for confirmation while ANY required field is still missing.",
+                "The confirmation step ONLY happens after every single required field has a value.",
+                "If fields are still missing → ask for those fields. Do NOT mix collecting and confirming.",
+                "",
+                "Once ALL required fields are collected, THEN:",
                 "  Step 1: Show a complete bullet-point summary of every collected detail",
-                "          (name, dates, room type, restaurant, time, flight, price — everything).",
+                "          (name, dates, room type, restaurant, time, item, price — everything).",
                 "  Step 2: Ask the guest to confirm: 'Please confirm the above details to proceed.'",
                 "  Step 3: Only after the guest explicitly confirms → create the ticket.",
                 "Even if the guest already said 'go ahead' or 'book it', still show the full summary",
@@ -1526,6 +1539,16 @@ class LLMOrchestrationService:
                     "for staff to execute the request safely."
                 )
             ticket_lines.append("Set ticket.issue to a clear human-readable summary of what was requested.")
+            ticket_lines.append(
+                "\n=== DEPARTMENT ASSIGNMENT ===\n"
+                "The payload includes available_departments — a list of {department_id, department_name} objects.\n"
+                "When creating a ticket (ticket.ready_to_create=true), choose the department_id from available_departments "
+                "that best matches this service.\n"
+                "Examples: spa/wellness service → Wellness dept, dining/food order → F&B dept, "
+                "room issue/housekeeping → Housekeeping dept, transport → Transport/Concierge dept.\n"
+                "Set ticket.department_id (the numeric id) and ticket.department_name.\n"
+                "If available_departments is empty or no match exists, leave both fields empty."
+            )
 
             # Mid-flow complaint handling: if the guest reports a problem about THIS service
             # while you are already collecting their booking/order details, handle it here —
@@ -1603,16 +1626,44 @@ class LLMOrchestrationService:
             "The suspended booking flow will be offered for resume after the main assistant answers.\n"
             "Rule of thumb: if the question is about THIS service's subject matter → stay and answer or say unavailable (relevant_to_service=true). "
             "If the question is about a completely different part of the hotel → delegate (relevant_to_service=false, context_switched=true).\n"
-            "\n=== KNOWN CONTEXT (pre-filled guest data) ===\n"
-            "The payload includes a known_context field with guest details already collected earlier in this session "
-            "(e.g. guest_name, room_number, reservation_number, check_in_date, phone, email). "
-            "ALWAYS check known_context BEFORE asking for any slot. "
-            "If a required slot is already present in known_context or pending_data_collected, use that value directly — do NOT ask for it again.\n"
+            "\n=== KNOWN CONTEXT & GUEST FACTS (read this before asking for ANYTHING) ===\n"
+            "The payload includes known_context with guest data the hotel already has on file "
+            "(e.g. guest_name, room_number, reservation_number, check_in_date, phone, email).\n"
+            "\n"
+            "ABSOLUTE RULE: NEVER ask for any information that is already present in known_context or pending_data_collected. "
+            "Use the value directly — do not ask the guest to repeat or re-confirm it.\n"
+            "\n"
+            "HOTEL CHECK-IN REALITY — think like a hotel:\n"
+            "  When a guest checks in, the hotel collects: full name, room number, phone, email.\n"
+            "  These are on file for the entire stay and after checkout.\n"
+            "  A guest who is already in the hotel should NEVER be asked for their name, room number, phone, or email.\n"
+            "\n"
+            "PHASE-SPECIFIC RULES (current_phase_id is in the payload):\n"
+            f"  {'during_stay / post_checkout' if current_phase_id in ('during_stay', 'post_checkout') else current_phase_id or 'during_stay / post_checkout'} phase rules:\n"
+            + (
+                "  -> Guest is checked in (or has checked out). Hotel has name, room number, phone, email on file.\n"
+                "  -> NEVER ask for guest_name, room_number, phone, or email — treat them as known even if not yet in known_context.\n"
+                "  -> Only collect service-specific details: date, time, preferences, item choices, special requests.\n"
+                if current_phase_id in ("during_stay", "post_checkout")
+                else
+                "  pre_checkin phase rules:\n"
+                "  -> Guest has a confirmed reservation. Hotel has name, phone, email from booking.\n"
+                "  -> NEVER ask for guest_name, phone, or email if they are in known_context.\n"
+                "  -> Room number may not be assigned yet — only ask if the service genuinely needs it and it is absent from known_context.\n"
+                if current_phase_id == "pre_checkin"
+                else
+                "  pre_booking phase rules:\n"
+                "  -> Guest may not have a reservation yet. Name, phone, email may be unknown.\n"
+                "  -> Only collect contact info (name, phone, email) if the service genuinely needs it AND it is NOT in known_context.\n"
+                "  -> Never ask speculatively — only request what is actually required to fulfil the specific request.\n"
+            )
+            + "\n"
+            "UNIVERSAL RULE (all phases): If a field is present in known_context — regardless of phase — NEVER ask for it.\n"
             "\nAlways read history_last_10 first, then full_history_context (including older_context_summary) before responding. "
             "Use last_user_message and last_assistant_message as the strongest anchors for short replies.\n"
             "Resolve short replies ('yes', a date, a number) against what was last asked.\n"
-            "Capture any useful guest details (name, room number, preferences, dietary needs, special occasion) "
-            "in new_facts_to_remember as snake_case key-value pairs.\n"
+            "Capture any NEW useful guest details (preferences, dietary needs, special occasion) "
+            "in new_facts_to_remember as snake_case key-value pairs. Do NOT re-store fields already in known_context.\n"
             "Return STRICT JSON only matching the response schema."
         )
 
@@ -1647,7 +1698,9 @@ class LLMOrchestrationService:
             '    "issue": "human readable description",\n'
             '    "category": "",\n'
             '    "sub_category": "",\n'
-            '    "priority": "low|medium|high|critical"\n'
+            '    "priority": "low|medium|high|critical",\n'
+            '    "department_id": "pick the numeric id from available_departments that best fits this service",\n'
+            '    "department_name": "the matching department name"\n'
             '  },\n'
             '  "metadata": {"context_switched": false}\n'
             "}"
@@ -1656,10 +1709,35 @@ class LLMOrchestrationService:
         return "\n".join(lines)
 
     @staticmethod
-    def _build_service_runtime_json_contract(*, confirmation_pending_action: str) -> str:
+    def _build_service_runtime_json_contract(*, confirmation_pending_action: str, current_phase_id: str = "") -> str:
         confirm_action = str(confirmation_pending_action or "confirm_booking").strip() or "confirm_booking"
+        _phase = str(current_phase_id or "").strip()
+        if _phase in ("during_stay", "post_checkout"):
+            _guest_facts_rule = (
+                "=== GUEST FACTS RULE (MANDATORY) ===\n"
+                "The guest is checked in (or has checked out). The hotel already has their name, room number, phone, and email.\n"
+                "NEVER ask for guest_name, room_number, phone, or email — these are on file.\n"
+                "Only collect service-specific details: date, time, item/treatment choice, special requests.\n"
+                "ALWAYS check known_context FIRST before asking for any field — if it is there, use it directly.\n\n"
+            )
+        elif _phase == "pre_checkin":
+            _guest_facts_rule = (
+                "=== GUEST FACTS RULE (MANDATORY) ===\n"
+                "The guest has a confirmed reservation. The hotel has their name, phone, and email from the booking.\n"
+                "NEVER ask for guest_name, phone, or email if they are in known_context.\n"
+                "Room number may not be assigned yet — only ask if genuinely needed and absent from known_context.\n"
+                "ALWAYS check known_context FIRST before asking for any field.\n\n"
+            )
+        else:
+            _guest_facts_rule = (
+                "=== GUEST FACTS RULE (MANDATORY) ===\n"
+                "ALWAYS check known_context FIRST before asking for any field.\n"
+                "If guest_name, room_number, phone, or email are in known_context — use them directly, NEVER ask again.\n"
+                "Only collect contact info (name, phone, email) when genuinely required and NOT already known.\n\n"
+            )
         return (
-            "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
+            _guest_facts_rule
+            + "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
             "Return STRICT JSON only.\n"
             "Use exactly this JSON object shape:\n"
             "{\n"
@@ -1678,7 +1756,9 @@ class LLMOrchestrationService:
             '    "issue": "human readable description",\n'
             '    "category": "",\n'
             '    "sub_category": "",\n'
-            '    "priority": "low|medium|high|critical"\n'
+            '    "priority": "low|medium|high|critical",\n'
+            '    "department_id": "numeric id from available_departments that best fits this service",\n'
+            '    "department_name": "the matching department name"\n'
             "  },\n"
             '  "metadata": {"context_switched": false}\n'
             "}\n"
@@ -1686,7 +1766,23 @@ class LLMOrchestrationService:
             "this service's domain AND you cannot make meaningful progress. When false, also set "
             "metadata.context_switched=true so the main orchestrator re-routes the query. "
             "Default is true — most messages, even adjacent questions, should be handled here.\n"
-            f"When waiting for guest confirmation before ticket creation, set pending_action to \"{confirm_action}\"."
+            f"When waiting for guest confirmation before ticket creation, set pending_action to \"{confirm_action}\".\n"
+            "CONFIRMATION RULES (mandatory):\n"
+            f"- NEVER ask for confirmation (pending_action=\"{confirm_action}\") while ANY required field is still missing.\n"
+            "  Collect all missing fields first. Only transition to the confirmation step when every required field has a value.\n"
+            f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list EVERY collected "
+            "detail from pending_data_raw and known_context explicitly — name, room number, service, date, time, "
+            "and any other collected fields. Never say 'the above details' without listing them.\n"
+            "- When action=\"create_ticket\" (guest confirmed), response_text MUST include ALL collected details: "
+            "guest name, room number, service/item, date, time — every field present in pending_data_raw.\n"
+            "PRESENT BEFORE ASK RULE (mandatory):\n"
+            "Before asking the guest to choose a menu item, treatment, room type, package, or any option from a list —\n"
+            "FIRST share the full list of available options from the KB. Never ask 'which one?' before showing the options.\n"
+            "DEPARTMENT ASSIGNMENT (mandatory when creating a ticket):\n"
+            "The payload includes available_departments — a list of {department_id, department_name} objects.\n"
+            "When setting ticket.ready_to_create=true, set ticket.department_id to the numeric id of the department\n"
+            "that best matches this service (e.g. spa → Wellness, dining → F&B, room issue → Housekeeping).\n"
+            "If available_departments is empty or no match, leave department_id empty."
         )
 
     async def _run_service_agent(
@@ -1806,7 +1902,7 @@ class LLMOrchestrationService:
                 system_prompt = _generated_prompt
             system_prompt = (
                 f"{system_prompt}\n\n"
-                f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action)}"
+                f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action, current_phase_id=selected_phase_id)}"
             )
         else:
             system_prompt = self._build_service_system_prompt(
@@ -1831,6 +1927,7 @@ class LLMOrchestrationService:
                 confirmation_pending_action=confirmation_pending_action,
                 requires_confirmation_step=requires_confirmation_step,
                 full_kb_text=full_kb_text,
+                current_phase_id=selected_phase_id,
             )
 
         pending_pub = self._coerce_public_pending(context.pending_data)
@@ -1857,6 +1954,29 @@ class LLMOrchestrationService:
         for _k, _v in pending_pub.items():
             if _v is not None and str(_v).strip() and not str(_k).startswith("_"):
                 _known_ctx[str(_k)] = _v
+
+        # Fetch available departments (best-effort) so LLM can assign the right one to the ticket.
+        _available_departments: list[dict[str, Any]] = []
+        if ticketing_enabled:
+            try:
+                from integrations.lumira_ticketing_repository import lumira_ticketing_repository as _ltr
+                from models.database import AsyncSessionLocal as _ASL
+                _integration_ctx = {}
+                _pd = context.pending_data if isinstance(context.pending_data, dict) else {}
+                _int_raw = _pd.get("_integration")
+                if isinstance(_int_raw, dict):
+                    _integration_ctx = _int_raw
+                _entity_id = (
+                    _integration_ctx.get("entity_id")
+                    or _integration_ctx.get("organisation_id")
+                    or _integration_ctx.get("org_id")
+                )
+                if _entity_id:
+                    async with _ASL() as _db:
+                        _available_departments = await _ltr.fetch_departments_of_entity(_db, _entity_id)
+            except Exception:
+                pass  # department list is best-effort; empty list = LLM leaves department_id blank
+
         payload = {
             "user_message": str(user_message or ""),
             "current_date": _now_svc.strftime("%Y-%m-%d"),
@@ -1878,6 +1998,7 @@ class LLMOrchestrationService:
             "memory_summary": str(memory_snapshot.get("summary") or "")[:1200],
             "memory_facts": self._sanitize_json(_mem_facts),
             "confirmation_phrase": confirmation_phrase,
+            "available_departments": _available_departments,
         }
         messages = [
             {"role": "system", "content": system_prompt},
@@ -2098,6 +2219,32 @@ class LLMOrchestrationService:
             if not isinstance(decision.pending_data_updates, dict):
                 decision.pending_data_updates = {}
             decision.pending_data_updates.setdefault("service_id", service_id)
+
+        try:
+            from services.flow_logger import log_service_runtime
+
+            missing_fields = []
+            for field in list(getattr(decision, "missing_fields", []) or []):
+                text = str(field or "").strip()
+                if text:
+                    missing_fields.append(text)
+            log_service_runtime(
+                session_id=str(getattr(context, "session_id", "") or ""),
+                service_id=service_id,
+                service_name=service_name,
+                phase_id=str(selected_phase_id or ""),
+                prompt_source=_prompt_source,
+                extracted_knowledge_chars=len(extracted_knowledge),
+                generated_prompt_chars=len(_generated_prompt),
+                full_kb_fallback_chars=len(full_kb_text),
+                pending_action_before=str(context.pending_action or ""),
+                response_action=str(getattr(decision, "action", "") or ""),
+                missing_fields=missing_fields,
+                ticket_ready_to_create=bool(getattr(decision.ticket, "ready_to_create", False)),
+                context_switched=bool((decision.metadata or {}).get("context_switched")),
+            )
+        except Exception:
+            pass
 
         decision = self._apply_answer_priority_fields(decision)
         return decision
@@ -2376,6 +2523,15 @@ class LLMOrchestrationService:
             "Always read history_last_10 first, then full_history_context before deciding anything. "
             "Use last_user_message and last_assistant_message as high-priority anchors for continuity. "
             "Resolve pronouns ('it', 'that', 'same', 'this') against the last assistant message.\n"
+            "\n"
+            "=== GUEST FACTS (hotel already knows these — never re-ask) ===\n"
+            "The payload includes memory_facts and known_context with data the hotel already has on file.\n"
+            "Think like a hotel: a checked-in guest's name, room number, phone, and email are ALWAYS on file.\n"
+            "  - during_stay / post_checkout: NEVER ask for guest name, room number, phone, or email.\n"
+            "  - pre_checkin: NEVER ask for name, phone, or email — they were collected at booking.\n"
+            "  - pre_booking: only request contact info if the service genuinely needs it and it is absent from known_context.\n"
+            "UNIVERSAL: If a value is already in memory_facts or known_context, treat it as known and do NOT ask for it again.\n"
+            "When a service agent is dispatched, it will also receive known_context — it will handle the details.\n"
             "\n"
             "=== STEP 2: MID-FLOW CHECK ===\n"
             "Read pending_action and pending_action_context carefully. "
@@ -2760,4 +2916,3 @@ class LLMOrchestrationService:
 
 
 llm_orchestration_service = LLMOrchestrationService()
-

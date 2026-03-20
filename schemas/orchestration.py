@@ -25,6 +25,8 @@ class TicketDecision(BaseModel):
     category: str = ""
     sub_category: str = ""
     priority: str = ""
+    department_id: str = ""
+    department_name: str = ""
 
     @field_validator("category", "sub_category", "priority", mode="before")
     @classmethod

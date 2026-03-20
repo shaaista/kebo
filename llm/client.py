@@ -441,13 +441,14 @@ class LLMClient:
                 max_tokens=request_max_tokens,
             )
             output_text = response.choices[0].message.content or ""
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "request_id": request_id,
                     "method": "chat",
                     "status": "success",
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": duration_ms,
                     "model": request_model,
                     "temperature": request_temperature,
                     "max_tokens": request_max_tokens,
@@ -465,16 +466,32 @@ class LLMClient:
                     "trace_context": trace_meta,
                 }
             )
+            try:
+                from services.flow_logger import log_llm_call
+                log_llm_call(
+                    actor=str(trace_actor.get("answered_by") or trace_actor.get("actor") or caller.get("function") or "llm"),
+                    messages=messages,
+                    response=output_text,
+                    model=request_model,
+                    temperature=request_temperature,
+                    max_tokens=request_max_tokens,
+                    duration_ms=duration_ms,
+                    status="success",
+                    trace_context=trace_meta,
+                )
+            except Exception:
+                pass
             return output_text
         except Exception as e:
             print(f"LLM Chat Error: {e}")
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "request_id": request_id,
                     "method": "chat",
                     "status": "error",
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": duration_ms,
                     "model": request_model,
                     "temperature": request_temperature,
                     "max_tokens": request_max_tokens,
@@ -492,6 +509,22 @@ class LLMClient:
                     "trace_context": trace_meta,
                 }
             )
+            try:
+                from services.flow_logger import log_llm_call
+                log_llm_call(
+                    actor=str(trace_actor.get("answered_by") or trace_actor.get("actor") or caller.get("function") or "llm"),
+                    messages=messages,
+                    response="",
+                    model=request_model,
+                    temperature=request_temperature,
+                    max_tokens=request_max_tokens,
+                    duration_ms=duration_ms,
+                    status="error",
+                    error=str(e),
+                    trace_context=trace_meta,
+                )
+            except Exception:
+                pass
             return "I'm having trouble processing that right now. Could you please try again?"
 
     async def chat_with_json(

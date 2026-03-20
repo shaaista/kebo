@@ -7,7 +7,8 @@ Endpoints for chat functionality and testing.
 import json
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Any, Optional, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from schemas.chat import ChatRequest, ChatResponse
 from llm.client import llm_client
@@ -21,7 +22,7 @@ from services.turn_diagnostics_service import turn_diagnostics_service
 from services.response_beautifier_service import response_beautifier_service
 from config.settings import settings
 from core.context_manager import context_manager
-from models.database import get_db
+from models.database import KBFile, Hotel, get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError
 
@@ -148,6 +149,118 @@ def _load_chat_test_phase_profiles() -> dict[str, dict[str, str]]:
             normalized[phase_id] = profile
 
     return normalized
+
+
+def _normalize_service_identifier(value: Any) -> str:
+    return str(value or "").strip().lower().replace("-", "_").replace(" ", "_")
+
+
+def _extract_suggestion_candidates(raw: Any) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    extracted: list[str] = []
+    for item in raw:
+        text = ""
+        if isinstance(item, dict):
+            supported = item.get("supported")
+            if supported is False:
+                continue
+            text = str(
+                item.get("text")
+                or item.get("suggestion")
+                or item.get("message")
+                or ""
+            ).strip()
+            evidence = item.get("evidence")
+            if isinstance(evidence, list) and not evidence and supported is True:
+                # When the model explicitly marks "supported=true", keep; otherwise
+                # we still accept short text suggestions as a fallback parse path.
+                pass
+        else:
+            text = str(item or "").strip()
+        if text:
+            extracted.append(text)
+    return extracted
+
+
+def _sanitize_suggestions(raw: list[str], limit: int = 4) -> list[str]:
+    cleaned: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        text = " ".join(str(item or "").strip().split())
+        if not text:
+            continue
+        if len(text) > 80:
+            continue
+        word_count = len(text.split())
+        if word_count < 2 or word_count > 12:
+            continue
+        key = text.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(text)
+        if len(cleaned) >= max(1, int(limit or 4)):
+            break
+    return cleaned
+
+
+def _service_kb_fact_lines(record: dict[str, Any], max_items: int = 16) -> list[str]:
+    rows = record.get("facts", []) if isinstance(record, dict) else []
+    if not isinstance(rows, list):
+        return []
+    lines: list[str] = []
+    for fact in rows:
+        if not isinstance(fact, dict):
+            continue
+        text = str(fact.get("text") or "").strip()
+        if not text:
+            continue
+        lines.append(text)
+        if len(lines) >= max_items:
+            break
+    return lines
+
+
+async def _load_latest_kb_text_from_db(
+    *,
+    db: AsyncSession,
+    hotel_code: str,
+    max_chars: int = 50000,
+) -> str:
+    """Best-effort DB fallback for KB text when file-sourced KB is stale/empty."""
+    code = str(hotel_code or "DEFAULT").strip() or "DEFAULT"
+    hotel_id: Optional[int] = None
+    try:
+        result = await db.execute(
+            select(Hotel.id).where(Hotel.code == code).limit(1)
+        )
+        hotel_id = result.scalar_one_or_none()
+        if hotel_id is None and code != "DEFAULT":
+            fallback = await db.execute(
+                select(Hotel.id).where(Hotel.code == "DEFAULT").limit(1)
+            )
+            hotel_id = fallback.scalar_one_or_none()
+        if hotel_id is None:
+            any_hotel = await db.execute(select(Hotel.id).order_by(Hotel.id.asc()).limit(1))
+            hotel_id = any_hotel.scalar_one_or_none()
+        if hotel_id is None:
+            return ""
+
+        row = await db.execute(
+            select(KBFile.content)
+            .where(KBFile.hotel_id == hotel_id)
+            .order_by(KBFile.id.desc())
+            .limit(1)
+        )
+        content = str(row.scalar_one_or_none() or "").strip()
+        if not content:
+            return ""
+        if max_chars and max_chars > 0:
+            return content[:max_chars]
+        return content
+    except Exception:
+        return ""
 
 
 def _record_evaluation_event(request: ChatRequest, response: ChatResponse, trace_id: str) -> None:
@@ -325,6 +438,28 @@ async def send_message(
             "db_session_available": db is not None,
         },
     )
+    # Log chat turn start to flow.log
+    try:
+        from services.flow_logger import log_chat_turn
+        meta = request.metadata or {}
+        phase = str(meta.get("phase_id") or meta.get("phase") or request.phase_id or "").strip()  # type: ignore[attr-defined]
+        guest_info = {k: v for k, v in meta.items() if k in ("room_number", "guest_name", "guest_id", "entity_id") and v}
+        summary = str(meta.get("conversation_summary") or meta.get("summary") or "").strip()
+        from services.config_service import config_service as _cs
+        _all_svcs = _cs.get_services()
+        available_services = [str(s.get("id") or "") for s in (_all_svcs or []) if s.get("is_active", True)]
+        log_chat_turn(
+            session_id=str(request.session_id or ""),
+            user_message=str(request.message or ""),
+            phase=phase,
+            available_services=available_services,
+            context_history_count=len(meta.get("conversation_history") or []),
+            guest_info=guest_info,
+            summary=summary,
+        )
+    except Exception:
+        pass
+
     try:
         response = await chat_service.process_message(request, db_session=db)
         response.message = response_beautifier_service.beautify_response_text(response.message)
@@ -335,6 +470,24 @@ async def send_message(
             response.metadata.setdefault("trace_id", trace_id)
         response.metadata.setdefault("turn_trace_id", turn_trace_id)
         _record_evaluation_event(request, response, trace_id)
+        # Log chat response to flow.log
+        try:
+            from services.flow_logger import log_chat_response, log_orchestration_decision
+            resp_meta = response.metadata or {}
+            routed_svc = str(resp_meta.get("response_source") or resp_meta.get("routing_path") or resp_meta.get("classified_intent") or "unknown")
+            log_chat_response(
+                session_id=str(request.session_id or ""),
+                routed_service=routed_svc,
+                final_response=str(response.message or ""),
+            )
+            orchestration = resp_meta.get("orchestration_decision") or resp_meta.get("decision")
+            if orchestration and isinstance(orchestration, dict):
+                log_orchestration_decision(
+                    session_id=str(request.session_id or ""),
+                    decision=orchestration,
+                )
+        except Exception:
+            pass
         observability_service.log_event(
             "chat_message_processed",
             {
@@ -664,139 +817,334 @@ class SuggestionsRequest(BaseModel):
     hotel_code: Optional[str] = "DEFAULT"
     current_phase: Optional[str] = "pre_booking"
     session_id: Optional[str] = None
+    fallback_suggestions: list[str] = Field(default_factory=list)
 
 
 @router.post("/suggestions")
-async def get_contextual_suggestions(request: SuggestionsRequest):
+async def get_contextual_suggestions(
+    request: SuggestionsRequest,
+    db: AsyncSession = Depends(get_db),
+):
     """
-    Fallback suggestion endpoint. Loads live session context (active service,
-    conversation state, pending data, phase) and the knowledge base, then asks
-    the LLM to generate grounded follow-up suggestions.
+    Contextual suggestion endpoint used by suggestion bubbles.
+    It combines live session context + phase-aware service context + full KB/service KB
+    and asks an LLM to emit only grounded, answerable next-message suggestions.
     """
     try:
         from services.config_service import config_service
 
-        phase_id = request.current_phase or "pre_booking"
-        active_service: dict = {}
-        conversation_state: str = ""
-        conversation_history: list = []
+        hotel_code = str(request.hotel_code or "DEFAULT").strip() or "DEFAULT"
+        phase_id = _normalize_phase_identifier(request.current_phase or "pre_booking") or "pre_booking"
+        active_service_id = ""
+        active_service: dict[str, Any] = {}
+        conversation_state = ""
+        conversation_history: list[dict[str, str]] = []
+        pending_data_public: dict[str, Any] = {}
 
-        # Load live session context when session_id is available
+        cap_summary = config_service.get_capability_summary(hotel_code)
+        raw_caps = cap_summary.get("capabilities", {})
+        if not isinstance(raw_caps, dict):
+            raw_caps = {}
+        nlu_policy = cap_summary.get("nlu_policy", {})
+        if not isinstance(nlu_policy, dict):
+            nlu_policy = {}
+
         if request.session_id:
             try:
-                context = await context_manager.get_context(request.session_id)
+                context = await context_manager.get_context(request.session_id, db_session=db)
                 if context:
-                    conversation_state = context.state.value if context.state else ""
-                    pending_action = str(context.pending_action or "")
+                    conversation_state = str(context.state.value if context.state else "").strip()
+                    pending_action = str(context.pending_action or "").strip()
+                    pending_data_raw = context.pending_data if isinstance(context.pending_data, dict) else {}
+                    pending_data_public = {
+                        key: value
+                        for key, value in pending_data_raw.items()
+                        if isinstance(key, str) and not key.startswith("_")
+                    }
 
-                    # Phase from session context is more reliable than frontend-reported phase
-                    ctx_phase = None
-                    if context.pending_data:
-                        ctx_phase = (
-                            context.pending_data.get("phase")
-                            or (context.pending_data.get("_integration") or {}).get("phase")
-                        )
-                    if ctx_phase:
-                        phase_id = str(ctx_phase)
+                    phase_candidates = [
+                        pending_data_public.get("phase"),
+                        (pending_data_raw.get("_integration") or {}).get("phase")
+                        if isinstance(pending_data_raw.get("_integration"), dict)
+                        else "",
+                        pending_data_raw.get("_selected_phase_id"),
+                        (pending_data_raw.get("_selected_phase") or {}).get("id")
+                        if isinstance(pending_data_raw.get("_selected_phase"), dict)
+                        else "",
+                    ]
+                    for candidate in phase_candidates:
+                        normalized = _normalize_phase_identifier(candidate)
+                        if normalized:
+                            phase_id = normalized
+                            break
 
-                    # Look up the currently active service
-                    if pending_action:
-                        svc = config_service.get_service(pending_action)
-                        if svc:
-                            active_service = {
-                                "id": svc.get("id", ""),
-                                "name": svc.get("name", ""),
-                                "profile": svc.get("profile", ""),
-                            }
+                    active_service_candidates = [
+                        pending_data_public.get("service_id"),
+                        pending_data_public.get("service"),
+                        pending_data_raw.get("_last_service_id"),
+                        pending_action,
+                    ]
+                    for candidate in active_service_candidates:
+                        normalized_service = _normalize_service_identifier(candidate)
+                        if not normalized_service:
+                            continue
+                        svc = config_service.get_service(normalized_service)
+                        if not svc:
+                            continue
+                        active_service_id = normalized_service
+                        active_service = {
+                            "id": str(svc.get("id") or normalized_service).strip(),
+                            "name": str(svc.get("name") or normalized_service).strip(),
+                            "type": str(svc.get("type") or "service").strip(),
+                            "description": str(svc.get("description") or "").strip(),
+                        }
+                        break
 
-                    # Extract recent conversation history for grounding
                     if hasattr(context, "get_recent_messages"):
                         total_chars = 0
-                        for msg in context.get_recent_messages(6):
+                        for msg in context.get_recent_messages(12):
                             content = str(msg.content or "").strip()
-                            if not content or total_chars >= 2000:
+                            if not content or total_chars >= 6000:
                                 break
-                            clipped = content[: min(2000 - total_chars, 600)]
-                            conversation_history.append({"role": msg.role.value, "content": clipped})
+                            clipped = content[: min(6000 - total_chars, 850)]
+                            conversation_history.append(
+                                {
+                                    "role": str(getattr(msg.role, "value", "") or "").strip(),
+                                    "content": clipped,
+                                }
+                            )
                             total_chars += len(clipped)
             except Exception:
-                pass  # context load failure is non-fatal
+                pass
 
-        # Phase description from config — not hardcoded
         phases = config_service.get_journey_phases()
-        phase_obj = next((p for p in phases if p.get("id") == phase_id), None)
-        phase_name = phase_obj.get("name", phase_id) if phase_obj else phase_id
-        phase_description = phase_obj.get("description", "") if phase_obj else ""
+        if not isinstance(phases, list):
+            phases = []
+        phase_obj = next(
+            (
+                p
+                for p in phases
+                if isinstance(p, dict) and _normalize_phase_identifier(p.get("id")) == phase_id
+            ),
+            None,
+        )
+        phase_name = (
+            str((phase_obj or {}).get("name") or "").strip()
+            if isinstance(phase_obj, dict)
+            else ""
+        ) or phase_id.replace("_", " ").title()
+        phase_description = (
+            str((phase_obj or {}).get("description") or "").strip()
+            if isinstance(phase_obj, dict)
+            else ""
+        )
 
-        # Services active in this phase from config
-        phase_services = config_service.get_phase_services(phase_id)
-        available_phase_services = [
-            {"name": s.get("name", ""), "profile": s.get("profile", "")}
-            for s in phase_services
-            if s.get("is_active", True) and s.get("name", "")
+        service_kb_records = cap_summary.get("service_kb_records", [])
+        if not isinstance(service_kb_records, list):
+            service_kb_records = []
+        service_kb_by_service: dict[str, dict[str, Any]] = {}
+        for record in service_kb_records:
+            if not isinstance(record, dict):
+                continue
+            sid = _normalize_service_identifier(record.get("service_id"))
+            if not sid:
+                continue
+            existing = service_kb_by_service.get(sid)
+            try:
+                version = int(record.get("version") or 0)
+            except (TypeError, ValueError):
+                version = 0
+            try:
+                existing_version = int((existing or {}).get("version") or 0)
+            except (TypeError, ValueError):
+                existing_version = 0
+            if existing is None or version >= existing_version:
+                service_kb_by_service[sid] = dict(record)
+
+        service_catalog = cap_summary.get("service_catalog", [])
+        if not isinstance(service_catalog, list):
+            service_catalog = []
+        if not service_catalog:
+            service_catalog = config_service.get_services()
+
+        phase_services_context: list[dict[str, Any]] = []
+        out_of_phase_services_context: list[dict[str, Any]] = []
+        for service in service_catalog:
+            if not isinstance(service, dict):
+                continue
+            sid = _normalize_service_identifier(service.get("id"))
+            if not sid or not bool(service.get("is_active", True)):
+                continue
+            service_phase_id = _normalize_phase_identifier(service.get("phase_id"))
+            service_phase_name = next(
+                (
+                    str(phase.get("name") or "").strip()
+                    for phase in phases
+                    if isinstance(phase, dict) and _normalize_phase_identifier(phase.get("id")) == service_phase_id
+                ),
+                service_phase_id.replace("_", " ").title() if service_phase_id else "",
+            )
+            prompt_pack = service.get("service_prompt_pack")
+            if not isinstance(prompt_pack, dict):
+                prompt_pack = {}
+            required_slots = prompt_pack.get("required_slots", [])
+            if not isinstance(required_slots, list):
+                required_slots = []
+            required_slot_labels: list[str] = []
+            for slot in required_slots[:8]:
+                if not isinstance(slot, dict):
+                    continue
+                label = str(slot.get("label") or slot.get("id") or "").strip()
+                if label:
+                    required_slot_labels.append(label)
+
+            kb_record = service_kb_by_service.get(sid, {})
+            extracted_knowledge = (
+                str(kb_record.get("extracted_knowledge") or "").strip()
+                or str(prompt_pack.get("extracted_knowledge") or "").strip()
+            )
+            row = {
+                "id": sid,
+                "name": str(service.get("name") or sid).strip(),
+                "type": str(service.get("type") or "service").strip(),
+                "description": str(service.get("description") or "").strip(),
+                "phase_id": service_phase_id,
+                "phase_name": service_phase_name,
+                "profile": str(prompt_pack.get("profile") or service.get("profile") or "").strip(),
+                "ticketing_enabled": bool(service.get("ticketing_enabled", True)),
+                "ticketing_policy": str(service.get("ticketing_policy") or "").strip(),
+                "required_slots": required_slot_labels,
+                "knowledge_facts": _service_kb_fact_lines(kb_record, max_items=18),
+                "extracted_knowledge": extracted_knowledge[:2800],
+            }
+            if service_phase_id == phase_id:
+                phase_services_context.append(row)
+            else:
+                out_of_phase_services_context.append(row)
+
+        if not active_service and active_service_id:
+            for row in phase_services_context + out_of_phase_services_context:
+                if _normalize_service_identifier(row.get("id")) != active_service_id:
+                    continue
+                active_service = {
+                    "id": row.get("id", ""),
+                    "name": row.get("name", ""),
+                    "type": row.get("type", ""),
+                    "description": row.get("description", ""),
+                }
+                break
+
+        kb_text = str(config_service.get_full_kb_text(max_chars=38000) or "").strip()
+        db_kb_text = await _load_latest_kb_text_from_db(
+            db=db,
+            hotel_code=hotel_code,
+            max_chars=42000,
+        )
+        if not kb_text and db_kb_text:
+            kb_text = db_kb_text
+        elif db_kb_text and len(kb_text) < 2500:
+            kb_text = (kb_text + "\n\n" + db_kb_text).strip()[:42000]
+
+        service_knowledge_parts: list[str] = []
+        seen_ids: set[str] = set()
+        for row in phase_services_context[:24]:
+            sid = _normalize_service_identifier(row.get("id"))
+            if not sid or sid in seen_ids:
+                continue
+            seen_ids.add(sid)
+            facts = row.get("knowledge_facts", [])
+            facts_text = "\n".join(
+                f"- {str(fact).strip()}"
+                for fact in facts
+                if str(fact).strip()
+            )
+            extracted = str(row.get("extracted_knowledge") or "").strip()
+            block = (
+                f"[Service: {row.get('name', sid)} | id={sid}]\n"
+                f"Description: {str(row.get('description') or '').strip()}\n"
+                f"Facts:\n{facts_text or '- (none)'}\n"
+                f"Extracted Knowledge:\n{extracted or '(none)'}"
+            ).strip()
+            service_knowledge_parts.append(block[:3500])
+        if active_service_id and active_service_id not in seen_ids:
+            active_record = service_kb_by_service.get(active_service_id, {})
+            active_extracted = str(active_record.get("extracted_knowledge") or "").strip()
+            active_facts = "\n".join(
+                f"- {line}" for line in _service_kb_fact_lines(active_record, max_items=18)
+            )
+            if active_extracted or active_facts:
+                service_knowledge_parts.append(
+                    (
+                        f"[Active Service Knowledge: {active_service_id}]\n"
+                        f"Facts:\n{active_facts or '- (none)'}\n"
+                        f"Extracted Knowledge:\n{active_extracted or '(none)'}"
+                    )[:3500]
+                )
+        service_knowledge_corpus = "\n\n---\n\n".join(service_knowledge_parts)[:26000]
+
+        enabled_capabilities = [
+            cap_id
+            for cap_id, cap_data in raw_caps.items()
+            if isinstance(cap_data, dict) and cap_data.get("enabled", False)
         ]
-
-        # Knowledge base text — let the LLM infer topics itself, no hardcoded list
-        kb_text = config_service.get_full_kb_text(max_chars=5000)
-
-        # Build bot delivery boundary from live config — fully dynamic per property
-        try:
-            cap_summary = config_service.get_capability_summary(request.hotel_code or "DEFAULT")
-            raw_caps = cap_summary.get("capabilities", {})
-            enabled_capabilities = [
-                cap_id
-                for cap_id, cap_data in raw_caps.items()
-                if isinstance(cap_data, dict) and cap_data.get("enabled", False)
-            ]
-            nlu_policy = cap_summary.get("nlu_policy", {})
-            property_constraints = [
-                str(d).strip()
-                for d in (nlu_policy.get("donts", []) if isinstance(nlu_policy, dict) else [])
-                if str(d).strip()
-            ]
-        except Exception:
-            enabled_capabilities = []
-            property_constraints = []
-
+        property_constraints = [
+            str(d).strip()
+            for d in (nlu_policy.get("donts", []) if isinstance(nlu_policy, dict) else [])
+            if str(d).strip()
+        ]
         bot_delivery_boundary = {
-            "medium": "text only — cannot show images, photos, videos, or visual media; cannot provide real-time availability, live pricing, or data from external systems not listed as active services",
+            "medium": (
+                "text only; no image/video delivery; no real-time availability/pricing "
+                "from external systems outside active configured services"
+            ),
             "enabled_capabilities": enabled_capabilities,
             "property_constraints": property_constraints,
         }
 
+        fallback_candidates = _sanitize_suggestions(
+            [str(item).strip() for item in (request.fallback_suggestions or []) if str(item).strip()],
+            limit=6,
+        )
         context_payload = {
-            "last_bot_message": request.last_bot_message.strip(),
-            "user_message": request.user_message.strip() if request.user_message else "",
+            "last_bot_message": str(request.last_bot_message or "").strip(),
+            "user_message": str(request.user_message or "").strip(),
             "conversation_history": conversation_history,
             "conversation_state": conversation_state,
+            "pending_data_public": pending_data_public,
             "journey_phase": {
                 "id": phase_id,
                 "name": phase_name,
                 "description": phase_description,
             },
             "active_service": active_service,
-            "available_phase_services": available_phase_services,
-            "knowledge_base_excerpt": kb_text,
+            "services_allowed_in_phase": phase_services_context[:40],
+            "services_outside_phase": out_of_phase_services_context[:80],
+            "knowledge_base": {
+                "full_kb_text": kb_text,
+                "service_knowledge_corpus": service_knowledge_corpus,
+                "service_kb_record_count": len(service_kb_records),
+            },
+            "candidate_suggestions_from_runtime": fallback_candidates,
             "bot_delivery_boundary": bot_delivery_boundary,
         }
 
         system_prompt = (
-            "You are a suggestion chip generator for a hotel concierge chatbot.\n"
-            "Generate 3 suggestions representing what the guest would most likely send next.\n\n"
-            "Work through the payload in this order:\n"
-            "0. Read `bot_delivery_boundary` first — this defines the hard limits of what this bot can actually deliver. If a suggestion requires the bot to show images or media, provide real-time data, or use a capability not listed in `enabled_capabilities` — discard it. `property_constraints` lists explicit rules for this property that must also be respected.\n"
-            "1. Read `last_bot_message` — this is what the bot just said. Suggestions must be a natural direct response to that specific message.\n"
-            "2. Read `conversation_history` — understand the thread and do not suggest anything already discussed or resolved.\n"
-            "3. Read `active_service` — if a service is in progress, suggest messages that continue or complete that flow.\n"
-            "4. Read `knowledge_base_excerpt` to understand what topics the bot can answer as text. If no service is active, only suggest from those topics as relevant to the current phase.\n\n"
-            "Voice — strictly enforced:\n"
-            "Every suggestion must be a natural first-person guest message, exactly what they would type into the chat.\n"
-            "Bad: 'Ask about room types', 'View services', 'Show options', 'Share details'\n"
-            "Good: 'What room types do you have?', 'What services are available?', 'Can I see the menu?'\n\n"
-            "Never suggest any value that is unique to the individual guest — this includes names, room numbers, phone numbers, email addresses, flight numbers, dates, times, booking references, order quantities, party sizes, prices, or any other personal or context-specific data. The guest is the only one who knows these — they must type them.\n"
-            "Also never suggest a message where the guest is offering or providing their personal information, even without stating the actual value. Messages like 'Here's my full name and details', 'I'll share my details', 'Here is my information', 'Let me provide my info' are all forbidden — they imply the guest is about to hand over unique personal data.\n"
-            "Suggestions must only be questions the guest wants to ask, or service actions they want to request — never data submissions.\n\n"
-            "Each suggestion: 2-8 words. Return ONLY strict JSON: {\"suggestions\": [\"...\", \"...\", \"...\"]}"
+            "You generate suggestion chips for a hotel concierge chatbot.\n"
+            "Goal: produce exactly 3 guest messages that the user is likely to send next and that this bot can answer positively right now.\n\n"
+            "Strict grounding workflow:\n"
+            "1. Respect `journey_phase` and only `services_allowed_in_phase` for service asks.\n"
+            "2. Use `knowledge_base.full_kb_text` and `knowledge_base.service_knowledge_corpus` as source of truth.\n"
+            "3. If information is absent/uncertain, do NOT suggest that topic.\n"
+            "4. Reject out-of-phase or unsupported runtime candidates.\n"
+            "5. Prefer suggestions that can receive a direct helpful answer now.\n"
+            "6. If `active_service` exists, prioritize continuation suggestions.\n\n"
+            "Style:\n"
+            "- First-person guest chat text.\n"
+            "- Questions or requests only; never data submission.\n"
+            "- 2 to 10 words.\n"
+            "- No personal placeholders or unique personal values.\n\n"
+            "Return ONLY strict JSON in this schema:\n"
+            "{\"suggestions\":[{\"text\":\"...\",\"supported\":true,\"evidence\":[\"short snippet\"]},{\"text\":\"...\",\"supported\":true,\"evidence\":[\"short snippet\"]},{\"text\":\"...\",\"supported\":true,\"evidence\":[\"short snippet\"]}]}"
         )
 
         result = await llm_client.chat_with_json(
@@ -804,13 +1152,19 @@ async def get_contextual_suggestions(request: SuggestionsRequest):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": json.dumps(context_payload, ensure_ascii=False)},
             ],
-            temperature=0.3,
+            temperature=0.2,
         )
-        suggestions = result.get("suggestions", [])
-        if not isinstance(suggestions, list):
-            suggestions = []
-        suggestions = [str(s).strip() for s in suggestions if s and len(str(s).strip()) <= 80][:4]
+        suggestions = _sanitize_suggestions(
+            _extract_suggestion_candidates(result.get("suggestions", [])),
+            limit=4,
+        )
+        if not suggestions and fallback_candidates:
+            suggestions = _sanitize_suggestions(fallback_candidates, limit=4)
         return {"suggestions": suggestions}
     except Exception as e:
         print(f"Suggestions endpoint error: {e}")
-        return {"suggestions": []}
+        fallback = _sanitize_suggestions(
+            [str(item).strip() for item in (request.fallback_suggestions or []) if str(item).strip()],
+            limit=4,
+        )
+        return {"suggestions": fallback}

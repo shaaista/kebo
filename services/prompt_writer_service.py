@@ -80,6 +80,16 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
     intent, never ask for a slot whose answer requires knowledge the guest
     does not yet have. Always provide that knowledge first.
 
+    PRESENT BEFORE ASK (MANDATORY): Before asking the guest to choose or
+    specify a menu item, treatment, room type, package, time slot, or ANY
+    preference from a list — FIRST share all available options from the KB.
+    The guest cannot choose from options they haven't seen.
+    - In-room dining: show the relevant menu section first, then ask what item
+    - Spa: list all treatments with duration and price, then ask preference
+    - Restaurant: list all restaurants with timings, then ask which one
+    - Room booking: describe available room types, then ask which to book
+    Only ask "which one?" after the full list has been shown.
+
     If the service has MULTIPLE OPTIONS the guest must choose from (restaurant
     names, room types, vehicle types, treatment packages, etc.):
     → List ALL available options from the KB first.
@@ -92,14 +102,6 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
     → State the relevant cost/policy before asking for their personal details.
     → The guest must know what they are agreeing to before you take their name,
       reservation number, or contact information.
-
-    EXAMPLES:
-    - Restaurant booking → list all restaurants + hours first, then ask which
-    - Early check-in → state the charge and availability condition first, then
-      ask for reservation number
-    - Airport pickup → confirm vehicle type and price before asking for flight
-      details
-    - Room booking → if the guest hasn't seen the room types, list them first
 
 4. KNOWLEDGE BOUNDARIES — The agent only knows what is in its KB data. For
    anything not in the KB, say "I don't have that specific information" and
@@ -115,10 +117,14 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
    or phrases like "current phase", "not available in this phase", or "during
    the X phase" in any guest-facing response.
 
-6. CONFIRMATION STEP — This rule is ABSOLUTE and has NO exceptions. Before
-   raising any ticket for any reason, the agent MUST:
+6. CONFIRMATION STEP — This rule is ABSOLUTE and has NO exceptions.
+   CRITICAL: NEVER ask for confirmation while any required field is still
+   missing. Collect all missing fields first. Only move to the confirmation
+   step when every single required field has a value.
+
+   Once ALL required fields are collected, THEN:
    Step 1 — Show a complete bullet-point summary of every collected detail
-             (name, dates, room type, restaurant, time, flight, price, etc.)
+             (name, dates, room type, restaurant, time, item, price, etc.)
    Step 2 — Ask the guest to confirm: "Please confirm the above to proceed."
    Step 3 — Only after the guest explicitly says yes (or clicks confirm) →
              create the ticket.
@@ -172,6 +178,32 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
       for correction.
     - Resolve relative dates ("tomorrow", "next Friday") against current_date
       and store the resolved absolute date in pending_data_updates.
+
+13. GUEST FACTS & KNOWN CONTEXT — Think like a hotel. At check-in the hotel
+    collects the guest's full name, room number, phone number, and email. These
+    remain on file for the entire stay and after checkout.
+
+    The runtime payload includes a known_context field with pre-filled guest
+    data (guest_name, room_number, reservation_number, phone, email, etc.).
+    ALWAYS check known_context BEFORE asking for any piece of information.
+    If a field is already there, use it directly — never ask the guest to
+    repeat or re-confirm information the hotel already has.
+
+    PHASE-SPECIFIC RULES your generated prompt MUST enforce:
+    - during_stay / post_checkout: NEVER ask for guest_name, room_number,
+      phone, or email. The hotel has all of these from check-in records.
+      Only collect service-specific details (date, time, preferences, item
+      choice, special requests, etc.).
+    - pre_checkin: Guest has a confirmed booking. Hotel has name, phone,
+      email. NEVER ask for these if they are in known_context. Room number
+      may not be assigned — only ask if the service genuinely requires it
+      and it is absent from known_context.
+    - pre_booking: Guest may not have a reservation yet. Only collect
+      contact info (name, phone, email) when the service genuinely needs it
+      AND it is NOT already in known_context. Never request it speculatively.
+
+    UNIVERSAL RULE: Whatever phase the guest is in — if a value is present
+    in known_context, NEVER ask for it. Use it directly and move on.
 
 === END OF BRIEFING ===
 """
@@ -263,6 +295,11 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         f"  how to handle dietary/allergen questions (if food service), when to collect slots,",
         f"  the confirmation step (if ticketing), phase-aware complaint escalation behavior,",
         f"  and when to hand off (context_switched).",
+        f"- IMPORTANT: Include rule 13 (GUEST FACTS & KNOWN CONTEXT) explicitly — tell the agent",
+        f"  to always check known_context before asking for anything, and enforce the phase-specific",
+        f"  rules: during_stay/post_checkout never ask for name/room/phone/email; pre_checkin never",
+        f"  ask for name/phone/email if in known_context; pre_booking only request contact info when",
+        f"  genuinely needed and absent from known_context.",
         f"- Add an explicit phase-aware escalation rule: for important complaints or",
         f"  explicit human-help asks, escalate via ticket only when in phase and enabled;",
         f"  if out of phase, acknowledge and explain limits without promising immediate dispatch.",
