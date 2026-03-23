@@ -516,46 +516,6 @@
       "cuisine": null,
       "hours": {},
       "delivery_zones": []
-    },
-    {
-      "id": "spa_services",
-      "name": "spa services",
-      "type": "service",
-      "description": "Guests can explore available spa services and make bookings through the chatbot.",
-      "is_active": true,
-      "is_builtin": false,
-      "ticketing_enabled": true,
-      "ticketing_policy": "Create a backend ticket for spa services when a guest confirms their booking by providing their full name, room number, preferred service, date, and time of appointment.",
-      "phase_id": "pre_booking",
-      "service_prompt_pack": {
-        "version": 1,
-        "generator": "service_prompt_pack_v2",
-        "source": "manual_override",
-        "profile": "",
-        "role": "You are the dedicated assistant for spa services.",
-        "professional_behavior": "Use only admin-configured policy and KB evidence. Ask concise clarifying questions when required details are missing. Do not invent fixed field schemas.",
-        "phase_id": "pre_booking",
-        "required_slots": [],
-        "validation_rules": [],
-        "confirmation_format": {
-          "style": "summary_then_explicit_confirm",
-          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
-          "required_phrase": "yes confirm"
-        },
-        "ticketing_policy": {
-          "enabled": true,
-          "policy": "Create a backend ticket for spa services when a guest confirms their booking by providing their full name, room number, preferred service, date, and time of appointment.",
-          "decision_template": ""
-        },
-        "execution_guard": {},
-        "extracted_knowledge": "- spa_timings\n  9:00 AM – 11:00 PM\n\n- Wellness Rooms\n  Traditional spa therapies are replaced ICONIQA style with candlelight therapies. Functional massages to help with jetlag or hangovers, along with foot massages by the poolside at Bombay Swim Club.",
-        "ticketing_conditions": "Create a backend ticket for spa services when a guest confirms their booking by providing their full name, room number, preferred service, date, and time of appointment."
-      },
-      "service_prompt_pack_custom": true,
-      "generated_system_prompt": "You are a service agent specializing in spa services at our hotel. Your role is to assist guests in exploring available spa services and facilitate bookings through the chatbot. You are knowledgeable about the spa's operating hours, which are from 9:00 AM to 11:00 PM, and the unique offerings such as candlelight therapies and functional massages available at the Wellness Rooms and Bombay Swim Club.\n\nYour primary responsibilities include providing detailed information about spa services, answering guest inquiries, and handling booking requests. When a guest expresses a clear intent to book a spa service, you will collect the necessary details, including their full name, room number, preferred service, date, and time of appointment. Once these details are confirmed, you will create a backend ticket to finalize the booking.\n\nAlways check the known_context for any guest information before requesting details. During the pre_booking phase, only ask for contact information if it is genuinely needed and not already present in the known_context. Never request information speculatively. \n\nIf a guest asks about services outside the spa, such as dining, transport, or other hotel amenities, you must set context_switched=true and transfer the conversation back to the main orchestrator. Do not attempt to answer questions outside your scope.\n\nFor any complaints or requests for human assistance, if ticketing is enabled and the service is available, collect minimal necessary details and escalate through ticketing after confirmation. If the service is not available in the current phase, acknowledge the concern warmly and offer to connect the guest with a staff member without promising immediate fulfillment.\n\nMaintain a warm, concise, and professional tone in all interactions. Never use markdown formatting like **bold** or *italic*. When asking for multiple details, use bullet points for clarity. For example:\n\nPlease provide the following details:\n- Full name\n- Room number\n- Preferred spa service\n- Date and time of appointment\n\nEnsure all required fields are collected before moving to the confirmation step. Once all details are gathered, present a complete summary for the guest to confirm. Only after explicit confirmation should you create a ticket.\n\nIf a guest asks a question related to spa services that you cannot answer with the available knowledge base, provide whatever relevant information you have and ask a clarifying follow-up question to better understand their needs. If you are still unable to assist, offer to connect the guest with a staff member.\n\nRemember, you are here to enhance the guest's experience by providing accurate information and seamless booking assistance while respecting the boundaries of your knowledge and capabilities.",
-      "cuisine": null,
-      "hours": {},
-      "delivery_zones": []
     }
   ],
   "intents": [],
@@ -597,9 +557,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
-      "generated_at": "2026-03-23T18:12:08.569542+00:00",
+      "generated_at": "2026-03-23T19:01:46.956233+00:00",
       "book_index_generator": "default_v1",
-      "book_index_generated_at": "2026-03-23T18:12:08.569542+00:00",
+      "book_index_generated_at": "2026-03-23T19:01:46.956233+00:00",
       "source_count": 1,
       "documents": [
         {

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-23T18:17:44.714087+00:00",
+  "saved_at": "2026-03-23T19:03:47.642497+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -60431,6 +60431,153 @@
       ],
       "created_at": "2026-03-23T18:16:33.600666Z",
       "updated_at": "2026-03-23T18:17:44.629940Z"
+    },
+    "session_1774292535191_z381ugv1w": {
+      "session_id": "session_1774292535191_z381ugv1w",
+      "hotel_code": "3",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-23T19:02:26.545241+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "book a spa",
+              "timestamp": "2026-03-23T19:03:16.235368+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-23T19:03:47.499105+00:00",
+          "last_user_message": "book a spa",
+          "last_assistant_message": "Our spa services will be available for booking once you have confirmed your stay with us. We look forward to helping you relax and unwind during your visit."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-23T19:03:47.498777+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "7f2a864f-e86a-41fb-bc3b-a378b465a13c",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-23T19:02:26.545124Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "f04a3f1c-db7e-4bd2-b12f-e761bdd170e7",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today at ICONIQA Hotel?",
+          "timestamp": "2026-03-23T19:02:57.069662Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-b40c610b664b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6269b1a3-d93d-4575-b23c-747d3ffee046",
+          "role": "user",
+          "content": "book a spa",
+          "timestamp": "2026-03-23T19:03:16.234219Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book a spa."
+          }
+        },
+        {
+          "id": "6a53b562-f2c4-459c-b8d5-f6cc0aebf63d",
+          "role": "assistant",
+          "content": "Our spa services will be available for booking once you have confirmed your stay with us. We look forward to helping you relax and unwind during your visit.",
+          "timestamp": "2026-03-23T19:03:47.498952Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-7526b563b2d4",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-23T19:02:21.740921Z",
+      "updated_at": "2026-03-23T19:03:47.499137Z"
     }
   }
 }

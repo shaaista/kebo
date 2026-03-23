@@ -30,7 +30,7 @@ vercel.env
 
 # Runtime logs and temp files
 logs/
-*.log
+
 *.tmp
 *.temp
 *.pid
