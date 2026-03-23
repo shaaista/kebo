@@ -836,6 +836,7 @@ class LLMOrchestrationService:
             "Good: 'What room types do you have?', 'What services are available?', 'Can I see my options?'\n\n"
             "Never suggest any value that is unique to the individual guest — this includes names, room numbers, phone numbers, email addresses, flight numbers, dates, times, booking references, order quantities, party sizes, prices, or any other personal or context-specific data. The guest is the only one who knows these — they must type them.\n"
             "Also never suggest a message where the guest is offering or providing their personal information, even without stating the actual value. Messages like 'Here's my full name and details', 'I'll share my details', 'Here is my information', 'Let me provide my info' are all forbidden — they imply the guest is about to hand over unique personal data.\n"
+            "Never suggest that the guest edits, modifies, or changes a request that has already been confirmed or completed (e.g. do not suggest 'Edit my booking' or 'Change my order' after confirmation).\n"
             "Suggestions must only be questions the guest wants to ask, or service actions they want to request — never data submissions.\n\n"
             "Keep each suggestion 2-8 words."
         )
@@ -1016,6 +1017,21 @@ class LLMOrchestrationService:
                 "reason": "short reason",
             },
         }
+
+        # --- WEATHER INJECTION FOR GUARD ---
+        user_msg_lower = str(user_message or "").lower()
+        if any(w in user_msg_lower for w in ["weather", "temperature", "forecast", "climate", "rain", "sunny"]):
+            try:
+                from services.weather_service import get_current_weather
+                hotel_code_val = getattr(context, "hotel_code", "DEFAULT")
+                weather_info = await get_current_weather(hotel_code_val)
+                if weather_info:
+                    payload["live_hotel_weather_context"] = weather_info
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning("Failed to inject weather into guard payload: %s", e)
+        # -------------------------
+
         system_prompt = (
             "You are an answer-first quality guard for a concierge service LLM output.\n"
             "Return STRICT JSON only.\n"
@@ -1692,8 +1708,9 @@ class LLMOrchestrationService:
             "and store the resolved YYYY-MM-DD value.\n"
             "PHONE NUMBER VALIDATION:\n"
             "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
-            "  - If the guest provides a phone number that is not 10 digits, do NOT store it in pending_data_updates. "
-            "Keep the phone field in missing_fields and ask the guest to provide a valid 10-digit phone number.\n"
+            "  - Reject obvious fake or garbage numbers (e.g., all identical digits like 9999999999, sequential digits like 1234567890, or common test numbers).\n"
+            "  - If the guest provides an invalid or garbage phone number, do NOT store it in pending_data_updates. "
+            "Keep the phone field in missing_fields and politely ask the guest to provide a real, valid 10-digit phone number.\n"
             "  - If pending_data_raw already contains an invalid phone number, treat that slot as still-empty."
         )
 
@@ -1772,8 +1789,9 @@ class LLMOrchestrationService:
             "and store the resolved YYYY-MM-DD value.\n"
             "PHONE NUMBER VALIDATION:\n"
             "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
-            "  - If the guest provides a phone number that is not 10 digits, do NOT store it in pending_data_updates. "
-            "Keep the phone field in missing_fields and ask the guest to provide a valid 10-digit phone number.\n"
+            "  - Reject obvious fake or garbage numbers (e.g., all identical digits like 9999999999, sequential digits like 1234567890, or common test numbers).\n"
+            "  - If the guest provides an invalid or garbage phone number, do NOT store it in pending_data_updates. "
+            "Keep the phone field in missing_fields and politely ask the guest to provide a real, valid 10-digit phone number.\n"
             "  - If pending_data_raw already contains an invalid phone number, treat that slot as still-empty.\n\n"
             + "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
             "Return STRICT JSON only.\n"
@@ -2306,6 +2324,7 @@ class LLMOrchestrationService:
         if not str(settings.openai_api_key or "").strip():
             return None
 
+
         # ── RESUME PROMPT HANDLER ────────────────────────────────────────────
         # If last turn asked user to resume a suspended service, annotate the
         # message with context and let the LLM orchestrator decide the intent.
@@ -2541,6 +2560,22 @@ class LLMOrchestrationService:
             },
         }
 
+        # --- WEATHER INJECTION ---
+        user_msg_lower = str(user_message or "").lower()
+        if any(w in user_msg_lower for w in ["weather", "temperature", "forecast", "climate", "rain", "sunny"]):
+            try:
+                from services.weather_service import get_current_weather
+                hotel_code_val = getattr(context, "hotel_code", "DEFAULT")
+                weather_info = await get_current_weather(hotel_code_val)
+                if weather_info:
+                    if not isinstance(payload.get("memory_facts"), dict):
+                        payload["memory_facts"] = {}
+                    payload["memory_facts"]["live_hotel_weather"] = weather_info
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning("Failed to inject weather into payload: %s", e)
+        # -------------------------
+
         system_prompt = (
             "You are the main concierge assistant for this hotel. "
             "You are the single authority on routing and responding — no other layer will override your decision.\n"
@@ -2639,6 +2674,7 @@ class LLMOrchestrationService:
             "\n"
             "=== GROUNDING RULE ===\n"
             "Use only provided policy + knowledge data. Never invent prices, timings, availability, or capabilities.\n"
+            "If the guest asks for weather details, provide the weather of the area the hotel is located in.\n"
             "\n"
             "=== OUTPUT ===\n"
             "Return strict JSON only."

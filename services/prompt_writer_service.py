@@ -179,7 +179,14 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
     - Resolve relative dates ("tomorrow", "next Friday") against current_date
       and store the resolved absolute date in pending_data_updates.
 
-13. GUEST FACTS & KNOWN CONTEXT — Think like a hotel. At check-in the hotel
+13. PHONE NUMBER VALIDATION — When collecting a phone number:
+    - A valid phone number must contain exactly 10 digits (ignoring spaces/dashes).
+    - Reject obvious fake or garbage numbers (e.g., all identical digits like
+      9999999999 or sequential digits like 1234567890).
+    - If a guest provides an invalid or garbage number, do NOT accept it. 
+      Politely ask them to provide a real, valid 10-digit phone number.
+
+14. GUEST FACTS & KNOWN CONTEXT — Think like a hotel. At check-in the hotel
     collects the guest's full name, room number, phone number, and email. These
     remain on file for the entire stay and after checkout.
 

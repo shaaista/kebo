@@ -23,6 +23,7 @@ from services.gateway_service import gateway_service
 from services.observability_service import observability_service
 from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
+from services import new_detailed_logger
 
 
 
@@ -35,12 +36,22 @@ async def lifespan(app: FastAPI):
     print(f"🚀 Starting {settings.app_name}...")
     print(f"📍 Environment: {settings.app_env}")
 
+    # ── new_detailed_logger: startup begin ──────────────────────────────────
+    new_detailed_logger.log_startup_begin(
+        app_name=str(settings.app_name),
+        host=str(settings.host),
+        port=int(settings.port),
+        env=str(settings.app_env),
+    )
+
     # Initialize database
     try:
         await init_db()
         print("✅ Database initialized")
+        new_detailed_logger.log_db_init(success=True)
     except Exception as e:
         print(f"⚠️  Database init failed (will use in-memory): {e}")
+        new_detailed_logger.log_db_init(success=False, error=str(e))
 
     # Restore KB files from DB if missing from disk, then sync services to JSON.
     import asyncio
@@ -50,18 +61,26 @@ async def lifespan(app: FastAPI):
         if restored:
             print(f"📂 Restored {restored} KB file(s) from database")
         await db_config_service.get_services()  # Syncs DB services → JSON
+        new_detailed_logger.log_kb_restore(restored=restored or 0)
     except Exception as e:
         print(f"⚠️  Startup DB sync failed (non-fatal): {e}")
-
-
+        new_detailed_logger.log_kb_restore(restored=0, error=str(e))
 
     print(f"🌐 Server: http://{settings.host}:{settings.port}")
     print(f"📚 API Docs: http://localhost:{settings.port}/docs")
     print(f"💬 Test Chat: http://localhost:{settings.port}/")
     print(f"⚙️  Admin Portal: http://localhost:{settings.port}/admin")
+
+    # ── new_detailed_logger: server ready ───────────────────────────────────
+    new_detailed_logger.log_startup_ready(
+        host=str(settings.host),
+        port=int(settings.port),
+    )
+
     yield
     # Shutdown
     print("👋 Shutting down...")
+    new_detailed_logger.log_shutdown()
 
 
 app = FastAPI(
@@ -98,6 +117,21 @@ async def gateway_middleware(request: Request, call_next):
         request.headers.get("x-forwarded-for", "").split(",")[0].strip()
         or (request.client.host if request.client else "unknown")
     )
+
+    # -- new_detailed_logger: HTTP request in --
+    try:
+        new_detailed_logger.log_http_request(
+            trace_id=trace_id,
+            method=request.method,
+            path=path,
+            client_host=client_host,
+            user_agent=request.headers.get("user-agent", ""),
+            query=dict(request.query_params) or None,
+        )
+    except Exception as _ndl_exc:
+        import sys as _sys
+        print(f"[new_detailed_logger] HTTP request log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+
     if should_trace_backend:
         backend_trace_service.log_event(
             "http_request_start",
@@ -143,6 +177,19 @@ async def gateway_middleware(request: Request, call_next):
                     "method": request.method,
                 },
             )
+            # -- new_detailed_logger: rejected - auth --
+            try:
+                new_detailed_logger.log_http_rejected(
+                    trace_id=trace_id,
+                    reason="unauthorized_api_key",
+                    path=path,
+                    method=request.method,
+                    client_host=client_host,
+                    status_code=401,
+                )
+            except Exception as _ndl_exc:
+                import sys as _sys
+                print(f"[new_detailed_logger] rejected log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
             if should_trace_backend:
                 backend_trace_service.log_event(
                     "http_request_denied_auth",
@@ -190,6 +237,20 @@ async def gateway_middleware(request: Request, call_next):
                     "retry_after_seconds": retry_after,
                 },
             )
+            # -- new_detailed_logger: rejected - rate limited --
+            try:
+                new_detailed_logger.log_http_rejected(
+                    trace_id=trace_id,
+                    reason="rate_limited",
+                    path=path,
+                    method=request.method,
+                    client_host=client_host,
+                    status_code=429,
+                    extra=f"retry_after={retry_after}s",
+                )
+            except Exception as _ndl_exc:
+                import sys as _sys
+                print(f"[new_detailed_logger] rate-limit log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
             if should_trace_backend:
                 backend_trace_service.log_event(
                     "http_request_rate_limited",
@@ -242,6 +303,19 @@ async def gateway_middleware(request: Request, call_next):
                 "error": str(exc),
             },
         )
+        # -- new_detailed_logger: HTTP response (unhandled exception) --
+        try:
+            new_detailed_logger.log_http_response(
+                trace_id=trace_id,
+                method=request.method,
+                path=path,
+                status_code=500,
+                duration_ms=duration_ms,
+                error=str(exc),
+            )
+        except Exception as _ndl_exc:
+            import sys as _sys
+            print(f"[new_detailed_logger] exception response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
         if should_trace_backend:
             backend_trace_service.log_event(
                 "http_request_exception",
@@ -274,6 +348,20 @@ async def gateway_middleware(request: Request, call_next):
     duration_ms = round((perf_counter() - start) * 1000.0, 2)
     response.headers["X-Trace-Id"] = trace_id
     response.headers["X-Response-Time-Ms"] = str(duration_ms)
+
+    # -- new_detailed_logger: HTTP response out --
+    try:
+        new_detailed_logger.log_http_response(
+            trace_id=trace_id,
+            method=request.method,
+            path=path,
+            status_code=response.status_code,
+            duration_ms=duration_ms,
+        )
+    except Exception as _ndl_exc:
+        import sys as _sys
+        print(f"[new_detailed_logger] response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+
     observability_service.log_event(
         "api_request",
         {

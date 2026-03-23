@@ -5,6 +5,8 @@ Endpoints for chat functionality and testing.
 """
 
 import json
+import traceback as _traceback
+from time import perf_counter as _perf_counter
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Any, Optional, List
 from pydantic import BaseModel, Field
@@ -21,6 +23,7 @@ from services.conversation_audit_service import conversation_audit_service
 from services.turn_diagnostics_service import turn_diagnostics_service
 from services.response_beautifier_service import response_beautifier_service
 from services.db_config_service import db_config_service
+from services import new_detailed_logger
 from config.settings import settings
 from core.context_manager import context_manager
 from models.database import KBFile, Hotel, get_db
@@ -443,6 +446,7 @@ async def send_message(
     DB session is injected so handlers can persist orders, guests, etc.
     """
     trace_id = getattr(http_request.state, "trace_id", "")
+    _turn_start = _perf_counter()  # for new_detailed_logger duration tracking
     if not isinstance(request.metadata, dict):
         request.metadata = {}
     turn_trace_id, turn_token = turn_diagnostics_service.begin_turn(
@@ -463,12 +467,15 @@ async def send_message(
             "db_session_available": db is not None,
         },
     )
-    # Log chat turn start to flow.log
+    # Log chat turn start to flow.log + new_detailed.log
+    _chat_meta = request.metadata or {}
+    _chat_phase = str(_chat_meta.get("phase_id") or _chat_meta.get("phase") or getattr(request, "phase_id", "") or "").strip()
+    _chat_guest_info = {k: v for k, v in _chat_meta.items() if k in ("room_number", "guest_name", "guest_id", "entity_id") and v}
     try:
         from services.flow_logger import log_chat_turn
-        meta = request.metadata or {}
-        phase = str(meta.get("phase_id") or meta.get("phase") or request.phase_id or "").strip()  # type: ignore[attr-defined]
-        guest_info = {k: v for k, v in meta.items() if k in ("room_number", "guest_name", "guest_id", "entity_id") and v}
+        meta = _chat_meta
+        phase = _chat_phase
+        guest_info = _chat_guest_info
         summary = str(meta.get("conversation_summary") or meta.get("summary") or "").strip()
         from services.config_service import config_service as _cs
         _all_svcs = _cs.get_services()
@@ -491,6 +498,23 @@ async def send_message(
         )
     except Exception:
         pass
+    # -- new_detailed_logger: chat turn IN --
+    try:
+        new_detailed_logger.log_chat_turn_in(
+            session_id=str(request.session_id or ""),
+            message=str(request.message or ""),
+            hotel_code=str(request.hotel_code or ""),
+            channel=str(getattr(request, "channel", "") or _chat_meta.get("channel") or ""),
+            phase=_chat_phase,
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            guest_info=_chat_guest_info or None,
+            history_count=len(_chat_meta.get("conversation_history") or []),
+            metadata=_chat_meta,
+        )
+    except Exception as _ndl_exc:
+        import sys as _sys
+        print(f"[new_detailed_logger] chat turn IN log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
 
     try:
         response = await chat_service.process_message(request, db_session=db)
@@ -557,6 +581,31 @@ async def send_message(
             db_fallback=False,
             error="",
         )
+        # -- new_detailed_logger: chat turn SUCCESS --
+        try:
+            _resp_meta = response.metadata or {}
+            new_detailed_logger.log_chat_turn_out_success(
+                session_id=str(request.session_id or ""),
+                bot_reply=str(response.message or ""),
+                display_message=str(getattr(response, "display_message", "") or ""),
+                intent=str(_resp_meta.get("classified_intent") or ""),
+                routing_path=str(_resp_meta.get("routing_path") or ""),
+                response_source=str(_resp_meta.get("response_source") or ""),
+                service_label=str(getattr(response, "service_llm_label", "") or ""),
+                confidence=getattr(response, "service_llm_confidence", None),
+                state=str(getattr(response.state, "value", response.state) or ""),
+                duration_ms=round((_perf_counter() - _turn_start) * 1000, 2),
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                db_fallback=False,
+                ticket_created=bool(_resp_meta.get("ticket_created", False)),
+                suggestions=list(_resp_meta.get("suggestions") or []) or None,
+                orchestration=_resp_meta.get("orchestration_decision") or _resp_meta.get("decision") or None,
+                full_metadata=_resp_meta,
+            )
+        except Exception as _ndl_exc:
+            import sys as _sys
+            print(f"[new_detailed_logger] chat turn SUCCESS log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
         return response
     except OperationalError as e:
         db_first_mode = bool(getattr(settings, "chat_db_first_mode", False))
@@ -597,6 +646,23 @@ async def send_message(
                 db_fallback=False,
                 error=f"db_required: {str(e)}",
             )
+            # ── new_detailed_logger: failed — db_required ───────────────────────
+            try:
+                new_detailed_logger.log_chat_turn_out_failed(
+                    session_id=str(request.session_id or ""),
+                    message=str(request.message or ""),
+                    hotel_code=str(request.hotel_code or ""),
+                    trace_id=trace_id,
+                    turn_trace_id=turn_trace_id,
+                    duration_ms=round((_perf_counter() - _turn_start) * 1000, 2),
+                    error_type="OperationalError(db_required)",
+                    error_msg=str(e),
+                    tb=_traceback.format_exc(),
+                    db_fallback=False,
+                    http_status=503,
+                )
+            except Exception:
+                pass
             raise HTTPException(
                 status_code=503,
                 detail="Database is unavailable. DB-first mode requires database connectivity.",
@@ -648,6 +714,30 @@ async def send_message(
                 db_fallback=True,
                 error=f"primary_db_failed: {str(e)}",
             )
+            # ── new_detailed_logger: SUCCESS via DB-fallback path ─────────────
+            try:
+                _resp_meta = response.metadata or {}
+                new_detailed_logger.log_chat_turn_out_success(
+                    session_id=str(request.session_id or ""),
+                    bot_reply=str(response.message or ""),
+                    display_message=str(getattr(response, "display_message", "") or ""),
+                    intent=str(_resp_meta.get("classified_intent") or ""),
+                    routing_path=str(_resp_meta.get("routing_path") or ""),
+                    response_source=str(_resp_meta.get("response_source") or ""),
+                    service_label=str(getattr(response, "service_llm_label", "") or ""),
+                    confidence=getattr(response, "service_llm_confidence", None),
+                    state=str(getattr(response.state, "value", response.state) or ""),
+                    duration_ms=round((_perf_counter() - _turn_start) * 1000, 2),
+                    trace_id=trace_id,
+                    turn_trace_id=turn_trace_id,
+                    db_fallback=True,
+                    ticket_created=bool(_resp_meta.get("ticket_created", False)),
+                    suggestions=list(_resp_meta.get("suggestions") or []) or None,
+                    orchestration=_resp_meta.get("orchestration_decision") or None,
+                    full_metadata=_resp_meta,
+                )
+            except Exception:
+                pass
             return response
         except Exception as fallback_error:
             print(f"API Fallback Error: {fallback_error}")
@@ -685,14 +775,30 @@ async def send_message(
                 db_fallback=True,
                 error=str(fallback_error),
             )
+            # ── new_detailed_logger: failed — db_fallback_error ──────────────
+            try:
+                new_detailed_logger.log_chat_turn_out_failed(
+                    session_id=str(request.session_id or ""),
+                    message=str(request.message or ""),
+                    hotel_code=str(request.hotel_code or ""),
+                    trace_id=trace_id,
+                    turn_trace_id=turn_trace_id,
+                    duration_ms=round((_perf_counter() - _turn_start) * 1000, 2),
+                    error_type=type(fallback_error).__name__,
+                    error_msg=str(fallback_error),
+                    tb=_traceback.format_exc(),
+                    db_fallback=True,
+                    http_status=503,
+                )
+            except Exception:
+                pass
             raise HTTPException(
                 status_code=503,
                 detail="Database is unavailable and fallback processing failed.",
             )
     except Exception as e:
         print(f"API Error: {e}")
-        import traceback
-        traceback.print_exc()
+        _traceback.print_exc()
         observability_service.log_event(
             "chat_message_failed",
             {
@@ -726,6 +832,23 @@ async def send_message(
             db_fallback=False,
             error=str(e),
         )
+        # ── new_detailed_logger: failed — general exception ─────────────────
+        try:
+            new_detailed_logger.log_chat_turn_out_failed(
+                session_id=str(request.session_id or ""),
+                message=str(request.message or ""),
+                hotel_code=str(request.hotel_code or ""),
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                duration_ms=round((_perf_counter() - _turn_start) * 1000, 2),
+                error_type=type(e).__name__,
+                error_msg=str(e),
+                tb=_traceback.format_exc(),
+                db_fallback=False,
+                http_status=500,
+            )
+        except Exception:
+            pass
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         turn_diagnostics_service.clear_turn(turn_token)
