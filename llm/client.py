@@ -483,7 +483,10 @@ class LLMClient:
                 pass
             return output_text
         except Exception as e:
-            print(f"LLM Chat Error: {e}")
+            try:
+                print(f"LLM Chat Error: {e}")
+            except OSError:
+                pass
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
             self._log_llm_trace(
                 {
@@ -587,7 +590,10 @@ class LLMClient:
             )
             return parsed
         except json.JSONDecodeError as e:
-            print(f"JSON Parse Error: {e}")
+            try:
+                print(f"JSON Parse Error: {e}")
+            except OSError:
+                pass
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
@@ -614,7 +620,10 @@ class LLMClient:
             )
             return {"intent": "unclear", "confidence": 0.3, "entities": {}}
         except Exception as e:
-            print(f"LLM Error: {e}")
+            try:
+                print(f"LLM Error: {e}")
+            except OSError:
+                pass
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),

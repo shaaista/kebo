@@ -290,13 +290,33 @@ class ConfigService:
     def __init__(self):
         self._config: Optional[Dict[str, Any]] = None
         self._config_mtime: Optional[float] = None
+        self._config_file: Optional[Path] = None
         self._ensure_directories()
 
     def _ensure_directories(self):
         """Ensure config directories exist."""
         CONFIG_DIR.mkdir(exist_ok=True)
+        (CONFIG_DIR / "properties").mkdir(parents=True, exist_ok=True)
         TEMPLATES_DIR.mkdir(exist_ok=True)
         PROMPT_TEMPLATES_DIR.mkdir(exist_ok=True)
+
+    def _resolve_scoped_business_id(self) -> str:
+        try:
+            from services.db_config_service import db_config_service
+
+            scoped_code = db_config_service.get_current_hotel_code()
+            normalized = self._normalize_identifier(scoped_code)
+            if normalized:
+                return normalized
+        except Exception:
+            pass
+        return "default"
+
+    def _resolve_config_file(self) -> Path:
+        scoped_id = self._resolve_scoped_business_id()
+        if scoped_id and scoped_id != "default":
+            return CONFIG_DIR / "properties" / f"{scoped_id}.json"
+        return BUSINESS_CONFIG_FILE
 
     def _default_config(self) -> Dict[str, Any]:
         """Canonical default config shape used for backward-compatible upgrades."""
@@ -818,6 +838,55 @@ class ConfigService:
         normalized["delivery_zones"] = normalized_zones
         normalized["is_active"] = bool(service.get("is_active", True))
         normalized["ticketing_policy"] = str(service.get("ticketing_policy") or "").strip()
+
+        # --- ticketing_mode & form_config ---
+        # ticketing_mode: "form" | "text" | "none"
+        raw_ticketing_mode = str(service.get("ticketing_mode") or "").strip().lower()
+        if raw_ticketing_mode in ("form", "text", "none"):
+            normalized["ticketing_mode"] = raw_ticketing_mode
+        else:
+            # Backward compat: derive from ticketing_enabled
+            normalized["ticketing_mode"] = "text" if normalized.get("ticketing_enabled") else "none"
+
+        form_config = service.get("form_config")
+        if isinstance(form_config, dict):
+            # Normalize form_config
+            norm_fc: Dict[str, Any] = {}
+            # trigger_field
+            tf = form_config.get("trigger_field")
+            if isinstance(tf, dict) and tf.get("id"):
+                norm_fc["trigger_field"] = {
+                    "id": str(tf["id"]).strip(),
+                    "label": str(tf.get("label") or tf["id"]).strip(),
+                    "description": str(tf.get("description") or "").strip(),
+                }
+            # fields
+            raw_fields = form_config.get("fields")
+            if isinstance(raw_fields, list):
+                norm_fields = []
+                for f in raw_fields:
+                    if not isinstance(f, dict):
+                        continue
+                    fid = str(f.get("id") or "").strip()
+                    if not fid:
+                        continue
+                    norm_fields.append({
+                        "id": fid,
+                        "label": str(f.get("label") or fid).strip(),
+                        "type": str(f.get("type") or "text").strip(),
+                        "required": bool(f.get("required", True)),
+                        "validation_prompt": str(f.get("validation_prompt") or "").strip(),
+                    })
+                norm_fc["fields"] = norm_fields
+            else:
+                norm_fc["fields"] = []
+            norm_fc["pre_form_instructions"] = str(form_config.get("pre_form_instructions") or "").strip()
+            normalized["form_config"] = norm_fc
+        elif "form_config" not in normalized:
+            # Only set default if not already present on the service
+            if normalized["ticketing_mode"] == "form":
+                normalized["form_config"] = {"trigger_field": {}, "fields": [], "pre_form_instructions": ""}
+            # For text/none modes, don't add form_config to keep config clean
 
         existing_prompt_pack = service.get("service_prompt_pack")
         existing_source = ""
@@ -1826,18 +1895,28 @@ class ConfigService:
         Uses mtime-based auto-reload so reads are efficient while still syncing
         with admin updates.
         """
-        if not BUSINESS_CONFIG_FILE.exists():
+        config_file = self._resolve_config_file()
+        if not config_file.exists():
             # Load default hotel template
             self._config = self.load_template("hotel")
             self._ensure_config_shape(self._config)
+            business = self._config.setdefault("business", {})
+            scoped_business_id = self._resolve_scoped_business_id()
+            current_business_id = self._normalize_identifier(business.get("id"))
+            if scoped_business_id and (not current_business_id or current_business_id == "default"):
+                business["id"] = scoped_business_id
             self.save_config(self._config)
             return self._config
 
-        current_mtime = BUSINESS_CONFIG_FILE.stat().st_mtime
-        if self._config is not None and self._config_mtime == current_mtime:
+        current_mtime = config_file.stat().st_mtime
+        if (
+            self._config is not None
+            and self._config_file == config_file
+            and self._config_mtime == current_mtime
+        ):
             return self._config
 
-        with open(BUSINESS_CONFIG_FILE, "r", encoding="utf-8") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             self._config = json.load(f)
 
         if self._ensure_config_shape(self._config):
@@ -1846,20 +1925,27 @@ class ConfigService:
             return self._config
 
         self._config_mtime = current_mtime
+        self._config_file = config_file
 
         return self._config
 
     def save_config(self, config: Dict[str, Any]) -> bool:
         """Save business configuration."""
         try:
-            with open(BUSINESS_CONFIG_FILE, "w", encoding="utf-8") as f:
+            config_file = self._resolve_config_file()
+            config_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(config_file, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=2, ensure_ascii=False)
             self._config = config
-            if BUSINESS_CONFIG_FILE.exists():
-                self._config_mtime = BUSINESS_CONFIG_FILE.stat().st_mtime
+            self._config_file = config_file
+            if config_file.exists():
+                self._config_mtime = config_file.stat().st_mtime
             return True
         except Exception as e:
-            print(f"Error saving config: {e}")
+            try:
+                print(f"Error saving config: {e}")
+            except OSError:
+                pass
             return False
 
     def load_template(self, template_name: str) -> Dict[str, Any]:
@@ -1890,6 +1976,80 @@ class ConfigService:
         config = self.load_config()
         return config.get("business", {})
 
+    def _discover_known_hotel_codes(self) -> set[str]:
+        """
+        Discover tenant/property codes that already exist in local config and KB storage.
+        Used for safe alias resolution of abbreviated admin scopes (e.g. rohl_mu -> rohl_mumbai).
+        """
+        codes: set[str] = set()
+
+        def _add(raw_value: Any) -> None:
+            normalized = self._normalize_identifier(raw_value)
+            if normalized and normalized != "default":
+                codes.add(normalized)
+
+        try:
+            business = self.get_business_info()
+            if isinstance(business, dict):
+                _add(business.get("id"))
+        except Exception:
+            pass
+
+        properties_dir = CONFIG_DIR / "properties"
+        if properties_dir.exists() and properties_dir.is_dir():
+            for config_path in properties_dir.glob("*.json"):
+                _add(config_path.stem)
+                try:
+                    payload = json.loads(config_path.read_text(encoding="utf-8"))
+                    if isinstance(payload, dict):
+                        business = payload.get("business", {})
+                        if isinstance(business, dict):
+                            _add(business.get("id"))
+                except Exception:
+                    continue
+
+        uploads_root = CONFIG_DIR / "knowledge_base" / "uploads"
+        if uploads_root.exists() and uploads_root.is_dir():
+            for tenant_dir in uploads_root.iterdir():
+                if tenant_dir.is_dir():
+                    _add(tenant_dir.name)
+
+        return codes
+
+    @classmethod
+    def _resolve_hotel_code_alias(cls, requested: str, known_codes: set[str]) -> str:
+        """
+        Conservative alias resolver:
+        only returns an alias when there is exactly one unambiguous candidate.
+        """
+        normalized_requested = cls._normalize_identifier(requested)
+        if not normalized_requested or not known_codes:
+            return normalized_requested
+
+        if normalized_requested in known_codes:
+            return normalized_requested
+
+        requested_compact = normalized_requested.replace("_", "")
+        matches: set[str] = set()
+
+        for known in known_codes:
+            normalized_known = cls._normalize_identifier(known)
+            if not normalized_known:
+                continue
+            known_compact = normalized_known.replace("_", "")
+            if (
+                normalized_known.startswith(f"{normalized_requested}_")
+                or normalized_requested.startswith(f"{normalized_known}_")
+                or known_compact == requested_compact
+                or known_compact.startswith(requested_compact)
+                or requested_compact.startswith(known_compact)
+            ):
+                matches.add(normalized_known)
+
+        if len(matches) == 1:
+            return next(iter(matches))
+        return normalized_requested
+
     def resolve_hotel_code(self, requested_hotel_code: Optional[str]) -> str:
         """
         Resolve incoming hotel/session code to a canonical runtime tenant code.
@@ -1911,14 +2071,21 @@ class ConfigService:
 
         business = self.get_business_info()
         business_id = self._normalize_identifier(business.get("id"))
+        known_codes = self._discover_known_hotel_codes()
+        if business_id and business_id != "default":
+            known_codes.add(business_id)
+
+        if requested in placeholder_codes and business_id:
+            return business_id
+
+        if requested:
+            resolved_alias = self._resolve_hotel_code_alias(requested, known_codes)
+            return resolved_alias or requested
+
         if business_id:
-            if requested in placeholder_codes:
-                return business_id
-            return requested or business_id
+            return business_id
 
         # Fallback if business.id is not yet set.
-        if requested:
-            return requested
         name_slug = self._normalize_slug(business.get("name"))
         return name_slug or "default"
 
@@ -5252,6 +5419,23 @@ class ConfigService:
             if path.exists() and path.is_file():
                 resolved.append(path.resolve())
 
+        # Fallback: if no explicit sources are configured for this scoped property,
+        # use files from this property's tenant upload directory.
+        if not resolved:
+            tenant_id = self._resolve_scoped_business_id() or "default"
+            uploads_dir = CONFIG_DIR / "knowledge_base" / "uploads" / tenant_id
+            allowed_extensions = {".txt", ".json", ".md", ".markdown", ".rst"}
+            if uploads_dir.exists() and uploads_dir.is_dir():
+                candidates = sorted(
+                    [p for p in uploads_dir.rglob("*") if p.is_file() and p.suffix.lower() in allowed_extensions],
+                    key=lambda p: p.stat().st_mtime_ns if p.exists() else 0,
+                    reverse=True,
+                )
+                for candidate in candidates:
+                    if len(resolved) >= max_sources:
+                        break
+                    resolved.append(candidate.resolve())
+
         deduped: list[Path] = []
         seen: set[str] = set()
         seen_hashes: set[str] = set()
@@ -5565,6 +5749,7 @@ class ConfigService:
         """Force reload config from file (clear cache)."""
         self._config = None
         self._config_mtime = None
+        self._config_file = None
         return self.load_config()
 
     def get_capability_summary(self, hotel_code: str = None) -> Dict[str, Any]:

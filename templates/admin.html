@@ -679,10 +679,21 @@
             <div class="card">
                 <div class="card-header">
                     <span>Step 2: Business Information</span>
-                    <button class="btn btn-primary btn-small" onclick="saveBusinessInfo()">Save</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-outline btn-small" onclick="switchProperty()">Load Property</button>
+                        <button class="btn btn-primary btn-small" onclick="saveBusinessInfo()">Save</button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="grid grid-3">
+                        <div class="form-group">
+                            <label>Property Code *</label>
+                            <input type="text" class="form-control" id="cfg-property-code" list="property-code-options" placeholder="e.g., rohl_mumbai">
+                            <select class="form-control" id="cfg-property-picker" onchange="selectPropertyFromDropdown()" style="margin-top:8px;">
+                                <option value="">Select saved property...</option>
+                            </select>
+                            <small class="muted">Use dropdown to switch saved properties, or type a new code above.</small>
+                        </div>
                         <div class="form-group">
                             <label>Business Name *</label>
                             <input type="text" class="form-control" id="cfg-business-name" placeholder="e.g., Grand Hotel Mumbai">
@@ -774,6 +785,7 @@
                         <label>Welcome Message</label>
                         <textarea class="form-control" id="cfg-welcome-message" rows="2" placeholder="Hello! Welcome to {business_name}. How can I assist you today?"></textarea>
                     </div>
+                    <datalist id="property-code-options"></datalist>
                 </div>
             </div>
 
@@ -1004,8 +1016,16 @@
                         <div class="phase-create-grid" style="margin-top: 10px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>Service Name *</label>
-                                <input type="text" class="form-control" id="phase-new-service-name" placeholder="e.g., Booking Modification Support">
+                                <input type="text" class="form-control" id="phase-new-service-name" placeholder="e.g., Booking Modification Support"
+                                    oninput="autoFillPhaseServiceId()">
                             </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Service ID <span style="color:#9ca3af; font-weight:400; font-size:0.82rem;">(auto-generated, editable)</span></label>
+                                <input type="text" class="form-control" id="phase-new-service-id" placeholder="e.g., booking_modification_support" style="font-family:monospace; font-size:0.85rem;">
+                                <div class="phase-helper-text">Lowercase with underscores. Auto-filled from name, but you can customize it.</div>
+                            </div>
+                        </div>
+                        <div class="phase-create-grid" style="margin-top: 8px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>Service Type</label>
                                 <select class="form-control" id="phase-new-service-type">
@@ -1013,6 +1033,12 @@
                                     <option value="department">Department</option>
                                     <option value="workflow">Workflow</option>
                                     <option value="support">Support</option>
+                                    <option value="plugin">Plugin</option>
+                                    <option value="outlet">Outlet</option>
+                                    <option value="clinic">Clinic</option>
+                                    <option value="store">Store</option>
+                                    <option value="hall">Hall</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
                         </div>
@@ -1028,12 +1054,17 @@
                             <label>Description <span style="color:#9ca3af; font-weight:400; font-size:0.82rem;">(auto-filled or edit manually)</span></label>
                             <textarea class="form-control" id="phase-new-service-description" rows="2" placeholder="Filled after 'Refine with AI', or type directly"></textarea>
                         </div>
-                        <div style="margin-top: 10px;">
-                            <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;">
-                                <input type="checkbox" id="phase-new-service-ticketing-enabled" onchange="togglePhaseTicketingConditions(this)" checked>
-                                Enable ticketing for this service
-                            </label>
+                        <!-- Ticketing Mode -->
+                        <div class="form-group" style="margin-top:10px; margin-bottom:0;">
+                            <label>Ticketing Mode</label>
+                            <select class="form-control" id="phase-new-service-ticketing-mode" onchange="onTicketingModeChange('phase')">
+                                <option value="none">Disabled (no ticketing)</option>
+                                <option value="form" selected>Form-based (inline form UI)</option>
+                                <option value="text">Text-based (conversational collection)</option>
+                            </select>
+                            <div class="phase-helper-text">Form: shows inline form after trigger confirmation. Text: bot collects info conversationally.</div>
                         </div>
+
                         <div id="phase-ticketing-conditions-wrap" style="margin-top:10px;">
                             <label style="display:flex; align-items:center; justify-content:space-between;">
                                 <span>When should a ticket be created?</span>
@@ -1043,6 +1074,40 @@
                             <textarea class="form-control" id="phase-new-service-ticketing-conditions" rows="2"
                                 placeholder="Auto-suggested when you enable ticketing - edit then refine with AI"></textarea>
                             <div class="phase-helper-text">Tells the bot exactly when to raise a backend ticket for this service.</div>
+                        </div>
+
+                        <!-- Phase Form Builder (shown only when mode=form) -->
+                        <div id="phase-form-builder-wrap" style="margin-top:10px; border:1px solid var(--border); border-radius:8px; padding:14px; background:var(--bg-secondary, #f9fafb);">
+                            <strong style="font-size:0.92rem;">Form Builder</strong>
+                            <div class="phase-helper-text" style="margin-bottom:8px;">Define form fields. Bot will confirm the trigger value before showing this form.</div>
+
+                            <div style="margin-bottom:12px; padding:10px; border:1px dashed var(--border); border-radius:6px; background:#fff;">
+                                <label style="font-size:0.85rem; font-weight:600; margin-bottom:6px; display:block;">Trigger Field</label>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                                    <div>
+                                        <label style="font-size:0.78rem; color:#6b7280;">Field ID</label>
+                                        <input type="text" class="form-control" id="phase-trigger-field-id" placeholder="e.g. room_type" style="font-size:0.85rem;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size:0.78rem; color:#6b7280;">Label</label>
+                                        <input type="text" class="form-control" id="phase-trigger-field-label" placeholder="e.g. Room Type" style="font-size:0.85rem;">
+                                    </div>
+                                </div>
+                                <div style="margin-top:6px;">
+                                    <label style="font-size:0.78rem; color:#6b7280;">Description</label>
+                                    <input type="text" class="form-control" id="phase-trigger-field-desc" placeholder="e.g. Which room type the guest wants" style="font-size:0.85rem;">
+                                </div>
+                            </div>
+
+                            <label style="font-size:0.85rem; font-weight:600; margin-bottom:6px; display:block;">Form Fields</label>
+                            <div id="phase-form-fields-list"></div>
+                            <button type="button" class="btn btn-outline btn-small" style="margin-top:8px;" onclick="addFormField('phase')">+ Add Field</button>
+
+                            <div style="margin-top:12px;">
+                                <label style="font-size:0.85rem; font-weight:500;">Pre-form Instructions (optional)</label>
+                                <textarea class="form-control" id="phase-pre-form-instructions" rows="2" style="font-size:0.85rem;"
+                                    placeholder="e.g. Confirm the specific room type before showing the form"></textarea>
+                            </div>
                         </div>
 
                         <!-- KB Knowledge pull -->
@@ -1058,6 +1123,25 @@
                             <textarea class="form-control" id="phase-new-service-kb-knowledge" rows="6"
                                 placeholder="Upload a menu and/or click 'Pull from KB' to auto-extract knowledge, or type manually."></textarea>
                             <div class="phase-helper-text">Upload menu file(s) first (optional), then Pull from KB to combine both sources. You can edit the result before saving.</div>
+                        </div>
+
+                        <!-- System Prompt Section (Phase Create) -->
+                        <div class="form-group" style="margin-top:14px; border-top:1px solid var(--border); padding-top:14px; margin-bottom:0;" id="phase-generated-prompt-section">
+                            <label style="display:flex; align-items:center; justify-content:space-between;">
+                                <span style="display:flex; align-items:center; gap:8px;">
+                                    Agent System Prompt
+                                    <span id="phase-prompt-badge" style="display:none; font-size:0.72rem; padding:2px 8px; border-radius:10px; background:var(--success,#22c55e); color:#fff;">AI Generated</span>
+                                </span>
+                                <div style="display:flex; gap:6px;">
+                                    <button class="btn btn-outline btn-small" type="button" id="phase-regenerate-btn" onclick="regeneratePhaseServicePrompt()" style="display:none;">Regenerate</button>
+                                    <button class="btn btn-outline btn-small" type="button" id="phase-save-prompt-btn" onclick="savePhaseEditedPrompt()" style="display:none;">Save Prompt</button>
+                                </div>
+                            </label>
+                            <div id="phase-prompt-status" style="display:none; font-size:0.82rem; margin-bottom:6px;"></div>
+                            <textarea class="form-control" id="phase-new-service-generated-prompt" rows="8"
+                                placeholder="Save the service first - AI will auto-generate a system prompt. You can also edit it manually here."
+                                style="font-family: monospace; font-size: 0.82rem;"></textarea>
+                            <div class="phase-helper-text">This prompt is used by the agent at chat time. After creating the service, you can regenerate or edit it.</div>
                         </div>
 
                         <div style="margin-top: 14px;">
@@ -1531,8 +1615,16 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
-                    <input type="text" class="form-control" id="new-svc-desc" placeholder="e.g., Heart and cardiovascular care">
+                    <label>What do you expect from this service? <span style="color:#9ca3af; font-weight:400; font-size:0.82rem;">(optional)</span></label>
+                    <textarea class="form-control" id="new-svc-user-intent" rows="2" placeholder="e.g. Guest can order food to their room, we need room number and order details, kitchen is open 24/7"></textarea>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                        <span class="service-modal-hint">Describe in plain words - AI will turn this into a clean description.</span>
+                        <button class="btn btn-outline btn-small" type="button" id="svc-autofill-btn" onclick="autofillSvcDescription()">Refine with AI</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description <span style="color:#9ca3af; font-weight:400; font-size:0.82rem;">(auto-filled or edit manually)</span></label>
+                    <textarea class="form-control" id="new-svc-desc" rows="2" placeholder="Filled after 'Refine with AI', or type directly"></textarea>
                 </div>
                 <div id="svc-ticketing-config" style="display:none;">
                     <div class="alert alert-info">
@@ -1547,8 +1639,19 @@
                     <div class="service-modal-hint">Example: Table booking at restaurant requires staff confirmation.</div>
                 </div>
 
-                <!-- Ticketing Conditions -->
-                <div class="form-group" style="margin-top:14px;" id="svc-modal-ticketing-conditions-wrap">
+                <!-- Ticketing Mode Selector -->
+                <div class="form-group" style="margin-top:14px;">
+                    <label>Ticketing Mode</label>
+                    <select class="form-control" id="new-svc-ticketing-mode" onchange="onTicketingModeChange('svc')">
+                        <option value="none">Disabled (no ticketing)</option>
+                        <option value="form">Form-based (inline form UI)</option>
+                        <option value="text">Text-based (conversational collection)</option>
+                    </select>
+                    <div class="service-modal-hint">Form-based: shows an inline form after bot confirms the trigger value. Text-based: bot collects info via conversation.</div>
+                </div>
+
+                <!-- Ticketing Conditions (shown for both form and text modes) -->
+                <div class="form-group" style="margin-top:14px; display:none;" id="svc-modal-ticketing-conditions-wrap">
                     <label style="display:flex; align-items:center; justify-content:space-between;">
                         <span>When should a ticket be created?</span>
                         <button class="btn btn-outline btn-small" type="button" id="svc-refine-ticketing-btn" onclick="refineSvcTicketingConditions()">Refine with AI</button>
@@ -1559,16 +1662,57 @@
                     <div class="service-modal-hint">Tells the bot exactly when to raise a backend ticket for this service.</div>
                 </div>
 
+                <!-- Form Builder (shown only when ticketing_mode = form) -->
+                <div id="svc-form-builder-wrap" style="display:none; margin-top:14px; border:1px solid var(--border); border-radius:8px; padding:16px; background:var(--bg-secondary, #f9fafb);">
+                    <strong style="font-size:0.95rem;">Form Builder</strong>
+                    <div class="service-modal-hint" style="margin-bottom:10px;">Define the fields that will appear in the inline form. The bot will confirm the trigger value before showing this form.</div>
+
+                    <!-- Trigger Field -->
+                    <div style="margin-bottom:14px; padding:10px; border:1px dashed var(--border); border-radius:6px; background:#fff;">
+                        <label style="font-size:0.85rem; font-weight:600; margin-bottom:6px; display:block;">Trigger Field (what to confirm before showing form)</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                            <div>
+                                <label style="font-size:0.78rem; color:#6b7280;">Field ID</label>
+                                <input type="text" class="form-control" id="svc-trigger-field-id" placeholder="e.g. room_type" style="font-size:0.85rem;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.78rem; color:#6b7280;">Label</label>
+                                <input type="text" class="form-control" id="svc-trigger-field-label" placeholder="e.g. Room Type" style="font-size:0.85rem;">
+                            </div>
+                        </div>
+                        <div style="margin-top:6px;">
+                            <label style="font-size:0.78rem; color:#6b7280;">Description (what bot should confirm)</label>
+                            <input type="text" class="form-control" id="svc-trigger-field-desc" placeholder="e.g. Which room type the guest wants to book" style="font-size:0.85rem;">
+                        </div>
+                    </div>
+
+                    <!-- Form Fields List -->
+                    <label style="font-size:0.85rem; font-weight:600; margin-bottom:6px; display:block;">Form Fields</label>
+                    <div id="svc-form-fields-list"></div>
+                    <button type="button" class="btn btn-outline btn-small" style="margin-top:8px;" onclick="addFormField('svc')">+ Add Field</button>
+
+                    <!-- Pre-form Instructions -->
+                    <div style="margin-top:14px;">
+                        <label style="font-size:0.85rem; font-weight:500;">Pre-form Instructions (optional)</label>
+                        <textarea class="form-control" id="svc-pre-form-instructions" rows="2" style="font-size:0.85rem;"
+                            placeholder="e.g. Confirm the specific room type before showing the booking form"></textarea>
+                        <div class="service-modal-hint">Custom instructions for the bot on what to confirm before showing the form.</div>
+                    </div>
+                </div>
+
                 <!-- KB Knowledge Section -->
                 <div class="form-group" style="margin-top:18px; border-top:1px solid var(--border); padding-top:16px;">
-                    <label style="display:flex; align-items:center; justify-content:space-between;">
-                        <span>Knowledge from KB</span>
+                    <label style="margin-bottom:8px; display:block;">Knowledge from KB</label>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px;">
+                        <button class="btn btn-outline btn-small" type="button" id="svc-upload-menu-btn" onclick="document.getElementById('svc-menu-upload-input').click()">Upload Menu(s)</button>
+                        <input type="file" id="svc-menu-upload-input" multiple accept=".pdf,.png,.jpg,.jpeg,.bmp,.tif,.tiff,.webp" style="display:none;" onchange="uploadSvcMenuFiles(this.files)">
                         <button class="btn btn-outline btn-small" type="button" id="pull-kb-btn" onclick="pullKbKnowledge()">Pull from KB</button>
-                    </label>
+                    </div>
+                    <div id="svc-menu-queue" style="display:none; margin-bottom:8px; font-size:0.82rem; color:#374151;"></div>
                     <div id="pull-kb-status" style="display:none; font-size:0.82rem; color:#6b7280; margin-bottom:6px;"></div>
                     <textarea class="form-control" id="new-svc-kb-knowledge" rows="6"
-                        placeholder="Click 'Pull from KB' to auto-extract relevant knowledge for this service, or type manually."></textarea>
-                    <div class="service-modal-hint">This knowledge will be fed to the service agent. You can edit it after pulling.</div>
+                        placeholder="Upload a menu and/or click 'Pull from KB' to auto-extract knowledge, or type manually."></textarea>
+                    <div class="service-modal-hint">Upload menu file(s) first (optional), then Pull from KB to combine both sources. You can edit the result before saving.</div>
                 </div>
 
                 <!-- Generated System Prompt Section -->
@@ -1638,6 +1782,178 @@
         let phaseMenuFacts = [];
         let phaseServices = [];
         let phasePrebuiltServices = [];
+        let propertyAutoLoadBound = false;
+        let propertySwitchInProgress = false;
+        let ticketingAutoSeedBound = false;
+        let knownPropertyCodes = new Set(['default']);
+
+        function normalizePropertyCode(value) {
+            return String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_-]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+        }
+
+        function getActivePropertyCode() {
+            const fromCurrent = normalizePropertyCode(currentBusinessId);
+            if (fromCurrent) return fromCurrent;
+            const fromRag = normalizePropertyCode(document.getElementById('rag-tenant-id')?.value || '');
+            if (fromRag) return fromRag;
+            return 'default';
+        }
+
+        function isKnownPropertyCode(code) {
+            const normalized = normalizePropertyCode(code);
+            if (!normalized) return false;
+            return knownPropertyCodes.has(normalized);
+        }
+
+        function resetBusinessInfoFormForNewProperty(propertyCode) {
+            const code = normalizePropertyCode(propertyCode) || 'default';
+            const setValue = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.value = value;
+            };
+            const setChecked = (id, value) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = !!value;
+            };
+
+            setValue('cfg-property-code', code);
+            setValue('cfg-business-name', '');
+            setValue('cfg-city', '');
+            setValue('cfg-bot-name', '');
+            setValue('cfg-business-type', 'hotel');
+            setValue('cfg-currency', 'INR');
+            setValue('cfg-timezone', 'Asia/Kolkata');
+            setValue('cfg-language', 'en');
+            setValue('cfg-timestamp-format', '24h');
+            setValue('cfg-location', '');
+            setValue('cfg-address', '');
+            setValue('cfg-contact-email', '');
+            setValue('cfg-contact-phone', '');
+            setValue('cfg-website', '');
+            setValue('cfg-welcome-message', '');
+            setChecked('cfg-channel-web', true);
+            setChecked('cfg-channel-whatsapp', false);
+            selectIndustry('hotel');
+        }
+
+        function syncPropertyScopeUi(code) {
+            const normalized = normalizePropertyCode(code);
+            if (!normalized) return;
+            const previousBusinessId = normalizePropertyCode(currentBusinessId);
+            currentBusinessId = normalized;
+            const propertyInput = document.getElementById('cfg-property-code');
+            if (propertyInput) propertyInput.value = normalized;
+            const propertyPicker = document.getElementById('cfg-property-picker');
+            if (propertyPicker) {
+                const hasOption = Array.from(propertyPicker.options || []).some(
+                    (option) => normalizePropertyCode(option.value || '') === normalized
+                );
+                propertyPicker.value = hasOption ? normalized : '';
+            }
+            const tenantInput = document.getElementById('rag-tenant-id');
+            if (tenantInput) {
+                const currentTenant = normalizePropertyCode(tenantInput.value || '');
+                const shouldRescopeTenant =
+                    !currentTenant ||
+                    currentTenant === 'default' ||
+                    (previousBusinessId && currentTenant === previousBusinessId);
+                if (shouldRescopeTenant) {
+                    tenantInput.value = normalized;
+                }
+            }
+        }
+
+        async function loadPropertyOptions() {
+            const listEl = document.getElementById('property-code-options');
+            const pickerEl = document.getElementById('cfg-property-picker');
+            if (!listEl && !pickerEl) return;
+            try {
+                const res = await fetch(`${API_BASE}/properties`);
+                const payload = await res.json();
+                const rows = Array.isArray(payload?.properties) ? payload.properties : [];
+                const normalizedRows = rows
+                    .map((row) => {
+                        const code = normalizePropertyCode(row?.code || '');
+                        const name = String(row?.name || '').trim();
+                        const city = String(row?.city || '').trim();
+                        return { code, name, city };
+                    })
+                    .filter((row) => row.code);
+                knownPropertyCodes = new Set(normalizedRows.map((row) => row.code));
+                if (!knownPropertyCodes.size) {
+                    knownPropertyCodes = new Set(['default']);
+                }
+
+                if (listEl) {
+                    listEl.innerHTML = normalizedRows
+                        .map((row) => `<option value="${escapeHtml(row.code)}"></option>`)
+                        .join('');
+                }
+
+                if (pickerEl) {
+                    const activeCode = getActivePropertyCode();
+                    pickerEl.innerHTML =
+                        '<option value="">Select saved property...</option>' +
+                        normalizedRows
+                            .map((row) => {
+                                const labelParts = [row.code];
+                                if (row.name) labelParts.push(row.name);
+                                if (row.city) labelParts.push(row.city);
+                                const label = labelParts.join(' | ');
+                                return `<option value="${escapeHtml(row.code)}">${escapeHtml(label)}</option>`;
+                            })
+                            .join('');
+                    const hasActive = normalizedRows.some((row) => row.code === activeCode);
+                    pickerEl.value = hasActive ? activeCode : '';
+                }
+            } catch (error) {
+                if (listEl) listEl.innerHTML = '';
+                if (pickerEl) pickerEl.innerHTML = '<option value="">Select saved property...</option>';
+            }
+        }
+
+        async function parseJsonResponseSafe(res) {
+            const text = await res.text();
+            if (!text) return {};
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                return { _rawText: text };
+            }
+        }
+
+        async function selectPropertyFromDropdown() {
+            const pickerEl = document.getElementById('cfg-property-picker');
+            const selectedCode = normalizePropertyCode(pickerEl?.value || '');
+            if (!selectedCode) return;
+            const propertyInput = document.getElementById('cfg-property-code');
+            if (propertyInput) propertyInput.value = selectedCode;
+            await switchProperty();
+        }
+
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async (input, init = {}) => {
+            const url = typeof input === 'string'
+                ? input
+                : String(input?.url || '');
+            const isAdminApiCall = url.includes('/admin/api/');
+            if (!isAdminApiCall) {
+                return nativeFetch(input, init);
+            }
+            const propertyCode = getActivePropertyCode();
+            const headers = new Headers(
+                init?.headers || ((typeof Request !== 'undefined' && input instanceof Request) ? input.headers : undefined)
+            );
+            if (propertyCode) {
+                headers.set('x-hotel-code', propertyCode);
+            }
+            return nativeFetch(input, { ...init, headers });
+        };
+
         const DEFAULT_TICKETING_SERVICE_ID = 'ticketing_agent';
         const DEFAULT_TICKETING_CASES = [
             'Pre-booking guest asks for human sales callback or manual follow-up.',
@@ -2066,13 +2382,23 @@
             currentServiceEditId = null;
             currentServiceEditIsActive = true;
             serviceTicketingCasesDraft = [];
+            svcMenuFacts = [];
             document.getElementById('new-svc-id').disabled = false;
             document.getElementById('new-svc-id').value = '';
             document.getElementById('new-svc-name').value = '';
             document.getElementById('new-svc-type').value = 'service';
             document.getElementById('new-svc-desc').value = '';
+            const userIntentEl = document.getElementById('new-svc-user-intent');
+            if (userIntentEl) userIntentEl.value = '';
             document.getElementById('new-svc-kb-knowledge').value = '';
             document.getElementById('new-svc-ticketing-conditions').value = '';
+            // Reset menu upload state
+            const svcMenuQueue = document.getElementById('svc-menu-queue');
+            if (svcMenuQueue) { svcMenuQueue.style.display = 'none'; svcMenuQueue.innerHTML = ''; }
+            const svcMenuInput = document.getElementById('svc-menu-upload-input');
+            if (svcMenuInput) svcMenuInput.value = '';
+            const svcUploadBtn = document.getElementById('svc-upload-menu-btn');
+            if (svcUploadBtn) { svcUploadBtn.disabled = false; svcUploadBtn.textContent = 'Upload Menu(s)'; }
             const kbStatus = document.getElementById('pull-kb-status');
             if (kbStatus) { kbStatus.style.display = 'none'; kbStatus.textContent = ''; }
             const pullBtn = document.getElementById('pull-kb-btn');
@@ -2095,6 +2421,11 @@
             document.getElementById('new-svc-id-hint').textContent = 'Use lowercase with underscores (for example: front_desk).';
             document.getElementById('service-modal-title').textContent = mode === 'edit' ? 'Edit Service' : 'Add New Service';
             document.getElementById('save-service-btn').textContent = mode === 'edit' ? 'Save Service' : 'Add Service';
+            // Reset ticketing mode and form builder
+            const modeEl = document.getElementById('new-svc-ticketing-mode');
+            if (modeEl) modeEl.value = 'none';
+            onTicketingModeChange('svc');
+            resetFormBuilder('svc');
             renderServiceTicketingCases();
             updateServiceTicketingSectionVisibility();
         }
@@ -2258,10 +2589,13 @@
                         service_name: name,
                         service_description: desc,
                         extraction_mode: 'verbatim',
-                        max_chars: 1200000,
+                        chunk_chars: 18000,
                     }),
                 });
-                const data = await res.json();
+                const data = await parseJsonResponseSafe(res);
+                if (!res.ok) {
+                    throw new Error(data.detail || data.reason || data.error || data._rawText || `status ${res.status}`);
+                }
                 if (data.extracted_knowledge) {
                     document.getElementById('new-svc-kb-knowledge').value = data.extracted_knowledge;
                     statusEl.textContent = 'Knowledge pulled - review and edit as needed.';
@@ -2276,6 +2610,190 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Pull from KB';
+            }
+        }
+
+        // ── Auto-fill phase service ID from name ───────────────────────────
+        function autoFillPhaseServiceId() {
+            const nameEl = document.getElementById('phase-new-service-name');
+            const idEl = document.getElementById('phase-new-service-id');
+            if (!nameEl || !idEl) return;
+            // Only auto-fill if user hasn't manually edited the ID
+            if (idEl.dataset.manuallyEdited === 'true') return;
+            idEl.value = normalizeIdentifier(nameEl.value).replace(/[^a-z0-9_]/g, '');
+        }
+        // Let user override ID without it being overwritten by auto-fill
+        (function() {
+            const idEl = document.getElementById('phase-new-service-id');
+            if (idEl) {
+                idEl.addEventListener('input', function() {
+                    this.dataset.manuallyEdited = 'true';
+                });
+            }
+        })();
+
+        // ── Refine with AI for modal description ────────────────────────────
+        async function autofillSvcDescription() {
+            const nameInput = document.getElementById('new-svc-name');
+            const userIntentInput = document.getElementById('new-svc-user-intent');
+            const descInput = document.getElementById('new-svc-desc');
+            const button = document.getElementById('svc-autofill-btn');
+            const name = String(nameInput ? nameInput.value : '').trim();
+            const userIntent = String(userIntentInput ? userIntentInput.value : '').trim();
+            if (!name) {
+                showToast('Enter a service name first', 'error');
+                return;
+            }
+            try {
+                if (button) { button.disabled = true; button.textContent = 'Refining…'; }
+                const res = await fetch(`${API_BASE}/config/phases/service-description/suggest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        phase_id: normalizeIdentifier(currentPhaseId) || 'pre_booking',
+                        user_intent: userIntent || undefined,
+                    })
+                });
+                if (!res.ok) {
+                    const payload = await res.json().catch(() => ({}));
+                    throw new Error(payload.detail || `status ${res.status}`);
+                }
+                const data = await res.json();
+                const description = String(data.description || '').trim();
+                if (descInput && description) {
+                    descInput.value = description;
+                    showToast(data.source === 'llm' ? 'Description refined' : 'Added fallback description');
+                } else {
+                    showToast('Could not generate description', 'error');
+                }
+            } catch (error) {
+                showToast(`Error refining description: ${error.message || error}`, 'error');
+            } finally {
+                if (button) { button.disabled = false; button.textContent = 'Refine with AI'; }
+            }
+        }
+
+        // ── Upload Menu files for modal ─────────────────────────────────────
+        let svcMenuFacts = [];
+
+        async function uploadSvcMenuFiles(fileList) {
+            const files = Array.from(fileList || []);
+            const queueEl = document.getElementById('svc-menu-queue');
+            const statusEl = document.getElementById('pull-kb-status');
+            const uploadBtn = document.getElementById('svc-upload-menu-btn');
+            const uploadInput = document.getElementById('svc-menu-upload-input');
+            if (!files.length) {
+                if (uploadInput) uploadInput.value = '';
+                return;
+            }
+
+            if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = 'Uploading...'; }
+            if (queueEl) {
+                queueEl.style.display = 'block';
+                queueEl.innerHTML = files.map((file) => `<div>Processing ${escapeHtml(file.name)}...</div>`).join('');
+            }
+
+            const serviceName = String(document.getElementById('new-svc-name')?.value || '').trim();
+            const extractedFacts = [];
+            const statusRows = [];
+
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('service_name', serviceName || String(file.name || 'menu_upload'));
+                formData.append('max_facts', '150');
+                try {
+                    const res = await fetch(`${API_BASE}/agent-builder/menu-ocr/scan`, {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const payload = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(payload.detail || `status ${res.status}`);
+                    const facts = Array.isArray(payload.fact_lines)
+                        ? payload.fact_lines.map((entry) => String(entry || '').trim()).filter(Boolean)
+                        : [];
+                    extractedFacts.push(...facts);
+                    statusRows.push(`<div><strong>${escapeHtml(file.name)}</strong>: ${facts.length} fact(s) extracted.</div>`);
+                } catch (error) {
+                    statusRows.push(`<div style="color:#dc2626;"><strong>${escapeHtml(file.name)}</strong>: ${escapeHtml(error.message || String(error))}</div>`);
+                }
+            }
+
+            svcMenuFacts = Array.from(new Set([...(svcMenuFacts || []), ...extractedFacts]));
+            if (queueEl) { queueEl.style.display = 'block'; queueEl.innerHTML = statusRows.join(''); }
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                if (svcMenuFacts.length) {
+                    statusEl.style.color = '#16a34a';
+                    statusEl.textContent = `${svcMenuFacts.length} menu fact(s) ready. Click Pull from KB to merge them with library knowledge.`;
+                } else {
+                    statusEl.style.color = '#dc2626';
+                    statusEl.textContent = 'No menu facts extracted from uploaded files.';
+                }
+            }
+            if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = 'Upload Menu(s)'; }
+            if (uploadInput) uploadInput.value = '';
+        }
+
+        // ── Phase service prompt management ─────────────────────────────────
+        let phaseCreatedServiceId = null;
+
+        async function regeneratePhaseServicePrompt() {
+            if (!phaseCreatedServiceId) {
+                showToast('Create the service first, then regenerate prompt.', 'error');
+                return;
+            }
+            const regenBtn = document.getElementById('phase-regenerate-btn');
+            const statusEl = document.getElementById('phase-prompt-status');
+            const promptArea = document.getElementById('phase-new-service-generated-prompt');
+            try {
+                if (regenBtn) { regenBtn.disabled = true; regenBtn.textContent = 'Regenerating...'; }
+                if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = '#6b7280'; statusEl.textContent = 'Generating service prompt...'; }
+                const res = await fetch(`${API_BASE}/config/services/${phaseCreatedServiceId}/regenerate-prompt`, { method: 'POST' });
+                const data = await res.json();
+                if (data.generated_system_prompt && promptArea) {
+                    promptArea.value = data.generated_system_prompt;
+                    if (statusEl) { statusEl.style.color = '#16a34a'; statusEl.textContent = 'Prompt regenerated successfully.'; }
+                    const badge = document.getElementById('phase-prompt-badge');
+                    if (badge) badge.style.display = 'inline-block';
+                } else {
+                    if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = 'Failed to generate prompt.'; }
+                }
+            } catch (err) {
+                if (statusEl) { statusEl.style.color = '#dc2626'; statusEl.textContent = 'Error: ' + err.message; }
+            } finally {
+                if (regenBtn) { regenBtn.disabled = false; regenBtn.textContent = 'Regenerate'; }
+            }
+        }
+
+        async function savePhaseEditedPrompt() {
+            if (!phaseCreatedServiceId) {
+                showToast('Create the service first.', 'error');
+                return;
+            }
+            const promptArea = document.getElementById('phase-new-service-generated-prompt');
+            const prompt = String(promptArea ? promptArea.value : '').trim();
+            if (!prompt) { showToast('Prompt is empty', 'error'); return; }
+            const saveBtn = document.getElementById('phase-save-prompt-btn');
+            const statusEl = document.getElementById('phase-prompt-status');
+            try {
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+                const res = await fetch(`${API_BASE}/config/services/${phaseCreatedServiceId}/prompt`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                });
+                if (res.ok) {
+                    showToast('Prompt saved');
+                    if (statusEl) { statusEl.style.display = 'block'; statusEl.style.color = '#16a34a'; statusEl.textContent = 'Prompt saved.'; }
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (err) {
+                showToast('Error saving prompt: ' + err.message, 'error');
+            } finally {
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Prompt'; }
             }
         }
 
@@ -2404,7 +2922,8 @@
             try {
                 const res = await fetch(`${API_BASE}/config/onboarding/business`);
                 const business = await res.json();
-                currentBusinessId = business.id || currentBusinessId;
+                const resolvedPropertyCode = normalizePropertyCode(business.id || currentBusinessId || 'default') || 'default';
+                syncPropertyScopeUi(resolvedPropertyCode);
 
                 document.getElementById('cfg-business-name').value = business.name || '';
                 document.getElementById('cfg-business-type').value = business.type || 'hotel';
@@ -2437,9 +2956,68 @@
             }
         }
 
+        async function switchProperty() {
+            if (propertySwitchInProgress) return;
+            const requestedCode = normalizePropertyCode(document.getElementById('cfg-property-code')?.value || '');
+            if (!requestedCode) {
+                showToast('Enter a property code first', 'error');
+                return;
+            }
+            const currentCode = normalizePropertyCode(currentBusinessId);
+            if (requestedCode === currentCode) {
+                return;
+            }
+            propertySwitchInProgress = true;
+            try {
+                if (!isKnownPropertyCode(requestedCode)) {
+                    resetBusinessInfoFormForNewProperty(requestedCode);
+                    showToast(`New property ${requestedCode}: fill details and click Save to create it.`);
+                    return;
+                }
+                syncPropertyScopeUi(requestedCode);
+                await loadAll();
+                showToast(`Loaded property: ${requestedCode}`);
+            } catch (error) {
+                showToast('Failed to load selected property', 'error');
+            } finally {
+                propertySwitchInProgress = false;
+            }
+        }
+
+        function bindPropertyAutoLoad() {
+            if (propertyAutoLoadBound) return;
+            const propertyInput = document.getElementById('cfg-property-code');
+            if (!propertyInput) return;
+
+            propertyInput.addEventListener('change', async () => {
+                const requestedCode = normalizePropertyCode(propertyInput.value || '');
+                const currentCode = normalizePropertyCode(currentBusinessId);
+                if (!requestedCode || requestedCode === currentCode) return;
+                if (!isKnownPropertyCode(requestedCode)) return;
+                await switchProperty();
+            });
+
+            propertyInput.addEventListener('keydown', async (event) => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                const requestedCode = normalizePropertyCode(propertyInput.value || '');
+                const currentCode = normalizePropertyCode(currentBusinessId);
+                if (!requestedCode || requestedCode === currentCode) return;
+                if (!isKnownPropertyCode(requestedCode)) {
+                    showToast(`New property ${requestedCode}: click Save to create it.`);
+                    return;
+                }
+                await switchProperty();
+            });
+
+            propertyAutoLoadBound = true;
+        }
+
         // Save business info
         async function saveBusinessInfo() {
+            const propertyCode = normalizePropertyCode(document.getElementById('cfg-property-code')?.value || currentBusinessId || '');
             const data = {
+                id: propertyCode,
                 name: document.getElementById('cfg-business-name').value,
                 type: document.getElementById('cfg-business-type').value,
                 city: document.getElementById('cfg-city').value,
@@ -2460,8 +3038,8 @@
                 welcome_message: document.getElementById('cfg-welcome-message').value
             };
 
-            if (!data.name || !data.city || !data.bot_name) {
-                showToast('Please fill in all required fields', 'error');
+            if (!data.id || !data.name || !data.city || !data.bot_name) {
+                showToast('Please fill in property code and all required fields', 'error');
                 return;
             }
 
@@ -2473,7 +3051,9 @@
                 });
 
                 if (res.ok) {
+                    syncPropertyScopeUi(data.id);
                     showToast('Business info saved successfully');
+                    await loadPropertyOptions();
                     loadConfigBanner();
                 } else {
                     showToast('Error saving business info', 'error');
@@ -2630,13 +3210,15 @@
             const tenantInput = document.getElementById('rag-tenant-id');
             const businessTypeInput = document.getElementById('rag-business-type');
             const businessTypeFromForm = document.getElementById('cfg-business-type').value || 'generic';
+            const propertyCode = getActivePropertyCode();
 
-            if (tenantInput && !tenantInput.value.trim()) {
-                const fallbackFromName = (document.getElementById('cfg-business-name').value || 'default')
-                    .trim()
-                    .toLowerCase()
-                    .replace(/\s+/g, '_');
-                tenantInput.value = (currentBusinessId || fallbackFromName || 'default').toString();
+            if (tenantInput) {
+                const currentTenant = normalizePropertyCode(tenantInput.value || '');
+                if (!currentTenant || currentTenant === 'default') {
+                    tenantInput.value = propertyCode;
+                } else {
+                    tenantInput.value = currentTenant;
+                }
             }
 
             if (businessTypeInput && !businessTypeInput.value.trim()) {
@@ -3814,6 +4396,20 @@
                 const promptStatus = document.getElementById('svc-prompt-status');
                 if (promptStatus) { promptStatus.style.display = 'none'; promptStatus.textContent = ''; }
                 updateServiceTicketingSectionVisibility();
+
+                // Populate ticketing mode and form builder
+                const ticketingMode = String(svc.ticketing_mode || '').trim().toLowerCase() || (svc.ticketing_enabled !== false ? 'text' : 'none');
+                const modeEl = document.getElementById('new-svc-ticketing-mode');
+                if (modeEl) modeEl.value = ticketingMode;
+                onTicketingModeChange('svc');
+
+                // Populate form builder if form_config exists
+                if (svc.form_config && typeof svc.form_config === 'object') {
+                    populateFormBuilder('svc', svc.form_config);
+                } else {
+                    resetFormBuilder('svc');
+                }
+
                 document.getElementById('service-modal-title').textContent = 'Edit Service';
                 document.getElementById('save-service-btn').textContent = 'Save Service';
                 document.getElementById('add-service-modal').classList.add('active');
@@ -3841,12 +4437,18 @@
                 return;
             }
 
+            // Ticketing mode & form config
+            const ticketingMode = (document.getElementById('new-svc-ticketing-mode') || {}).value || 'none';
+            const ticketingEnabled = ticketingMode !== 'none';
+
             const payload = {
                 id,
                 name,
                 type,
                 description: desc,
                 is_active: currentServiceEditId ? currentServiceEditIsActive : true,
+                ticketing_enabled: ticketingEnabled,
+                ticketing_mode: ticketingMode,
             };
             if (isTicketing) {
                 payload.ticketing_plugin_enabled = true;
@@ -3862,6 +4464,10 @@
             }
             if (svcTicketingConditions) {
                 payload.ticketing_policy = svcTicketingConditions;
+            }
+            // Attach form_config when mode is form
+            if (ticketingMode === 'form') {
+                payload.form_config = collectFormConfig('svc');
             }
 
             try {
@@ -3978,9 +4584,14 @@
                 const serviceId = normalizeIdentifier(svc.id);
                 const isTicketing = isTicketingServiceEntry(svc);
                 const ticketingEnabled = svc.ticketing_enabled !== false;
+                const svcTicketingMode = String(svc.ticketing_mode || '').trim().toLowerCase() || (ticketingEnabled ? 'text' : 'none');
                 const builtInBadge = svc.is_builtin ? '<span class="badge badge-warning">Prebuilt</span>' : '';
                 const ticketingBadge = isTicketing ? '<span class="badge badge-purple">Ticketing Plugin</span>' : '';
-                const ticketingEnabledBadge = ticketingEnabled ? '<span class="badge badge-success">Ticketing On</span>' : '<span class="badge badge-danger">Ticketing Off</span>';
+                const ticketingModeBadge = svcTicketingMode === 'form'
+                    ? '<span class="badge badge-info">Form</span>'
+                    : svcTicketingMode === 'text'
+                        ? '<span class="badge badge-success">Text</span>'
+                        : '<span class="badge badge-danger">Off</span>';
                 const ticketingPolicy = String(svc.ticketing_policy || '').trim();
                 html += `
                     <div class="service-item ${isTicketing ? 'ticketing-plugin' : ''}">
@@ -3991,7 +4602,7 @@
                                 <span class="badge badge-success">${escapeHtml(svc.id)}</span>
                                 ${builtInBadge}
                                 ${ticketingBadge}
-                                ${ticketingEnabledBadge}
+                                ${ticketingModeBadge}
                                 ${svc.description ? ` - ${escapeHtml(svc.description)}` : ''}
                                 ${ticketingPolicy ? ` <br><span class="badge badge-warning">Ticketing Rule</span> ${escapeHtml(ticketingPolicy)}` : ''}
                             </div>
@@ -4252,6 +4863,262 @@
             }
         }
 
+        // ═══════ Form Builder Functions ═══════
+
+        // State: form fields drafts for each context
+        const formFieldsDraft = { svc: [], phase: [] };
+
+        function getTicketingFormContext(ctx) {
+            const isSvc = ctx === 'svc';
+            return {
+                ctx: isSvc ? 'svc' : 'phase',
+                nameId: isSvc ? 'new-svc-name' : 'phase-new-service-name',
+                descId: isSvc ? 'new-svc-desc' : 'phase-new-service-description',
+                modeId: isSvc ? 'new-svc-ticketing-mode' : 'phase-new-service-ticketing-mode',
+                condId: isSvc ? 'new-svc-ticketing-conditions' : 'phase-new-service-ticketing-conditions',
+                triggerId: `${isSvc ? 'svc' : 'phase'}-trigger-field-id`,
+                triggerLabelId: `${isSvc ? 'svc' : 'phase'}-trigger-field-label`,
+                triggerDescId: `${isSvc ? 'svc' : 'phase'}-trigger-field-desc`,
+                preInstructionsId: `${isSvc ? 'svc' : 'phase'}-pre-form-instructions`,
+            };
+        }
+
+        function isFormBuilderEmpty(ctx) {
+            const meta = getTicketingFormContext(ctx);
+            const triggerId = String(document.getElementById(meta.triggerId)?.value || '').trim();
+            const triggerLabel = String(document.getElementById(meta.triggerLabelId)?.value || '').trim();
+            const triggerDesc = String(document.getElementById(meta.triggerDescId)?.value || '').trim();
+            const preInstructions = String(document.getElementById(meta.preInstructionsId)?.value || '').trim();
+            const hasFields = Array.isArray(formFieldsDraft[ctx]) && formFieldsDraft[ctx].some((f) => String(f?.id || '').trim());
+            return !triggerId && !triggerLabel && !triggerDesc && !preInstructions && !hasFields;
+        }
+
+        function _pushSuggestedField(fields, field) {
+            const id = normalizeIdentifier(field.id || '');
+            if (!id) return;
+            if (fields.some((entry) => normalizeIdentifier(entry.id || '') === id)) return;
+            fields.push({ ...field, id });
+        }
+
+        function buildSuggestedFormConfig(ctx) {
+            const meta = getTicketingFormContext(ctx);
+            const serviceName = String(document.getElementById(meta.nameId)?.value || '').trim();
+            const serviceDescription = String(document.getElementById(meta.descId)?.value || '').trim();
+            const ticketingConditions = String(document.getElementById(meta.condId)?.value || '').trim();
+            const scope = `${serviceName} ${serviceDescription} ${ticketingConditions}`.toLowerCase();
+
+            const fields = [];
+            _pushSuggestedField(fields, { id: 'full_name', label: 'Full Name', type: 'text', required: true });
+            _pushSuggestedField(fields, { id: 'phone', label: 'Phone Number', type: 'tel', required: true });
+
+            if (/(email|mail)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'email', label: 'Email', type: 'email', required: false });
+            }
+            if (/(room|suite|accommodation|reservation|booking|check.?in|check.?out|stay)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'room_type', label: 'Room Type', type: 'text', required: true });
+                _pushSuggestedField(fields, { id: 'checkin_date', label: 'Check-in Date', type: 'date', required: true });
+                _pushSuggestedField(fields, { id: 'checkout_date', label: 'Check-out Date', type: 'date', required: true });
+            }
+            if (/(time|slot|timing)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'preferred_time', label: 'Preferred Time', type: 'time', required: false });
+            }
+            if (/(transport|airport|pickup|drop|cab|taxi)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'pickup_location', label: 'Pickup Location', type: 'text', required: true });
+                _pushSuggestedField(fields, { id: 'drop_location', label: 'Drop Location', type: 'text', required: true });
+            }
+            if (/(spa|massage|treatment|wellness)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'treatment_type', label: 'Treatment Type', type: 'text', required: true });
+            }
+            if (/(complaint|issue|problem|maintenance|support)/.test(scope)) {
+                _pushSuggestedField(fields, { id: 'issue_details', label: 'Issue Details', type: 'textarea', required: true });
+            }
+            _pushSuggestedField(fields, { id: 'special_requests', label: 'Special Requests', type: 'textarea', required: false });
+
+            const triggerBase = normalizeIdentifier(serviceName || 'request') || 'request';
+            return {
+                trigger_field: {
+                    id: `${triggerBase}_type`,
+                    label: `${serviceName || 'Service'} Type`,
+                    description: 'Confirm the request type before showing the form.',
+                },
+                fields,
+                pre_form_instructions: 'Confirm the request details, then show this form and collect all required fields.',
+            };
+        }
+
+        function autoPopulateFormBuilder(ctx, { force = false } = {}) {
+            const modeEl = document.getElementById(`${ctx === 'svc' ? 'new-svc' : 'phase-new-service'}-ticketing-mode`);
+            const mode = String(modeEl?.value || 'none');
+            if (mode !== 'form') return false;
+            if (!force && !isFormBuilderEmpty(ctx)) return false;
+            const suggestion = buildSuggestedFormConfig(ctx);
+            populateFormBuilder(ctx, suggestion);
+            return true;
+        }
+
+        function onTicketingModeChange(ctx) {
+            const prefix = ctx === 'svc' ? 'svc' : 'phase';
+            const modeEl = document.getElementById(`${prefix === 'svc' ? 'new-svc' : 'phase-new-service'}-ticketing-mode`);
+            const mode = modeEl ? modeEl.value : 'none';
+
+            // Show/hide ticketing conditions
+            const condWrap = document.getElementById(`${prefix === 'svc' ? 'svc-modal' : 'phase'}-ticketing-conditions-wrap`);
+            if (condWrap) condWrap.style.display = (mode === 'form' || mode === 'text') ? 'block' : 'none';
+
+            // Show/hide form builder
+            const formWrap = document.getElementById(`${prefix}-form-builder-wrap`);
+            if (formWrap) formWrap.style.display = mode === 'form' ? 'block' : 'none';
+
+            if (mode === 'form') {
+                autoPopulateFormBuilder(ctx);
+            }
+        }
+
+        function addFormField(ctx, fieldData = null) {
+            const list = document.getElementById(`${ctx}-form-fields-list`);
+            if (!list) return;
+            const idx = formFieldsDraft[ctx].length;
+            const data = fieldData || { id: '', label: '', type: 'text', required: true, validation_prompt: '' };
+            formFieldsDraft[ctx].push(data);
+            renderFormFieldRow(ctx, idx, data, list);
+        }
+
+        function renderFormFieldRow(ctx, idx, data, container) {
+            const row = document.createElement('div');
+            row.className = 'form-builder-field-row';
+            row.dataset.idx = idx;
+            row.style.cssText = 'display:grid; grid-template-columns:1fr 1fr 100px 40px 40px; gap:6px; align-items:end; margin-bottom:6px; padding:8px; background:#fff; border:1px solid #e5e7eb; border-radius:6px;';
+            row.innerHTML = `
+                <div>
+                    <label style="font-size:0.72rem; color:#6b7280;">Field ID</label>
+                    <input type="text" class="form-control" value="${escapeHtml(data.id)}" placeholder="e.g. guest_name"
+                        style="font-size:0.82rem;" onchange="updateFormField('${ctx}',${idx},'id',this.value)">
+                </div>
+                <div>
+                    <label style="font-size:0.72rem; color:#6b7280;">Label</label>
+                    <input type="text" class="form-control" value="${escapeHtml(data.label)}" placeholder="e.g. Guest Name"
+                        style="font-size:0.82rem;" onchange="updateFormField('${ctx}',${idx},'label',this.value)">
+                </div>
+                <div>
+                    <label style="font-size:0.72rem; color:#6b7280;">Type</label>
+                    <select class="form-control" style="font-size:0.82rem;" onchange="updateFormField('${ctx}',${idx},'type',this.value)">
+                        <option value="text" ${data.type === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="date" ${data.type === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="time" ${data.type === 'time' ? 'selected' : ''}>Time</option>
+                        <option value="number" ${data.type === 'number' ? 'selected' : ''}>Number</option>
+                        <option value="tel" ${data.type === 'tel' ? 'selected' : ''}>Phone</option>
+                        <option value="email" ${data.type === 'email' ? 'selected' : ''}>Email</option>
+                        <option value="textarea" ${data.type === 'textarea' ? 'selected' : ''}>Textarea</option>
+                    </select>
+                </div>
+                <div style="text-align:center;">
+                    <label style="font-size:0.72rem; color:#6b7280;">Req</label>
+                    <input type="checkbox" ${data.required ? 'checked' : ''} onchange="updateFormField('${ctx}',${idx},'required',this.checked)"
+                        style="margin-top:6px;">
+                </div>
+                <div style="text-align:center;">
+                    <button type="button" class="btn btn-danger btn-small" style="font-size:0.72rem; padding:4px 8px;"
+                        onclick="removeFormField('${ctx}',${idx})">X</button>
+                </div>
+            `;
+            container.appendChild(row);
+        }
+
+        function updateFormField(ctx, idx, key, value) {
+            if (formFieldsDraft[ctx] && formFieldsDraft[ctx][idx]) {
+                formFieldsDraft[ctx][idx][key] = value;
+            }
+        }
+
+        function removeFormField(ctx, idx) {
+            formFieldsDraft[ctx].splice(idx, 1);
+            rerenderFormFields(ctx);
+        }
+
+        function rerenderFormFields(ctx) {
+            const list = document.getElementById(`${ctx}-form-fields-list`);
+            if (!list) return;
+            list.innerHTML = '';
+            formFieldsDraft[ctx].forEach((data, i) => {
+                renderFormFieldRow(ctx, i, data, list);
+            });
+        }
+
+        function collectFormConfig(ctx) {
+            const prefix = ctx === 'svc' ? 'svc' : 'phase';
+            const triggerId = (document.getElementById(`${prefix}-trigger-field-id`) || {}).value || '';
+            const triggerLabel = (document.getElementById(`${prefix}-trigger-field-label`) || {}).value || '';
+            const triggerDesc = (document.getElementById(`${prefix}-trigger-field-desc`) || {}).value || '';
+            const preFormInstructions = (document.getElementById(`${prefix}-pre-form-instructions`) || {}).value || '';
+
+            const fields = (formFieldsDraft[ctx] || [])
+                .filter(f => f.id && f.id.trim())
+                .map(f => ({
+                    id: f.id.trim().toLowerCase().replace(/\s+/g, '_'),
+                    label: (f.label || f.id).trim(),
+                    type: f.type || 'text',
+                    required: f.required !== false,
+                    validation_prompt: (f.validation_prompt || '').trim(),
+                }));
+
+            return {
+                trigger_field: triggerId.trim() ? {
+                    id: triggerId.trim().toLowerCase().replace(/\s+/g, '_'),
+                    label: (triggerLabel || triggerId).trim(),
+                    description: triggerDesc.trim(),
+                } : {},
+                fields: fields,
+                pre_form_instructions: preFormInstructions.trim(),
+            };
+        }
+
+        function populateFormBuilder(ctx, formConfig) {
+            if (!formConfig || typeof formConfig !== 'object') return;
+            const prefix = ctx === 'svc' ? 'svc' : 'phase';
+            const tf = formConfig.trigger_field || {};
+            const el = (id) => document.getElementById(id);
+            if (el(`${prefix}-trigger-field-id`)) el(`${prefix}-trigger-field-id`).value = tf.id || '';
+            if (el(`${prefix}-trigger-field-label`)) el(`${prefix}-trigger-field-label`).value = tf.label || '';
+            if (el(`${prefix}-trigger-field-desc`)) el(`${prefix}-trigger-field-desc`).value = tf.description || '';
+            if (el(`${prefix}-pre-form-instructions`)) el(`${prefix}-pre-form-instructions`).value = formConfig.pre_form_instructions || '';
+            formFieldsDraft[ctx] = [];
+            const list = el(`${ctx}-form-fields-list`);
+            if (list) list.innerHTML = '';
+            (formConfig.fields || []).forEach(f => {
+                addFormField(ctx, { ...f });
+            });
+        }
+
+        function resetFormBuilder(ctx) {
+            const prefix = ctx === 'svc' ? 'svc' : 'phase';
+            const el = (id) => document.getElementById(id);
+            if (el(`${prefix}-trigger-field-id`)) el(`${prefix}-trigger-field-id`).value = '';
+            if (el(`${prefix}-trigger-field-label`)) el(`${prefix}-trigger-field-label`).value = '';
+            if (el(`${prefix}-trigger-field-desc`)) el(`${prefix}-trigger-field-desc`).value = '';
+            if (el(`${prefix}-pre-form-instructions`)) el(`${prefix}-pre-form-instructions`).value = '';
+            formFieldsDraft[ctx] = [];
+            const list = el(`${ctx}-form-fields-list`);
+            if (list) list.innerHTML = '';
+        }
+
+        function bindTicketingAutoSeed() {
+            if (ticketingAutoSeedBound) return;
+            const pairs = [
+                ['svc', 'new-svc-ticketing-conditions'],
+                ['phase', 'phase-new-service-ticketing-conditions'],
+            ];
+            for (const [ctx, elId] of pairs) {
+                const el = document.getElementById(elId);
+                if (!el) continue;
+                el.addEventListener('change', () => {
+                    autoPopulateFormBuilder(ctx);
+                });
+            }
+            ticketingAutoSeedBound = true;
+        }
+
+        // ═══════ End Form Builder Functions ═══════
+
         async function togglePhaseTicketingConditions(checkbox) {
             const wrap = document.getElementById('phase-ticketing-conditions-wrap');
             if (wrap) wrap.style.display = checkbox.checked ? 'block' : 'none';
@@ -4445,11 +5312,14 @@
                         service_name: name,
                         service_description: desc,
                         extraction_mode: 'verbatim',
-                        max_chars: 1200000,
+                        chunk_chars: 18000,
                         existing_menu_facts: phaseMenuFacts,
                     }),
                 });
-                const data = await res.json();
+                const data = await parseJsonResponseSafe(res);
+                if (!res.ok) {
+                    throw new Error(data.detail || data.reason || data.error || data._rawText || `status ${res.status}`);
+                }
                 const kbTextarea = document.getElementById('phase-new-service-kb-knowledge');
                 if (data.extracted_knowledge) {
                     const existing = (kbTextarea.value || '').trim();
@@ -4473,13 +5343,14 @@
             const nameEl = document.getElementById('phase-new-service-name');
             const typeEl = document.getElementById('phase-new-service-type');
             const descEl = document.getElementById('phase-new-service-description');
-            const ticketingEnabledEl = document.getElementById('phase-new-service-ticketing-enabled');
             const kbKnowledgeEl = document.getElementById('phase-new-service-kb-knowledge');
             const ticketingConditionsEl = document.getElementById('phase-new-service-ticketing-conditions');
+            const ticketingModeEl = document.getElementById('phase-new-service-ticketing-mode');
             const name = String(nameEl ? nameEl.value : '').trim();
             const type = String(typeEl ? typeEl.value : 'service').trim() || 'service';
             const description = String(descEl ? descEl.value : '').trim();
-            const ticketingEnabled = ticketingEnabledEl ? !!ticketingEnabledEl.checked : true;
+            const ticketingMode = ticketingModeEl ? ticketingModeEl.value : 'none';
+            const ticketingEnabled = ticketingMode !== 'none';
             const kbKnowledge = String(kbKnowledgeEl ? kbKnowledgeEl.value : '').trim();
             const ticketingConditions = String(ticketingConditionsEl ? ticketingConditionsEl.value : '').trim();
             const phaseId = normalizeIdentifier(currentPhaseId) || 'pre_booking';
@@ -4493,7 +5364,8 @@
                 return;
             }
 
-            const id = normalizeIdentifier(name).replace(/[^a-z0-9_]/g, '');
+            const customId = String(document.getElementById('phase-new-service-id')?.value || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+            const id = customId || normalizeIdentifier(name).replace(/[^a-z0-9_]/g, '');
             if (!id) {
                 showToast('Unable to generate service ID from name', 'error');
                 return;
@@ -4519,6 +5391,7 @@
                 phase_id: phaseId,
                 is_builtin: false,
                 ticketing_enabled: ticketingEnabled,
+                ticketing_mode: ticketingMode,
             };
             if (kbKnowledge || ticketingConditions) {
                 payload.service_prompt_pack = {};
@@ -4530,6 +5403,9 @@
             }
             if (ticketingConditions) {
                 payload.ticketing_policy = ticketingConditions;
+            }
+            if (ticketingMode === 'form') {
+                payload.form_config = collectFormConfig('phase');
             }
 
             try {
@@ -4543,9 +5419,20 @@
                     throw new Error(body.detail || `status ${res.status}`);
                 }
                 showToast('Phase service created');
+                // Show prompt management buttons after service creation
+                phaseCreatedServiceId = id;
+                const phaseRegenBtn = document.getElementById('phase-regenerate-btn');
+                const phaseSavePromptBtn = document.getElementById('phase-save-prompt-btn');
+                const phasePromptStatus = document.getElementById('phase-prompt-status');
+                if (phaseRegenBtn) { phaseRegenBtn.style.display = 'inline-flex'; phaseRegenBtn.disabled = false; }
+                if (phaseSavePromptBtn) { phaseSavePromptBtn.style.display = 'inline-flex'; phaseSavePromptBtn.disabled = false; }
+                if (phasePromptStatus) { phasePromptStatus.style.display = 'block'; phasePromptStatus.style.color = '#16a34a'; phasePromptStatus.textContent = `Service "${name}" created! Click Regenerate to generate an AI prompt, or type one manually.`; }
+
+                // Reset form fields but keep the prompt section visible
                 if (nameEl) nameEl.value = '';
                 if (descEl) descEl.value = '';
-                if (ticketingEnabledEl) ticketingEnabledEl.checked = true;
+                const phaseIdEl = document.getElementById('phase-new-service-id');
+                if (phaseIdEl) { phaseIdEl.value = ''; phaseIdEl.dataset.manuallyEdited = ''; }
                 if (kbKnowledgeEl) kbKnowledgeEl.value = '';
                 if (ticketingConditionsEl) ticketingConditionsEl.value = '';
                 const userIntentEl = document.getElementById('phase-new-service-user-intent');
@@ -4896,6 +5783,9 @@
 
         // Load all data
         async function loadAll() {
+            bindPropertyAutoLoad();
+            bindTicketingAutoSeed();
+            await loadPropertyOptions();
             loadConfigBanner();
             loadBusinessConfig();
             await loadPromptTemplates();
@@ -4922,4 +5812,3 @@
     </script>
 </body>
 </html>
-

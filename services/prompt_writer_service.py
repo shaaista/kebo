@@ -179,12 +179,19 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
     - Resolve relative dates ("tomorrow", "next Friday") against current_date
       and store the resolved absolute date in pending_data_updates.
 
-13. PHONE NUMBER VALIDATION — When collecting a phone number:
-    - A valid phone number must contain exactly 10 digits (ignoring spaces/dashes).
-    - Reject obvious fake or garbage numbers (e.g., all identical digits like
-      9999999999 or sequential digits like 1234567890).
-    - If a guest provides an invalid or garbage number, do NOT accept it. 
-      Politely ask them to provide a real, valid 10-digit phone number.
+13. PHONE NUMBER VALIDATION — Phone numbers are collected via a form with a
+    country code dropdown. The submitted value will include the country code
+    prefix (e.g., +91, +1, +44). Validate using your knowledge of each
+    country's telecom rules:
+    - India (+91): exactly 10 digits after code, first digit must be 6-9.
+    - US/Canada (+1): exactly 10 digits, area code cannot start with 0 or 1.
+    - UK (+44): 10-11 digits after code.
+    - UAE (+971): exactly 9 digits after code.
+    - For other countries, use your knowledge of their phone number format.
+    - Reject obviously fake/placeholder numbers: all-same digits (9999999999),
+      sequential (1234567890, 9876543210), all-zeros, or any pattern that no
+      real person would have. Think like a hotel receptionist.
+    - If invalid, politely ask the guest to provide a real phone number.
 
 14. GUEST FACTS & KNOWN CONTEXT — Think like a hotel. At check-in the hotel
     collects the guest's full name, room number, phone number, and email. These
@@ -275,18 +282,85 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         lines.append(f"  Cuisine type: {cuisine}")
     if service_phase_id:
         lines.append(f"  Service phase: {service_phase_id}")
+    # --- ticketing_mode & form_config ---
+    ticketing_mode = str(service.get("ticketing_mode") or "").strip().lower()
+    form_config = service.get("form_config")
+    if not ticketing_mode:
+        ticketing_mode = "text" if ticketing_enabled else "none"
+
     lines += [
         f"  Ticketing enabled: {ticketing_enabled}",
+        f"  Ticketing mode: {ticketing_mode}",
         f"  Booking/order hours: {hours_text}",
         f"  Delivery / service zones: {zones_text}",
         f"",
         f"WHEN TO CREATE A TICKET:",
         ticketing_conditions if ticketing_conditions else "(create a ticket once the guest confirms all required details)",
         f"",
-        f"SLOTS TO COLLECT (if ticketing is enabled):",
-        slots_text,
-        f"",
     ]
+
+    # Inject form-based ticketing instructions if mode=form
+    if ticketing_mode == "form" and isinstance(form_config, dict):
+        trigger_field = form_config.get("trigger_field") or {}
+        form_fields = form_config.get("fields") or []
+        pre_form = str(form_config.get("pre_form_instructions") or "").strip()
+        trigger_id = str(trigger_field.get("id") or "").strip()
+        trigger_label = str(trigger_field.get("label") or trigger_id).strip()
+        trigger_desc = str(trigger_field.get("description") or "").strip()
+
+        lines += [
+            f"FORM-BASED TICKETING FLOW:",
+            f"  This service uses an inline form to collect guest details.",
+            f"  The form UI will appear automatically — do NOT ask for form fields via conversation.",
+            f"  Instead, your job is to CONFIRM the trigger value before the form appears.",
+            f"",
+        ]
+        if trigger_id:
+            lines += [
+                f"  TRIGGER FIELD: {trigger_label} (id: {trigger_id})",
+                f"  Trigger description: {trigger_desc}" if trigger_desc else "",
+                f"  You MUST first present the available options from the knowledge base,",
+                f"  let the guest choose, and then CONFIRM their choice.",
+                f"  Example: 'Great, so you would like to go with [chosen option]. Shall I proceed with the booking?'",
+                f"  Only after the guest confirms (e.g., 'yes', 'confirm', 'go ahead'),",
+                f"  set the state to awaiting_info so the form appears.",
+                f"",
+                f"  RULE FOR CONFIRMATION MESSAGES:",
+                f"  When the guest selects or confirms an option, give a brief warm confirmation that mentions",
+                f"  1-2 key highlights of their choice naturally woven into a complete sentence, then let them",
+                f"  know the booking form will appear.",
+                f"  GOOD: 'Great choice! The Prestige Suite at 485 sq. ft. with a lavish king-size bed and",
+                f"  elegant bathtub is perfect for a luxurious stay. Please fill in the booking details below.'",
+                f"  BAD (NEVER do these):",
+                f"    - 'The Prestige Suite, which includes:' (trailing colon with nothing after)",
+                f"    - 'which features:. Please fill in...' (colon then period)",
+                f"    - Listing ALL features as bullet points — just mention 1-2 highlights naturally",
+                f"  Keep it to 2-3 sentences max. Always end with a complete sentence.",
+                f"",
+            ]
+        if pre_form:
+            lines += [
+                f"  PRE-FORM INSTRUCTIONS: {pre_form}",
+                f"",
+            ]
+        if form_fields:
+            field_names = ", ".join(f.get("label", f.get("id", "?")) for f in form_fields)
+            lines.append(f"  Form will collect: {field_names}")
+            lines.append(f"  Do NOT ask the guest for these fields — the form handles it.")
+            lines.append(f"")
+    else:
+        lines += [
+            f"SLOTS TO COLLECT (if ticketing is enabled):",
+            slots_text,
+            f"",
+        ]
+        if ticketing_mode == "text" and ticketing_enabled:
+            lines += [
+                f"TEXT-BASED TICKETING: Before collecting any details, first confirm with the guest",
+                f"what specific option/variant they want (e.g., room type, treatment type).",
+                f"Only after they confirm their choice, proceed to collect the remaining details via conversation.",
+                f"",
+            ]
     if extracted_knowledge:
         lines += [
             f"KNOWLEDGE BASE FOR THIS SERVICE:",

@@ -1,0 +1,82 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: The Orchid Hotel Manali
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Canonical property name: The Orchid Hotel Manali  
+Brand: Orchid Hotels  
+Property type: Boutique Hotel  
+Positioning: 5-Star Luxury Hotel  
+Address: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN  
+Star rating: 5/5  
+Overview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.
+
+=== Rooms & Suites ===
+## Deluxe Room
+- Views: Mountain views
+- Amenities: Modern amenities
+
+## Premier Valley View Room
+- Features: Private balcony overlooking scenic valleys
+
+## Premier Family Room
+- Layout: Spacious
+- Views: Panoramic valley views
+- Suitable for: Families
+
+## Club Room
+- Features: Balcony with stunning valley views
+
+## Presidential Suite
+- Views: Exclusive river views
+- Amenities: Premium luxury amenities
+
+=== Dining & Restaurants ===
+## Café Vindhyas
+- Cuisine: Himachali and global cuisines
+- Location: Shuru, Naggar Road
+- Features: Scenic views, bar
+- Dining options: Breakfast, lunch, dinner
+
+=== Amenities & Facilities ===
+- Pool: Heated swimming pool
+- Spa: Available
+- Fitness: Fitness center
+- Wellness: Yoga and meditation sessions
+- Wi-Fi: Free WiFi
+- Parking: Free parking, EV charging station
+- Recreation: Indoor games room
+
+=== Spa & Wellness ===
+- Spa: Available
+- Wellness: Yoga and meditation sessions
+- Fitness center: Available
+
+=== Meetings & Events ===
+## The Chamber
+- Area: 3600 sq. ft.
+- Capacity: 75-80 (Cluster), 120 (Theatre)
+- Features: Modern AV facilities, curated catering, versatile layouts
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+Address: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN  
+Nearby landmarks:
+  - Mall Road: 5 miles
+  - Hadimba Temple: Nearby
+  - Solang Valley: 11 miles
+  - Rohtang Pass: 30 miles
+  - Atal Tunnel: 20 miles
+
+=== Contact Information ===
+Phone: +91 9169166789  
+Email: resv.manali@orchidhotel.com, reservations@orchidhotel.com  
+
+=== Special Offers & Packages ===
+Status: Not found on reviewed pages.

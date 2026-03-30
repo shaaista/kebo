@@ -2,6 +2,54 @@
 NexOria - Main Application Entry Point
 """
 
+# ── Safe stdout/stderr wrapper (Windows Errno 22 prevention) ──────────
+# On Windows the console handle can become invalid causing OSError [Errno 22]
+# on any print/write to stdout/stderr, which crashes the entire request.
+# Wrapping early guarantees every print() and logging write is safe.
+import sys as _sys
+import io as _io
+
+
+class _SafeStream:
+    """Drop-in stdout/stderr wrapper that silently swallows OSError."""
+
+    def __init__(self, stream):
+        self._inner = stream
+
+    def write(self, s):
+        try:
+            return self._inner.write(s)
+        except OSError:
+            return len(s)
+
+    def flush(self):
+        try:
+            self._inner.flush()
+        except OSError:
+            pass
+
+    def isatty(self):
+        try:
+            return self._inner.isatty()
+        except Exception:
+            return False
+
+    @property
+    def encoding(self):
+        return getattr(self._inner, "encoding", "utf-8")
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+
+try:
+    if _sys.platform == "win32":
+        _sys.stdout = _SafeStream(_sys.stdout)
+        _sys.stderr = _SafeStream(_sys.stderr)
+except Exception:
+    pass
+# ── End safe stream wrapper ───────────────────────────────────────────
+
 from time import perf_counter
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -33,8 +81,8 @@ async def lifespan(app: FastAPI):
     # Startup
     from services.flow_logger import clear_log
     clear_log()
-    print(f"🚀 Starting {settings.app_name}...")
-    print(f"📍 Environment: {settings.app_env}")
+    print(f"Starting {settings.app_name}...")
+    print(f"Environment: {settings.app_env}")
 
     # ── new_detailed_logger: startup begin ──────────────────────────────────
     new_detailed_logger.log_startup_begin(
@@ -47,10 +95,10 @@ async def lifespan(app: FastAPI):
     # Initialize database
     try:
         await init_db()
-        print("✅ Database initialized")
+        print("Database initialized")
         new_detailed_logger.log_db_init(success=True)
     except Exception as e:
-        print(f"⚠️  Database init failed (will use in-memory): {e}")
+        print(f"Database init failed (will use in-memory): {e}")
         new_detailed_logger.log_db_init(success=False, error=str(e))
 
     # Restore KB files from DB if missing from disk, then sync services to JSON.
@@ -59,17 +107,17 @@ async def lifespan(app: FastAPI):
         from services.rag_service import rag_service as _rag
         restored = await db_config_service.restore_kb_files(str(_rag.kb_dir))
         if restored:
-            print(f"📂 Restored {restored} KB file(s) from database")
+            print(f"Restored {restored} KB file(s) from database")
         await db_config_service.get_services()  # Syncs DB services → JSON
         new_detailed_logger.log_kb_restore(restored=restored or 0)
     except Exception as e:
-        print(f"⚠️  Startup DB sync failed (non-fatal): {e}")
+        print(f"Startup DB sync failed (non-fatal): {e}")
         new_detailed_logger.log_kb_restore(restored=0, error=str(e))
 
-    print(f"🌐 Server: http://{settings.host}:{settings.port}")
-    print(f"📚 API Docs: http://localhost:{settings.port}/docs")
-    print(f"💬 Test Chat: http://localhost:{settings.port}/")
-    print(f"⚙️  Admin Portal: http://localhost:{settings.port}/admin")
+    print(f"Server: http://{settings.host}:{settings.port}")
+    print(f"API Docs: http://localhost:{settings.port}/docs")
+    print(f"Test Chat: http://localhost:{settings.port}/")
+    print(f"Admin Portal: http://localhost:{settings.port}/admin")
 
     # ── new_detailed_logger: server ready ───────────────────────────────────
     new_detailed_logger.log_startup_ready(
@@ -79,7 +127,7 @@ async def lifespan(app: FastAPI):
 
     yield
     # Shutdown
-    print("👋 Shutting down...")
+    print("Shutting down...")
     new_detailed_logger.log_shutdown()
 
 
@@ -89,6 +137,30 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+
+# ── Global exception handler — catches errors that Starlette's ServerErrorMiddleware
+#    would otherwise convert to bare text/plain 500 responses ──────────────────
+@app.exception_handler(Exception)
+async def _global_exception_handler(request: Request, exc: Exception):
+    """Return JSON (never HTML/text) for all unhandled exceptions."""
+    import traceback as _tb
+    # Write full traceback to file so it's never lost
+    try:
+        _crash_path = Path(__file__).resolve().parent / "logs" / "gateway_crash.log"
+        _crash_path.parent.mkdir(parents=True, exist_ok=True)
+        from datetime import datetime as _dt
+        with _crash_path.open("a", encoding="utf-8") as _cf:
+            _cf.write(
+                f"\n[{_dt.now().strftime('%Y-%m-%d %H:%M:%S')}] "
+                f"{request.method} {request.url.path} — {exc!r}\n{_tb.format_exc()}\n"
+            )
+    except Exception:
+        pass
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "error_type": type(exc).__name__},
+    )
 
 
 @app.middleware("http")
@@ -129,8 +201,11 @@ async def gateway_middleware(request: Request, call_next):
             query=dict(request.query_params) or None,
         )
     except Exception as _ndl_exc:
-        import sys as _sys
-        print(f"[new_detailed_logger] HTTP request log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+        try:
+            import sys as _sys
+            print(f"[new_detailed_logger] HTTP request log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+        except Exception:
+            pass
 
     if should_trace_backend:
         backend_trace_service.log_event(
@@ -188,8 +263,11 @@ async def gateway_middleware(request: Request, call_next):
                     status_code=401,
                 )
             except Exception as _ndl_exc:
-                import sys as _sys
-                print(f"[new_detailed_logger] rejected log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+                try:
+                    import sys as _sys
+                    print(f"[new_detailed_logger] rejected log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+                except Exception:
+                    pass
             if should_trace_backend:
                 backend_trace_service.log_event(
                     "http_request_denied_auth",
@@ -249,8 +327,11 @@ async def gateway_middleware(request: Request, call_next):
                     extra=f"retry_after={retry_after}s",
                 )
             except Exception as _ndl_exc:
-                import sys as _sys
-                print(f"[new_detailed_logger] rate-limit log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+                try:
+                    import sys as _sys
+                    print(f"[new_detailed_logger] rate-limit log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+                except Exception:
+                    pass
             if should_trace_backend:
                 backend_trace_service.log_event(
                     "http_request_rate_limited",
@@ -293,6 +374,19 @@ async def gateway_middleware(request: Request, call_next):
         response = await call_next(request)
     except Exception as exc:
         duration_ms = round((perf_counter() - start) * 1000.0, 2)
+        # -- Write full traceback to file so OSError/Errno-22 never hides root cause --
+        try:
+            import traceback as _tb
+            _crash_path = Path(__file__).resolve().parent / "logs" / "gateway_crash.log"
+            _crash_path.parent.mkdir(parents=True, exist_ok=True)
+            from datetime import datetime as _dt
+            with _crash_path.open("a", encoding="utf-8") as _cf:
+                _cf.write(
+                    f"\n[{_dt.now().strftime('%Y-%m-%d %H:%M:%S')}] "
+                    f"{request.method} {path} — {exc!r}\n{_tb.format_exc()}\n"
+                )
+        except Exception:
+            pass
         observability_service.log_event(
             "gateway_unhandled_exception",
             {
@@ -314,8 +408,11 @@ async def gateway_middleware(request: Request, call_next):
                 error=str(exc),
             )
         except Exception as _ndl_exc:
-            import sys as _sys
-            print(f"[new_detailed_logger] exception response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+            try:
+                import sys as _sys
+                print(f"[new_detailed_logger] exception response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+            except Exception:
+                pass
         if should_trace_backend:
             backend_trace_service.log_event(
                 "http_request_exception",
@@ -343,7 +440,12 @@ async def gateway_middleware(request: Request, call_next):
                 component="main.gateway_middleware",
                 error=str(exc),
             )
-        raise
+        # Return JSON error instead of re-raising (prevents bare 500 HTML responses)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(exc), "trace_id": trace_id},
+            headers={"X-Trace-Id": trace_id},
+        )
 
     duration_ms = round((perf_counter() - start) * 1000.0, 2)
     response.headers["X-Trace-Id"] = trace_id
@@ -359,8 +461,11 @@ async def gateway_middleware(request: Request, call_next):
             duration_ms=duration_ms,
         )
     except Exception as _ndl_exc:
-        import sys as _sys
-        print(f"[new_detailed_logger] response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+        try:
+            import sys as _sys
+            print(f"[new_detailed_logger] response log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+        except Exception:
+            pass
 
     observability_service.log_event(
         "api_request",
@@ -444,8 +549,9 @@ async def chat_ui(request: Request):
             "<h3>NexOria API is running.</h3><p>Chat UI template is unavailable in this deployment bundle.</p>"
         )
     return templates.TemplateResponse(
+        request,
         "chat.html",
-        {"request": request, "app_name": settings.app_name},
+        context={"app_name": settings.app_name},
     )
 
 

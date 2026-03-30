@@ -1,7 +1,7 @@
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, field_validator
 
 
 class Settings(BaseSettings):
@@ -232,6 +232,21 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.app_env == "development"
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def _coerce_debug_flag(cls, value):
+        """Accept deployment-style strings like DEBUG=release without crashing startup."""
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return bool(value)
+        text = str(value or "").strip().lower()
+        if text in {"1", "true", "yes", "y", "on", "debug", "dev", "development"}:
+            return True
+        if text in {"0", "false", "no", "n", "off", "release", "prod", "production"}:
+            return False
+        return value
 
 
 @lru_cache

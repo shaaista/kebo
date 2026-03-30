@@ -16467,8 +16467,6 @@ class ChatService:
 
     async def _overlay_capabilities_from_db_config(self, capabilities_summary: dict[str, Any]) -> dict[str, Any]:
         merged = dict(capabilities_summary or {})
-        if not bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
-            return merged
 
         try:
             db_business = await db_config_service.get_business_info()
@@ -16485,7 +16483,15 @@ class ChatService:
                 if business_name:
                     merged["business_name"] = business_name
                     merged["hotel_name"] = business_name
-                for key in ("city", "timezone", "currency", "language", "welcome_message", "bot_name"):
+                for key in (
+                    "hotel_id",
+                    "city",
+                    "timezone",
+                    "currency",
+                    "language",
+                    "welcome_message",
+                    "bot_name",
+                ):
                     value = db_business.get(key)
                     if value not in (None, ""):
                         merged[key] = value
@@ -16544,23 +16550,13 @@ class ChatService:
         from sqlalchemy import select
         from models.database import Hotel, KBFile
 
-        code = str(hotel_code or "DEFAULT").strip() or "DEFAULT"
+        code = config_service.resolve_hotel_code(hotel_code)
         hotel_id = None
         try:
             result = await db_session.execute(
-                select(Hotel.id).where(Hotel.code == code).limit(1)
+                select(Hotel.id).where(Hotel.code.ilike(code)).limit(1)
             )
             hotel_id = result.scalar_one_or_none()
-            if hotel_id is None and code != "DEFAULT":
-                fallback = await db_session.execute(
-                    select(Hotel.id).where(Hotel.code == "DEFAULT").limit(1)
-                )
-                hotel_id = fallback.scalar_one_or_none()
-            if hotel_id is None:
-                any_hotel = await db_session.execute(
-                    select(Hotel.id).order_by(Hotel.id.asc()).limit(1)
-                )
-                hotel_id = any_hotel.scalar_one_or_none()
             if hotel_id is None:
                 return ""
 
@@ -16624,6 +16620,14 @@ class ChatService:
 
         hotel_id = merged.get("hotel_id")
         if hotel_id is None:
+            try:
+                db_business = await db_config_service.get_business_info()
+                candidate_hotel_id = db_business.get("hotel_id") if isinstance(db_business, dict) else None
+                if candidate_hotel_id not in (None, ""):
+                    hotel_id = int(candidate_hotel_id)
+            except Exception:
+                hotel_id = None
+        if hotel_id is None:
             hotel_name = str(merged.get("hotel_name") or "").strip()
             if hotel_name:
                 hotel_row = (
@@ -16631,12 +16635,6 @@ class ChatService:
                 ).scalar_one_or_none()
                 if hotel_row is not None:
                     hotel_id = hotel_row.id
-        if hotel_id is None:
-            hotel_row = (
-                await db_session.execute(select(Hotel).where(Hotel.is_active == True).limit(1))  # noqa: E712
-            ).scalar_one_or_none()
-            if hotel_row is not None:
-                hotel_id = hotel_row.id
         if hotel_id is None:
             merged["service_catalog"] = service_catalog
             if not isinstance(merged.get("restaurants"), list):

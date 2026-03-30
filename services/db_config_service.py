@@ -7,6 +7,8 @@ Falls back to JSON file if database is unavailable.
 
 import json
 import re
+from contextlib import contextmanager
+from contextvars import ContextVar, Token
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
@@ -41,14 +43,68 @@ class DBConfigService:
 
     def __init__(self):
         self._current_hotel_id: Optional[int] = None
+        self._hotel_id_by_code: Dict[str, int] = {}
+        self._hotel_code_ctx: ContextVar[Optional[str]] = ContextVar(
+            "db_config_hotel_code",
+            default=None,
+        )
         self._json_config: Optional[Dict] = None
 
     _SERVICE_DELETE_TOMBSTONES_KEY = "service_delete_tombstones"
+    _JSON_SECTION_PREFIX = "json_section."
 
     @staticmethod
     def _normalize_identifier(value: Any) -> str:
         """Normalize IDs to stable lowercase snake-style identifiers."""
         return str(value or "").strip().lower().replace(" ", "_")
+
+    @classmethod
+    def _normalize_hotel_code(cls, value: Any) -> str:
+        """
+        Normalize hotel/property code used for DB scoping.
+        Uses stable uppercase so DB lookups stay consistent across callers.
+        """
+        raw = str(value or "").strip()
+        if not raw:
+            return "DEFAULT"
+        normalized = re.sub(r"[^a-zA-Z0-9_-]+", "_", raw).strip("_")
+        if not normalized:
+            return "DEFAULT"
+        return normalized.upper()
+
+    def get_current_hotel_code(self) -> str:
+        scoped = self._hotel_code_ctx.get()
+        if scoped:
+            return self._normalize_hotel_code(scoped)
+        try:
+            if BUSINESS_CONFIG_FILE.exists():
+                with open(BUSINESS_CONFIG_FILE, "r", encoding="utf-8") as handle:
+                    payload = json.load(handle)
+                business = payload.get("business", {}) if isinstance(payload, dict) else {}
+                business_id = self._normalize_hotel_code(business.get("id"))
+                if business_id and business_id != "DEFAULT":
+                    return business_id
+        except Exception:
+            pass
+        return "DEFAULT"
+
+    def set_hotel_context(self, hotel_code: Any) -> Token:
+        normalized = self._normalize_hotel_code(hotel_code)
+        return self._hotel_code_ctx.set(normalized)
+
+    def reset_hotel_context(self, token: Token) -> None:
+        try:
+            self._hotel_code_ctx.reset(token)
+        except Exception:
+            pass
+
+    @contextmanager
+    def scoped_hotel(self, hotel_code: Any):
+        token = self.set_hotel_context(hotel_code)
+        try:
+            yield
+        finally:
+            self.reset_hotel_context(token)
 
     @classmethod
     def _normalize_phase_identifier(cls, value: Any) -> str:
@@ -116,6 +172,103 @@ class DBConfigService:
                 cleaned.append(normalized)
         return cleaned[:40]
 
+    @classmethod
+    def _json_section_config_key(cls, section: str) -> str:
+        section_id = cls._normalize_identifier(section)
+        if not section_id:
+            raise ValueError("section is required")
+        return f"{cls._JSON_SECTION_PREFIX}{section_id}"
+
+    async def _load_json_section_from_db(self, section: str) -> Any:
+        """Load one JSON section snapshot from BusinessConfig for current hotel."""
+        hotel_id = await self.get_current_hotel_id()
+        config_key = self._json_section_config_key(section)
+
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(BusinessConfig).where(
+                    BusinessConfig.hotel_id == hotel_id,
+                    BusinessConfig.config_key == config_key,
+                )
+            )
+            row = result.scalar_one_or_none()
+
+        if row is None:
+            return None
+
+        raw = str(row.config_value or "").strip()
+        if not raw:
+            return None
+        try:
+            return json.loads(raw)
+        except Exception:
+            return None
+
+    async def _save_json_section_to_db(self, section: str, payload: Any) -> bool:
+        """Persist one JSON section snapshot into BusinessConfig for current hotel."""
+        hotel_id = await self.get_current_hotel_id()
+        config_key = self._json_section_config_key(section)
+        serialized = json.dumps(payload, ensure_ascii=False)
+
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(
+                select(BusinessConfig).where(
+                    BusinessConfig.hotel_id == hotel_id,
+                    BusinessConfig.config_key == config_key,
+                )
+            )
+            existing = result.scalar_one_or_none()
+            if existing:
+                existing.config_value = serialized
+            else:
+                session.add(
+                    BusinessConfig(
+                        hotel_id=hotel_id,
+                        config_key=config_key,
+                        config_value=serialized,
+                    )
+                )
+            await session.commit()
+        return True
+
+    async def get_json_section(self, section: str, default: Any = None) -> Any:
+        """
+        Public accessor for scoped JSON-style sections with DB-first lookup.
+        Falls back to scoped JSON config file section when DB snapshot is absent.
+        """
+        section_id = self._normalize_identifier(section)
+        if not section_id:
+            return default
+        try:
+            payload = await self._load_json_section_from_db(section_id)
+            if payload is not None:
+                return payload
+        except Exception:
+            pass
+        try:
+            config = self._load_json_config()
+            if isinstance(config, dict) and section_id in config:
+                return config.get(section_id)
+        except Exception:
+            pass
+        return default
+
+    async def save_json_section(self, section: str, payload: Any) -> bool:
+        """
+        Public mutator for scoped JSON-style sections.
+        Saves section to scoped JSON config and DB snapshot.
+        """
+        section_id = self._normalize_identifier(section)
+        if not section_id:
+            return False
+        config = self._load_json_config()
+        if not isinstance(config, dict):
+            config = {}
+        config[section_id] = payload
+        self._save_json_config(config)
+        await self._save_json_section_to_db(section_id, payload)
+        return True
+
     async def get_session(self) -> AsyncSession:
         """Get a database session."""
         return AsyncSessionLocal()
@@ -124,15 +277,22 @@ class DBConfigService:
 
     async def get_or_create_hotel(self, code: str = "DEFAULT") -> int:
         """Get or create the current hotel, return hotel_id (int)."""
+        normalized_code = self._normalize_hotel_code(code or self.get_current_hotel_code())
+        cached_id = self._hotel_id_by_code.get(normalized_code)
+        if cached_id:
+            self._current_hotel_id = cached_id
+            return cached_id
+
         async with AsyncSessionLocal() as session:
             # Check if hotel exists
             result = await session.execute(
-                select(Hotel).where(Hotel.code == code)
+                select(Hotel).where(Hotel.code.ilike(normalized_code))
             )
             hotel = result.scalar_one_or_none()
 
             if hotel:
                 self._current_hotel_id = hotel.id
+                self._hotel_id_by_code[normalized_code] = hotel.id
                 return hotel.id
 
             # Create new hotel from JSON config
@@ -140,7 +300,7 @@ class DBConfigService:
             business = json_config.get("business", {})
 
             new_hotel = Hotel(
-                code=code,
+                code=normalized_code,
                 name=business.get("name", "My Business"),
                 city=business.get("city", "City"),
                 timezone=business.get("timezone", "Asia/Kolkata"),
@@ -151,6 +311,7 @@ class DBConfigService:
             await session.refresh(new_hotel)
 
             self._current_hotel_id = new_hotel.id
+            self._hotel_id_by_code[normalized_code] = new_hotel.id
 
             # Sync rest of config to DB
             await self._sync_json_to_db(new_hotel.id, json_config)
@@ -159,9 +320,12 @@ class DBConfigService:
 
     async def get_current_hotel_id(self) -> int:
         """Get current hotel ID, creating if needed."""
-        if self._current_hotel_id:
-            return self._current_hotel_id
-        return await self.get_or_create_hotel("DEFAULT")
+        current_code = self.get_current_hotel_code()
+        cached_id = self._hotel_id_by_code.get(current_code)
+        if cached_id:
+            self._current_hotel_id = cached_id
+            return cached_id
+        return await self.get_or_create_hotel(current_code)
 
     # ==================== BUSINESS INFO ====================
 
@@ -186,8 +350,10 @@ class DBConfigService:
             configs = result.scalars().all()
             config_dict = {c.config_key: c.config_value for c in configs}
 
-            return {
-                "id": str(hotel.id),
+            payload = {
+                "id": str(hotel.code or self.get_current_hotel_code()),
+                "code": str(hotel.code or self.get_current_hotel_code()),
+                "hotel_id": str(hotel.id),
                 "name": hotel.name,
                 "city": hotel.city,
                 "timezone": hotel.timezone,
@@ -197,12 +363,42 @@ class DBConfigService:
                 "currency": config_dict.get("business.currency", "INR"),
                 "language": config_dict.get("business.language", "en"),
             }
+            # Overlay onboarding-only business fields from scoped JSON as fallback.
+            try:
+                business_json = self._load_json_config().get("business", {})
+                if isinstance(business_json, dict):
+                    for key, value in business_json.items():
+                        if key in {"id", "code", "hotel_id"}:
+                            continue
+                        if value is not None:
+                            payload[key] = value
+            except Exception:
+                pass
+
+            # Overlay onboarding-only business fields from DB JSON snapshot if present.
+            try:
+                business_snapshot = await self._load_json_section_from_db("business")
+                if isinstance(business_snapshot, dict):
+                    for key, value in business_snapshot.items():
+                        if key in {"id", "code", "hotel_id"}:
+                            continue
+                        if value is not None:
+                            payload[key] = value
+            except Exception:
+                pass
+            return payload
 
     async def update_business_info(self, updates: Dict[str, Any]) -> Dict[str, Any]:
         """Update business info in database AND JSON file."""
 
         # ALWAYS update JSON file first (this is the reliable backup)
         self._update_json_config("business", updates)
+        try:
+            current_business = self._load_json_config().get("business", {})
+            if isinstance(current_business, dict):
+                await self._save_json_section_to_db("business", current_business)
+        except Exception as e:
+            print(f"[DB] business snapshot save failed: {e}")
 
         # Then try to update database
         try:
@@ -370,6 +566,13 @@ class DBConfigService:
             "ticketing_enabled": bool(row.ticketing_enabled),
             "ticketing_policy": row.ticketing_policy or "",
         }
+        # ticketing_mode & form_config
+        tm = getattr(row, "ticketing_mode", None)
+        if tm:
+            result["ticketing_mode"] = str(tm).strip().lower()
+        fc = getattr(row, "form_config", None)
+        if isinstance(fc, dict):
+            result["form_config"] = fc
         if row.phase_id:
             result["phase_id"] = row.phase_id
         if row.service_prompt_pack:
@@ -680,6 +883,7 @@ class DBConfigService:
         hotel_id = await self.get_current_hotel_id()
         phase_id = self._normalize_phase_identifier(service.get("phase_id")) or None
         prompt_pack = self._normalize_service_prompt_pack_payload(service.get("service_prompt_pack"))
+        generated_prompt = str(service.get("generated_system_prompt") or "").strip() or None
 
         try:
             async with AsyncSessionLocal() as session:
@@ -690,6 +894,10 @@ class DBConfigService:
                     )
                 )
                 row = result.scalar_one_or_none()
+                tm = str(service.get("ticketing_mode") or "").strip().lower() or None
+                fc = service.get("form_config")
+                fc = fc if isinstance(fc, dict) else None
+
                 if row:
                     row.name = str(service.get("name") or service_id).strip()
                     row.type = self._normalize_identifier(service.get("type") or "service")
@@ -698,9 +906,13 @@ class DBConfigService:
                     row.is_active = bool(service.get("is_active", True))
                     row.is_builtin = bool(service.get("is_builtin", False))
                     row.ticketing_enabled = bool(service.get("ticketing_enabled", True))
+                    row.ticketing_mode = tm
                     row.ticketing_policy = str(service.get("ticketing_policy") or "").strip() or None
+                    row.form_config = fc
                     if prompt_pack is not None:
                         row.service_prompt_pack = prompt_pack
+                    if "generated_system_prompt" in service:
+                        row.generated_system_prompt = generated_prompt
                 else:
                     row = BotService(
                         hotel_id=hotel_id,
@@ -712,8 +924,11 @@ class DBConfigService:
                         is_active=bool(service.get("is_active", True)),
                         is_builtin=bool(service.get("is_builtin", False)),
                         ticketing_enabled=bool(service.get("ticketing_enabled", True)),
+                        ticketing_mode=tm,
                         ticketing_policy=str(service.get("ticketing_policy") or "").strip() or None,
+                        form_config=fc,
                         service_prompt_pack=prompt_pack,
+                        generated_system_prompt=generated_prompt,
                     )
                     session.add(row)
                 await session.commit()
@@ -800,11 +1015,20 @@ class DBConfigService:
                     row.is_builtin = bool(updates["is_builtin"])
                 if "ticketing_enabled" in updates:
                     row.ticketing_enabled = bool(updates["ticketing_enabled"])
+                if "ticketing_mode" in updates:
+                    row.ticketing_mode = str(updates["ticketing_mode"] or "").strip().lower() or None
                 if "ticketing_policy" in updates:
                     row.ticketing_policy = str(updates["ticketing_policy"] or "").strip() or None
+                if "form_config" in updates:
+                    fc = updates["form_config"]
+                    row.form_config = fc if isinstance(fc, dict) else None
                 if "service_prompt_pack" in updates:
                     pack = self._normalize_service_prompt_pack_payload(updates["service_prompt_pack"])
                     row.service_prompt_pack = pack
+                if "generated_system_prompt" in updates:
+                    row.generated_system_prompt = (
+                        str(updates["generated_system_prompt"] or "").strip() or None
+                    )
                 await session.commit()
                 print(f"[DB] Updated service {normalized_id}: {list(updates.keys())}")
                 try:
@@ -1031,7 +1255,7 @@ class DBConfigService:
                     from services.flow_logger import log_kb_db_persist
 
                     log_kb_db_persist(
-                        tenant_id=str(hotel_id),
+                        tenant_id=str(self.get_current_hotel_code()),
                         original_name=str(original_name or ""),
                         stored_name=str(stored_name or ""),
                         content_chars=len(str(content or "")),
@@ -1047,7 +1271,7 @@ class DBConfigService:
                 from services.flow_logger import log_kb_db_persist
 
                 log_kb_db_persist(
-                    tenant_id=str(hotel_id),
+                    tenant_id=str(self.get_current_hotel_code()),
                     original_name=str(original_name or ""),
                     stored_name=str(stored_name or ""),
                     content_chars=len(str(content or "")),
@@ -1061,10 +1285,10 @@ class DBConfigService:
 
     async def restore_kb_files(self, kb_dir: str) -> int:
         """
-        On startup, restore the single most-recent KB file from DB to disk.
-        Any older duplicate records are deleted. Only one KB file is active at a time.
-        Updates knowledge_config.sources to point to the restored path.
-        Returns 1 if a file was written to disk, 0 otherwise.
+        On startup, restore all KB files for the current hotel from DB to disk.
+        Keeps all historical rows intact and updates knowledge_config.sources to
+        include all restored file paths in stable order.
+        Returns the number of files written/updated on disk.
         """
         hotel_id = await self.get_current_hotel_id()
         try:
@@ -1072,45 +1296,153 @@ class DBConfigService:
             from pathlib import Path as _Path
             async with AsyncSessionLocal() as session:
                 result = await session.execute(
-                    select(KBFile).where(KBFile.hotel_id == hotel_id).order_by(KBFile.id.desc())
+                    select(KBFile).where(KBFile.hotel_id == hotel_id).order_by(KBFile.id.asc())
                 )
                 rows = result.scalars().all()
 
             if not rows:
                 return 0
 
-            # Keep only the most recent record; delete all older ones
-            latest = rows[0]
-            stale = rows[1:]
-            if stale:
-                stale_ids = [r.id for r in stale]
-                async with AsyncSessionLocal() as session:
-                    await session.execute(
-                        delete(KBFile).where(KBFile.id.in_(stale_ids))
-                    )
-                    await session.commit()
-                print(f"[KB] Pruned {len(stale)} stale KB record(s) from DB, keeping latest: {latest.stored_name}")
-
-            dest = _Path(kb_dir) / "uploads" / "default" / latest.stored_name
-            dest.parent.mkdir(parents=True, exist_ok=True)
+            tenant_folder = self._normalize_identifier(self.get_current_hotel_code()) or "default"
             restored = 0
-            if not dest.exists():
-                dest.write_text(latest.content, encoding="utf-8")
-                restored = 1
-                print(f"[KB] Restored {latest.stored_name} from DB")
+            source_paths: list[str] = []
 
-            # Update knowledge_config.sources to only this file
+            for row in rows:
+                stored_name = str(row.stored_name or "").strip()
+                if not stored_name:
+                    continue
+
+                dest = _Path(kb_dir) / "uploads" / tenant_folder / stored_name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                db_content = str(row.content or "")
+
+                write_required = True
+                if dest.exists():
+                    try:
+                        existing_content = dest.read_text(encoding="utf-8", errors="ignore")
+                        write_required = existing_content != db_content
+                    except Exception:
+                        write_required = True
+
+                if write_required:
+                    dest.write_text(db_content, encoding="utf-8")
+                    restored += 1
+                    print(f"[KB] Restored {stored_name} from DB")
+
+                source_paths.append(str(dest.resolve()))
+
+            # Update knowledge_config.sources to all restored files (deduped, stable order).
+            deduped_sources: list[str] = []
+            seen_sources: set[str] = set()
+            for source in source_paths:
+                if source in seen_sources:
+                    continue
+                seen_sources.add(source)
+                deduped_sources.append(source)
+
             from services.config_service import config_service as _cs
-            _cs.update_knowledge_config({"sources": [str(dest.resolve())]})
+            if deduped_sources:
+                _cs.update_knowledge_config({"sources": deduped_sources})
             return restored
         except Exception as e:
             print(f"[KB] restore_kb_files failed: {e}")
             return 0
 
+    # ==================== PROMPTS / KNOWLEDGE / UI ====================
+
+    async def get_prompts(self) -> Dict[str, Any]:
+        """Get prompts with DB snapshot preference and JSON fallback."""
+        try:
+            section = await self._load_json_section_from_db("prompts")
+            if isinstance(section, dict):
+                return section
+        except Exception:
+            pass
+
+        config = self._load_json_config()
+        prompts = config.get("prompts", {})
+        return prompts if isinstance(prompts, dict) else {}
+
+    async def update_prompts(self, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """Update prompts in scoped JSON config and persist section snapshot to DB."""
+        config = self._load_json_config()
+        prompts = config.setdefault("prompts", {})
+        if not isinstance(prompts, dict):
+            prompts = {}
+            config["prompts"] = prompts
+        if isinstance(updates, dict):
+            prompts.update(updates)
+        self._save_json_config(config)
+        await self._save_json_section_to_db("prompts", prompts)
+        return prompts
+
+    async def get_knowledge_config(self) -> Dict[str, Any]:
+        """Get knowledge config with DB snapshot preference and JSON fallback."""
+        try:
+            section = await self._load_json_section_from_db("knowledge_base")
+            if isinstance(section, dict):
+                return section
+        except Exception:
+            pass
+
+        config = self._load_json_config()
+        knowledge = config.get("knowledge_base", {})
+        return knowledge if isinstance(knowledge, dict) else {}
+
+    async def update_knowledge_config(self, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update scoped knowledge config using config_service merge logic,
+        then persist section snapshot to DB.
+        """
+        from services.config_service import config_service as _cs
+
+        knowledge = _cs.update_knowledge_config(updates if isinstance(updates, dict) else {})
+        if not isinstance(knowledge, dict):
+            knowledge = {}
+
+        # Keep DB snapshot aligned with JSON source.
+        await self._save_json_section_to_db("knowledge_base", knowledge)
+        return knowledge
+
+    async def get_ui_settings(self) -> Dict[str, Any]:
+        """Get UI settings with DB snapshot preference and JSON fallback."""
+        try:
+            section = await self._load_json_section_from_db("ui_settings")
+            if isinstance(section, dict):
+                return section
+        except Exception:
+            pass
+
+        config = self._load_json_config()
+        ui_settings = config.get("ui_settings", {})
+        return ui_settings if isinstance(ui_settings, dict) else {}
+
+    async def update_ui_settings(self, updates: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update scoped UI settings using config_service merge logic,
+        then persist section snapshot to DB.
+        """
+        from services.config_service import config_service as _cs
+
+        ui_settings = _cs.update_ui_settings(updates if isinstance(updates, dict) else {})
+        if not isinstance(ui_settings, dict):
+            ui_settings = {}
+
+        # Keep DB snapshot aligned with JSON source.
+        await self._save_json_section_to_db("ui_settings", ui_settings)
+        return ui_settings
+
     # ==================== FAQ BANK (JSON-FIRST) ====================
 
     async def get_faq_bank(self) -> List[Dict[str, Any]]:
         """Get admin FAQ bank entries (JSON source-of-truth)."""
+        try:
+            section = await self._load_json_section_from_db("faq_bank")
+            if isinstance(section, list):
+                return [dict(entry) for entry in section if isinstance(entry, dict)]
+        except Exception:
+            pass
+
         config = self._load_json_config()
         faq_bank = config.get("faq_bank", [])
         if not isinstance(faq_bank, list):
@@ -1151,6 +1483,10 @@ class DBConfigService:
             faq_bank.append(normalized)
 
         self._save_json_config(config)
+        try:
+            await self._save_json_section_to_db("faq_bank", config.get("faq_bank", []))
+        except Exception as e:
+            print(f"[DB] FAQ snapshot save failed: {e}")
         return True
 
     async def update_faq_entry(self, faq_id: str, updates: Dict[str, Any]) -> bool:
@@ -1175,6 +1511,10 @@ class DBConfigService:
                 return False
             faq_bank[idx] = merged
             self._save_json_config(config)
+            try:
+                await self._save_json_section_to_db("faq_bank", config.get("faq_bank", []))
+            except Exception as e:
+                print(f"[DB] FAQ snapshot save failed: {e}")
             return True
         return False
 
@@ -1188,12 +1528,23 @@ class DBConfigService:
             if self._normalize_identifier(entry.get("id")) != normalized_id
         ]
         self._save_json_config(config)
+        try:
+            await self._save_json_section_to_db("faq_bank", config.get("faq_bank", []))
+        except Exception as e:
+            print(f"[DB] FAQ snapshot save failed: {e}")
         return True
 
     # ==================== TOOLS (JSON-FIRST) ====================
 
     async def get_tools(self) -> List[Dict[str, Any]]:
         """Get admin tools list (JSON source-of-truth)."""
+        try:
+            section = await self._load_json_section_from_db("tools")
+            if isinstance(section, list):
+                return [dict(tool) for tool in section if isinstance(tool, dict)]
+        except Exception:
+            pass
+
         config = self._load_json_config()
         tools = config.get("tools", [])
         if not isinstance(tools, list):
@@ -1236,6 +1587,10 @@ class DBConfigService:
             tools.append(normalized)
 
         self._save_json_config(config)
+        try:
+            await self._save_json_section_to_db("tools", config.get("tools", []))
+        except Exception as e:
+            print(f"[DB] tools snapshot save failed: {e}")
         return True
 
     async def update_tool(self, tool_id: str, updates: Dict[str, Any]) -> bool:
@@ -1256,6 +1611,10 @@ class DBConfigService:
                 merged["name"] = str(merged.get("name") or normalized_id.replace("_", " ").title()).strip()
             tools[idx] = merged
             self._save_json_config(config)
+            try:
+                await self._save_json_section_to_db("tools", config.get("tools", []))
+            except Exception as e:
+                print(f"[DB] tools snapshot save failed: {e}")
             return True
         return False
 
@@ -1269,6 +1628,10 @@ class DBConfigService:
             if self._normalize_identifier(tool.get("id")) != normalized_id
         ]
         self._save_json_config(config)
+        try:
+            await self._save_json_section_to_db("tools", config.get("tools", []))
+        except Exception as e:
+            print(f"[DB] tools snapshot save failed: {e}")
         return True
 
     # ==================== INTENTS ====================
@@ -1563,6 +1926,23 @@ class DBConfigService:
         # Start with JSON to preserve sections that are not yet normalized in DB
         # (e.g., prompts, knowledge_base, ui_settings).
         base_config = dict(self._load_json_config())
+        section_types: Dict[str, type] = {
+            "business": dict,
+            "prompts": dict,
+            "knowledge_base": dict,
+            "service_kb": dict,
+            "ui_settings": dict,
+            "faq_bank": list,
+            "tools": list,
+            "journey_phases": list,
+        }
+        for section_name, expected_type in section_types.items():
+            try:
+                section_value = await self._load_json_section_from_db(section_name)
+                if isinstance(section_value, expected_type):
+                    base_config[section_name] = section_value
+            except Exception:
+                pass
         db_business = await self.get_business_info()
         merged_business = dict(base_config.get("business", {}))
         merged_business.update({k: v for k, v in db_business.items() if v is not None})
@@ -1659,6 +2039,20 @@ class DBConfigService:
             if "journey_phases" in config and isinstance(config["journey_phases"], list):
                 await self.update_journey_phases(config["journey_phases"])
 
+            # Persist JSON-first section snapshots in DB for multi-node resilience.
+            for section_name in (
+                "business",
+                "prompts",
+                "knowledge_base",
+                "service_kb",
+                "ui_settings",
+                "faq_bank",
+                "tools",
+                "journey_phases",
+            ):
+                if section_name in config:
+                    await self._save_json_section_to_db(section_name, config.get(section_name))
+
             # Update escalation
             if "escalation" in config:
                 await self.update_escalation_config(config["escalation"])
@@ -1669,10 +2063,18 @@ class DBConfigService:
 
     # ==================== JSON HELPERS ====================
 
+    def _resolve_json_config_file(self) -> Path:
+        scoped = self._hotel_code_ctx.get()
+        code = self._normalize_identifier(scoped)
+        if code and code != "default":
+            return CONFIG_DIR / "properties" / f"{code}.json"
+        return BUSINESS_CONFIG_FILE
+
     def _load_json_config(self) -> Dict[str, Any]:
         """Load config from JSON file (fallback)."""
-        if BUSINESS_CONFIG_FILE.exists():
-            with open(BUSINESS_CONFIG_FILE, "r", encoding="utf-8") as f:
+        config_file = self._resolve_json_config_file()
+        if config_file.exists():
+            with open(config_file, "r", encoding="utf-8") as f:
                 self._json_config = json.load(f)
         else:
             self._json_config = {
@@ -1692,8 +2094,9 @@ class DBConfigService:
 
     def _save_json_config(self, config: Dict[str, Any]):
         """Save config to JSON file (backup)."""
-        CONFIG_DIR.mkdir(exist_ok=True)
-        with open(BUSINESS_CONFIG_FILE, "w", encoding="utf-8") as f:
+        config_file = self._resolve_json_config_file()
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_file, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
         self._json_config = config
 
@@ -1822,6 +2225,12 @@ class DBConfigService:
         """Get configured journey phases (JSON source-of-truth)."""
         config = self._load_json_config()
         phases = config.get("journey_phases", [])
+        try:
+            section = await self._load_json_section_from_db("journey_phases")
+            if isinstance(section, list):
+                phases = section
+        except Exception:
+            pass
         if not isinstance(phases, list):
             return []
         rows: List[Dict[str, Any]] = []
@@ -1863,6 +2272,10 @@ class DBConfigService:
         if changed:
             config["journey_phases"] = rows
             self._save_json_config(config)
+            try:
+                await self._save_json_section_to_db("journey_phases", rows)
+            except Exception as e:
+                print(f"[DB] journey phases snapshot save failed: {e}")
         return rows
 
     async def update_journey_phases(self, phases: List[Dict[str, Any]]) -> bool:
@@ -1908,6 +2321,10 @@ class DBConfigService:
         config = self._load_json_config()
         config["journey_phases"] = normalized
         self._save_json_config(config)
+        try:
+            await self._save_json_section_to_db("journey_phases", normalized)
+        except Exception as e:
+            print(f"[DB] journey phases snapshot save failed: {e}")
         return True
 
 

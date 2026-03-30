@@ -1161,9 +1161,6 @@ class RAGService:
         rows = self._load_local_index()
         normalized_tenant = self._normalize_tenant(tenant_id)
         scoped = [row for row in rows if row.get("tenant_id") == normalized_tenant]
-        # Optional fallback to global default collection.
-        if not scoped and normalized_tenant != "default":
-            scoped = [row for row in rows if row.get("tenant_id") == "default"]
 
         scored: list[RetrievedChunk] = []
         for row in scoped:
@@ -1217,8 +1214,6 @@ class RAGService:
             )
 
         results = _search(normalized_tenant)
-        if not results and normalized_tenant != "default":
-            results = _search("default")
 
         chunks: list[RetrievedChunk] = []
         for item in results:

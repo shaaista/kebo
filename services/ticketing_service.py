@@ -402,6 +402,41 @@ class TicketingService:
             result_response=result.response,
             context={**debug_context, "request_url": url},
         )
+
+        # If the external API failed (5xx or any non-success), fall back to local mode
+        if not result.success:
+            fallback_reason = (
+                f"HTTP {result.status_code}" if result.status_code is not None
+                else "request_failed"
+            )
+            logger.warning(
+                "External ticketing API failed (%s) — falling back to local mode",
+                fallback_reason,
+            )
+            self._write_ticket_debug_event(
+                "ticket_create_api_fallback_to_local",
+                api_status_code=result.status_code,
+                fallback_reason=fallback_reason,
+                payload=payload_effective,
+                context=debug_context,
+            )
+            try:
+                result = await self._create_ticket_local(payload_effective)
+            except Exception as local_exc:
+                logger.exception("Local ticket fallback also failed")
+                result = TicketingResult(
+                    success=False,
+                    error=f"Ticket creation failed (API and local fallback): {local_exc}",
+                    payload=dict(payload_effective or {}),
+                )
+            self._write_ticket_debug_event(
+                "ticket_create_local_fallback_completed",
+                success=result.success,
+                ticket_id=result.ticket_id,
+                error=result.error,
+                context=debug_context,
+            )
+
         self._remember_recent_create_result(payload_effective, result)
         return result
 
@@ -694,6 +729,15 @@ class TicketingService:
         category_value = self._normalize_category(category)
         status_value = self._normalize_ticket_status(ticket_status)
 
+        # Resolve guest name from form data, pending data, integration, or context
+        guest_name = self._first_non_empty(
+            pending.get("guest_name"),
+            pending.get("full_name"),
+            pending.get("name"),
+            integration.get("guest_name"),
+            context.guest_name,
+        )
+
         payload = {
             "guest_id": str(guest_id or "").strip(),
             "room_number": str(room_number or "").strip(),
@@ -716,12 +760,15 @@ class TicketingService:
             "sla_due_time": str(sla_due_time or "").strip(),
             "outlet_id": str(outlet_id or "").strip(),
             "source": source_value,
+            "guest_name": str(guest_name or "").strip(),
         }
 
         # Backward-compatible aliases some APIs accept.
         payload["department_id"] = payload["department_allocated"]
         payload["category"] = payload["categorization"]
         payload["sub_category"] = payload["sub_categorization"]
+        # Kepsla API expects camelCase guestName
+        payload["guestName"] = payload["guest_name"]
 
         resolved_group_id = group_id if group_id is not None else integration.get("group_id")
         resolved_message_id = message_id if message_id is not None else integration.get("message_id")
@@ -1189,11 +1236,16 @@ class TicketingService:
         assigned_id = self._extract_first_value(raw, ("assignedId", "assigned_id", "agent_id", "to_agent_id"))
         error = ""
         if not success:
-            error = (
-                self._extract_first_value(raw, ("error", "message", "detail"))
-                or response.text
-                or f"HTTP {response.status_code}"
-            )
+            extracted = self._extract_first_value(raw, ("error", "message", "detail"))
+            if extracted:
+                error = extracted
+            else:
+                # Avoid storing raw HTML error pages as the error message
+                text = str(response.text or "").strip()
+                if text and "<html" in text.lower():
+                    error = f"External API returned HTTP {response.status_code}"
+                else:
+                    error = text or f"HTTP {response.status_code}"
         self._write_ticket_debug_event(
             "ticketing_http_response",
             method=method_upper,

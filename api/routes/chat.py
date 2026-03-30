@@ -7,6 +7,7 @@ Endpoints for chat functionality and testing.
 import json
 import traceback as _traceback
 from time import perf_counter as _perf_counter
+from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, Request
 from typing import Any, Optional, List
 from pydantic import BaseModel, Field
@@ -23,6 +24,7 @@ from services.conversation_audit_service import conversation_audit_service
 from services.turn_diagnostics_service import turn_diagnostics_service
 from services.response_beautifier_service import response_beautifier_service
 from services.db_config_service import db_config_service
+from services.config_service import config_service
 from services import new_detailed_logger
 from config.settings import settings
 from core.context_manager import context_manager
@@ -240,21 +242,13 @@ async def _load_latest_kb_text_from_db(
     max_chars: int = 50000,
 ) -> str:
     """Best-effort DB fallback for KB text when file-sourced KB is stale/empty."""
-    code = str(hotel_code or "DEFAULT").strip() or "DEFAULT"
+    code = config_service.resolve_hotel_code(hotel_code)
     hotel_id: Optional[int] = None
     try:
         result = await db.execute(
-            select(Hotel.id).where(Hotel.code == code).limit(1)
+            select(Hotel.id).where(Hotel.code.ilike(code)).limit(1)
         )
         hotel_id = result.scalar_one_or_none()
-        if hotel_id is None and code != "DEFAULT":
-            fallback = await db.execute(
-                select(Hotel.id).where(Hotel.code == "DEFAULT").limit(1)
-            )
-            hotel_id = fallback.scalar_one_or_none()
-        if hotel_id is None:
-            any_hotel = await db.execute(select(Hotel.id).order_by(Hotel.id.asc()).limit(1))
-            hotel_id = any_hotel.scalar_one_or_none()
         if hotel_id is None:
             return ""
 
@@ -435,6 +429,543 @@ async def _attach_display_message(response: ChatResponse) -> None:
         response.metadata.update(beautifier_meta)
 
 
+async def _inject_form_trigger(response: ChatResponse) -> None:
+    """
+    When the bot is actively collecting info for a ticketing-enabled service,
+    extract that service's form fields and attach them to the response metadata
+    so the frontend renders an inline form instead of plain text Q&A.
+    """
+    import sys as _sys
+    from services.form_fields_service import extract_form_fields
+    from services.config_service import config_service
+
+    state_val = str(getattr(response.state, "value", response.state) or "").strip().lower()
+    meta = response.metadata if isinstance(response.metadata, dict) else {}
+    entities_meta = meta.get("entities") if isinstance(meta.get("entities"), dict) else {}
+    orchestration_action = str(
+        entities_meta.get("orchestration_action")
+        or meta.get("orchestration_action")
+        or ""
+    ).strip().lower()
+    missing_fields_raw = (
+        entities_meta.get("missing_fields")
+        or meta.get("missing_fields")
+        or []
+    )
+    if isinstance(missing_fields_raw, (list, tuple)):
+        missing_fields = [str(item).strip() for item in missing_fields_raw if str(item).strip()]
+    elif str(missing_fields_raw or "").strip():
+        missing_fields = [str(missing_fields_raw).strip()]
+    else:
+        missing_fields = []
+    pending_action_hint = str(
+        entities_meta.get("pending_action")
+        or meta.get("pending_action")
+        or ""
+    ).strip().lower()
+    response_text = str(response.message or "").strip().lower()
+    message_collection_hint = any(
+        phrase in response_text
+        for phrase in (
+            "please fill in the details below",
+            "please fill in the booking details below",
+            "please fill in the form below",
+        )
+    )
+    collecting_signal = (
+        state_val == "awaiting_info"
+        or orchestration_action == "collect_info"
+        or bool(missing_fields)
+        or pending_action_hint.startswith("collect_")
+        or message_collection_hint
+    )
+    print(
+        (
+            f"[form_trigger] state={state_val!r} "
+            f"orchestration_action={orchestration_action!r} "
+            f"missing_fields={missing_fields!r} "
+            f"pending_action_hint={pending_action_hint!r} "
+            f"message_collection_hint={message_collection_hint} "
+            f"collecting_signal={collecting_signal}"
+        ),
+        file=_sys.stderr,
+        flush=True,
+    )
+
+    if not collecting_signal:
+        print(f"[form_trigger] SKIP: no collection signal", file=_sys.stderr, flush=True)
+        return
+
+    if meta.get("form_trigger") or meta.get("ticket_created"):
+        print(f"[form_trigger] SKIP: already has form_trigger or ticket_created", file=_sys.stderr, flush=True)
+        return
+
+    target_service_id = ""
+
+    orchestration = meta.get("orchestration_decision") or meta.get("decision") or {}
+    if isinstance(orchestration, dict):
+        action = str(orchestration.get("action") or "").strip().lower()
+        if action == "respond_only":
+            print(f"[form_trigger] SKIP: action=respond_only", file=_sys.stderr, flush=True)
+            return
+        target_service_id = str(orchestration.get("target_service_id") or "").strip()
+
+    if not target_service_id:
+        target_service_id = str(meta.get("pending_service_id") or "").strip()
+
+    if not target_service_id:
+        label = str(
+            meta.get("service_llm_label")
+            or getattr(response, "service_llm_label", "")
+            or ""
+        ).strip().lower()
+        print(f"[form_trigger] service_llm_label={label!r}", file=_sys.stderr, flush=True)
+        if label and label != "main":
+            target_service_id = label
+
+    print(f"[form_trigger] target_service_id={target_service_id!r}", file=_sys.stderr, flush=True)
+
+    if not target_service_id:
+        print(f"[form_trigger] SKIP: no target_service_id found", file=_sys.stderr, flush=True)
+        return
+
+    service = config_service.get_service(target_service_id)
+    ticketing_enabled = bool(service.get("ticketing_enabled", False)) if service else False
+    print(f"[form_trigger] service={service.get('id') if service else None}, ticketing_enabled={ticketing_enabled}", file=_sys.stderr, flush=True)
+
+    if not service or not ticketing_enabled:
+        print(f"[form_trigger] SKIP: service not found or ticketing not enabled", file=_sys.stderr, flush=True)
+        return
+
+    # Respect ticketing_mode: only inject form UI when mode is "form".
+    # "text" mode keeps the conversational text collection (no form injected).
+    # "none" means ticketing is disabled (already caught above via ticketing_enabled).
+    ticketing_mode = str(service.get("ticketing_mode") or "").strip().lower()
+    if ticketing_mode == "text":
+        print(f"[form_trigger] SKIP: ticketing_mode=text, using conversational collection", file=_sys.stderr, flush=True)
+        return
+    # If ticketing_mode is empty/unset, default to form injection for backward compat
+    if ticketing_mode and ticketing_mode not in ("form", "text", "none"):
+        ticketing_mode = "form"
+
+    fields = await extract_form_fields(service)
+    print(f"[form_trigger] extracted {len(fields)} field(s): {[f['id'] for f in fields]}", file=_sys.stderr, flush=True)
+
+    if not fields:
+        print(f"[form_trigger] SKIP: no fields extracted", file=_sys.stderr, flush=True)
+        return
+
+    response.metadata["form_trigger"] = True
+    response.metadata["form_fields"] = fields
+    response.metadata["form_service_id"] = target_service_id
+
+    # Strip explicit field listings from the bot message since the form handles collection.
+    import re as _re
+
+    def _strip_field_list(msg: str) -> str:
+        if not msg:
+            return "Please fill in the details below."
+        # Remove lines that are bullet points or numbered lists
+        cleaned_lines = []
+        for line in msg.split("\n"):
+            stripped = line.strip()
+            if _re.match(r"^[-*\u2022]\s+", stripped):
+                continue
+            if _re.match(r"^\d+[.)]\s+", stripped):
+                continue
+            cleaned_lines.append(line)
+        cleaned = "\n".join(cleaned_lines).strip()
+        # Remove inline bullet lists like "- Flight number - Arrival date - Contact info"
+        # that appear after a colon or question mark on the same line
+        cleaned = _re.sub(
+            r"([?:])\s*[-\u2022*]\s*\*{0,2}\w[\w\s,/&()]*(?:\*{0,2}\s*[-\u2022*]\s*\*{0,2}\w[\w\s,/&()]*)+\s*$",
+            r"\1",
+            cleaned,
+            flags=_re.IGNORECASE,
+        ).strip()
+        # Remove trailing prompts like "could you please provide the following details:"
+        cleaned = _re.sub(
+            r"[,.]?\s*(?:could you |can you |please |kindly )*(?:provide|share|give|send)\s+(?:us\s+|me\s+)?(?:the\s+)?(?:following\s+)?(?:details|information|info)\s*(?:to proceed[^?:.]*)?[?:.]?\s*$",
+            ".",
+            cleaned,
+            flags=_re.IGNORECASE,
+        ).strip()
+        # Remove trailing "Could you please provide the following details to proceed with the booking?"
+        cleaned = _re.sub(
+            r"[,.]?\s*(?:could you |can you |please |kindly )*(?:provide|share|give)\b.*?(?:details|information|info)\b.*?[?:.]?\s*$",
+            ".",
+            cleaned,
+            flags=_re.IGNORECASE,
+        ).strip()
+        # Remove dangling clauses ending with colon (e.g. "and includes:" or "which offers:")
+        # Captures the preceding connector (and/which/,) plus the dangling verb+colon
+        cleaned = _re.sub(
+            r"(?:\s*(?:,\s*)?(?:and|which|that|,)\s+)?(?:offers|includes|featuring|features|comes with|has|provides)\s*:\s*",
+            ". ",
+            cleaned,
+            flags=_re.IGNORECASE,
+        ).strip()
+        # Remove LLM-generated "Please fill in the details below" since we append our own
+        cleaned = _re.sub(
+            r"\.?\s*Please fill in the (?:details|form|booking details) below\.?\s*",
+            ". ",
+            cleaned,
+            flags=_re.IGNORECASE,
+        ).strip()
+        # Fix double periods, ". ." artifacts, or space-period patterns
+        cleaned = _re.sub(r"\.\s*\.", ".", cleaned)
+        cleaned = _re.sub(r"\s+\.", ".", cleaned)
+        # Clean up trailing colons or empty sentences
+        cleaned = _re.sub(r"[:\s]+$", ".", cleaned).strip()
+        if cleaned and cleaned != msg.strip():
+            cleaned = cleaned.rstrip(".") + ". Please fill in the details below."
+        return cleaned or "Please fill in the details below."
+
+    response.message = _strip_field_list(response.message)
+    if response.display_message:
+        response.display_message = _strip_field_list(response.display_message)
+    # Also clean metadata.display_message since frontend reads it first
+    if isinstance(response.metadata, dict) and response.metadata.get("display_message"):
+        response.metadata["display_message"] = _strip_field_list(
+            str(response.metadata["display_message"])
+        )
+
+    print(f"[form_trigger] SUCCESS: form_trigger set for service={target_service_id!r}", file=_sys.stderr, flush=True)
+
+
+class FormSubmitRequest(BaseModel):
+    """Payload for direct form-based ticket creation."""
+    session_id: str
+    hotel_code: str = "DEFAULT"
+    service_id: str
+    form_data: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class FormValidateRequest(BaseModel):
+    """Payload for LLM-based form field validation."""
+    service_id: str
+    form_fields: list[dict[str, Any]] = Field(default_factory=list)
+    form_data: dict[str, Any] = Field(default_factory=dict)
+
+
+_FORM_VALIDATE_SYSTEM_PROMPT = """\
+You are a smart form-field validator for a hotel service request.
+You will receive a list of form fields (with id, label, type) and the values the guest entered.
+
+Your job: validate each field using your knowledge of real-world formats. Be helpful — catch genuinely wrong data but accept anything plausible.
+
+Rules per field type:
+
+- **Name fields** (full name, guest name): Accept any text that could be a name, including single names (e.g., "Sana", "Raj"), hyphenated names, names with apostrophes (e.g., "O'Brien"), or names with accents. Reject ONLY if it contains numbers, is a single character, or is obviously not a name (e.g., "asdf", "xxx").
+
+- **Phone / tel fields**: The value includes a country code prefix (e.g., +91, +1, +44). You MUST strictly validate phone numbers using your knowledge of each country's telecom rules. This is NOT a lenient field — phone validation must be accurate.
+  * India (+91): EXACTLY 10 digits after +91. First digit MUST be 6, 7, 8, or 9. Numbers starting with 0, 1, 2, 3, 4, or 5 are INVALID in India. Example: +911234567890 → REJECT (starts with 1). +919876543210 → ACCEPT (starts with 9).
+  * US/Canada (+1): EXACTLY 10 digits. First digit of area code cannot be 0 or 1.
+  * UK (+44): 10-11 digits after +44.
+  * UAE (+971): EXACTLY 9 digits after +971.
+  * For other countries, use your knowledge of their phone number format.
+  * Reject obviously fake/placeholder numbers: all-same digits (9999999999, 1111111111), sequential (1234567890, 9876543210), all-zeros, or any pattern no real person would have. A real phone number should look random/natural.
+  * Think like a human — would a hotel receptionist accept this number? If it looks fake, reject it politely.
+
+- **Email fields**: Must have @ and a dot after @. Accept most formats.
+- **Date fields**: Must be a valid date. Reject past dates. If check-in and check-out both exist, check-out must be after check-in.
+- **Number fields**: Must be a positive whole number. Reject only values above 100.
+- **Textarea / description fields**: Must have at least 2 real words. Reject only single characters or random key-mashing.
+- **Other text fields**: Accept any reasonable non-empty text.
+
+For fields OTHER than phone, be lenient — when in doubt, accept. For phone numbers, be STRICT and follow the country rules above exactly.
+
+Return ONLY a valid JSON object:
+{"valid": true, "errors": []}
+or
+{"valid": false, "errors": [{"field_id": "...", "message": "..."}]}
+
+Error messages must be short and helpful. Do NOT wrap in markdown. Return raw JSON only.\
+"""
+
+
+@router.post("/form-validate")
+async def validate_form(request: FormValidateRequest) -> dict[str, Any]:
+    """
+    LLM-based smart validation of form field values.
+    Returns per-field errors if any values are invalid.
+    """
+    form_data = request.form_data or {}
+    form_fields = request.form_fields or []
+
+    if not form_fields or not form_data:
+        return {"valid": True, "errors": []}
+
+    # Build the user prompt with field info and values
+    field_lines = []
+    for f in form_fields:
+        fid = f.get("id", "")
+        label = f.get("label", fid)
+        ftype = f.get("type", "text")
+        value = str(form_data.get(fid, "")).strip()
+        required = f.get("required", False)
+        field_lines.append(
+            f'- Field: "{label}" (id={fid}, type={ftype}, required={required}) => value: "{value}"'
+        )
+
+    user_prompt = (
+        f"Service: {request.service_id}\n\n"
+        f"Form fields and values:\n" + "\n".join(field_lines)
+    )
+
+    try:
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        model = str(getattr(settings, "openai_model", None) or "gpt-4o-mini")
+
+        completion = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": _FORM_VALIDATE_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0,
+            max_tokens=500,
+        )
+
+        raw = str(completion.choices[0].message.content or "").strip()
+        # Strip markdown fences if present
+        if raw.startswith("```"):
+            parts = raw.split("```")
+            raw = parts[1] if len(parts) > 1 else raw
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
+
+        result = json.loads(raw)
+        errors = result.get("errors", [])
+        # Validate structure
+        clean_errors = []
+        for e in errors:
+            if isinstance(e, dict) and e.get("field_id") and e.get("message"):
+                clean_errors.append({
+                    "field_id": str(e["field_id"]),
+                    "message": str(e["message"]),
+                })
+        return {"valid": len(clean_errors) == 0, "errors": clean_errors}
+
+    except Exception as exc:
+        logger.warning("form-validate: LLM validation failed, allowing submit: %s", exc)
+        # On LLM failure, don't block the user — let them submit
+        return {"valid": True, "errors": []}
+
+
+_FORM_CONFIRM_SYSTEM_PROMPT = """\
+You are a friendly hotel assistant. A guest just submitted a service request and a ticket has been created.
+
+Generate a SHORT, warm confirmation message (2-3 sentences max). Include:
+1. Acknowledge what was requested (use the details provided)
+2. A service-appropriate next-step (e.g., "our team will contact you", "your order will be delivered", "we'll arrange the pickup")
+3. The ticket ID for reference
+
+Rules:
+- Do NOT ask any questions
+- Do NOT use markdown formatting (no bold, no bullets, no headers)
+- Do NOT list the fields back as a structured list — weave them naturally into the message
+- Keep it conversational and warm
+- Do NOT say "thank you for providing" or similar filler\
+"""
+
+
+async def _generate_confirmation_message(
+    service_name: str,
+    form_data: dict[str, Any],
+    ticket_id: str,
+) -> str:
+    """Generate an LLM confirmation message after ticket creation."""
+    try:
+        from openai import AsyncOpenAI
+        client = AsyncOpenAI(api_key=settings.openai_api_key)
+        model = str(getattr(settings, "openai_model", None) or "gpt-4o-mini")
+
+        details = "; ".join(
+            f"{k.replace('_', ' ').title()}: {v}"
+            for k, v in form_data.items()
+            if str(v).strip()
+        )
+
+        user_prompt = (
+            f"Service: {service_name}\n"
+            f"Ticket ID: {ticket_id}\n"
+            f"Guest provided details: {details}"
+        )
+
+        completion = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": _FORM_CONFIRM_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.7,
+            max_tokens=200,
+        )
+
+        msg = str(completion.choices[0].message.content or "").strip()
+        if msg:
+            return msg
+    except Exception as exc:
+        logger.warning("form-confirm: LLM message generation failed: %s", exc)
+
+    # Fallback to static message
+    return (
+        f"Your {service_name} request has been submitted successfully."
+        f" Ticket ID: {ticket_id or 'assigned'}."
+    )
+
+
+@router.post("/form-submit")
+async def submit_form(
+    request: FormSubmitRequest,
+    http_request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """
+    Create a ticket directly from form submission data.
+    Bypasses the LLM conversation flow — validation is already done client-side.
+    """
+    from services.ticketing_service import ticketing_service
+    from services.config_service import config_service
+
+    service = config_service.get_service(request.service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail=f"Service '{request.service_id}' not found.")
+    if not bool(service.get("ticketing_enabled", False)):
+        raise HTTPException(status_code=400, detail="Ticketing is not enabled for this service.")
+
+    form_data = request.form_data or {}
+    req_meta = request.metadata or {}
+    service_name = str(service.get("name") or request.service_id)
+
+    # Build a human-readable issue summary from the submitted fields
+    issue_parts = [
+        f"{k.replace('_', ' ').title()}: {v}"
+        for k, v in form_data.items()
+        if str(v).strip()
+    ]
+    issue_summary = "; ".join(issue_parts) or f"{service_name} booking request"
+
+    # Resolve phase from service config (authoritative), then metadata fallback
+    phase = str(
+        service.get("phase_id")
+        or req_meta.get("phase") or req_meta.get("phase_id")
+        or ""
+    )
+
+    # Resolve department from service config if available
+    department_id = str(service.get("department_id") or req_meta.get("department_id") or "")
+    department_name = str(service.get("department_name") or req_meta.get("department_name") or "")
+
+    # Get or create conversation context for proper payload building
+    context = await context_manager.get_or_create_context(
+        session_id=request.session_id,
+        hotel_code=request.hotel_code,
+    )
+
+    # Seed pending_data so build_lumira_ticket_payload can pick up metadata
+    if isinstance(context.pending_data, dict):
+        context.pending_data.update({
+            k: str(v) for k, v in form_data.items() if str(v).strip()
+        })
+        context.pending_data["service_id"] = request.service_id
+        context.pending_data["service_name"] = service_name
+        if req_meta.get("guest_id"):
+            context.pending_data.setdefault("guest_id", str(req_meta["guest_id"]))
+        if req_meta.get("entity_id"):
+            context.pending_data.setdefault("entity_id", str(req_meta["entity_id"]))
+    else:
+        context.pending_data = {
+            k: str(v) for k, v in form_data.items() if str(v).strip()
+        }
+
+    # Room number: form field takes precedence, then metadata
+    room_number = str(
+        form_data.get("room_number") or req_meta.get("room_number") or ""
+    )
+    if room_number:
+        context.room_number = room_number
+
+    # Build the full Lumira-compatible payload via the proper builder
+    ticket_payload = ticketing_service.build_lumira_ticket_payload(
+        context=context,
+        issue=issue_summary,
+        message=issue_summary,
+        category=service_name,
+        priority=str(req_meta.get("priority") or "medium"),
+        department_id=department_id,
+        department_manager=department_name,
+        phase=phase,
+        source=str(req_meta.get("ticket_source") or "web_widget"),
+    )
+
+    # Ensure service identifiers are on the payload
+    ticket_payload["service_id"] = request.service_id
+    ticket_payload["service_name"] = service_name
+
+    # Merge all form fields so they are persisted on the ticket
+    for k, v in form_data.items():
+        ticket_payload.setdefault(k, str(v))
+
+    try:
+        result = await ticketing_service.create_ticket(ticket_payload)
+    except Exception as exc:
+        import traceback as _tb
+        logger.exception("form-submit: create_ticket raised an exception")
+        return {
+            "success": False,
+            "ticket_id": "",
+            "message": "Something went wrong while creating your request. Please try again.",
+        }
+
+    # Generate confirmation message
+    if result.success:
+        confirm_msg = await _generate_confirmation_message(
+            service_name=service_name,
+            form_data=form_data,
+            ticket_id=result.ticket_id or "assigned",
+        )
+    else:
+        confirm_msg = (
+            f"There was an issue submitting your {service_name} request."
+            " Please try again or contact our staff."
+        )
+
+    # Record in conversation context so history stays accurate
+    try:
+        from schemas.chat import MessageRole
+        context.add_message(MessageRole.ASSISTANT, confirm_msg)
+    except Exception:
+        pass
+
+    if result.success:
+        return {
+            "success": True,
+            "ticket_id": result.ticket_id or "",
+            "message": confirm_msg,
+        }
+
+    # Sanitize error message — never expose raw HTML or internal details
+    raw_error = str(result.error or "").strip()
+    if "<html" in raw_error.lower() or len(raw_error) > 300:
+        clean_error = "The booking system is temporarily unavailable"
+    else:
+        clean_error = raw_error or "Unknown error"
+
+    return {
+        "success": False,
+        "ticket_id": "",
+        "message": (
+            f"Submission failed: {clean_error}."
+            " Please try again or contact our staff."
+        ),
+    }
+
+
 @router.post("/message", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
@@ -447,6 +978,9 @@ async def send_message(
     """
     trace_id = getattr(http_request.state, "trace_id", "")
     _turn_start = _perf_counter()  # for new_detailed_logger duration tracking
+    resolved_hotel_code = config_service.resolve_hotel_code(request.hotel_code)
+    request.hotel_code = resolved_hotel_code
+    scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
     if not isinstance(request.metadata, dict):
         request.metadata = {}
     turn_trace_id, turn_token = turn_diagnostics_service.begin_turn(
@@ -522,6 +1056,11 @@ async def send_message(
         if not isinstance(response.metadata, dict):
             response.metadata = {}
         _enrich_service_llm_display_fields(response)
+        try:
+            await _inject_form_trigger(response)
+        except Exception as _form_exc:
+            import sys as _sys
+            print(f"[form_trigger] EXCEPTION: {_form_exc!r}", file=_sys.stderr, flush=True)
         if trace_id:
             response.metadata.setdefault("trace_id", trace_id)
         response.metadata.setdefault("turn_trace_id", turn_trace_id)
@@ -675,6 +1214,10 @@ async def send_message(
             if not isinstance(response.metadata, dict):
                 response.metadata = {}
             _enrich_service_llm_display_fields(response)
+            try:
+                await _inject_form_trigger(response)
+            except Exception:
+                pass
             response.metadata["db_fallback"] = True
             if trace_id:
                 response.metadata.setdefault("trace_id", trace_id)
@@ -851,6 +1394,7 @@ async def send_message(
             pass
         raise HTTPException(status_code=500, detail=str(e))
     finally:
+        db_config_service.reset_hotel_context(scope_token)
         turn_diagnostics_service.clear_turn(turn_token)
 
 
@@ -1005,43 +1549,121 @@ async def reset_session(session_id: str, db: AsyncSession = Depends(get_db)):
     return {"message": "Session reset", "state": "idle", "db_fallback": db_fallback}
 
 
+@router.get("/properties")
+async def list_properties(db: AsyncSession = Depends(get_db)):
+    """Return available property codes for chat UI selection."""
+    properties_by_code: dict[str, dict[str, str]] = {}
+    try:
+        rows = (
+            await db.execute(
+                select(Hotel).where(Hotel.is_active == True).order_by(Hotel.code.asc())  # noqa: E712
+            )
+        ).scalars().all()
+        for row in rows:
+            code = str(row.code or "").strip()
+            if not code:
+                continue
+            normalized_code = str(code).strip().lower().replace(" ", "_")
+            properties_by_code[normalized_code] = {
+                "code": normalized_code,
+                "name": str(row.name or code).strip(),
+                "city": str(row.city or "").strip(),
+            }
+    except Exception:
+        pass
+
+    # Merge property config files as a resilient fallback source.
+    try:
+        properties_dir = Path(__file__).resolve().parent.parent.parent / "config" / "properties"
+        if properties_dir.exists() and properties_dir.is_dir():
+            for json_file in sorted(properties_dir.glob("*.json")):
+                code = str(json_file.stem or "").strip().lower().replace(" ", "_")
+                if not code:
+                    continue
+                name = code
+                city = ""
+                try:
+                    payload = json.loads(json_file.read_text(encoding="utf-8"))
+                    business = payload.get("business", {}) if isinstance(payload, dict) else {}
+                    business_id = str(business.get("id") or "").strip().lower().replace(" ", "_")
+                    if business_id and business_id != "default":
+                        code = business_id
+                    name = str(business.get("name") or code).strip()
+                    city = str(business.get("city") or "").strip()
+                except Exception:
+                    pass
+                properties_by_code.setdefault(
+                    code,
+                    {
+                        "code": code,
+                        "name": name or code,
+                        "city": city,
+                    },
+                )
+    except Exception:
+        pass
+
+    properties: list[dict[str, str]] = sorted(
+        properties_by_code.values(),
+        key=lambda row: str(row.get("code") or ""),
+    )
+
+    if not properties:
+        business = config_service.get_business_info()
+        fallback_code = config_service.resolve_hotel_code(
+            str(business.get("id") or "").strip() or "DEFAULT"
+        )
+        properties = [
+            {
+                "code": fallback_code,
+                "name": str(business.get("name") or "Default Property").strip(),
+                "city": str(business.get("city") or "").strip(),
+            }
+        ]
+
+    return {"properties": properties}
+
+
 @router.get("/test-profiles")
-async def get_chat_test_phase_profiles():
+async def get_chat_test_phase_profiles(hotel_code: Optional[str] = "DEFAULT"):
     """
     Return phase-to-profile mapping used by the chat test UI to auto-apply
     guest/entity metadata for dashboard ticket validation.
     """
+    resolved_hotel_code = config_service.resolve_hotel_code(hotel_code)
+    scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
     try:
-        from services.config_service import config_service
+        try:
+            configured_phases = config_service.get_journey_phases()
+        except Exception:
+            configured_phases = []
 
-        configured_phases = config_service.get_journey_phases()
-    except Exception:
-        configured_phases = []
+        phases_payload: list[dict[str, str]] = []
+        if isinstance(configured_phases, list):
+            for phase in configured_phases:
+                if not isinstance(phase, dict):
+                    continue
+                phase_id = _normalize_phase_identifier(phase.get("id"))
+                if not phase_id:
+                    continue
+                phase_name = str(phase.get("name") or "").strip() or phase_id.replace("_", " ").title()
+                phases_payload.append({"id": phase_id, "name": phase_name})
 
-    phases_payload: list[dict[str, str]] = []
-    if isinstance(configured_phases, list):
-        for phase in configured_phases:
-            if not isinstance(phase, dict):
-                continue
-            phase_id = _normalize_phase_identifier(phase.get("id"))
-            if not phase_id:
-                continue
-            phase_name = str(phase.get("name") or "").strip() or phase_id.replace("_", " ").title()
-            phases_payload.append({"id": phase_id, "name": phase_name})
+        if not phases_payload:
+            phases_payload = [
+                {"id": "pre_booking", "name": "Pre Booking"},
+                {"id": "pre_checkin", "name": "Pre Checkin"},
+                {"id": "during_stay", "name": "During Stay"},
+                {"id": "post_checkout", "name": "Post Checkout"},
+            ]
 
-    if not phases_payload:
-        phases_payload = [
-            {"id": "pre_booking", "name": "Pre Booking"},
-            {"id": "pre_checkin", "name": "Pre Checkin"},
-            {"id": "during_stay", "name": "During Stay"},
-            {"id": "post_checkout", "name": "Post Checkout"},
-        ]
-
-    return {
-        "auto_apply_enabled": bool(getattr(settings, "chat_test_phase_profile_auto_apply", True)),
-        "profiles_by_phase": _load_chat_test_phase_profiles(),
-        "phases": phases_payload,
-    }
+        return {
+            "auto_apply_enabled": bool(getattr(settings, "chat_test_phase_profile_auto_apply", True)),
+            "profiles_by_phase": _load_chat_test_phase_profiles(),
+            "phases": phases_payload,
+        }
+    finally:
+        db_config_service.reset_hotel_context(scope_token)
 
 
 class SuggestionsRequest(BaseModel):
@@ -1063,10 +1685,9 @@ async def get_contextual_suggestions(
     It combines live session context + phase-aware service context + full KB/service KB
     and asks an LLM to emit only grounded, answerable next-message suggestions.
     """
+    hotel_code = config_service.resolve_hotel_code(request.hotel_code)
+    scope_token = db_config_service.set_hotel_context(hotel_code)
     try:
-        from services.config_service import config_service
-
-        hotel_code = str(request.hotel_code or "DEFAULT").strip() or "DEFAULT"
         phase_id = _normalize_phase_identifier(request.current_phase or "pre_booking") or "pre_booking"
         active_service_id = ""
         active_service: dict[str, Any] = {}
@@ -1081,14 +1702,13 @@ async def get_contextual_suggestions(
         nlu_policy = cap_summary.get("nlu_policy", {})
         if not isinstance(nlu_policy, dict):
             nlu_policy = {}
-        runtime_overlay_db = bool(getattr(settings, "chat_db_overlay_runtime_config", False))
-        if runtime_overlay_db:
-            try:
-                db_caps = await db_config_service.get_capabilities()
-                if isinstance(db_caps, dict):
-                    raw_caps = db_caps
-            except Exception:
-                pass
+        runtime_overlay_db = True
+        try:
+            db_caps = await db_config_service.get_capabilities()
+            if isinstance(db_caps, dict):
+                raw_caps = db_caps
+        except Exception:
+            pass
 
         if request.session_id:
             try:
@@ -1426,3 +2046,5 @@ async def get_contextual_suggestions(
             limit=4,
         )
         return {"suggestions": fallback}
+    finally:
+        db_config_service.reset_hotel_context(scope_token)

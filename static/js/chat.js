@@ -5,6 +5,8 @@ const state = {
     phase: 'pre_booking',
     messages: [],
     isLoading: false,
+    formFocusMode: false,
+    suggestionRequestId: 0,
     testProfileAutoApply: true,
     testProfilesByPhase: {},
     activeTestProfile: null,
@@ -48,12 +50,71 @@ function init() {
     generateSessionId();
     setupEventListeners();
     resizeMessageInput();
-    loadTestProfiles();
+    loadProperties();
+}
+
+function hasActiveInlineForm() {
+    return !!elements.chatMessages?.querySelector('.inline-form-container .inline-form');
+}
+
+function isFormFocusModeActive() {
+    return state.formFocusMode || hasActiveInlineForm();
+}
+
+function setFormFocusMode(active) {
+    state.formFocusMode = !!active;
+    if (state.formFocusMode && elements.suggestedActions) {
+        elements.suggestedActions.innerHTML = '';
+    }
+    if (state.formFocusMode) {
+        // Invalidate any in-flight suggestion request so stale chips never reappear.
+        state.suggestionRequestId += 1;
+    }
+}
+
+async function loadProperties() {
+    if (!elements.hotelCode) return;
+    try {
+        const response = await fetch('/api/chat/properties');
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const payload = await response.json();
+        const rows = Array.isArray(payload?.properties) ? payload.properties : [];
+        if (!rows.length) {
+            throw new Error('No properties returned');
+        }
+        const optionsHtml = rows
+            .map((row) => {
+                const code = String(row?.code || '').trim();
+                if (!code) return '';
+                const name = String(row?.name || code).trim();
+                const city = String(row?.city || '').trim();
+                const label = city ? `${name} (${city})` : name;
+                return `<option value="${code}">${label}</option>`;
+            })
+            .join('');
+        if (optionsHtml) {
+            elements.hotelCode.innerHTML = optionsHtml;
+            const existing = String(state.hotelCode || '').trim().toUpperCase();
+            const selected = rows.find((row) => String(row?.code || '').trim().toUpperCase() === existing);
+            const nextCode = String(selected?.code || rows[0]?.code || 'DEFAULT').trim() || 'DEFAULT';
+            state.hotelCode = nextCode;
+            elements.hotelCode.value = nextCode;
+        }
+    } catch (error) {
+        elements.hotelCode.innerHTML = '<option value="DEFAULT">Default Property</option>';
+        state.hotelCode = 'DEFAULT';
+        elements.hotelCode.value = 'DEFAULT';
+    } finally {
+        loadTestProfiles();
+    }
 }
 
 // Generate unique session ID
 function generateSessionId() {
     state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    setFormFocusMode(false);
     updateSessionInfo();
 }
 
@@ -136,7 +197,7 @@ function syncPhaseProfileUi() {
 
 async function loadTestProfiles() {
     try {
-        const response = await fetch('/api/chat/test-profiles');
+        const response = await fetch(`/api/chat/test-profiles?hotel_code=${encodeURIComponent(state.hotelCode || 'DEFAULT')}`);
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
@@ -214,6 +275,7 @@ function setupEventListeners() {
     // Hotel selection
     elements.hotelCode.addEventListener('change', (e) => {
         state.hotelCode = e.target.value;
+        loadTestProfiles();
     });
     elements.journeyPhase.addEventListener('change', (e) => {
         state.phase = e.target.value || 'pre_booking';
@@ -357,21 +419,79 @@ async function sendMessage(message, interactionMeta = null) {
         const displayMessage = resolveAssistantDisplayMessage(data);
         addMessageToUI('assistant', displayMessage, data);
 
+        // Attach inline form if orchestration decided to collect info
+        const formFields = Array.isArray(data.metadata?.form_fields)
+            ? data.metadata.form_fields
+            : (Array.isArray(data.form_fields) ? data.form_fields : []);
+        const rawFormTrigger = data.metadata?.form_trigger;
+        const explicitFormTrigger = (
+            rawFormTrigger === true
+            || rawFormTrigger === 'true'
+            || rawFormTrigger === 1
+            || rawFormTrigger === '1'
+        );
+        const stateAwaitingInfo = String(data.state || '').trim().toLowerCase() === 'awaiting_info';
+        const serviceLabel = String(
+            data.service_llm_label || data.metadata?.service_llm_label || ''
+        ).trim().toLowerCase();
+        const messageText = String(
+            data.display_message || data.metadata?.display_message || data.message || ''
+        ).trim().toLowerCase();
+        const messageHintsCollection = (
+            messageText.includes('please fill in the details below')
+            || messageText.includes('please fill in the booking details below')
+            || messageText.includes('please fill in the form below')
+        );
+        const inferredFormTrigger = (
+            stateAwaitingInfo
+            && !!serviceLabel
+            && serviceLabel !== 'main'
+            && formFields.length > 0
+            && messageHintsCollection
+        );
+        const shouldShowInlineForm = (explicitFormTrigger || inferredFormTrigger) && formFields.length > 0;
+        const resolvedFormServiceId = String(
+            data.metadata?.form_service_id || data.form_service_id || serviceLabel || ''
+        ).trim();
+
+        console.log('[form_trigger]', {
+            state: data.state,
+            form_trigger_raw: rawFormTrigger,
+            explicit_form_trigger: explicitFormTrigger,
+            inferred_form_trigger: inferredFormTrigger,
+            should_show_form: shouldShowInlineForm,
+            form_service_id: resolvedFormServiceId,
+            form_fields_count: formFields.length,
+            service_llm_label: data.service_llm_label || data.metadata?.service_llm_label,
+        });
+        if (shouldShowInlineForm) {
+            setFormFocusMode(true);
+            attachInlineForm(formFields, resolvedFormServiceId, data);
+        } else if (!hasActiveInlineForm()) {
+            setFormFocusMode(false);
+        }
+
         // Update session info
         updateSessionInfoFromResponse(data);
 
-        // Always prefer the dedicated suggestions LLM layer for contextual chips.
-        // Keep deterministic runtime chips only for strict states like confirmation/escalation.
-        const runtimeSuggestions = Array.isArray(data.suggested_actions) ? data.suggested_actions : [];
-        const stateValue = String(data.state || '').toLowerCase();
-        const useRuntimeDirectly = (
-            runtimeSuggestions.length > 0
-            && (stateValue === 'awaiting_confirmation' || stateValue === 'escalated')
-        );
-        if (useRuntimeDirectly) {
-            showSuggestedActions(runtimeSuggestions);
+        // Suppress suggestion chips entirely when a form is displayed
+        const formWasTriggered = shouldShowInlineForm;
+        if (formWasTriggered) {
+            elements.suggestedActions.innerHTML = '';
         } else {
-            fetchAndShowSuggestions(data.message, message, state.sessionId, runtimeSuggestions);
+            // Always prefer the dedicated suggestions LLM layer for contextual chips.
+            // Keep deterministic runtime chips only for strict states like confirmation/escalation.
+            const runtimeSuggestions = Array.isArray(data.suggested_actions) ? data.suggested_actions : [];
+            const stateValue = String(data.state || '').toLowerCase();
+            const useRuntimeDirectly = (
+                runtimeSuggestions.length > 0
+                && (stateValue === 'awaiting_confirmation' || stateValue === 'escalated')
+            );
+            if (useRuntimeDirectly) {
+                showSuggestedActions(runtimeSuggestions);
+            } else {
+                fetchAndShowSuggestions(data.message, message, state.sessionId, runtimeSuggestions);
+            }
         }
 
         // Update debug panel
@@ -442,8 +562,14 @@ function renderAssistantMessageHtml(text) {
     const escaped = escapeHtml(text);
     if (!escaped) return '';
     let rendered = escaped;
+    // Bold: **text** or __text__
     rendered = rendered.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
     rendered = rendered.replace(/__([\s\S]+?)__/g, '<strong>$1</strong>');
+    // Italic: *text* or _text_ (but not inside bold markers)
+    rendered = rendered.replace(/(?<!\w)\*((?!\s)[^*]+(?<!\s))\*(?!\w)/g, '<em>$1</em>');
+    rendered = rendered.replace(/(?<!\w)_((?!\s)[^_]+(?<!\s))_(?!\w)/g, '<em>$1</em>');
+    // Markdown headers: ### heading, ## heading, # heading → just plain bold text
+    rendered = rendered.replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
     return rendered;
 }
 
@@ -593,7 +719,11 @@ function resolveCreatedTicketDetails(data) {
 // Fetch context-aware suggestions from LLM and display them.
 // Falls back to runtime suggestions if LLM suggestions are unavailable.
 async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId, fallbackSuggestions = []) {
+    const requestId = ++state.suggestionRequestId;
     elements.suggestedActions.innerHTML = '';
+    if (isFormFocusModeActive()) {
+        return;
+    }
     let resolved = [];
     try {
         const response = await fetch('/api/chat/suggestions', {
@@ -609,6 +739,7 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId, f
             }),
         });
         if (!response.ok) {
+            if (requestId !== state.suggestionRequestId || isFormFocusModeActive()) return;
             if (Array.isArray(fallbackSuggestions) && fallbackSuggestions.length > 0) {
                 showSuggestedActions(fallbackSuggestions);
             }
@@ -618,6 +749,10 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId, f
         resolved = Array.isArray(data.suggestions) ? data.suggestions : [];
     } catch (e) {
         resolved = [];
+    }
+
+    if (requestId !== state.suggestionRequestId || isFormFocusModeActive()) {
+        return;
     }
 
     if (resolved.length > 0) {
@@ -631,6 +766,10 @@ async function fetchAndShowSuggestions(lastBotMessage, userMessage, sessionId, f
 
 // Show suggested actions
 function showSuggestedActions(actions) {
+    if (isFormFocusModeActive()) {
+        elements.suggestedActions.innerHTML = '';
+        return;
+    }
     elements.suggestedActions.innerHTML = '';
 
     if (!actions || actions.length === 0) return;
@@ -659,6 +798,7 @@ function clearChat() {
         </div>
     `;
     state.messages = [];
+    setFormFocusMode(false);
     elements.suggestedActions.innerHTML = '';
     clearTicketDetails();
     updateSessionInfo();
@@ -793,6 +933,410 @@ async function viewTickets() {
         elements.ticketsContent.innerHTML = `<p style="color:#ef4444;">Error loading tickets: ${error.message}</p>`;
     }
 }
+
+// ─── Inline Form ─────────────────────────────────────────────────────────────
+
+/**
+ * Attach an inline booking form to the last assistant message bubble.
+ * @param {Array}  fields     - [{id, label, type, required}, ...]
+ * @param {string} serviceId  - service_id to submit against
+ * @param {object} responseData - full ChatResponse (for metadata)
+ */
+function attachInlineForm(fields, serviceId, responseData) {
+    const messages = elements.chatMessages.querySelectorAll('.message.assistant');
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    // Common country codes for the phone dropdown
+    const _countryCodes = [
+        { code: '+91',  flag: '🇮🇳', name: 'India' },
+        { code: '+1',   flag: '🇺🇸', name: 'US/Canada' },
+        { code: '+44',  flag: '🇬🇧', name: 'UK' },
+        { code: '+971', flag: '🇦🇪', name: 'UAE' },
+        { code: '+65',  flag: '🇸🇬', name: 'Singapore' },
+        { code: '+61',  flag: '🇦🇺', name: 'Australia' },
+        { code: '+49',  flag: '🇩🇪', name: 'Germany' },
+        { code: '+33',  flag: '🇫🇷', name: 'France' },
+        { code: '+81',  flag: '🇯🇵', name: 'Japan' },
+        { code: '+86',  flag: '🇨🇳', name: 'China' },
+        { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
+        { code: '+974', flag: '🇶🇦', name: 'Qatar' },
+        { code: '+60',  flag: '🇲🇾', name: 'Malaysia' },
+        { code: '+66',  flag: '🇹🇭', name: 'Thailand' },
+        { code: '+7',   flag: '🇷🇺', name: 'Russia' },
+        { code: '+55',  flag: '🇧🇷', name: 'Brazil' },
+        { code: '+27',  flag: '🇿🇦', name: 'South Africa' },
+        { code: '+234', flag: '🇳🇬', name: 'Nigeria' },
+        { code: '+254', flag: '🇰🇪', name: 'Kenya' },
+        { code: '+82',  flag: '🇰🇷', name: 'South Korea' },
+    ];
+
+    // Build field HTML
+    let fieldsHtml = '';
+    fields.forEach(field => {
+        const nameAttr = `name="${escapeAttr(field.id)}"`;
+        const requiredAttr = field.required ? ' required' : '';
+        let inputHtml;
+        if (field.type === 'textarea') {
+            inputHtml = `<textarea ${nameAttr} rows="3"${requiredAttr} class="inline-form-input"></textarea>`;
+        } else if (field.type === 'date') {
+            const todayStr = new Date().toISOString().split('T')[0];
+            inputHtml = `<input type="date" ${nameAttr}${requiredAttr} min="${todayStr}" class="inline-form-input">`;
+        } else if (field.type === 'tel') {
+            const ccOptions = _countryCodes.map(cc =>
+                `<option value="${cc.code}"${cc.code === '+91' ? ' selected' : ''}>${cc.flag} ${cc.code}</option>`
+            ).join('');
+            inputHtml = `<div class="inline-form-phone-group">` +
+                `<select class="inline-form-cc-select" data-for="${escapeAttr(field.id)}">${ccOptions}</select>` +
+                `<input type="tel" ${nameAttr}${requiredAttr} class="inline-form-input inline-form-phone-input" placeholder="Phone number">` +
+                `</div>`;
+        } else {
+            inputHtml = `<input type="${escapeAttr(field.type)}" ${nameAttr}${requiredAttr} class="inline-form-input">`;
+        }
+        const requiredStar = field.required
+            ? '<span class="inline-form-required-star">*</span>'
+            : '';
+        fieldsHtml += `
+            <div class="inline-form-field" data-field-id="${escapeAttr(field.id)}">
+                <label class="inline-form-label">${escapeHtml(field.label)}${requiredStar}</label>
+                ${inputHtml}
+            </div>`;
+    });
+
+    const container = document.createElement('div');
+    container.className = 'inline-form-container';
+    container.dataset.serviceId = serviceId;
+    container.innerHTML = `
+        <div class="inline-form-errors" style="display:none;"></div>
+        <form class="inline-form" novalidate>
+            <div class="inline-form-fields">${fieldsHtml}</div>
+            <button type="submit" class="inline-form-submit">Submit</button>
+        </form>`;
+
+    lastMessage.appendChild(container);
+    scrollToBottom();
+
+    // Enforce min-date on date inputs: reject any past date selection
+    container.querySelectorAll('input[type="date"]').forEach(dateInput => {
+        dateInput.addEventListener('change', () => {
+            const minVal = dateInput.min;
+            if (minVal && dateInput.value && dateInput.value < minVal) {
+                dateInput.value = '';
+            }
+        });
+    });
+
+    // Clear per-field error styling on input/change
+    container.querySelectorAll('.inline-form-input').forEach(inp => {
+        const clearFieldError = () => {
+            inp.classList.remove('inline-form-input-error');
+            const fieldDiv = inp.closest('.inline-form-field');
+            if (fieldDiv) {
+                fieldDiv.querySelectorAll('.inline-form-field-error').forEach(el => el.remove());
+            }
+        };
+        inp.addEventListener('input', clearFieldError);
+        inp.addEventListener('change', clearFieldError);
+    });
+
+    const form        = container.querySelector('.inline-form');
+    const errorsDiv   = container.querySelector('.inline-form-errors');
+    const submitBtn   = container.querySelector('.inline-form-submit');
+
+    /** Helper: show per-field errors on the form */
+    function showFieldErrors(errorList) {
+        errorList.forEach(fe => {
+            const fid = fe.id || fe.field_id;
+            const fieldDiv = form.querySelector(`[data-field-id="${fid}"]`);
+            if (!fieldDiv) return;
+            const inp = fieldDiv.querySelector('.inline-form-input');
+            if (inp) inp.classList.add('inline-form-input-error');
+            // Insert error ABOVE the input
+            const errSpan = document.createElement('span');
+            errSpan.className = 'inline-form-field-error';
+            errSpan.textContent = fe.message;
+            const label = fieldDiv.querySelector('.inline-form-label');
+            if (label && label.nextSibling) {
+                fieldDiv.insertBefore(errSpan, label.nextSibling);
+            } else {
+                fieldDiv.appendChild(errSpan);
+            }
+        });
+        errorsDiv.innerHTML = '<strong>Please fix the highlighted fields:</strong>';
+        errorsDiv.style.display = 'block';
+        errorsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    form.addEventListener('submit', async (evt) => {
+        evt.preventDefault();
+
+        // Clear previous per-field error highlights
+        form.querySelectorAll('.inline-form-input').forEach(inp => {
+            inp.classList.remove('inline-form-input-error');
+        });
+        form.querySelectorAll('.inline-form-field-error').forEach(el => el.remove());
+        errorsDiv.style.display = 'none';
+
+        // Collect values
+        const formValues = {};
+        fields.forEach(field => {
+            const el = form.querySelector(`[name="${field.id}"]`);
+            let val = el ? el.value.trim() : '';
+            // For phone fields, prepend the selected country code
+            if (field.type === 'tel' && val) {
+                const ccSelect = form.querySelector(`select[data-for="${field.id}"]`);
+                if (ccSelect) {
+                    const cc = ccSelect.value;
+                    // Only prepend if user hasn't already typed the code
+                    if (!val.startsWith('+')) {
+                        val = cc + val;
+                    }
+                }
+            }
+            formValues[field.id] = val;
+        });
+
+        // Step 1: Quick client-side validation (empty fields, basic format)
+        const fieldErrors = validateFormFieldsDetailed(fields, formValues);
+        if (fieldErrors.length > 0) {
+            showFieldErrors(fieldErrors);
+            return;
+        }
+
+        // Step 2: LLM-based smart validation
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Validating\u2026';
+
+        try {
+            const validateRes = await fetch('/api/chat/form-validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    service_id: serviceId,
+                    form_fields: fields,
+                    form_data: formValues,
+                }),
+            });
+            const validateResult = await validateRes.json();
+
+            if (!validateResult.valid && validateResult.errors && validateResult.errors.length > 0) {
+                // Map LLM errors to field errors format
+                const llmErrors = validateResult.errors.map(e => ({
+                    id: e.field_id,
+                    field_id: e.field_id,
+                    message: e.message,
+                }));
+                showFieldErrors(llmErrors);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+                return;
+            }
+        } catch (valErr) {
+            // LLM validation unavailable — client-side already passed, so proceed
+            console.warn('LLM validation unavailable, relying on client-side validation:', valErr);
+        }
+
+        // Step 3: Submit the form
+        submitBtn.textContent = 'Submitting\u2026';
+
+        try {
+            const reqMeta = buildRequestMetadata(null);
+            const res = await fetch('/api/chat/form-submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: state.sessionId,
+                    hotel_code: state.hotelCode,
+                    service_id: serviceId,
+                    form_data: formValues,
+                    metadata: reqMeta,
+                }),
+            });
+
+            const result = await res.json();
+
+            if (result.success) {
+                // Replace form with success message
+                container.innerHTML =
+                    `<div class="inline-form-success">${escapeHtml(result.message)}</div>`;
+                setFormFocusMode(false);
+                // Update session info panel
+                const confirmData = {
+                    state: 'completed',
+                    metadata: {
+                        ticket_created: true,
+                        ticket_id: result.ticket_id || '',
+                        message_count: state.messages.length + 1,
+                    },
+                };
+                updateSessionInfoFromResponse(confirmData);
+                elements.suggestedActions.innerHTML = '';
+            } else {
+                errorsDiv.innerHTML = `<strong>${escapeHtml(result.message || 'Submission failed. Please try again.')}</strong>`;
+                errorsDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        } catch (err) {
+            errorsDiv.innerHTML = '<strong>Network error. Please try again.</strong>';
+            errorsDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+        }
+    });
+}
+
+/**
+ * Validate form field values.
+ * Returns an array of human-readable error strings (empty = all valid).
+ */
+function validateFormFields(fields, values) {
+    const errors = [];
+    let checkinDate  = null;
+    let checkoutDate = null;
+
+    fields.forEach(field => {
+        const val = String(values[field.id] || '').trim();
+
+        if (field.required && !val) {
+            errors.push(`${field.label} is required.`);
+            return;
+        }
+        if (!val) return; // optional empty field – skip further checks
+
+        if (field.type === 'date') {
+            const d = new Date(val);
+            if (isNaN(d.getTime())) {
+                errors.push(`${field.label} must be a valid date.`);
+                return;
+            }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (d < today) {
+                errors.push(`${field.label} cannot be in the past.`);
+                return;
+            }
+            const id = field.id.toLowerCase();
+            if (id.includes('checkin') || id.includes('check_in') || id.includes('arrival') || id.includes('start')) {
+                checkinDate = d;
+            }
+            if (id.includes('checkout') || id.includes('check_out') || id.includes('departure') || id.includes('end')) {
+                checkoutDate = d;
+            }
+        }
+
+        if (field.type === 'number') {
+            const n = Number(val);
+            if (isNaN(n) || n <= 0 || !Number.isInteger(n)) {
+                errors.push(`${field.label} must be a positive whole number.`);
+            }
+        }
+
+        if (field.type === 'tel') {
+            const digits = val.replace(/\D/g, '');
+            if (digits.length < 7) {
+                errors.push(`${field.label}: Please enter a valid phone number.`);
+            }
+        }
+
+        if (field.type === 'email') {
+            if (!val.includes('@') || val.indexOf('.', val.indexOf('@')) === -1) {
+                errors.push(`${field.label} must be a valid email address.`);
+            }
+        }
+    });
+
+    if (checkinDate && checkoutDate && checkoutDate <= checkinDate) {
+        errors.push('Check-out date must be after check-in date.');
+    }
+
+    return errors;
+}
+
+/**
+ * Validate form field values — returns per-field error objects.
+ * Each entry: { id: field.id, message: "..." }
+ */
+function validateFormFieldsDetailed(fields, values) {
+    const errors = [];
+    let checkinDate  = null;
+    let checkoutDate = null;
+    let checkinFieldId = null;
+    let checkoutFieldId = null;
+
+    fields.forEach(field => {
+        const val = String(values[field.id] || '').trim();
+
+        if (field.required && !val) {
+            errors.push({ id: field.id, message: `${field.label} is required.` });
+            return;
+        }
+        if (!val) return;
+
+        if (field.type === 'date') {
+            const d = new Date(val);
+            if (isNaN(d.getTime())) {
+                errors.push({ id: field.id, message: 'Enter a valid date.' });
+                return;
+            }
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (d < today) {
+                errors.push({ id: field.id, message: 'Date cannot be in the past.' });
+                return;
+            }
+            const idLow = field.id.toLowerCase();
+            if (idLow.includes('checkin') || idLow.includes('check_in') || idLow.includes('arrival') || idLow.includes('start')) {
+                checkinDate = d;
+                checkinFieldId = field.id;
+            }
+            if (idLow.includes('checkout') || idLow.includes('check_out') || idLow.includes('departure') || idLow.includes('end')) {
+                checkoutDate = d;
+                checkoutFieldId = field.id;
+            }
+        }
+
+        if (field.type === 'number') {
+            const n = Number(val);
+            if (isNaN(n) || n <= 0 || !Number.isInteger(n)) {
+                errors.push({ id: field.id, message: 'Must be a positive whole number.' });
+            }
+        }
+
+        if (field.type === 'tel') {
+            // val already has country code prepended (e.g. "+919876543210")
+            // Only do a minimal sanity check — LLM handles country-specific rules
+            const localDigits = val.replace(/^\+\d{1,4}/, '').replace(/\D/g, '');
+            if (localDigits.length < 7) {
+                errors.push({ id: field.id, message: 'Please enter a valid phone number.' });
+            }
+        }
+
+        if (field.type === 'email') {
+            if (!val.includes('@') || val.indexOf('.', val.indexOf('@')) === -1) {
+                errors.push({ id: field.id, message: 'Enter a valid email address.' });
+            }
+        }
+    });
+
+    if (checkinDate && checkoutDate && checkoutDate <= checkinDate && checkoutFieldId) {
+        errors.push({ id: checkoutFieldId, message: 'Check-out must be after check-in.' });
+    }
+
+    return errors;
+}
+
+/** Escape a value for use inside an HTML attribute. */
+function escapeAttr(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', init);

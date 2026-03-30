@@ -1,0 +1,1314 @@
+{
+  "business": {
+    "id": "orchid_manali",
+    "name": "orchid hotel manali",
+    "type": "hotel",
+    "city": "manali",
+    "location": "",
+    "address": "",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "language": "en",
+    "timestamp_format": "24h",
+    "bot_name": "Kai",
+    "welcome_message": "",
+    "contact_email": "",
+    "contact_phone": "",
+    "website": "",
+    "channels": {
+      "web_widget": true,
+      "whatsapp": true
+    },
+    "code": "orchid_manali"
+  },
+  "capabilities": {},
+  "services": [
+    {
+      "id": "room_booking",
+      "name": "room booking",
+      "type": "service",
+      "description": "Allows guests to explore available room options and book a room before their stay.",
+      "is_active": true,
+      "is_builtin": false,
+      "ticketing_enabled": true,
+      "ticketing_policy": "Create a backend ticket for room booking when a guest confirms their room selection and provides all required data, including full name, contact information, payment details, and desired check-in and check-out dates.",
+      "ticketing_mode": "form",
+      "form_config": {
+        "trigger_field": {
+          "id": "room_type",
+          "label": "room type",
+          "description": "which room guest confirms"
+        },
+        "fields": [
+          {
+            "id": "name",
+            "label": "guest name",
+            "type": "text",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "number",
+            "label": "phone number",
+            "type": "number",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "checkin",
+            "label": "checkin date",
+            "type": "date",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "checkout",
+            "label": "checkout date",
+            "type": "date",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "payment",
+            "label": "payment method",
+            "type": "text",
+            "required": true,
+            "validation_prompt": ""
+          }
+        ],
+        "pre_form_instructions": "confirm room type before showing form"
+      },
+      "phase_id": "pre_booking",
+      "service_prompt_pack": {
+        "version": 1,
+        "generator": "service_prompt_pack_v2",
+        "source": "manual_override",
+        "profile": "",
+        "role": "You are the dedicated assistant for room booking.",
+        "professional_behavior": "Use only admin-configured policy and KB evidence. Ask concise clarifying questions when required details are missing. Do not invent fixed field schemas.",
+        "phase_id": "pre_booking",
+        "required_slots": [],
+        "validation_rules": [],
+        "confirmation_format": {
+          "style": "summary_then_explicit_confirm",
+          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
+          "required_phrase": "yes confirm"
+        },
+        "ticketing_policy": {
+          "enabled": true,
+          "policy": "Create a backend ticket for room booking when a guest confirms their room selection and provides all required data, including full name, contact information, payment details, and desired check-in and check-out dates.",
+          "decision_template": ""
+        },
+        "execution_guard": {},
+        "extracted_knowledge": "Source: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n\nStar rating: 5/5  \nOverview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.\n\n=== Rooms & Suites ===\n## Deluxe Room\n- Views: Mountain views\n- Amenities: Modern amenities\n\n## Premier Valley View Room\n- Features: Private balcony overlooking scenic valleys\n\n## Premier Family Room\n- Layout: Spacious\n\n\n## Club Room\n- Features: Balcony with stunning valley views\n\n## Presidential Suite\n- Views: Exclusive river views\n- Amenities: Premium luxury amenities\n\n\n- Features: Scenic views, bar\n- Dining options: Breakfast, lunch, dinner\n\n=== Amenities & Facilities ===\n- Pool: Heated swimming pool\n\n- Wi-Fi: Free WiFi\n- Parking: Free parking, EV charging station\n- Recreation: Indoor games room\n\n\n- Capacity: 75-80 (Cluster), 120 (Theatre)\n- Features: Modern AV facilities, curated catering, versatile layouts",
+        "ticketing_conditions": "Create a backend ticket for room booking when a guest confirms their room selection and provides all required data, including full name, contact information, payment details, and desired check-in and check-out dates."
+      },
+      "service_prompt_pack_custom": true,
+      "generated_system_prompt": "You are the room booking service agent for our hotel, responsible for assisting guests in exploring available room options and facilitating pre-booking reservations. Your primary role is to provide detailed information about our rooms and suites, help guests make informed choices, and guide them through the booking process using our form-based ticketing system.\n\nYour knowledge is based on the hotel's current offerings, including room types and their features. You can describe the Deluxe Room with mountain views, the Premier Valley View Room with a private balcony, the spacious Premier Family Room, the Club Room with stunning valley views, and the luxurious Presidential Suite with exclusive river views and premium amenities. You also know about the hotel's amenities like the heated swimming pool, free WiFi, free parking with an EV charging station, and indoor games room.\n\nWhen a guest expresses interest in booking a room, first present all available room options from the knowledge base. Allow the guest to select their preferred room type. Once the guest confirms their choice, provide a brief, warm confirmation highlighting 1-2 key features of the selected room. For example, \"Great choice! The Presidential Suite offers exclusive river views and premium luxury amenities, perfect for a lavish stay. Please fill in the booking details below.\" This confirmation will trigger the booking form, which will collect necessary details like the guest's name, phone number, check-in and check-out dates, and payment method. Do not ask for these details directly; the form will handle it.\n\nYour service is available during the pre-booking phase, meaning guests may not have a reservation yet. Always check the known_context for any pre-filled guest data such as name, phone, or email before asking for these details. Only request contact information when genuinely needed and absent from known_context.\n\nIf a guest asks about services outside the room booking scope, such as dining, spa, or transportation, do not attempt to answer. Instead, inform the guest that you will connect them with the appropriate service and set context_switched=true to transfer the conversation back to the main orchestrator.\n\nFor complaints or explicit requests for human assistance, escalate via ticketing if the service is available and enabled. If the service is not available, acknowledge the concern warmly and offer to connect the guest with a staff member, without promising immediate action.\n\nMaintain a warm, concise, and professional tone in all interactions. Never use markdown formatting like **bold** or *italic*. When multiple details are needed, use bullet points for clarity. For example: \"Please share the following details: - Room number - Check-in date - Check-out date.\"\n\nRemember, dietary or allergen questions are not applicable to this service, as it does not involve food or menu items. Always adhere to the rules outlined, ensuring a seamless and efficient booking experience for our guests.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": []
+    }
+  ],
+  "faq_bank": [],
+  "tools": [],
+  "intents": [],
+  "escalation": {
+    "confidence_threshold": 0.4,
+    "max_clarification_attempts": 3,
+    "escalation_message": "Let me connect you with our team.",
+    "modes": [
+      "live_chat",
+      "ticket"
+    ]
+  },
+  "prompts": {
+    "template_id": "generic_assistant",
+    "system_prompt": "",
+    "classifier_prompt": "",
+    "response_style": ""
+  },
+  "knowledge_base": {
+    "sources": [
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt"
+    ],
+    "notes": "",
+    "nlu_policy": {
+      "dos": [],
+      "donts": [],
+      "capability_constraints": {}
+    },
+    "library_index": {
+      "version": "v1",
+      "source_signature": "54db1306b37c7ec6a43ea48da63b61673cef1150",
+      "generated_at": "2026-03-30T14:20:55.806787+00:00",
+      "book_index_generator": "llm_v1",
+      "book_index_generated_at": "2026-03-30T14:21:03.046499+00:00",
+      "source_count": 1,
+      "documents": [
+        {
+          "id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "content_hash": "171dc594030f36ae6aa7642eda2aaff496b47943",
+          "char_count": 2383
+        }
+      ],
+      "pages": [
+        {
+          "id": "page_00001",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_1",
+          "title": "Section 1",
+          "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Manali\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
+          "topics": [
+            "hotel_information"
+          ],
+          "char_count": 281,
+          "primary_topic_name": "Hotel Information"
+        },
+        {
+          "id": "page_00002",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_2",
+          "title": "Section 2",
+          "text": "=== Property Overview ===\nCanonical property name: The Orchid Hotel Manali \nBrand: Orchid Hotels \nProperty type: Boutique Hotel \nPositioning: 5-Star Luxury Hotel \nAddress: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN \nStar rating: 5/5 \nOverview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.",
+          "topics": [
+            "hotel_overview",
+            "luxury_hotels"
+          ],
+          "char_count": 442,
+          "primary_topic_name": "Hotel Overview"
+        },
+        {
+          "id": "page_00003",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_3",
+          "title": "Section 3",
+          "text": "=== Rooms & Suites ===\n## Deluxe Room\n- Views: Mountain views\n- Amenities: Modern amenities",
+          "topics": [
+            "hotel_rooms",
+            "luxury_accommodations"
+          ],
+          "char_count": 91,
+          "primary_topic_name": "Hotel Rooms"
+        },
+        {
+          "id": "page_00004",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_4",
+          "title": "Section 4",
+          "text": "## Premier Valley View Room\n- Features: Private balcony overlooking scenic valleys",
+          "topics": [
+            "hotel_rooms",
+            "luxury_accommodations"
+          ],
+          "char_count": 82,
+          "primary_topic_name": "Hotel Rooms"
+        },
+        {
+          "id": "page_00005",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_5",
+          "title": "Section 5",
+          "text": "## Premier Family Room\n- Layout: Spacious\n- Views: Panoramic valley views\n- Suitable for: Families",
+          "topics": [
+            "hotel_rooms",
+            "family_accommodations"
+          ],
+          "char_count": 98,
+          "primary_topic_name": "Hotel Rooms"
+        },
+        {
+          "id": "page_00006",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_6",
+          "title": "Section 6",
+          "text": "## Club Room\n- Features: Balcony with stunning valley views",
+          "topics": [
+            "hotel_rooms",
+            "luxury_accommodations"
+          ],
+          "char_count": 59,
+          "primary_topic_name": "Hotel Rooms"
+        },
+        {
+          "id": "page_00007",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_7",
+          "title": "Section 7",
+          "text": "## Presidential Suite\n- Views: Exclusive river views\n- Amenities: Premium luxury amenities",
+          "topics": [
+            "hotel_rooms",
+            "luxury_accommodations"
+          ],
+          "char_count": 90,
+          "primary_topic_name": "Hotel Rooms"
+        },
+        {
+          "id": "page_00008",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_8",
+          "title": "Section 8",
+          "text": "=== Dining & Restaurants ===\n## Café Vindhyas\n- Cuisine: Himachali and global cuisines\n- Location: Shuru, Naggar Road\n- Features: Scenic views, bar\n- Dining options: Breakfast, lunch, dinner",
+          "topics": [
+            "dining_options",
+            "hotel_restaurants"
+          ],
+          "char_count": 190,
+          "primary_topic_name": "Dining Options"
+        },
+        {
+          "id": "page_00009",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_9",
+          "title": "Section 9",
+          "text": "=== Amenities & Facilities ===\n- Pool: Heated swimming pool\n- Spa: Available\n- Fitness: Fitness center\n- Wellness: Yoga and meditation sessions\n- Wi-Fi: Free WiFi\n- Parking: Free parking, EV charging station\n- Recreation: Indoor games room",
+          "topics": [
+            "hotel_amenities",
+            "wellness_and_recreation"
+          ],
+          "char_count": 239,
+          "primary_topic_name": "Hotel Amenities"
+        },
+        {
+          "id": "page_00010",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_10",
+          "title": "Section 10",
+          "text": "=== Spa & Wellness ===\n- Spa: Available\n- Wellness: Yoga and meditation sessions\n- Fitness center: Available",
+          "topics": [
+            "spa_and_wellness",
+            "hotel_amenities"
+          ],
+          "char_count": 108,
+          "primary_topic_name": "Spa and Wellness"
+        },
+        {
+          "id": "page_00011",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_11",
+          "title": "Section 11",
+          "text": "=== Meetings & Events ===\n## The Chamber\n- Area: 3600 sq. ft.\n- Capacity: 75-80 (Cluster), 120 (Theatre)\n- Features: Modern AV facilities, curated catering, versatile layouts",
+          "topics": [
+            "meetings_and_events",
+            "hotel_facilities"
+          ],
+          "char_count": 174,
+          "primary_topic_name": "Meetings and Events"
+        },
+        {
+          "id": "page_00012",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_12",
+          "title": "Section 12",
+          "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "hotel_policies"
+          ],
+          "char_count": 61,
+          "primary_topic_name": "Hotel Policies"
+        },
+        {
+          "id": "page_00013",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_13",
+          "title": "Section 13",
+          "text": "=== Location & Transport ===\nAddress: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN \nNearby landmarks:\n - Mall Road: 5 miles\n - Hadimba Temple: Nearby\n - Solang Valley: 11 miles\n - Rohtang Pass: 30 miles\n - Atal Tunnel: 20 miles",
+          "topics": [
+            "hotel_location",
+            "nearby_attractions"
+          ],
+          "char_count": 239,
+          "primary_topic_name": "Hotel Location"
+        },
+        {
+          "id": "page_00014",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_14",
+          "title": "Section 14",
+          "text": "=== Contact Information ===\nPhone: +91 9169166789 \nEmail: resv.manali@orchidhotel.com, reservations@orchidhotel.com",
+          "topics": [
+            "contact_information"
+          ],
+          "char_count": 115,
+          "primary_topic_name": "Contact Information"
+        },
+        {
+          "id": "page_00015",
+          "document_id": "doc_001_171dc59403",
+          "source_name": "e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\kebomain\\kebo-main\\config\\knowledge_base\\uploads\\orchid_manali\\e2e0c81b_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_15",
+          "title": "Section 15",
+          "text": "=== Special Offers & Packages ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "special_offers",
+            "hotel_packages"
+          ],
+          "char_count": 70,
+          "primary_topic_name": "Special Offers"
+        }
+      ],
+      "books": [
+        {
+          "id": "contact_information",
+          "title": "Contact Information",
+          "aliases": [
+            "contact_information"
+          ],
+          "keywords": [
+            "14",
+            "91",
+            "9169166789",
+            "com",
+            "contact",
+            "email",
+            "manali",
+            "orchidhotel",
+            "phone",
+            "reservations",
+            "resv"
+          ],
+          "page_ids": [
+            "page_00014"
+          ],
+          "page_count": 1,
+          "char_count": 115,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "dining_options",
+          "title": "Dining Options",
+          "aliases": [
+            "dining_options"
+          ],
+          "keywords": [
+            "bar",
+            "breakfast",
+            "caf",
+            "cuisine",
+            "cuisines",
+            "dining",
+            "dinner",
+            "features",
+            "global",
+            "himachali",
+            "location",
+            "lunch",
+            "naggar",
+            "options",
+            "restaurants",
+            "road",
+            "scenic",
+            "shuru",
+            "views",
+            "vindhyas"
+          ],
+          "page_ids": [
+            "page_00008"
+          ],
+          "page_count": 1,
+          "char_count": 190,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "family_accommodations",
+          "title": "Family Accommodations",
+          "aliases": [
+            "family_accommodations"
+          ],
+          "keywords": [
+            "families",
+            "family",
+            "layout",
+            "panoramic",
+            "premier",
+            "room",
+            "spacious",
+            "suitable",
+            "valley",
+            "views"
+          ],
+          "page_ids": [
+            "page_00005"
+          ],
+          "page_count": 1,
+          "char_count": 98,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_amenities",
+          "title": "Hotel Amenities",
+          "aliases": [
+            "hotel_amenities"
+          ],
+          "keywords": [
+            "10",
+            "amenities",
+            "available",
+            "center",
+            "charging",
+            "ev",
+            "facilities",
+            "fi",
+            "fitness",
+            "free",
+            "games",
+            "heated",
+            "indoor",
+            "meditation",
+            "parking",
+            "pool",
+            "recreation",
+            "room",
+            "sessions",
+            "spa",
+            "station",
+            "swimming",
+            "wellness",
+            "wi",
+            "wifi",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00009",
+            "page_00010"
+          ],
+          "page_count": 2,
+          "char_count": 347,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_facilities",
+          "title": "Hotel Facilities",
+          "aliases": [
+            "hotel_facilities"
+          ],
+          "keywords": [
+            "11",
+            "120",
+            "3600",
+            "75",
+            "80",
+            "area",
+            "av",
+            "capacity",
+            "catering",
+            "chamber",
+            "cluster",
+            "curated",
+            "events",
+            "facilities",
+            "features",
+            "ft",
+            "layouts",
+            "meetings",
+            "modern",
+            "sq",
+            "theatre",
+            "versatile"
+          ],
+          "page_ids": [
+            "page_00011"
+          ],
+          "page_count": 1,
+          "char_count": 174,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_information",
+          "title": "Hotel Information",
+          "aliases": [
+            "hotel_information"
+          ],
+          "keywords": [
+            "03",
+            "08",
+            "10",
+            "2026",
+            "30",
+            "46",
+            "base",
+            "com",
+            "generated",
+            "generator",
+            "https",
+            "kb",
+            "khil",
+            "knowledge",
+            "manali",
+            "orchid",
+            "property",
+            "scraper",
+            "source",
+            "utc",
+            "v1",
+            "www"
+          ],
+          "page_ids": [
+            "page_00001"
+          ],
+          "page_count": 1,
+          "char_count": 281,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_location",
+          "title": "Hotel Location",
+          "aliases": [
+            "hotel_location"
+          ],
+          "keywords": [
+            "11",
+            "13",
+            "175143",
+            "20",
+            "30",
+            "address",
+            "atal",
+            "hadimba",
+            "himachal",
+            "in",
+            "landmarks",
+            "location",
+            "mall",
+            "manali",
+            "miles",
+            "naggar",
+            "nearby",
+            "pass",
+            "pradesh",
+            "road",
+            "rohtang",
+            "shuru",
+            "solang",
+            "temple",
+            "transport",
+            "tunnel",
+            "valley"
+          ],
+          "page_ids": [
+            "page_00013"
+          ],
+          "page_count": 1,
+          "char_count": 239,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_overview",
+          "title": "Hotel Overview",
+          "aliases": [
+            "hotel_overview"
+          ],
+          "keywords": [
+            "175143",
+            "address",
+            "attractions",
+            "boutique",
+            "brand",
+            "canonical",
+            "dining",
+            "eco",
+            "facilities",
+            "focus",
+            "friendly",
+            "hadimba",
+            "himachal",
+            "hotels",
+            "in",
+            "located",
+            "luxury",
+            "mall",
+            "manali",
+            "naggar",
+            "name",
+            "near",
+            "notes",
+            "offers",
+            "on",
+            "orchid",
+            "other",
+            "overview",
+            "positioning",
+            "practices",
+            "pradesh",
+            "property",
+            "rating",
+            "road",
+            "rooms",
+            "shuru",
+            "solang",
+            "star",
+            "suites",
+            "temple",
+            "type",
+            "valley",
+            "wellness"
+          ],
+          "page_ids": [
+            "page_00002"
+          ],
+          "page_count": 1,
+          "char_count": 442,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_packages",
+          "title": "Hotel Packages",
+          "aliases": [
+            "hotel_packages"
+          ],
+          "keywords": [
+            "15",
+            "found",
+            "not",
+            "offers",
+            "on",
+            "packages",
+            "pages",
+            "reviewed",
+            "special",
+            "status"
+          ],
+          "page_ids": [
+            "page_00015"
+          ],
+          "page_count": 1,
+          "char_count": 70,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_policies",
+          "title": "Hotel Policies",
+          "aliases": [
+            "hotel_policies"
+          ],
+          "keywords": [
+            "12",
+            "found",
+            "not",
+            "on",
+            "pages",
+            "policies",
+            "reviewed",
+            "rules",
+            "status"
+          ],
+          "page_ids": [
+            "page_00012"
+          ],
+          "page_count": 1,
+          "char_count": 61,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_restaurants",
+          "title": "Hotel Restaurants",
+          "aliases": [
+            "hotel_restaurants"
+          ],
+          "keywords": [
+            "bar",
+            "breakfast",
+            "caf",
+            "cuisine",
+            "cuisines",
+            "dining",
+            "dinner",
+            "features",
+            "global",
+            "himachali",
+            "location",
+            "lunch",
+            "naggar",
+            "options",
+            "restaurants",
+            "road",
+            "scenic",
+            "shuru",
+            "views",
+            "vindhyas"
+          ],
+          "page_ids": [
+            "page_00008"
+          ],
+          "page_count": 1,
+          "char_count": 190,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_rooms",
+          "title": "Hotel Rooms",
+          "aliases": [
+            "hotel_rooms"
+          ],
+          "keywords": [
+            "amenities",
+            "balcony",
+            "club",
+            "deluxe",
+            "exclusive",
+            "families",
+            "family",
+            "features",
+            "layout",
+            "luxury",
+            "modern",
+            "mountain",
+            "overlooking",
+            "panoramic",
+            "premier",
+            "premium",
+            "presidential",
+            "private",
+            "river",
+            "room",
+            "rooms",
+            "scenic",
+            "spacious",
+            "stunning",
+            "suitable",
+            "suite",
+            "suites",
+            "valley",
+            "valleys",
+            "view",
+            "views"
+          ],
+          "page_ids": [
+            "page_00003",
+            "page_00004",
+            "page_00005",
+            "page_00006",
+            "page_00007"
+          ],
+          "page_count": 5,
+          "char_count": 420,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "luxury_accommodations",
+          "title": "Luxury Accommodations",
+          "aliases": [
+            "luxury_accommodations"
+          ],
+          "keywords": [
+            "amenities",
+            "balcony",
+            "club",
+            "deluxe",
+            "exclusive",
+            "features",
+            "luxury",
+            "modern",
+            "mountain",
+            "overlooking",
+            "premier",
+            "premium",
+            "presidential",
+            "private",
+            "river",
+            "room",
+            "rooms",
+            "scenic",
+            "stunning",
+            "suite",
+            "suites",
+            "valley",
+            "valleys",
+            "view",
+            "views"
+          ],
+          "page_ids": [
+            "page_00003",
+            "page_00004",
+            "page_00006",
+            "page_00007"
+          ],
+          "page_count": 4,
+          "char_count": 322,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "luxury_hotels",
+          "title": "Luxury Hotels",
+          "aliases": [
+            "luxury_hotels"
+          ],
+          "keywords": [
+            "175143",
+            "address",
+            "attractions",
+            "boutique",
+            "brand",
+            "canonical",
+            "dining",
+            "eco",
+            "facilities",
+            "focus",
+            "friendly",
+            "hadimba",
+            "himachal",
+            "hotels",
+            "in",
+            "located",
+            "luxury",
+            "mall",
+            "manali",
+            "naggar",
+            "name",
+            "near",
+            "notes",
+            "offers",
+            "on",
+            "orchid",
+            "other",
+            "overview",
+            "positioning",
+            "practices",
+            "pradesh",
+            "property",
+            "rating",
+            "road",
+            "rooms",
+            "shuru",
+            "solang",
+            "star",
+            "suites",
+            "temple",
+            "type",
+            "valley",
+            "wellness"
+          ],
+          "page_ids": [
+            "page_00002"
+          ],
+          "page_count": 1,
+          "char_count": 442,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "meetings_and_events",
+          "title": "Meetings and Events",
+          "aliases": [
+            "meetings_and_events"
+          ],
+          "keywords": [
+            "11",
+            "120",
+            "3600",
+            "75",
+            "80",
+            "area",
+            "av",
+            "capacity",
+            "catering",
+            "chamber",
+            "cluster",
+            "curated",
+            "events",
+            "facilities",
+            "features",
+            "ft",
+            "layouts",
+            "meetings",
+            "modern",
+            "sq",
+            "theatre",
+            "versatile"
+          ],
+          "page_ids": [
+            "page_00011"
+          ],
+          "page_count": 1,
+          "char_count": 174,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "nearby_attractions",
+          "title": "Nearby Attractions",
+          "aliases": [
+            "nearby_attractions"
+          ],
+          "keywords": [
+            "11",
+            "13",
+            "175143",
+            "20",
+            "30",
+            "address",
+            "atal",
+            "hadimba",
+            "himachal",
+            "in",
+            "landmarks",
+            "location",
+            "mall",
+            "manali",
+            "miles",
+            "naggar",
+            "nearby",
+            "pass",
+            "pradesh",
+            "road",
+            "rohtang",
+            "shuru",
+            "solang",
+            "temple",
+            "transport",
+            "tunnel",
+            "valley"
+          ],
+          "page_ids": [
+            "page_00013"
+          ],
+          "page_count": 1,
+          "char_count": 239,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "spa_and_wellness",
+          "title": "Spa and Wellness",
+          "aliases": [
+            "spa_and_wellness"
+          ],
+          "keywords": [
+            "10",
+            "available",
+            "center",
+            "fitness",
+            "meditation",
+            "sessions",
+            "spa",
+            "wellness",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00010"
+          ],
+          "page_count": 1,
+          "char_count": 108,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "special_offers",
+          "title": "Special Offers",
+          "aliases": [
+            "special_offers"
+          ],
+          "keywords": [
+            "15",
+            "found",
+            "not",
+            "offers",
+            "on",
+            "packages",
+            "pages",
+            "reviewed",
+            "special",
+            "status"
+          ],
+          "page_ids": [
+            "page_00015"
+          ],
+          "page_count": 1,
+          "char_count": 70,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "wellness_and_recreation",
+          "title": "Wellness And Recreation",
+          "aliases": [
+            "wellness_and_recreation"
+          ],
+          "keywords": [
+            "amenities",
+            "available",
+            "center",
+            "charging",
+            "ev",
+            "facilities",
+            "fi",
+            "fitness",
+            "free",
+            "games",
+            "heated",
+            "indoor",
+            "meditation",
+            "parking",
+            "pool",
+            "recreation",
+            "room",
+            "sessions",
+            "spa",
+            "station",
+            "swimming",
+            "wellness",
+            "wi",
+            "wifi",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00009"
+          ],
+          "page_count": 1,
+          "char_count": 239,
+          "sources": [
+            "e2e0c81b_the_orchid_hotel_manali_kb.txt"
+          ]
+        }
+      ],
+      "coverage": {
+        "total_pages": 15,
+        "covered_pages": 15,
+        "uncovered_pages": 0,
+        "coverage_ratio": 1.0
+      }
+    }
+  },
+  "ui_settings": {
+    "theme": {
+      "primary_color": "#2563eb",
+      "accent_color": "#22c55e",
+      "background_color": "#f8fafc",
+      "text_color": "#1e293b"
+    },
+    "widget": {
+      "position": "right",
+      "show_branding": true,
+      "compact_mode": false
+    },
+    "channels": {
+      "web_widget": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": true
+      }
+    },
+    "industry_features": []
+  },
+  "journey_phases": [
+    {
+      "id": "pre_booking",
+      "name": "Pre Booking",
+      "description": "Guest is exploring and asking questions before reservation confirmation.",
+      "is_active": true,
+      "order": 1
+    },
+    {
+      "id": "pre_checkin",
+      "name": "Pre Checkin",
+      "description": "Guest booking is confirmed and needs support before arrival.",
+      "is_active": true,
+      "order": 2
+    },
+    {
+      "id": "during_stay",
+      "name": "During Stay",
+      "description": "Guest is in-house and needs operational or service support.",
+      "is_active": true,
+      "order": 3
+    },
+    {
+      "id": "post_checkout",
+      "name": "Post Checkout",
+      "description": "Guest has checked out and needs follow-up assistance.",
+      "is_active": true,
+      "order": 4
+    }
+  ],
+  "agent_plugins": {
+    "enabled": true,
+    "shared_context": true,
+    "strict_mode": true,
+    "strict_unavailable_response": "I can only help with configured service-agent data right now. Please contact staff for anything outside this scope.",
+    "plugins": []
+  },
+  "service_kb": {
+    "records": [
+      {
+        "id": "room_booking_kb",
+        "service_id": "room_booking",
+        "plugin_id": "room_booking_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_9b717cb5e7",
+            "text": "room booking is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-30T14:35:39.210703+00:00",
+            "created_at": "2026-03-30T14:35:39.210703+00:00",
+            "updated_at": "2026-03-30T14:35:39.210703+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_06833fac20",
+            "text": "room booking: Allows guests to explore available room options and book a room before their stay.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-30T14:35:39.210943+00:00",
+            "created_at": "2026-03-30T14:35:39.210943+00:00",
+            "updated_at": "2026-03-30T14:35:39.210943+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_3e39ef0792",
+            "text": "Ticketing is enabled for room booking in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-30T14:35:39.211097+00:00",
+            "created_at": "2026-03-30T14:35:39.211097+00:00",
+            "updated_at": "2026-03-30T14:35:39.211097+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_2410a463bf",
+            "text": "Ticketing policy for room booking: Create a backend ticket for room booking when a guest confirms their room selection and provides all required data, including full name, contact information, payment details, and desired check-in and check-out dates.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing_policy"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-30T14:35:39.211205+00:00",
+            "created_at": "2026-03-30T14:35:39.211205+00:00",
+            "updated_at": "2026-03-30T14:35:39.211205+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-30T14:35:39.209041+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-30T14:35:39.209041+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-30T14:35:39.209041+00:00",
+          "compiler_version": "v1",
+          "service_signature": "ad31baf95aba9c4fefc4e7c43324b280fac6391d",
+          "source_signature": "c46a3f84ddd8b6b3670ab3e9fa229056175f44c6",
+          "source_count": 1,
+          "manual_fact_count": 0,
+          "auto_fact_count": 4,
+          "total_fact_count": 4
+        },
+        "extracted_knowledge": "",
+        "generated_extraction_prompt": ""
+      }
+    ],
+    "compiler": {
+      "enabled": true,
+      "max_facts_per_service": 60,
+      "max_source_chars": 220000,
+      "max_sources": 25,
+      "version": "v1"
+    }
+  },
+  "service_agent_releases": [],
+  "runtime": {
+    "menu_runtime_enabled": false,
+    "service_kb_auto_compile": true
+  }
+}

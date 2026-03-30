@@ -1,4 +1,4 @@
-"""
+﻿"""
 Async database layer for NexOria (MySQL).
 
 Defines:
@@ -356,7 +356,7 @@ class BusinessConfig(Base, TimestampMixin):
         nullable=False,
     )
     config_key = Column(String(100), nullable=False)  # e.g., 'business.name', 'business.welcome_message'
-    config_value = Column(Text, nullable=True)  # JSON-encoded value
+    config_value = Column(Text(length=4294967295), nullable=True)  # LONGTEXT JSON payload
 
     hotel = relationship("Hotel", back_populates="business_configs")
 
@@ -427,7 +427,9 @@ class BotService(Base, TimestampMixin):
     is_active = Column(Boolean, nullable=False, server_default=text("1"))
     is_builtin = Column(Boolean, nullable=False, server_default=text("0"))
     ticketing_enabled = Column(Boolean, nullable=False, server_default=text("1"))
+    ticketing_mode = Column(String(20), nullable=True)
     ticketing_policy = Column(Text, nullable=True)
+    form_config = Column(JSON, nullable=True)
     service_prompt_pack = Column(JSON, nullable=True)
     generated_system_prompt = Column(Text, nullable=True)
 
@@ -500,3 +502,60 @@ async def init_db() -> None:
     """Initialize database tables (safe if tables already exist)."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Add columns that may be missing on older deployments.
+    # This is intentionally best-effort and safe to run repeatedly.
+    _new_columns = [
+        ("new_bot_hotels", "timezone", "VARCHAR(50) NULL DEFAULT 'Asia/Kolkata'"),
+        ("new_bot_hotels", "is_active", "BOOLEAN NOT NULL DEFAULT 1"),
+        ("new_bot_services", "type", "VARCHAR(50) NOT NULL DEFAULT 'service'"),
+        ("new_bot_services", "description", "TEXT NULL"),
+        ("new_bot_services", "phase_id", "VARCHAR(50) NULL"),
+        ("new_bot_services", "is_active", "BOOLEAN NOT NULL DEFAULT 1"),
+        ("new_bot_services", "is_builtin", "BOOLEAN NOT NULL DEFAULT 0"),
+        ("new_bot_services", "ticketing_enabled", "BOOLEAN NOT NULL DEFAULT 1"),
+        ("new_bot_services", "ticketing_policy", "TEXT NULL"),
+        ("new_bot_services", "service_prompt_pack", "JSON NULL"),
+        ("new_bot_services", "generated_system_prompt", "TEXT NULL"),
+        ("new_bot_services", "ticketing_mode", "VARCHAR(20) NULL"),
+        ("new_bot_services", "form_config", "JSON NULL"),
+        ("new_bot_kb_files", "content_hash", "VARCHAR(64) NULL"),
+        ("new_bot_business_config", "created_at", "DATETIME NULL DEFAULT CURRENT_TIMESTAMP"),
+        (
+            "new_bot_business_config",
+            "updated_at",
+            "DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
+        ),
+    ]
+    async with engine.begin() as conn:
+        for table, col, col_type in _new_columns:
+            try:
+                await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
+            except Exception:
+                pass  # column already exists
+
+    # Ensure config_value can hold large JSON snapshots (knowledge_base/library index).
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(
+                text("ALTER TABLE new_bot_business_config MODIFY COLUMN config_value LONGTEXT NULL")
+            )
+    except Exception:
+        # Non-MySQL backends (or already-migrated schemas) can safely ignore this.
+        pass
+
+    # Ensure KB and long-form prompt columns can hold large payloads.
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(
+                text("ALTER TABLE new_bot_kb_files MODIFY COLUMN content LONGTEXT NOT NULL")
+            )
+            await conn.execute(
+                text("ALTER TABLE new_bot_services MODIFY COLUMN generated_system_prompt LONGTEXT NULL")
+            )
+            await conn.execute(
+                text("ALTER TABLE new_bot_services MODIFY COLUMN ticketing_policy LONGTEXT NULL")
+            )
+    except Exception:
+        # Non-MySQL backends (or already-migrated schemas) can safely ignore this.
+        pass
