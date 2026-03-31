@@ -1,0 +1,105 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: IRA by Orchid Bhubaneswar
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Field: Canonical property name: IRA by Orchid Bhubaneswar  
+Field: Brand: Orchid Hotels  
+Field: Property type: Business Hotel  
+Field: Address: A/19, Cuttack - Puri Rd, near Jatri Niwas, Laxmisagar, Bhubaneswar, Odisha, 751006, IN  
+Field: Star rating: 4.5/5  
+Field: Check-in: 14:00  
+Field: Check-out: 12:00  
+Field: Location summary: Near Bhubaneswar Airport (5 km) and Railway Station (1.5 km); close to Jaydev Vihar, Patia, KIIT University, Kalinga Stadium, Nayapalli, Infocity, and Chandrasekharpur  
+Field: Overview notes: Offers premium accommodations and facilities for business and leisure travelers.
+
+=== Rooms & Suites ===
+## Suite Room with Separate Living Area
+- Room Size: 400 sq. ft.
+- Bed Configuration: King-size bed
+- Occupancy: 1-4
+- Views: Not specified
+- In-room amenities:
+  - Air-conditioning
+  - Separate living and dining area
+  - 55-inch Smart LED TV
+  - Ergonomic work desk
+  - High-speed Wi-Fi
+  - Tea & coffee maker
+  - Mini bar
+  - Electronic safe
+  - Premium bath amenities
+  - Bathrobe and bath slippers
+  - Complimentary bottled water
+  - 24-hour room service
+  - Laundry service
+  - Iron & ironing board
+- Inclusions: Complimentary two-way airport transfer
+
+=== Dining & Restaurants ===
+## The Melting Pot
+- Cuisine: Vegetarian and non-vegetarian, regional favorites, and global cuisine
+- Signature Dishes: Mustard Pomfret Curry, Chicken Lasooni Kebab
+- Dining Features: Cozy poolside dining area
+
+=== Amenities & Facilities ===
+- Wi-Fi: Free high-speed Wi-Fi
+- Business Services: Ergonomic work desk
+- Laundry: Available
+- Other Guest Services:
+  - 24-hour room service
+  - Concierge services
+  - Travel assistance
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+## Chamber Hall
+- Type: Banquet Hall & Wedding Venue
+- Size: 1500 sq. ft.
+- Capacity: Up to 150 guests
+- Features: Sophisticated décor, premium amenities, modern lighting, state-of-the-art audio-visual facilities
+
+## Board Room
+- Type: Conference Hall
+- Capacity: Up to 12 guests
+- Features: Modern amenities, ergonomic seating, advanced audio-visual support
+
+## Senate 1
+- Type: Conference Hall
+- Size: 1144 sq. ft.
+- Capacity: Up to 100 guests
+- Features: High-quality AV support, ergonomic seating, premium layout
+
+=== Policies & Rules ===
+## Cancellation Policy
+- Full refund if cancellation is done 1 or more days prior to arrival.
+- Full amount charged if cancellation is done within 24 hours of arrival.
+
+=== Location & Transport ===
+Field: Address: A/19, Cuttack - Puri Rd, near Jatri Niwas, Laxmisagar, Bhubaneswar, Odisha, 751006, IN  
+Field: Airport Access: 5 km from Biju Patnaik International Airport  
+Field: Railway Station Access: 1.5 km from Bhubaneswar Railway Station  
+Field: Nearby Landmarks: Jaydev Vihar, Patia, KIIT University, Kalinga Stadium, Nayapalli, Infocity, Chandrasekharpur  
+Nearby Attractions:
+- Qadam-I-Rasool – 1.0 km
+- Odisha State Museum – 2.6 km
+- Odissi Research Centre – 3.0 km
+- Regional Science Centre – 3 min drive
+- Lingaraj Temple
+- Nandankanan Zoological Park
+- Mukteswara Temple
+- Udayagiri and Khandagiri Caves
+- Brahmeswar Temple
+
+=== Contact Information ===
+Field: Phone: +91 8652636363  
+Field: Email: reservations@orchidhotel.com  
+
+=== Special Offers & Packages ===
+Status: Not found on reviewed pages.

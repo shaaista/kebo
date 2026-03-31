@@ -1,0 +1,85 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: The Orchid Hotel Pune
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Field: Canonical property name: The Orchid Hotel Pune  
+Field: Brand: Orchid Hotels  
+Field: Property type: 5-star luxury hotel  
+Field: Address: SHREE SHIV CHHATRAPATI SPORTS COMPLEX, Bengaluru - Mumbai Hwy, adjacent Chhatrapati Shivaji Maharaj Road, National Games Park, Balewadi, Pune, Maharashtra, 411045, IN  
+Field: Star rating: 5/5  
+Field: Location summary: Near Balewadi Sports Complex and Hinjewadi IT Park, approximately 10 to 15 minutes from Pune International Airport  
+Field: Overview notes: The Orchid Hotel Pune offers elegantly designed rooms and suites, fine-dining restaurants, an outdoor swimming pool, spa, and modern fitness center. Known for sustainable hospitality, it includes expansive banquet halls, conference venues, and wedding spaces.
+
+=== Rooms & Suites ===
+Status: Not found on reviewed pages.
+
+=== Dining & Restaurants ===
+## Boulevard
+- Type: 24-hour coffee shop
+- Cuisine: North Indian, Chinese, Continental, Italian
+- Features: Breakfast, lunch, dinner, midnight buffet, live music, online reservations
+
+## The Gourmet Shop
+- Type: Café
+- Offerings: Freshly baked pastries, desserts, chocolates, light bites
+- Features: Cozy setting, online reservations
+
+## Pink Frangipani
+- Type: Rooftop restaurant
+- Cuisine: Multi-cuisine
+- Features: Open bar, suitable for celebrations, online reservations
+
+- Authentic Maharashtrian, Indian, and global cuisines
+- Rooftop dining, lounge, and cafe available
+- Online table reservations offered
+
+=== Amenities & Facilities ===
+- Free WiFi
+- Swimming Pool
+- EV Charging Station
+- Oxy Gym
+- Banquet Halls
+- Airport Transfers
+- Multi-cuisine Restaurants
+- Wheelchair Accessible
+- Family-Friendly
+- Free Breakfast
+- Business Center
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+- Premium banquet halls for weddings, receptions, conferences, corporate events, and social celebrations
+- Modern conference rooms with high-speed Wi-Fi and advanced AV equipment
+- Flexible banquet spaces for meetings, workshops, and annual events
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+Field: Address: SHREE SHIV CHHATRAPATI SPORTS COMPLEX, Bengaluru - Mumbai Hwy, adjacent Chhatrapati Shivaji Maharaj Road, National Games Park, Balewadi, Pune, Maharashtra, 411045, IN  
+Field: Airport access: Approximately 10 to 15 minutes from Pune International Airport  
+Field: Nearby landmarks: Balewadi Sports Complex, Hinjewadi IT Park, National Games Park  
+Field: Nearby attractions:
+  - Sri Balaji Mandir: 4.6 km
+  - Chaturshringi Temple: 8 km
+  - Shaniwar Wada: 15 km
+  - Aga Khan Palace: 12 km
+  - Sinhagad Fort: 35 km
+  - Bund Garden: 14 km
+
+=== Contact Information ===
+Field: Phone: +91 91691 66789  
+Field: Email: resv.pune@orchidhotel.com, reservations@orchidhotel.com  
+Field: Website: https://www.orchidhotel.com/pune/
+
+=== Special Offers & Packages ===
+- Weekend staycations
+- Exclusive dining deals
+- Direct booking discounts

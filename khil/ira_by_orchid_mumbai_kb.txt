@@ -1,0 +1,123 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: IRA by Orchid Mumbai
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+- Canonical property name: IRA by Orchid Mumbai
+- Brand: Orchid Hotels
+- Property type: Hotel
+- Positioning: Premium budget to mid-range
+- Address: Near Chakala Metro Station, Andheri Kurla Road, Sahar Airport Rd, Zone, Andheri East, Mumbai, MH, 400059, IN
+- Location summary: Approximately 1.5 km from Chhatrapati Shivaji Maharaj International Airport Terminal 2 (CSMIA T2), Andheri East
+- Check-in: 2 PM
+- Check-out: 12 PM
+- Star rating: Not specified
+- Inventory totals: Not specified
+- Overview notes: Offers quick and flexible check-in, comfortable rooms, on-site dining, high-speed Wi-Fi, and is ideal for transit passengers needing short stays near CSMIA Terminal 2.
+
+=== Rooms & Suites ===
+
+## Deluxe Room
+- Size: 238 sq. ft.
+- Bed configuration: King or twin bed
+- Rate: INR 5,156/night + taxes
+- Amenities: Plush bedding, ergonomic workspace, high-speed Wi-Fi, flat-screen TV, air conditioning, in-room safe
+- Occupancy: Ideal for solo business travelers
+
+## Executive Room
+- Size: 318 sq. ft.
+- Bed configuration: King bed with sofa seating area
+- Rate: INR 5,952/night + taxes
+- Amenities: Includes all Deluxe amenities plus sofa seating
+- Occupancy: Suitable for multi-night business stays
+
+## Club Deluxe Room
+- Size: 238 sq. ft.
+- Bed configuration: King or twin bed
+- Rate: INR 6,655/night + taxes
+- Amenities: Club floor access, Happy Hours inclusion
+- Occupancy: Frequent corporate travelers
+
+## Club Executive Room
+- Size: 318 sq. ft.
+- Bed configuration: King bed, sofa seating
+- Rate: INR 7,124/night + taxes
+- Amenities: Club floor access, Happy Hours
+- Occupancy: Senior corporate travelers
+
+## Suite
+- Size: 740 sq. ft.
+- Rate: INR 7,734/night + taxes
+- Amenities: Separate living area, complimentary two-way airport transfer
+- Occupancy: Extended stays, VIP guests, families
+
+=== Dining & Restaurants ===
+
+## All-Day Restaurant
+- Cuisine: Multi-cuisine (Indian, Continental, Chinese)
+- Meal services: Breakfast (buffet and a la carte), lunch, dinner
+- Access: Open to hotel guests and walk-in diners
+
+## Café
+- Format: Quick-service
+- Offerings: Tea, coffee, snacks, light bites
+
+## Bar
+- Offerings: Domestic and imported liquors, wines, beers, cocktails
+- Access: Hotel guests and non-resident visitors
+
+## 24-Hour Room Service
+- Availability: Full menu around the clock
+
+=== Amenities & Facilities ===
+- Wi-Fi: Complimentary high-speed Wi-Fi throughout the property
+- Business services: Ergonomic workspaces, in-house conference and meeting rooms
+- Parking: Available
+- Family amenities: Connecting rooms available on request
+- Other guest services: 24-hour front desk, room service
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+
+## Banquet Halls
+- Configurations: Theatre, classroom, U-shape, banquet, cocktail
+- Features: Natural light, air-conditioned, AV equipment
+- Catering: Customised F&B menus
+
+## Conference Rooms
+- Capacities: 10 to 150 delegates
+- Features: High-speed Wi-Fi, A/V support, breakout spaces
+- Booking: Flexible half-day and full-day formats
+
+## Weddings
+- Features: Mehendi, sangeet, engagement, reception hall configurations, in-house décor coordination, dedicated wedding planning team
+
+=== Policies & Rules ===
+- Early check-in and late checkout: Available subject to availability, request at booking
+- Cancellation Policy: 
+  - If cancellation is done 1 or more days prior to arrival, full amount will be refunded.
+  - If cancellation is done within 24 hours of arrival, full amount will be charged.
+- Other policies: Not specified
+
+=== Location & Transport ===
+- Address: Near Chakala Metro Station, Andheri Kurla Road, Sahar Airport Rd, Zone, Andheri East, Mumbai, MH, 400059, IN
+- Airport access: Approximately 1.5 km from CSMIA T2
+- Transport options: Pre-paid taxis, Ola, Uber
+- Nearby landmarks: Chakala Metro Station, MIDC Andheri, SEEPZ, Bandra Kurla Complex, Powai, Saki Naka, Lokhandwala Complex, Versova/Juhu Beach
+
+=== Contact Information ===
+- Phone: +91 9169166789
+- Email: reservations@orchidhotel.com
+
+=== Special Offers & Packages ===
+- Direct Booking Offer: Best rate guaranteed on the hotel website
+- Flash Sale Rates: Time-limited promotional rates
+- Corporate Rate Agreements: Negotiated rates for frequent corporate travellers
+- Extended Stay Rates: Discounted weekly and monthly rates
+- Event Package Rates: Combined room and banquet packages

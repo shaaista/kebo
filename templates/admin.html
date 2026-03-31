@@ -840,6 +840,13 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label>Expected Property Count</label>
+                        <input type="number" min="0" max="50" class="form-control" id="cfg-kb-property-count" placeholder="0 = not specified">
+                        <div style="font-size:0.82rem; color:#6b7280; margin-top:6px;">
+                            Use this only as an indexing constraint when the KB contains multiple real hotel properties/locations.
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Knowledge Notes</label>
                         <textarea class="form-control" id="cfg-kb-notes" rows="2" placeholder="Any additional context for this business"></textarea>
                     </div>
@@ -2615,7 +2622,14 @@
                 }
                 if (data.extracted_knowledge) {
                     document.getElementById('new-svc-kb-knowledge').value = data.extracted_knowledge;
-                    statusEl.textContent = 'Knowledge pulled - review and edit as needed.';
+                    const detectedCount = Number(data.detected_property_count || 0) || 0;
+                    const expectedCount = Number(data.expected_property_count || 0) || 0;
+                    const mode = String(data.property_scope_mode || '').trim();
+                    const detectedNames = Array.isArray(data.detected_properties) ? data.detected_properties.filter(Boolean) : [];
+                    const mismatchNote = data.count_mismatch ? ' Count mismatch detected.' : '';
+                    const expectedNote = expectedCount > 0 ? ` Expected ${expectedCount}.` : '';
+                    const detectedNote = detectedCount > 0 ? ` Detected ${detectedCount}${detectedNames.length ? `: ${detectedNames.join(', ')}` : ''}.` : '';
+                    statusEl.textContent = `Knowledge pulled${mode ? ` (${mode})` : ''} - review and edit as needed.${expectedNote}${detectedNote}${mismatchNote}`;
                     statusEl.style.color = '#16a34a';
                 } else {
                     statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;
@@ -3349,6 +3363,7 @@
 
                 document.getElementById('cfg-kb-sources').value = joinLines(sources);
                 document.getElementById('cfg-kb-notes').value = knowledge.notes || '';
+                document.getElementById('cfg-kb-property-count').value = Number(knowledge.expected_property_count || 0) || 0;
                 document.getElementById('cfg-nlu-dos').value = joinLines(nlu.dos || []);
                 document.getElementById('cfg-nlu-donts').value = joinLines(nlu.donts || []);
                 ragFileSelectionDraft = new Set(sources);
@@ -3364,6 +3379,7 @@
             const data = {
                 sources: splitLines(document.getElementById('cfg-kb-sources').value),
                 notes: document.getElementById('cfg-kb-notes').value,
+                expected_property_count: Number(document.getElementById('cfg-kb-property-count').value || 0) || 0,
                 nlu_policy: {
                     dos: splitLines(document.getElementById('cfg-nlu-dos').value),
                     donts: splitLines(document.getElementById('cfg-nlu-donts').value)
@@ -5507,7 +5523,14 @@
                 if (data.extracted_knowledge) {
                     const existing = (kbTextarea.value || '').trim();
                     kbTextarea.value = existing ? existing + '\n\n---\n\n' + data.extracted_knowledge : data.extracted_knowledge;
-                    statusEl.textContent = 'KB knowledge added - review and edit as needed.';
+                    const detectedCount = Number(data.detected_property_count || 0) || 0;
+                    const expectedCount = Number(data.expected_property_count || 0) || 0;
+                    const mode = String(data.property_scope_mode || '').trim();
+                    const detectedNames = Array.isArray(data.detected_properties) ? data.detected_properties.filter(Boolean) : [];
+                    const mismatchNote = data.count_mismatch ? ' Count mismatch detected.' : '';
+                    const expectedNote = expectedCount > 0 ? ` Expected ${expectedCount}.` : '';
+                    const detectedNote = detectedCount > 0 ? ` Detected ${detectedCount}${detectedNames.length ? `: ${detectedNames.join(', ')}` : ''}.` : '';
+                    statusEl.textContent = `KB knowledge added${mode ? ` (${mode})` : ''} - review and edit as needed.${expectedNote}${detectedNote}${mismatchNote}`;
                     statusEl.style.color = '#16a34a';
                 } else {
                     statusEl.textContent = `Nothing extracted (${data.reason || 'no KB content found'}).`;

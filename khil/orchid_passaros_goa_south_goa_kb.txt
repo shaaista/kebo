@@ -1,0 +1,99 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: Orchid Passaros Goa South Goa
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Field: Canonical property name: Orchid Passaros Goa South Goa  
+Field: Brand: Orchid Hotels  
+Field: Property type: Luxury adult-only resort  
+Field: Positioning: Romantic seaside retreat for couples and honeymooners  
+Field: Address: Benaulim Beach Road, Via Maria Hall, Vaswaddo, Benaulim, Goa, 403716, IN  
+Field: Star rating: 5-star  
+Field: Check-in: 14:00  
+Field: Check-out: 12:00  
+Field: Overview notes: Located 270 meters from Benaulim Beach, offering a blend of natural beauty and luxury, ideal for romantic getaways.
+
+=== Rooms & Suites ===
+
+## Sunbird Haven
+- Description: Romantic luxury room designed for couples
+- Occupancy: 2
+- Amenities: Intercom, Television, Wi-Fi, Tea & Coffee Maker, Mini Fridge, Locker
+
+## Kingfisher Haven
+- Description: Luxury room with modern comforts and private balcony
+- Occupancy: 2
+- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Private Balcony
+
+## Bulbul Nest
+- Description: Luxury room featuring a private Jacuzzi
+- Occupancy: 2
+- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Jacuzzi
+
+## Bee Eater Oasis
+- Description: Cozy romantic hideaway
+- Occupancy: 2
+- Amenities: Locker, Mini Fridge, Tea & Coffee Maker
+
+## Treepie Retreat
+- Description: Luxury room with intimate ambiance
+- Occupancy: 2
+- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Intercom, Television, Wi-Fi
+
+=== Dining & Restaurants ===
+
+## Tipsy Sparrow
+- Type: All-day dining restaurant
+- Cuisine: Goan, International
+- Location: Steps from Benaulim Beach
+- Features: Intimate and relaxed setting
+
+## Splash Poolbar
+- Type: Poolside bar
+- Features: Swim-up bar, chilled cocktails, craft beers, shareable bites
+
+## Falcon Bar & Grills
+- Type: Open-air grill house
+- Features: Wood-fired flavors, handcrafted cocktails, ocean breeze ambiance
+
+=== Amenities & Facilities ===
+- Pool: Infinity pool
+- Wi-Fi: Available
+- Spa: Couple spa experiences
+- Accessibility: Adults-only property
+
+=== Spa & Wellness ===
+
+## Feather Touch Couple Spa
+- Type: Couples spa
+- Location: Within Orchid Passaros, 3-minute walk from Benaulim Beach
+- Features: Side-by-side treatment rooms, candlelight ambiance
+- Signature Treatments: Warm herbal foot soak, synchronized massages with coconut oil and Goan lemongrass
+- Hours: Mo-Su 10:00-20:00
+
+=== Meetings & Events ===
+
+## Hornbill Banquet
+- Description: Intimate banquet hall
+- Capacity: 25-60 guests
+- Features: Tropical calm setting, catering service, audio-visual equipment, flexible seating arrangements, parking facility
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+Field: Address: Benaulim Beach Road, Via Maria Hall, Vaswaddo, Benaulim, Goa, 403716, IN  
+Field: Nearby landmarks: Benaulim Beach, Colva Beach, Margao Market  
+Field: Travel convenience notes: Located just 270 meters from Benaulim Beach
+
+=== Contact Information ===
+Field: Phone: +91 916 916 6789  
+Field: Email: reservations@orchidhotel.com  
+Field: Website: https://orchidresortgoa.com/
+
+=== Special Offers & Packages ===
+Status: Not found on reviewed pages.

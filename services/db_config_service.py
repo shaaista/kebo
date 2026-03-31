@@ -269,6 +269,59 @@ class DBConfigService:
         await self._save_json_section_to_db(section_id, payload)
         return True
 
+    async def get_service_kb_records(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        plugin_id: Optional[str] = None,
+        active_only: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """Return normalized service_kb records from the DB-backed JSON section."""
+        section = await self.get_json_section("service_kb", default=None)
+        if not isinstance(section, dict):
+            return []
+        records = section.get("records", [])
+        if not isinstance(records, list):
+            return []
+
+        from services.config_service import config_service as _cs
+
+        normalized_service = self._normalize_identifier(service_id)
+        normalized_plugin = self._normalize_identifier(plugin_id)
+        filtered: list[dict[str, Any]] = []
+        for record in records:
+            normalized = _cs._normalize_service_kb_record(record)
+            if not normalized:
+                continue
+            record_service = self._normalize_identifier(normalized.get("service_id"))
+            record_plugin = self._normalize_identifier(normalized.get("plugin_id"))
+            if normalized_service and record_service != normalized_service:
+                continue
+            if normalized_plugin and record_plugin != normalized_plugin:
+                continue
+            if active_only and not bool(normalized.get("is_active", True)):
+                continue
+            filtered.append(normalized)
+        return filtered
+
+    async def get_service_kb_record(
+        self,
+        *,
+        service_id: Optional[str] = None,
+        plugin_id: Optional[str] = None,
+        active_only: bool = True,
+    ) -> Optional[Dict[str, Any]]:
+        """Return the latest matching service_kb record from the DB-backed JSON section."""
+        rows = await self.get_service_kb_records(
+            service_id=service_id,
+            plugin_id=plugin_id,
+            active_only=active_only,
+        )
+        if not rows:
+            return None
+        rows.sort(key=lambda item: int(item.get("version") or 0), reverse=True)
+        return rows[0]
+
     async def get_session(self) -> AsyncSession:
         """Get a database session."""
         return AsyncSessionLocal()

@@ -367,6 +367,18 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
             extracted_knowledge[:6000],  # cap to avoid huge prompts
             f"",
         ]
+        if "=== PROPERTY:" in extracted_knowledge:
+            lines += [
+                f"MULTI-PROPERTY RULE:",
+                f"  The knowledge base contains separate property/location sections.",
+                f"  If conversation context already makes one property clear, use ONLY that property section",
+                f"  plus any shared/common knowledge.",
+                f"  If the property is unclear and the guest needs property-specific details or wants to proceed",
+                f"  with a booking/request flow, ask a short clarification question first.",
+                f"  Never mix details from one property section into another property's answer.",
+                f"  Never continue transactional execution until the property is clear.",
+                f"",
+            ]
 
     lines += [
         f"INSTRUCTIONS FOR YOU (the prompt writer):",

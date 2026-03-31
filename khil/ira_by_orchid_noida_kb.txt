@@ -1,0 +1,67 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: IRA by Orchid Noida
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+- Canonical property name: IRA by Orchid Noida
+- Brand: Orchid Hotels
+- Property type: Business Hotel
+- Address: J9C3+MX3, Khora Rd, Khora Colony, Sector 62, Noida, Uttar Pradesh, 201301, IN
+- Star rating: 4.5/5
+- Check-in: 14:00
+- Check-out: 12:00
+- Overview notes: Located in Sector 62, Noida, near major IT parks and corporate hubs, offering modern amenities and strategic location for business and leisure travelers.
+
+=== Rooms & Suites ===
+## Deluxe Room
+- Features: Ergonomic workspaces, plush bedding, high-speed Wi-Fi, premium amenities
+- Suitable for: Business travelers, couples, families, solo visitors
+
+## Premier Room
+- Features: Ergonomic workspaces, plush bedding, high-speed Wi-Fi, premium amenities
+- Suitable for: Business travelers, couples, families, solo visitors
+
+## Executive Room
+- Features: Ergonomic workspaces, plush bedding, high-speed Wi-Fi, premium amenities
+- Suitable for: Business travelers, couples, families, solo visitors
+
+=== Dining & Restaurants ===
+## Upper Deck
+- Cuisine: North Indian, Mughlai, Continental, Chinese, Vegetarian
+- Price Range: ₹500 - ₹3000
+- Features: Contemporary dining environment, suitable for business lunches and family dinners
+
+=== Amenities & Facilities ===
+- Wi-Fi: High-speed
+- Room service: 24/7
+- Fitness center: Available
+- Meeting rooms: Available
+- Parking: Valet parking
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+## IRA Banquet Halls
+- Capacity: Up to 500 guests
+- Features: Air conditioning, projector & sound system, in-house catering, stage & decor, valet parking
+- Suitable for: Weddings, corporate conferences, private celebrations
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+- Address: J9C3+MX3, Khora Rd, Khora Colony, Sector 62, Noida, Uttar Pradesh, 201301, IN
+- Nearby: Noida Sector 62 Metro Station, IT parks, shopping malls, entertainment zones
+- Access: Easy connectivity to Delhi, Greater Noida, and surrounding areas
+
+=== Contact Information ===
+- Phone: +91 8652 636363
+- Email: reservations@irahotels.com
+
+=== Special Offers & Packages ===
+- Offers: Direct booking offers, special rates, discounts, priority check-in/check-out

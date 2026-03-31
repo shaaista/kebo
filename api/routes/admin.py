@@ -298,6 +298,7 @@ class ApplyPromptTemplateRequest(BaseModel):
 class UpdateKnowledgeConfig(BaseModel):
     sources: Optional[List[str]] = None
     notes: Optional[str] = None
+    expected_property_count: Optional[int] = None
     nlu_policy: Optional[Dict[str, Any]] = None
 
 
@@ -2357,6 +2358,53 @@ async def _preview_extract_service_kb_impl(payload: dict, request: Request):
             f"Do NOT re-extract or repeat these - only extract KB content NOT already covered here:\n\n"
             f"{facts_text}"
         )
+
+    try:
+        _pull_kb_log("[DIAG] attempting property-scoped extraction")
+        scoped_result = await config_service.build_property_aware_service_knowledge(
+            service_name=service_name,
+            service_description=service_description,
+            existing_menu_facts=existing_menu_facts,
+            max_sources=50,
+            max_scope_chars=max(32000, min(len(kb_text) or 90000, 120000)),
+            max_properties=8,
+        )
+        scoped_extracted = str((scoped_result or {}).get("extracted_knowledge") or "").strip()
+        _pull_kb_log(
+            f"[DIAG] property-scoped result: mode={scoped_result.get('mode')} "
+            f"matched_ids={scoped_result.get('matched_property_ids')} "
+            f"scope_count={len(scoped_result.get('property_scopes', []))} "
+            f"extracted_chars={len(scoped_extracted)}"
+        )
+        if scoped_extracted:
+            property_scopes = scoped_result.get("property_scopes", [])
+            property_index = scoped_result.get("property_index", {})
+            detected_properties = []
+            if isinstance(property_index, dict):
+                for row in property_index.get("properties", []) if isinstance(property_index.get("properties", []), list) else []:
+                    if not isinstance(row, dict):
+                        continue
+                    name = str(row.get("name") or "").strip()
+                    if name:
+                        detected_properties.append(name)
+            return {
+                "extracted_knowledge": scoped_extracted,
+                "reason": "ok_property_scoped",
+                "extraction_mode": "property_scoped_llm",
+                "chunk_count": 0,
+                "property_scope_mode": str(scoped_result.get("mode") or "").strip(),
+                "matched_property_ids": scoped_result.get("matched_property_ids", []),
+                "property_scope_count": len(property_scopes) if isinstance(property_scopes, list) else 0,
+                "expected_property_count": int(property_index.get("expected_property_count") or 0) if isinstance(property_index, dict) else 0,
+                "detected_property_count": int(property_index.get("detected_property_count") or len(detected_properties)) if isinstance(property_index, dict) else len(detected_properties),
+                "count_mismatch": bool(property_index.get("count_mismatch")) if isinstance(property_index, dict) else False,
+                "detected_properties": detected_properties,
+                "active_property": requested_property,
+                "resolved_property": active_property,
+            }
+    except Exception as scoped_exc:
+        import traceback as _scoped_tb
+        _pull_kb_log(f"[DIAG] property-scoped extraction failed, falling back: {scoped_exc}\n{_scoped_tb.format_exc()}")
 
     system_prompt = (
         f"You are a knowledge extractor for a hotel chatbot.\n\n"

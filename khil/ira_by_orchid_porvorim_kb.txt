@@ -1,0 +1,65 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: IRA by Orchid Porvorim
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Field: Canonical property name: IRA by Orchid Porvorim  
+Field: Brand: Orchid Hotels  
+Field: Property type: Hotel  
+Field: Address: Kadamba Depot Rd, Defence Colony, Salvador do Mundo, Porvorim, Goa, 403521, IN  
+Field: Star rating: 4.5/5  
+Field: Check-in: 14:00  
+Field: Check-out: 12:00  
+Field: Overview notes: Centrally located in North Goa, providing easy access to beaches and attractions. Offers a balanced hospitality experience focused on comfort, accessibility, and reliability.
+
+=== Rooms & Suites ===
+Status: Not found on reviewed pages.
+
+=== Dining & Restaurants ===
+## Café Vindyas
+- Cuisine: Indian, Goan, North Indian, South Indian, Continental, Vegetarian
+- Price Range: ₹400 - ₹1500
+- Location: Kadamba Depot Rd, Defence Colony, Salvador do Mundo, Porvorim, Goa
+- Features: Diverse menu with local Goan flavors and international favorites, relaxed ambiance, online table booking available
+
+=== Amenities & Facilities ===
+- Free Wi-Fi
+- Swimming Pool
+- Children's Pool
+- Restaurant
+- Cafe
+- Banquet Hall
+- Wedding Venue
+- Spa
+- Gym
+- Room Service
+- Parking
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+## Banquet Halls
+- Capacity: Up to 500 guests
+- Features: Air Conditioning, Wi-Fi, Projector & AV System, Custom Catering, Stage & Decor, Valet Parking
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+Field: Address: Kadamba Depot Rd, Defence Colony, Salvador do Mundo, Porvorim, Goa, 403521, IN  
+Field: Nearby landmarks: Calangute Beach, Baga Beach, Candolim Beach, Fort Aguada, Reis Magos Fort, Chapora Fort  
+Field: Proximity: 10 minutes from Panjim  
+Field: Airport access: Near Goa Mopa Airport  
+Field: Station access: Near Goa Railway Station  
+
+=== Contact Information ===
+Field: Phone: +91 8652 636363  
+Field: Email: reservations@orchidhotel.com  
+
+=== Special Offers & Packages ===
+Status: Not found on reviewed pages.

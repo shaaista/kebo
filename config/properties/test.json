@@ -141,9 +141,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
-      "generated_at": "2026-03-31T09:28:06.628187+00:00",
+      "generated_at": "2026-03-31T16:16:00.372420+00:00",
       "book_index_generator": "default_v1",
-      "book_index_generated_at": "2026-03-31T09:28:06.628187+00:00",
+      "book_index_generated_at": "2026-03-31T16:16:00.372420+00:00",
       "source_count": 1,
       "documents": [
         {
@@ -4495,7 +4495,83 @@
         "uncovered_pages": 0,
         "coverage_ratio": 1.0
       }
-    }
+    },
+    "property_index": {
+      "version": "v1",
+      "generator": "heuristic_v1",
+      "generated_at": "2026-03-31T11:21:26.878508+00:00",
+      "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
+      "properties": [
+        {
+          "id": "rohl_test_property",
+          "name": "Rohl Test Property",
+          "aliases": [
+            "Rohl Test Property",
+            "Property",
+            "Test Property"
+          ],
+          "source_names": [
+            "1e2cdd1c_ROHL_Test_property.txt"
+          ],
+          "page_ids": [
+            "page_00001",
+            "page_00002",
+            "page_00003",
+            "page_00004",
+            "page_00005",
+            "page_00006",
+            "page_00007",
+            "page_00008",
+            "page_00009",
+            "page_00010",
+            "page_00011",
+            "page_00012",
+            "page_00013",
+            "page_00014",
+            "page_00015",
+            "page_00016",
+            "page_00017",
+            "page_00018",
+            "page_00019",
+            "page_00020",
+            "page_00021",
+            "page_00022",
+            "page_00023",
+            "page_00024",
+            "page_00025",
+            "page_00026",
+            "page_00027",
+            "page_00028",
+            "page_00029",
+            "page_00030",
+            "page_00031",
+            "page_00032",
+            "page_00033",
+            "page_00034",
+            "page_00035",
+            "page_00036",
+            "page_00037",
+            "page_00038",
+            "page_00039",
+            "page_00040",
+            "page_00041",
+            "page_00042",
+            "page_00043",
+            "page_00044",
+            "page_00045",
+            "page_00046",
+            "page_00047",
+            "page_00048",
+            "page_00049",
+            "page_00050",
+            "page_00051"
+          ]
+        }
+      ],
+      "common_page_ids": [],
+      "common_source_names": []
+    },
+    "expected_property_count": 0
   },
   "ui_settings": {
     "theme": {

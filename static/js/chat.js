@@ -1006,6 +1006,13 @@ async function viewTickets() {
  * @param {string} serviceId  - service_id to submit against
  * @param {object} responseData - full ChatResponse (for metadata)
  */
+/** Detect phone fields by type OR by id/label keywords */
+function _isPhoneField(field) {
+    if (field.type === 'tel') return true;
+    const hint = ((field.id || '') + ' ' + (field.label || '')).toLowerCase();
+    return /\b(phone|mobile|contact|cell|whatsapp)\b/.test(hint);
+}
+
 function attachInlineForm(fields, serviceId, responseData) {
     const messages = elements.chatMessages.querySelectorAll('.message.assistant');
     const lastMessage = messages[messages.length - 1];
@@ -1046,7 +1053,7 @@ function attachInlineForm(fields, serviceId, responseData) {
         } else if (field.type === 'date') {
             const todayStr = new Date().toISOString().split('T')[0];
             inputHtml = `<input type="date" ${nameAttr}${requiredAttr} min="${todayStr}" class="inline-form-input">`;
-        } else if (field.type === 'tel') {
+        } else if (_isPhoneField(field)) {
             const ccOptions = _countryCodes.map(cc =>
                 `<option value="${cc.code}"${cc.code === '+91' ? ' selected' : ''}>${cc.flag} ${cc.code}</option>`
             ).join('');
@@ -1147,7 +1154,7 @@ function attachInlineForm(fields, serviceId, responseData) {
             const el = form.querySelector(`[name="${field.id}"]`);
             let val = el ? el.value.trim() : '';
             // For phone fields, prepend the selected country code
-            if (field.type === 'tel' && val) {
+            if (_isPhoneField(field) && val) {
                 const ccSelect = form.querySelector(`select[data-for="${field.id}"]`);
                 if (ccSelect) {
                     const cc = ccSelect.value;
@@ -1360,19 +1367,17 @@ function validateFormFieldsDetailed(fields, values) {
             }
         }
 
-        if (field.type === 'number') {
-            const n = Number(val);
-            if (isNaN(n) || n <= 0 || !Number.isInteger(n)) {
-                errors.push({ id: field.id, message: 'Must be a positive whole number.' });
-            }
-        }
-
-        if (field.type === 'tel') {
+        if (_isPhoneField(field)) {
             // val already has country code prepended (e.g. "+919876543210")
             // Only do a minimal sanity check — LLM handles country-specific rules
             const localDigits = val.replace(/^\+\d{1,4}/, '').replace(/\D/g, '');
             if (localDigits.length < 7) {
                 errors.push({ id: field.id, message: 'Please enter a valid phone number.' });
+            }
+        } else if (field.type === 'number') {
+            const n = Number(val);
+            if (isNaN(n) || n <= 0 || !Number.isInteger(n)) {
+                errors.push({ id: field.id, message: 'Must be a positive whole number.' });
             }
         }
 

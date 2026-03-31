@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-31T09:43:47.023214+00:00",
+  "saved_at": "2026-03-31T17:29:53.888954+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -74482,6 +74482,2278 @@
       ],
       "created_at": "2026-03-31T09:41:40.810411Z",
       "updated_at": "2026-03-31T09:43:46.871801Z"
+    },
+    "session_1774959199305_w6782xlh7": {
+      "session_id": "session_1774959199305_w6782xlh7",
+      "hotel_code": "multiplekbtest",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is interested in booking a room at The Orchid Hotel Manali and has inquired about the available room types. The hotel offers various amenities, including a heated swimming pool, spa, fitness center, and more. The user has not yet specified which room type they would like to book, leaving the booking process unresolved. The conversation is currently in the pre-booking phase, with the last user topic being reservation.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi whihc hotel is this",
+              "timestamp": "2026-03-31T12:13:57.514022+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "room_service",
+              "change_type": "set",
+              "source_message": "what amenities do you offer",
+              "timestamp": "2026-03-31T12:15:10.389502+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "room_service",
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "Can I book a room?",
+              "timestamp": "2026-03-31T12:16:53.638693+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-31T12:17:29.475879+00:00",
+          "last_user_message": "Can I book a room?",
+          "last_assistant_message": "Certainly! Here are the room types available at The Orchid Hotel Manali:\n- Deluxe King Room: 300 sq. ft., king-size bed, inner hill-facing view, suitable for solo travelers or couples.\n- Deluxe Twin Room: 300 sq. ft., two single beds, inner hill-facing view, ideal for friends or solo travelers.\n- Premier Valley View Room: 220 sq. ft., king-size bed, valley view, ideal for solo travelers or couples"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T12:17:26.718747+00:00"
+        },
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "e4cb6b34-b3fe-40f0-9ac5-01d80e11da78",
+          "role": "user",
+          "content": "hi whihc hotel is this",
+          "timestamp": "2026-03-31T12:13:57.513940Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "hi which hotel is this"
+          }
+        },
+        {
+          "id": "9f4a2452-8957-46f6-b313-210b54e2f044",
+          "role": "assistant",
+          "content": "This is The Orchid Hotel Manali, a 5-star luxury boutique hotel located in Manali, Himachal Pradesh. It offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices. The hotel is situated near popular attractions such as Mall Road, Solang Valley, and Hadimba Temple.",
+          "timestamp": "2026-03-31T12:14:32.887462Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 1.0,
+            "service_llm_label": "main",
+            "service_llm_confidence": 1.0,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-b45b1a1eca0f",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c797d593-3390-4905-a627-46cd3083f2ca",
+          "role": "user",
+          "content": "what amenities do you offer",
+          "timestamp": "2026-03-31T12:15:10.389145Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What amenities do you offer?"
+          }
+        },
+        {
+          "id": "4ee9156c-b055-4d4f-ad31-92825b418090",
+          "role": "assistant",
+          "content": "The Orchid Hotel Manali offers a variety of amenities including a heated swimming pool, a spa, a fitness center, yoga and meditation sessions, free WiFi, free parking with an EV charging station, and an indoor games room. Additionally, Café Vindhyas provides Himachali and global cuisines with scenic views.",
+          "timestamp": "2026-03-31T12:15:46.677976Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 1.0,
+            "service_llm_label": "main",
+            "service_llm_confidence": 1.0,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-395a74637268",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "04a5a962-c2cb-48f5-ab58-a6c13d0dd31b",
+          "role": "user",
+          "content": "Can I book a room?",
+          "timestamp": "2026-03-31T12:16:53.638537Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "f81ef918-f327-4b1f-8299-3365a27f755e",
+          "role": "assistant",
+          "content": "Certainly! Here are the room types available at The Orchid Hotel Manali:\n- Deluxe King Room: 300 sq. ft., king-size bed, inner hill-facing view, suitable for solo travelers or couples.\n- Deluxe Twin Room: 300 sq. ft., two single beds, inner hill-facing view, ideal for friends or solo travelers.\n- Premier Valley View Room: 220 sq. ft., king-size bed, valley view, ideal for solo travelers or couples.\n- Family Room: 384 sq. ft., 1 king bed and 2 twin beds, valley views, accommodates up to 4 guests.\n- Orchid Suite: 700 sq. ft., king-size bed, valley views, includes a living area and private jacuzzi bathtub.\n- Mayflower Suites: 850 sq. ft., valley views, includes a separate living room and complimentary in-room breakfast.\n- Presidential Suites: 900 sq. ft., panoramic views, includes separate living and dining areas.\nWould you like to proceed with booking any of these rooms?",
+          "timestamp": "2026-03-31T12:17:26.718867Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-e5eaae394a59",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T12:13:52.392228Z",
+      "updated_at": "2026-03-31T12:17:29.475930Z"
+    },
+    "session_1774968394581_l2vb6k1xc": {
+      "session_id": "session_1774968394581_l2vb6k1xc",
+      "hotel_code": "claudetest",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_guest_name",
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase for a stay at The Orchid Hotel Manali. They have expressed interest in room options suitable for both couples and bachelors. For couples, the Premier Valley View Room, Club Room, and Presidential Suite are recommended. For a bachelor, the Deluxe Room or Club Room are suggested. The user has requested more information about the hotel, including dining options at Café Vindhyas, and has received contact information for further inquiries. The user is ready to proceed with booking and needs to select a room type to finalize the reservation.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi which hotel is this '",
+              "timestamp": "2026-03-31T14:46:51.406216+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "before booking rom, tell me more about the hotel",
+              "timestamp": "2026-03-31T14:50:14.431112+00:00"
+            }
+          ],
+          "last_summarized_count": 18,
+          "updated_at": "2026-03-31T14:55:21.279440+00:00",
+          "last_user_message": "id like club room",
+          "last_assistant_message": "Great choice! The Club Room at The Orchid Hotel Manali offers a balcony with stunning valley views, perfect for relaxation. To proceed with your booking, please provide the following details:\n- Full name\n- Contact number\n- Check-in date\n- Check-out date"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_guest_name",
+            "pending_data": {
+              "service_id": "room_booking"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect guest name flow",
+            "updated_at": "2026-03-31T14:55:21.279258+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T14:55:21.279279+00:00"
+        },
+        "_known_property_scope_count": 2,
+        "_selected_property_scope_id": "manali",
+        "_selected_property_scope_name": "The Orchid Hotel Manali",
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking",
+        "service_id": "room_booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "339a7744-0c4f-4fce-9174-86795459a599",
+          "role": "user",
+          "content": "hi which hotel is this '",
+          "timestamp": "2026-03-31T14:46:51.406155Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Hi, which hotel is this?"
+          }
+        },
+        {
+          "id": "cb08c683-639e-44d1-bfda-f8b5da387710",
+          "role": "assistant",
+          "content": "Which property would you like details for: The Orchid Hotel Manali, The Orchid Hotel Shimla?",
+          "timestamp": "2026-03-31T14:47:06.041271Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "property_scope_guard",
+            "orchestration_trace_id": "orch-8f003a077781",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6aae4112-32d6-419b-8dd3-e354e9baf42b",
+          "role": "user",
+          "content": "what is the diff both",
+          "timestamp": "2026-03-31T14:47:24.190482Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What is the diff between both?"
+          }
+        },
+        {
+          "id": "5b269d67-a545-450f-9da3-f5fa9c60f26f",
+          "role": "assistant",
+          "content": "Here are some differences between The Orchid Hotel Manali and The Orchid Hotel Shimla:\n**The Orchid Hotel Manali:**\n- Located near Mall Road, Solang Valley, and Hadimba Temple.\n- Offers luxury rooms with mountain and valley views.\n- Features include a heated swimming pool, spa, fitness center, and indoor games room.\n- Dining options include Café Vindhyas with Himachali and global cuisines.\n**The Orchid Hotel Shimla:**\n- Situated on Shimla Bypass Road, close to Mall Road and Jakhoo Temple.\n- Offers luxury accommodations with eco-friendly features and scenic mountain views.\n- Facilities include a heated swimming pool, rooftop restaurant, wellness center, and business center.\n- Dining options include Cafe Vindhyas, Harrington Bar, and The House of Glass.\nBoth properties are 5-star luxury hotels under the Orchid Hotels brand, but they offer different experiences based on their location and specific amenities.",
+          "timestamp": "2026-03-31T14:47:56.107938Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-4878fd374474",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "48d77e98-9a47-4111-a241-9736e9c778fb",
+          "role": "user",
+          "content": "id like stay in manali",
+          "timestamp": "2026-03-31T14:48:15.104972Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'd like to stay in Manali."
+          }
+        },
+        {
+          "id": "29968baa-d565-4640-9d62-8067aa7deb29",
+          "role": "assistant",
+          "content": "Great choice! Here are the room options available at The Orchid Hotel Manali:\n1. **Deluxe Room**\n- Mountain views\n- Modern amenities\n2. **Premier Valley View Room**\n- Private balcony overlooking scenic valleys\n3. **Premier Family Room**\n- Spacious layout\n- Panoramic valley views\n- Suitable for families\n4. **Club Room**\n- Balcony with stunning valley views\n5. **Presidential Suite**\n- Exclusive river views\n- Premium luxury amenities\nPlease let me know which room type you are interested in, and I can assist you further with the booking.",
+          "timestamp": "2026-03-31T14:48:47.373326Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-e94c9b2b04bb",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3aa0e32f-80d0-4967-99a1-517668189901",
+          "role": "user",
+          "content": "whihc room is best for couples",
+          "timestamp": "2026-03-31T14:49:19.823911Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which room is best for couples"
+          }
+        },
+        {
+          "id": "005b2303-0c1d-4d65-b2fe-21a6dc5982e5",
+          "role": "assistant",
+          "content": "For couples seeking a romantic stay at The Orchid Hotel Manali, the **Premier Valley View Room** and the **Club Room** are ideal choices. Both rooms offer stunning valley views and private balconies, perfect for enjoying the scenic beauty together. Additionally, the **Presidential Suite** offers exclusive river views and premium luxury amenities for a more luxurious experience.",
+          "timestamp": "2026-03-31T14:49:45.003077Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-046876d114a7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "569fb5ec-8621-4511-a06d-442c9d6cafad",
+          "role": "user",
+          "content": "before booking rom, tell me more about the hotel",
+          "timestamp": "2026-03-31T14:50:14.431025Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Before booking room, tell me more about the hotel."
+          }
+        },
+        {
+          "id": "03de0573-fee4-48bb-82f9-11ffcd0d31e9",
+          "role": "assistant",
+          "content": "The Orchid Hotel Manali is a 5-star luxury boutique hotel located near Mall Road, Solang Valley, and Hadimba Temple in Manali, Himachal Pradesh. It offers a range of luxury rooms and suites with stunning mountain and valley views. The hotel features a heated swimming pool, spa, fitness center, and an indoor games room. Dining options include Café Vindhyas, which serves Himachali and global cuisines. The hotel is also eco-friendly, focusing on sustainable practices. For more details or to proceed with booking, feel free to ask!",
+          "timestamp": "2026-03-31T14:50:47.035533Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-404db4d6bc0f",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "cb6a44a5-1511-45c8-9bac-2e84f90dfe11",
+          "role": "user",
+          "content": "What are the dining options?",
+          "timestamp": "2026-03-31T14:51:30.357747Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "9006d29c-2748-47d1-89a3-4f15bf0e8d33",
+          "role": "assistant",
+          "content": "The Orchid Hotel Manali offers dining at **Café Vindhyas**, which serves Himachali and global cuisines for breakfast, lunch, and dinner. The restaurant is located on Shuru, Naggar Road, and features scenic views and a bar.",
+          "timestamp": "2026-03-31T14:52:00.224074Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-dbbc8e9729a2",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "736365e7-0544-4b19-88ea-961d7be3ef1b",
+          "role": "user",
+          "content": "can i get the contact info pls",
+          "timestamp": "2026-03-31T14:52:15.234414Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I get the contact info, pls?"
+          }
+        },
+        {
+          "id": "49b51641-01ab-4457-b722-32bd45870d2e",
+          "role": "assistant",
+          "content": "Here is the contact information for The Orchid Hotel Manali:\n- Phone: +91 9169166789\n- Email: resv.manali@orchidhotel.com, reservations@orchidhotel.com\nFeel free to reach out to them for any further inquiries or assistance!",
+          "timestamp": "2026-03-31T14:52:41.626645Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-2a987b91f17c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d7f17666-6bf6-4a00-88f5-d3111ff7f162",
+          "role": "user",
+          "content": "ok proceed woth room boking",
+          "timestamp": "2026-03-31T14:53:01.786796Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "ok proceed with room booking"
+          }
+        },
+        {
+          "id": "9ba0e5bc-e161-433b-8c4d-ba28c6300e40",
+          "role": "assistant",
+          "content": "To proceed with your room booking at The Orchid Hotel Manali, please let me know which room type you would like to book. Here are the options again:\n1. Deluxe Room - Mountain views, Modern amenities\n2. Premier Valley View Room - Private balcony overlooking scenic valleys\n3. Premier Family Room - Spacious layout, Panoramic valley views, Suitable for families\n4. Club Room - Balcony with stunning valley views\n5. Presidential Suite - Exclusive river views, Premium luxury amenities\nOnce you select a room type, I can assist you further with the booking process.",
+          "timestamp": "2026-03-31T14:53:34.667389Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-54519d19ff5a",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "435ebf0f-b351-4ffb-acca-010a2116b354",
+          "role": "user",
+          "content": "for a bachelor which is best",
+          "timestamp": "2026-03-31T14:54:03.868594Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "for a bachelor which is best?"
+          }
+        },
+        {
+          "id": "3e2f1ab3-3e7f-45fd-9d85-13404bf5bb05",
+          "role": "assistant",
+          "content": "For a bachelor looking to enjoy a stay at The Orchid Hotel Manali, the Deluxe Room or the Club Room would be excellent choices. The Deluxe Room offers modern amenities with mountain views, while the Club Room provides a balcony with stunning valley views, perfect for relaxation and enjoying the scenery. Let me know if you'd like to proceed with booking one of these rooms!",
+          "timestamp": "2026-03-31T14:54:28.406922Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-82820dabc614",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2b566241-1618-4dab-887e-b7592b761661",
+          "role": "user",
+          "content": "id like club room",
+          "timestamp": "2026-03-31T14:54:49.021825Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'd like a club room."
+          }
+        },
+        {
+          "id": "f52007a1-a00b-479d-8289-500781eec985",
+          "role": "assistant",
+          "content": "Great choice! The Club Room at The Orchid Hotel Manali offers a balcony with stunning valley views, perfect for relaxation. To proceed with your booking, please provide the following details:\n- Full name\n- Contact number\n- Check-in date\n- Check-out date",
+          "timestamp": "2026-03-31T14:55:21.279392Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-2474017bfd5d",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T14:46:48.264879Z",
+      "updated_at": "2026-03-31T14:55:21.279449Z"
+    },
+    "session_1774969637621_uggico0bz": {
+      "session_id": "session_1774969637621_uggico0bz",
+      "hotel_code": "claudetest",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_name",
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is interested in making a reservation at The Orchid Hotel Manali. They have expressed interest in the Club Room, which offers a balcony with stunning valley views. The user has not yet confirmed the booking and may require more information about the room or the booking process. The assistant is awaiting the user's decision on whether to proceed with the booking or to provide additional details.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "id like to book a room",
+              "timestamp": "2026-03-31T15:07:35.571229+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "id like to book a room",
+              "timestamp": "2026-03-31T15:07:35.571484+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-31T15:09:49.693537+00:00",
+          "last_user_message": "proceed with booking",
+          "last_assistant_message": "Great choice! The Club Room at The Orchid Hotel Manali offers a balcony with stunning valley views. To proceed with your booking, please complete the booking form that will appear. It will collect necessary details such as your name, phone number, check-in date, and check-out date."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_name",
+            "pending_data": {
+              "service_id": "room_booking"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect name flow",
+            "updated_at": "2026-03-31T15:09:49.693347+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T15:09:49.693362+00:00"
+        },
+        "_known_property_scope_count": 2,
+        "_selected_property_scope_id": "manali",
+        "_selected_property_scope_name": "The Orchid Hotel Manali",
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking",
+        "service_id": "room_booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "dd0f90c0-c3b3-4d1b-872f-628bd21bfdba",
+          "role": "user",
+          "content": "id like to book a room",
+          "timestamp": "2026-03-31T15:07:35.571176Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'd like to book a room."
+          }
+        },
+        {
+          "id": "e4f2d25c-3e38-4c82-baa4-241d256b69da",
+          "role": "assistant",
+          "content": "Which property would you like details for: The Orchid Hotel Manali, The Orchid Hotel Shimla?",
+          "timestamp": "2026-03-31T15:07:52.022532Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "property_scope_guard",
+            "orchestration_trace_id": "orch-f7d5165b0b7a",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d9f42b55-a6c8-4773-b92b-7d4b4a5d6591",
+          "role": "user",
+          "content": "manali",
+          "timestamp": "2026-03-31T15:08:03.931769Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Manali"
+          }
+        },
+        {
+          "id": "053c2503-f186-46f6-afde-90330b9e84cb",
+          "role": "assistant",
+          "content": "At The Orchid Hotel Manali, we have a variety of rooms and suites to choose from. Here are the options:\n- **Deluxe Room**: Offers modern amenities with mountain views.\n- **Premier Valley View Room**: Features a private balcony overlooking scenic valleys.\n- **Premier Family Room**: Spacious with panoramic valley views, ideal for families.\n- **Club Room**: Comes with a balcony offering stunning valley views.\n- **Presidential Suite**: Provides exclusive river views and premium luxury amenities.\nPlease let me know which room you are interested in, or if you need more information about any of these options.",
+          "timestamp": "2026-03-31T15:08:30.150211Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-1b18894df7bb",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "45c337ad-31c3-4f9e-9771-b21599abf845",
+          "role": "user",
+          "content": "club room",
+          "timestamp": "2026-03-31T15:08:45.094300Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Club room"
+          }
+        },
+        {
+          "id": "3a964a6d-c041-4a53-8bb0-5eb48baf547c",
+          "role": "assistant",
+          "content": "The Club Room at The Orchid Hotel Manali offers a balcony with stunning valley views. Would you like to proceed with booking this room, or do you need more information?",
+          "timestamp": "2026-03-31T15:09:06.505309Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-c82175c73b6f",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2e93843e-3da3-4929-8d12-d40850f06f08",
+          "role": "user",
+          "content": "proceed with booking",
+          "timestamp": "2026-03-31T15:09:22.041335Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "4b628274-9264-4dc4-bf2d-eff873f4aab3",
+          "role": "assistant",
+          "content": "Great choice! The Club Room at The Orchid Hotel Manali offers a balcony with stunning valley views. To proceed with your booking, please complete the booking form that will appear. It will collect necessary details such as your name, phone number, check-in date, and check-out date.",
+          "timestamp": "2026-03-31T15:09:49.693477Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-e90677bbcc36",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T15:07:32.144483Z",
+      "updated_at": "2026-03-31T15:09:49.693550Z"
+    },
+    "session_1774972339734_hnx0jb5ww": {
+      "session_id": "session_1774972339734_hnx0jb5ww",
+      "hotel_code": "claudetest",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-31T15:52:34.909114+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-31T15:55:50.561626+00:00",
+          "last_user_message": "i need a place to stay",
+          "last_assistant_message": "We have two wonderful properties you can choose from: The Orchid Hotel Manali and The Orchid Hotel Shimla. Could you please let me know which location you are interested in?"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T15:55:50.561410+00:00"
+        },
+        "_known_property_scope_count": 2,
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "6583e8a9-fc30-4e50-8565-39758f478182",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-31T15:52:34.908891Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "6cdfde12-fc28-410d-9233-86175fe3b0fa",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today? If you have any questions or need help with booking a room, feel free to let me know.",
+          "timestamp": "2026-03-31T15:53:51.686235Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-6f409a03d9ae",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3a5afd8d-c773-49d7-98a8-5b2f92b4c55c",
+          "role": "user",
+          "content": "i need a place to stay",
+          "timestamp": "2026-03-31T15:54:23.720073Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a place to stay."
+          }
+        },
+        {
+          "id": "0f23df95-8991-4ccd-bda3-20cea77c8ceb",
+          "role": "assistant",
+          "content": "We have two wonderful properties you can choose from: The Orchid Hotel Manali and The Orchid Hotel Shimla. Could you please let me know which location you are interested in?",
+          "timestamp": "2026-03-31T15:55:50.561542Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-aa73578093ff",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T15:52:30.081643Z",
+      "updated_at": "2026-03-31T15:55:50.561656Z"
+    },
+    "session_1774972583242_msovz8k36": {
+      "session_id": "session_1774972583242_msovz8k36",
+      "hotel_code": "khil10",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_memory": {
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "summary": "The user is in the pre-booking phase and is looking for a place to stay, specifically interested in options suitable for a couple's stay. They have been presented with several properties, including Orchid Passaros Goa South, The Orchid Hotel Manali, and The Orchid Lonavala, which are highlighted for their romantic and serene settings. The user has not yet specified a preferred location, and further details about available rooms and amenities are pending based on their choice.",
+          "updated_at": "2026-03-31T16:09:47.673704+00:00",
+          "fact_history": [
+            {
+              "key": "phase",
+              "new_value": "pre_booking",
+              "old_value": null,
+              "timestamp": "2026-03-31T15:56:45.853921+00:00",
+              "change_type": "set",
+              "source_message": "hi"
+            }
+          ],
+          "last_user_message": "give me info about goa resort",
+          "last_summarized_count": 6,
+          "last_assistant_message": "Orchid Passaros Goa South is a luxury adult-only resort positioned as a romantic seaside retreat for couples and honeymooners. Located on Benaulim Beach Road, it offers a 5-star experience with beautiful beaches just 270 meters away. The resort features several romantic room options such as the Sunbird Haven, Kingfisher Haven, Bulbul Nest, Bee Eater Oasis, and Treepie Retreat, each designed for co"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T16:09:47.673621+00:00"
+        },
+        "_integration": {
+          "flow": "booking_bot",
+          "phase": "pre_booking",
+          "channel": "web_widget",
+          "guest_id": "921345",
+          "entity_id": "5703",
+          "ticket_source": "whatsapp_bot",
+          "organisation_id": "5703"
+        },
+        "_known_property_scope_count": 10,
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request",
+        "_selected_property_scope_id": "goa_south",
+        "_selected_property_scope_name": "Orchid Passaros Goa South"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "f84c651f-b138-4860-baa2-f212384b14e5",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-31T15:56:46",
+          "metadata": {
+            "channel": "web"
+          }
+        },
+        {
+          "id": "c296a12f-62e0-46a1-9007-f5762017c73d",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today? If you have any questions or need help with booking a room at any of our properties, feel free to let me know.",
+          "timestamp": "2026-03-31T15:58:55",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "channel": "web"
+          }
+        },
+        {
+          "id": "f26876eb-a7ec-465c-b128-906e68b89800",
+          "role": "user",
+          "content": "i need a place to stay",
+          "timestamp": "2026-03-31T16:00:05.553907Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a place to stay."
+          }
+        },
+        {
+          "id": "7d8726af-b6e6-4d66-a1d4-6cd3b6bba67e",
+          "role": "assistant",
+          "content": "We have several properties you can choose from for your stay. Here are some options:\n- Orchid Passaros Goa South\n- The Orchid Chandigarh\n- The Orchid Hotel Manali\n- The Orchid Jamnagar\n- The Orchid Lonavala\n- The Orchid Mumbai\n- The Orchid Panchgani\n- The Orchid Pune\n- The Orchid Rishivan Rishikesh\n- The Orchid Shimla\nPlease let me know which location you are interested in, and I can provide more details about the available rooms.",
+          "timestamp": "2026-03-31T16:02:06.996431Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-0f0c32e02375",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "6f9acebe-9b78-4f9e-aa65-1c62d18a7d25",
+          "role": "user",
+          "content": "whuich is best for a couples stay",
+          "timestamp": "2026-03-31T16:03:07.801902Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which is best for a couple's stay"
+          }
+        },
+        {
+          "id": "ecfc4103-70ef-4e38-af75-0998702b7bf3",
+          "role": "assistant",
+          "content": "For a couple's stay, each of our properties offers unique experiences that could be ideal depending on your preferences. Here are a few suggestions based on the full knowledge base:\n- **Orchid Passaros Goa South**: Known for its beautiful beaches and romantic sunsets, perfect for a relaxing getaway.\n- **The Orchid Hotel Manali**: Offers stunning mountain views and cozy settings, ideal for a romantic retreat.\n- **The Orchid Lonavala**: Surrounded by lush greenery and serene landscapes, great for a peaceful escape.\nPlease let me know if you have a specific location in mind, and I can provide more details about the available rooms and amenities.",
+          "timestamp": "2026-03-31T16:05:36.775051Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-f7f0c6c5c74e",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "bd6b27ef-789f-4993-9aa4-c1fb15c0f485",
+          "role": "user",
+          "content": "give me more info about the goa",
+          "timestamp": "2026-03-31T16:06:04.691303Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Give me more info about Goa."
+          }
+        },
+        {
+          "id": "d82bef9d-f641-4985-883f-3ca0174ddba1",
+          "role": "assistant",
+          "content": "The response provided focuses on a specific resort in Goa, Orchid Passaros Goa South, rather than general information about Goa itself. For a broader overview of Goa, including its culture, attractions, and history, please specify what aspects you are interested in.",
+          "timestamp": "2026-03-31T16:08:15.355138Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5aac8e98c8fc",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c03c6c02-cda9-406d-b28c-224c37f99154",
+          "role": "user",
+          "content": "give me info about goa resort",
+          "timestamp": "2026-03-31T16:08:53.862036Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Give me info about Goa resort."
+          }
+        },
+        {
+          "id": "031ff735-1a9c-4b41-a037-4581ca806621",
+          "role": "assistant",
+          "content": "Orchid Passaros Goa South is a luxury adult-only resort positioned as a romantic seaside retreat for couples and honeymooners. Located on Benaulim Beach Road, it offers a 5-star experience with beautiful beaches just 270 meters away. The resort features several romantic room options such as the Sunbird Haven, Kingfisher Haven, Bulbul Nest, Bee Eater Oasis, and Treepie Retreat, each designed for couples with amenities like private balconies, Jacuzzis, and more.\nDining options include the Tipsy Sparrow, an all-day dining restaurant offering Goan and international cuisine, the Splash Poolbar with a swim-up bar, and the Falcon Bar & Grills for open-air dining. The resort also offers a Feather Touch Couple Spa with signature treatments, an infinity pool, and is exclusively for adults, ensuring a serene and intimate atmosphere.\nFor more details or to book a stay, feel free to let me know!",
+          "timestamp": "2026-03-31T16:09:47.673667Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-a1344cb8e4e3",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T15:56:40",
+      "updated_at": "2026-03-31T16:09:47.673710Z"
+    },
+    "session_1774973849042_oxmkqvdqa": {
+      "session_id": "session_1774973849042_oxmkqvdqa",
+      "hotel_code": "khil10",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is looking for a romantic place to stay in Goa for couples. They are interested in options at Orchid Passaros Goa South, specifically considering the \"Sunbird Haven\" and \"Bee Eater Oasis\" rooms. The user has not yet decided which room to book and may need further assistance with details or the booking process.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-31T16:17:57.301182+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "id like to book bulbul nest",
+              "timestamp": "2026-03-31T16:22:46.578919+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-31T16:23:20.696707+00:00",
+          "last_user_message": "id like to book bulbul nest",
+          "last_assistant_message": "Great choice! The Bulbul Nest is a luxury room featuring a private Jacuzzi, perfect for a relaxing and romantic stay. Please fill in the booking details below."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T16:23:20.696564+00:00"
+        },
+        "_known_property_scope_count": 10,
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request",
+        "_selected_property_scope_id": "goa_south",
+        "_selected_property_scope_name": "Orchid Passaros Goa South"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "02702665-ffc2-49b4-b0fd-a888759231d1",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-31T16:17:57.301115Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "5574641f-97c5-4029-9731-bb40f05cee9a",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today? If you have any questions or need help with booking a room at any of our properties, feel free to let me know.",
+          "timestamp": "2026-03-31T16:18:37.862502Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-b4d47a3c3ba7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "a58dc010-da01-415c-bd83-0faa657de114",
+          "role": "user",
+          "content": "im looking for a place to stay, for couples wht is good",
+          "timestamp": "2026-03-31T16:19:01.245805Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'm looking for a place to stay for couples. What is good?"
+          }
+        },
+        {
+          "id": "9682f231-d842-4d1f-98db-6b778c9d19e5",
+          "role": "assistant",
+          "content": "We have several wonderful options for couples across our properties. Here are a few you might consider:\n- **Orchid Passaros Goa South**:\n- **Sunbird Haven**: A romantic luxury room designed for couples with amenities like intercom, television, Wi-Fi, and a mini fridge.\n- **Bee Eater Oasis**: A cozy romantic hideaway with a mini fridge and tea & coffee maker.\n- **The Orchid Panchgani**:\n- **Dew Drop Mist Balcony**: A premium room with a private mist balcony and scenic valley views, ideal for honeymoon couples.\n- **Tree House Suite**: A unique suite with panoramic valley views and elevated treetop living, perfect for honeymoon stays.\nPlease let me know if any of these options interest you, and I can provide more details or assist with booking.",
+          "timestamp": "2026-03-31T16:19:32.247832Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-dc744a9156be",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "5b4c0c0d-7cf1-42c0-af0d-0ae52ded791e",
+          "role": "user",
+          "content": "goa i want",
+          "timestamp": "2026-03-31T16:20:14.651166Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Goa I want."
+          }
+        },
+        {
+          "id": "c61083f2-ed68-4a82-9a6b-6dc0f67c78b7",
+          "role": "assistant",
+          "content": "Great choice! For a romantic stay in Goa, we have the following options at Orchid Passaros Goa South:\n- Sunbird Haven: A romantic luxury room designed for couples with amenities like intercom, television, Wi-Fi, and a mini fridge.\n- Bee Eater Oasis: A cozy romantic hideaway with a mini fridge and tea & coffee maker.\nPlease let me know which room you'd like to book, and I'll assist you with the next steps.",
+          "timestamp": "2026-03-31T16:20:53.499540Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-dd4d4d0683a8",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "98818ac9-188c-48fa-9465-0b9832eebfbd",
+          "role": "user",
+          "content": "do you have more room options",
+          "timestamp": "2026-03-31T16:21:27.663468Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "do you have more room options?"
+          }
+        },
+        {
+          "id": "c907905a-b34f-413a-bfb4-5fe4f4f108e1",
+          "role": "assistant",
+          "content": "At Orchid Passaros Goa South, we offer a variety of room options for a romantic stay:\n1. **Sunbird Haven**: A romantic luxury room designed for couples with amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker.\n2. **Bee Eater Oasis**: A cozy romantic hideaway with a mini fridge, tea & coffee maker, and locker.\n3. **Kingfisher Haven**: A luxury room with modern comforts, a private balcony, mini fridge, tea & coffee maker, and locker.\n4. **Bulbul Nest**: A luxury room featuring a private Jacuzzi, mini fridge, tea & coffee maker, and locker.\n5. **Treepie Retreat**: A luxury room with an intimate ambiance, intercom, television, Wi-Fi, mini fridge, tea & coffee maker, and locker.\nPlease let me know if any of these options interest you, and I can assist you with the booking process.",
+          "timestamp": "2026-03-31T16:22:16.044978Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-56f6a71a408c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "87e2f6b3-a495-4da2-bdba-f24d441c4ed0",
+          "role": "user",
+          "content": "id like to book bulbul nest",
+          "timestamp": "2026-03-31T16:22:46.578791Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'd like to book Bulbul Nest."
+          }
+        },
+        {
+          "id": "134f552f-f705-4a55-8ad5-b4e863c27296",
+          "role": "assistant",
+          "content": "Great choice! The Bulbul Nest is a luxury room featuring a private Jacuzzi, perfect for a relaxing and romantic stay. Please fill in the booking details below.",
+          "timestamp": "2026-03-31T16:23:20.696663Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-b5f02ef02c7c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T16:17:52.150193Z",
+      "updated_at": "2026-03-31T16:23:20.696715Z"
+    },
+    "session_1774977185438_hvhxat0il": {
+      "session_id": "session_1774977185438_hvhxat0il",
+      "hotel_code": "khil10",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_check_in_date",
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase for a stay at Orchid Passaros Goa South with a friend, considering room options such as Sunbird Haven, Kingfisher Haven, Bulbul Nest, Bee Eater Oasis, and Treepie Retreat. They are interested in the hotel's amenities, including an infinity pool, Wi-Fi, couple spa experiences, and dining options. The pool's heating status remains unresolved, and they have been advised to contact the hotel directly for confirmation. The user also inquired about conducting a business meeting, which is possible in the Hornbill Banquet hall. They are now ready to proceed with booking a room for two people.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi im looking for a hote lto stay",
+              "timestamp": "2026-03-31T17:13:34.982910+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "room_service",
+              "change_type": "set",
+              "source_message": "what amenities does this hotel have",
+              "timestamp": "2026-03-31T17:18:31.769840+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": "room_service",
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "Can I book a room?",
+              "timestamp": "2026-03-31T17:25:58.596793+00:00"
+            }
+          ],
+          "last_summarized_count": 24,
+          "updated_at": "2026-03-31T17:29:53.802445+00:00",
+          "last_user_message": "Book Sunbird Haven",
+          "last_assistant_message": "You've chosen the Sunbird Haven, a romantic luxury room designed for couples, featuring amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker. Please provide the following details to proceed with your booking:\n- Check-in date\n- Check-out date\n- Contact information (if not already provided)"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_check_in_date",
+            "pending_data": {
+              "service_id": "room_booking_request"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect check in date flow",
+            "updated_at": "2026-03-31T17:29:53.802262+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T17:29:53.802288+00:00"
+        },
+        "_known_property_scope_count": 10,
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request",
+        "_selected_property_scope_id": "goa_south",
+        "_selected_property_scope_name": "Orchid Passaros Goa South",
+        "service_id": "room_booking_request"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "eae90ccf-997e-44b2-ac84-258dadb36373",
+          "role": "user",
+          "content": "hi im looking for a hote lto stay",
+          "timestamp": "2026-03-31T17:13:34.982694Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "hi im looking for a hotel to stay"
+          }
+        },
+        {
+          "id": "e5e3caa8-9a65-4601-b021-3c86f93d28b1",
+          "role": "assistant",
+          "content": "Hello! We have a wonderful property called The Orchid Hotel Manali. Would you like to know more about the rooms available there, or do you have a specific property in mind?",
+          "timestamp": "2026-03-31T17:14:08.196166Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-d20ebfc14759",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "54eec13b-9ccb-4417-8f61-ccd6b07afc9d",
+          "role": "user",
+          "content": "what properties are availabe",
+          "timestamp": "2026-03-31T17:15:24.600308Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what properties are available"
+          }
+        },
+        {
+          "id": "cb71aca2-261c-470e-8629-0f50ca118a2e",
+          "role": "assistant",
+          "content": "We have several properties available for you to choose from:\n1. Orchid Passaros Goa South\n2. The Orchid Chandigarh\n3. The Orchid Hotel Manali\n4. The Orchid Jamnagar\n5. The Orchid Lonavala\n6. The Orchid Mumbai\n7. The Orchid Panchgani\n8. The Orchid Pune\n9. The Orchid Rishivan Rishikesh\n10. The Orchid Shimla\nIf you have a specific location in mind or need more details about any of these properties, feel free to let me know!",
+          "timestamp": "2026-03-31T17:16:00.481950Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-d3d254b9a23e",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "e489f59c-21c7-4545-bfe2-9bac4147fb29",
+          "role": "user",
+          "content": "can you tell me which is best for a friend group",
+          "timestamp": "2026-03-31T17:16:24.399364Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can you tell me which is best for a friend group?"
+          }
+        },
+        {
+          "id": "7dbc4530-3423-4b54-a2fb-ffc8ca839a1f",
+          "role": "assistant",
+          "content": "For a friend group, the best choice depends on your preferences. Here are some options:\n1. **Orchid Passaros Goa South**: Ideal for beach lovers and those looking to enjoy vibrant nightlife and water sports.\n2. **The Orchid Lonavala**: Perfect for a relaxing getaway with scenic views and nature trails.\n3. **The Orchid Hotel Manali**: Great for adventure enthusiasts interested in trekking and exploring the mountains.\n4. **The Orchid Mumbai**: Offers a bustling city experience with shopping, dining, and entertainment options.\nIf you have a specific activity or setting in mind, let me know, and I can provide more tailored recommendations!",
+          "timestamp": "2026-03-31T17:17:06.616533Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-f104060ca054",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4f0e3998-bbd8-4679-95da-ea666815897d",
+          "role": "user",
+          "content": "id like goa",
+          "timestamp": "2026-03-31T17:17:31.358745Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'd like Goa."
+          }
+        },
+        {
+          "id": "5b2431e7-3bd7-455d-bade-c07e63bb3637",
+          "role": "assistant",
+          "content": "Great choice! At Orchid Passaros Goa South, we have several luxurious room options perfect for a relaxing stay. Here are the available rooms:\n1. **Sunbird Haven**: A romantic luxury room designed for couples, featuring amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker.\n2. **Kingfisher Haven**: A luxury room with modern comforts and a private balcony, equipped with a locker, mini fridge, and tea & coffee maker.\n3. **Bulbul Nest**: A luxury room featuring a private Jacuzzi, along with a locker, mini fridge, and tea & coffee maker.\n4. **Bee Eater Oasis**: A cozy romantic hideaway with a locker, mini fridge, and tea & coffee maker.\n5. **Treepie Retreat**: A luxury room with an intimate ambiance, offering amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker.\nPlease let me know if you would like to proceed with booking any of these rooms or need more information!",
+          "timestamp": "2026-03-31T17:18:09.154712Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-6fcf365c0c97",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ae692f25-75c6-464a-9c4b-d554f6687c1c",
+          "role": "user",
+          "content": "what amenities does this hotel have",
+          "timestamp": "2026-03-31T17:18:31.769708Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What amenities does this hotel have?"
+          }
+        },
+        {
+          "id": "a1e157d1-be98-4537-9e73-4438b0b6837d",
+          "role": "assistant",
+          "content": "Orchid Passaros Goa South offers a range of luxurious amenities including an infinity pool, Wi-Fi access, and couple spa experiences. The property is an adults-only resort, providing a serene and romantic atmosphere. Additionally, the hotel features a variety of dining options such as the Tipsy Sparrow all-day dining restaurant, Splash Poolbar, and Falcon Bar & Grills. Rooms come equipped with amenities like intercom, television, tea & coffee maker, mini fridge, and locker.",
+          "timestamp": "2026-03-31T17:19:20.727878Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-94632f330077",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d8cfd681-17e2-4b46-82c7-822953a22494",
+          "role": "user",
+          "content": "is the pool heated",
+          "timestamp": "2026-03-31T17:19:37.480901Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Is the pool heated?"
+          }
+        },
+        {
+          "id": "a709179d-c52a-4533-89c8-83e039cfe693",
+          "role": "assistant",
+          "content": "The available information does not specify whether the pool at Orchid Passaros Goa South is heated. For confirmation, please contact the hotel directly at +91 916 916 6789 or reservations@orchidhotel.com.",
+          "timestamp": "2026-03-31T17:20:19.501803Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-fb78ad906d1d",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "afe6f15a-053c-47f1-b727-a737c413e385",
+          "role": "user",
+          "content": "can i get contact info",
+          "timestamp": "2026-03-31T17:21:19.409804Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I get contact info?"
+          }
+        },
+        {
+          "id": "58a2b18e-26bf-4325-9244-4c11d2d97962",
+          "role": "assistant",
+          "content": "You can contact Orchid Passaros Goa South at the following details:\n- Phone: +91 916 916 6789\n- Email: reservations@orchidhotel.com\n- Website: [https://orchidresortgoa.com/](https://orchidresortgoa.com/)",
+          "timestamp": "2026-03-31T17:22:27.408965Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-ed436058ec76",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "180ef3fe-f3ed-4d97-b200-606bbe067fb8",
+          "role": "user",
+          "content": "do u have spa services",
+          "timestamp": "2026-03-31T17:22:47.773201Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have spa services?"
+          }
+        },
+        {
+          "id": "0378ce80-0a29-40d8-9dc0-fdbf9c028c20",
+          "role": "assistant",
+          "content": "Yes, Orchid Passaros Goa South offers spa services. The Feather Touch Couple Spa is available within the resort, featuring side-by-side treatment rooms and a candlelight ambiance. Signature treatments include a warm herbal foot soak and synchronized massages with coconut oil and Goan lemongrass. The spa operates daily from 10:00 AM to 8:00 PM.",
+          "timestamp": "2026-03-31T17:24:14.961536Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-cf15c184748c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "53b80742-c2a9-4d41-92f9-b05ac6315053",
+          "role": "user",
+          "content": "can i conduct a business meeting there",
+          "timestamp": "2026-03-31T17:24:51.036105Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I conduct a business meeting there?"
+          }
+        },
+        {
+          "id": "21681336-2814-43e5-9848-a24dc04523b6",
+          "role": "assistant",
+          "content": "Yes, you can conduct a business meeting at Orchid Passaros Goa South. The hotel features the Hornbill Banquet, an intimate banquet hall that can accommodate 25-60 guests. It offers a tropical calm setting, catering services, audio-visual equipment, flexible seating arrangements, and a parking facility. If you need more details or wish to make arrangements, please contact the hotel directly.",
+          "timestamp": "2026-03-31T17:25:29.466140Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5e20c338c723",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "1fe7d107-a1f1-408b-b2f5-caef2b6bb934",
+          "role": "user",
+          "content": "Can I book a room?",
+          "timestamp": "2026-03-31T17:25:58.596660Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "5adae6e3-a5c7-4db1-8791-2731f7a7a57b",
+          "role": "assistant",
+          "content": "Certainly! At Orchid Passaros Goa South, we have several luxurious room options available for booking. Here are the options:\n1. **Sunbird Haven**: A romantic luxury room designed for couples, featuring amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker.\n2. **Kingfisher Haven**: A luxury room with modern comforts and a private balcony, equipped with a locker, mini fridge, and tea & coffee maker.\n3. **Bulbul Nest**: A luxury room featuring a private Jacuzzi, along with a locker, mini fridge, and tea & coffee maker.\n4. **Bee Eater Oasis**: A cozy romantic hideaway with a locker, mini fridge, and tea & coffee maker.\n5. **Treepie Retreat**: A luxury room with an intimate ambiance, featuring a locker, mini fridge, tea & coffee maker, intercom, television, and Wi-Fi.\nPlease let me know which room you would like to book, and I can assist you with the booking process.",
+          "timestamp": "2026-03-31T17:26:32.321977Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-32aca9e5a951",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d4c0da6b-9723-4c7a-b479-b9917f816c40",
+          "role": "user",
+          "content": "which room is best for a group of friends",
+          "timestamp": "2026-03-31T17:27:02.082617Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Which room is best for a group of friends?"
+          }
+        },
+        {
+          "id": "48b81681-a849-4ded-bac3-201ee67fa395",
+          "role": "assistant",
+          "content": "At Orchid Passaros Goa South, the rooms are primarily designed for couples, with each room having an occupancy limit of 2. For a group of friends, you might consider booking multiple rooms to accommodate everyone comfortably. If you have any specific preferences or need further assistance with booking, feel free to let me know!",
+          "timestamp": "2026-03-31T17:27:41.663161Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-898d8f156244",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "51e4decf-dfa1-4a08-a875-4ba83c6afc2a",
+          "role": "user",
+          "content": "its just 2 people",
+          "timestamp": "2026-03-31T17:28:00.452229Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "It's just 2 people."
+          }
+        },
+        {
+          "id": "76acedd5-4cbc-4b8e-89c0-4153eebb90f1",
+          "role": "assistant",
+          "content": "Great! Since it's just two people, you can choose from any of our luxurious rooms at Orchid Passaros Goa South. Here are the options:\n- **Sunbird Haven**: Romantic luxury room designed for couples with amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker.\n- **Kingfisher Haven**: Luxury room with modern comforts and a private balcony, equipped with a locker, mini fridge, and tea & coffee maker.\n- **Bulbul Nest**: Luxury room featuring a private Jacuzzi, along with a locker, mini fridge, and tea & coffee maker.\n- **Bee Eater Oasis**: Cozy romantic hideaway with a locker, mini fridge, and tea & coffee maker.\n- **Treepie Retreat**: Luxury room with an intimate ambiance, featuring a locker, mini fridge, tea & coffee maker, intercom, television, and Wi-Fi.\nPlease let me know which room you would like to book, and I can assist you with the booking process!",
+          "timestamp": "2026-03-31T17:28:31.105776Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-abe8c8841f1b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "eb3dd106-4a90-4957-813c-66f0f8bb52eb",
+          "role": "user",
+          "content": "Book Sunbird Haven",
+          "timestamp": "2026-03-31T17:29:25.554881Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book Sunbird Haven."
+          }
+        },
+        {
+          "id": "20dc4396-0b94-4cf3-8ad6-7bf0f836a5a4",
+          "role": "assistant",
+          "content": "You've chosen the Sunbird Haven, a romantic luxury room designed for couples, featuring amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker. Please provide the following details to proceed with your booking:\n- Check-in date\n- Check-out date\n- Contact information (if not already provided)",
+          "timestamp": "2026-03-31T17:29:53.802388Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-ebf6685b4982",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T17:13:31.326074Z",
+      "updated_at": "2026-03-31T17:29:53.802468Z"
     }
   }
 }

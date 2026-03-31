@@ -5,6 +5,7 @@ Loads, saves, and manages business configuration files.
 Supports multiple industries with template-based setup.
 """
 
+import asyncio
 import copy
 import hashlib
 import json
@@ -78,6 +79,39 @@ _LIBRARY_TOPIC_STOPWORDS = {
     "info",
     "information",
     "details",
+}
+
+_GENERIC_KB_SOURCE_STEMS = {
+    "about",
+    "amenities",
+    "brand",
+    "common",
+    "contact",
+    "contacts",
+    "faq",
+    "faqs",
+    "general",
+    "guide",
+    "guides",
+    "hotel",
+    "hotels",
+    "info",
+    "information",
+    "intro",
+    "introduction",
+    "kb",
+    "knowledge",
+    "location",
+    "locations",
+    "menu",
+    "menus",
+    "overview",
+    "policies",
+    "policy",
+    "services",
+    "shared",
+    "terms",
+    "welcome",
 }
 
 _PREBOOKING_TICKETING_CASES = [
@@ -386,6 +420,7 @@ class ConfigService:
             "knowledge_base": {
                 "sources": [],
                 "notes": "",
+                "expected_property_count": 0,
                 "nlu_policy": {
                     "dos": [],
                     "donts": [],
@@ -494,6 +529,14 @@ class ConfigService:
         lowered = str(value or "").strip().lower()
         slug = re.sub(r"[^a-z0-9]+", "_", lowered).strip("_")
         return slug
+
+    @staticmethod
+    def _coerce_expected_property_count(value: Any) -> int:
+        try:
+            parsed = int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+        return max(0, min(parsed, 50))
 
     @classmethod
     def _normalize_channel_identifier(cls, value: Any) -> str:
@@ -1948,6 +1991,81 @@ class ConfigService:
                 pass
             return False
 
+    def _schedule_json_section_db_sync(self, section: str, payload: Any) -> None:
+        """Best-effort DB snapshot sync for sync code paths that mutate JSON config."""
+        section_id = self._normalize_identifier(section)
+        if not section_id:
+            return
+        async def _runner() -> None:
+            try:
+                from services.db_config_service import db_config_service
+
+                await db_config_service.save_json_section(section_id, payload)
+            except Exception:
+                pass
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            try:
+                asyncio.run(_runner())
+            except Exception:
+                pass
+            return
+        except Exception:
+            return
+
+        try:
+            loop.create_task(_runner())
+        except Exception:
+            pass
+
+    async def _save_json_section_snapshot(self, section: str, payload: Any) -> None:
+        """Persist one config section snapshot to DB and keep JSON cache aligned."""
+        section_id = self._normalize_identifier(section)
+        if not section_id:
+            return
+        try:
+            from services.db_config_service import db_config_service
+
+            await db_config_service.save_json_section(section_id, payload)
+        except Exception:
+            self._schedule_json_section_db_sync(section_id, payload)
+
+    async def _hydrate_json_section_from_db(
+        self,
+        section: str,
+        *,
+        expected_type: type,
+        default_factory,
+    ) -> Any:
+        """
+        Load one JSON-backed section from DB when available and mirror it to local JSON.
+        Async runtime paths use this so DB stays the source of truth.
+        """
+        section_id = self._normalize_identifier(section)
+        if not section_id:
+            return default_factory()
+        try:
+            from services.db_config_service import db_config_service
+
+            payload = await db_config_service.get_json_section(section_id, default=None)
+            if isinstance(payload, expected_type):
+                config = self.load_config()
+                config[section_id] = copy.deepcopy(payload)
+                self.save_config(config)
+                return payload
+        except Exception:
+            pass
+
+        config = self.load_config()
+        existing = config.get(section_id)
+        if isinstance(existing, expected_type):
+            return existing
+        fallback = default_factory()
+        config[section_id] = copy.deepcopy(fallback)
+        self.save_config(config)
+        return fallback
+
     def load_template(self, template_name: str) -> Dict[str, Any]:
         """Load a configuration template."""
         template_file = TEMPLATES_DIR / f"{template_name}_template.json"
@@ -2155,6 +2273,57 @@ class ConfigService:
         generated = self._generate_service_prompt_pack(service)
         return generated if self._is_valid_service_prompt_pack(generated) else {}
 
+    @staticmethod
+    def _approved_service_kb_facts(record: Any) -> list[dict[str, Any]]:
+        approved_facts: list[dict[str, Any]] = []
+        if not isinstance(record, dict):
+            return approved_facts
+        for fact in (record.get("facts") or []):
+            if not isinstance(fact, dict):
+                continue
+            status = str(fact.get("status") or "").strip().lower()
+            if status != "approved":
+                continue
+            approved_facts.append(
+                {
+                    "id": str(fact.get("id") or "").strip(),
+                    "text": str(fact.get("text") or "").strip(),
+                    "source": str(fact.get("source") or "").strip(),
+                    "origin": str(fact.get("origin") or "").strip(),
+                    "tags": fact.get("tags", []) if isinstance(fact.get("tags"), list) else [],
+                    "confidence": float(fact.get("confidence") or 0.0),
+                }
+            )
+        return approved_facts
+
+    def summarize_service_kb_records(
+        self,
+        records: Any,
+        *,
+        limit: int = 120,
+    ) -> list[dict[str, Any]]:
+        summary: list[dict[str, Any]] = []
+        rows = records if isinstance(records, list) else []
+        for record in rows[: max(1, int(limit or 120))]:
+            if not isinstance(record, dict):
+                continue
+            summary.append(
+                {
+                    "id": str(record.get("id") or "").strip(),
+                    "service_id": str(record.get("service_id") or "").strip(),
+                    "plugin_id": str(record.get("plugin_id") or "").strip(),
+                    "strict_mode": bool(record.get("strict_mode", True)),
+                    "version": int(record.get("version") or 0),
+                    "published_at": str(record.get("published_at") or "").strip(),
+                    "published_by": str(record.get("published_by") or "").strip(),
+                    "completeness": record.get("completeness", {}) if isinstance(record.get("completeness"), dict) else {},
+                    "facts": self._approved_service_kb_facts(record),
+                    "extracted_knowledge": str(record.get("extracted_knowledge") or "").strip(),
+                    "generated_extraction_prompt": str(record.get("generated_extraction_prompt") or "").strip(),
+                }
+            )
+        return summary
+
     def get_journey_phases(self) -> List[Dict[str, Any]]:
         """Get configured guest-journey phases."""
         config = self.load_config()
@@ -2345,6 +2514,10 @@ class ConfigService:
         )
         saved = self.save_config(config)
         if saved:
+            self._schedule_json_section_db_sync(
+                "service_kb",
+                config.get("service_kb", {}) if isinstance(config.get("service_kb", {}), dict) else {},
+            )
             self._maybe_auto_compile_service_kb()
         return saved
 
@@ -2363,6 +2536,10 @@ class ConfigService:
             service_kb["records"] = []
         saved = self.save_config(config)
         if saved:
+            self._schedule_json_section_db_sync(
+                "service_kb",
+                service_kb if isinstance(service_kb, dict) else {},
+            )
             self._maybe_auto_compile_service_kb()
         return saved
 
@@ -2883,6 +3060,7 @@ class ConfigService:
 
         if not self.save_config(config):
             return None
+        self._schedule_json_section_db_sync("service_kb", service_kb_cfg)
         return self.get_service_kb_record(
             service_id=normalized.get("service_id"),
             plugin_id=normalized.get("plugin_id"),
@@ -3503,6 +3681,11 @@ class ConfigService:
         Older code paths call `enrich_service_kb_records`; current pipeline uses
         `compile_service_kb_records` as the authoritative service-KB refresh step.
         """
+        await self._hydrate_json_section_from_db(
+            "service_kb",
+            expected_type=dict,
+            default_factory=dict,
+        )
         result = self.compile_service_kb_records(
             service_id=service_id,
             force=force,
@@ -3512,6 +3695,10 @@ class ConfigService:
         )
         if not isinstance(result, dict):
             result = {}
+        config = self.load_config()
+        service_kb_cfg = config.get("service_kb", {})
+        if isinstance(service_kb_cfg, dict):
+            await self._save_json_section_snapshot("service_kb", service_kb_cfg)
         result.setdefault("mode", "compile_compat")
         result.setdefault("service_id", self._normalize_identifier(service_id))
         return result
@@ -3630,6 +3817,7 @@ class ConfigService:
         result = await llm_client.chat(messages, temperature=0.1)
         return result.strip()
 
+    @staticmethod
     def _split_extraction_chunks(
         text: str,
         *,
@@ -3699,14 +3887,30 @@ class ConfigService:
             )
         return base
 
+    _LLM_ERROR_MARKERS = (
+        "i'm having trouble processing",
+        "i am having trouble processing",
+        "could you please try again",
+        "an error occurred",
+    )
+
+    @staticmethod
+    def _is_llm_error_response(text: str) -> bool:
+        """Detect generic LLM error fallback strings that should not be treated as real content."""
+        lowered = text.lower()
+        from services.config_service import ConfigService
+        return any(marker in lowered for marker in ConfigService._LLM_ERROR_MARKERS)
+
     async def _extract_service_knowledge_from_kb(
         self,
         *,
         extraction_prompt: str,
         full_kb_text: str,
         knowledge_context: str = "",
+        max_retries: int = 2,
     ) -> str:
         """Extract service knowledge from bounded KB context using chunked map-reduce."""
+        import asyncio as _asyncio
         from llm.client import llm_client  # local import to avoid circular dependency
 
         kb_context = str(knowledge_context or "").strip() or str(full_kb_text or "").strip()
@@ -3734,12 +3938,21 @@ class ConfigService:
                     ),
                 },
             ]
-            result = await llm_client.chat(
-                messages,
-                temperature=0.0,
-                max_tokens=4000,
-            )
-            extracted = str(result or "").strip()
+            extracted = ""
+            for attempt in range(1, max_retries + 1):
+                result = await llm_client.chat(
+                    messages,
+                    temperature=0.0,
+                    max_tokens=4096,
+                )
+                candidate = str(result or "").strip()
+                if candidate and not self._is_llm_error_response(candidate):
+                    extracted = candidate
+                    break
+                # Rate limit / transient error — back off and retry
+                if attempt < max_retries:
+                    await _asyncio.sleep(1.5 * attempt)
+
             if not extracted:
                 continue
             if extracted.upper().startswith("NO_RELEVANT_INFO"):
@@ -4597,6 +4810,7 @@ class ConfigService:
         knowledge = config.setdefault("knowledge_base", {})
         knowledge["library_index"] = library
         self.save_config(config)
+        self._schedule_json_section_db_sync("knowledge_base", knowledge)
         return library
 
     def get_structured_kb_library(
@@ -4751,6 +4965,11 @@ class ConfigService:
         from config.settings import settings
         if not bool(getattr(settings, "kb_indexing_enabled", False)):
             return {}
+        await self._hydrate_json_section_from_db(
+            "knowledge_base",
+            expected_type=dict,
+            default_factory=dict,
+        )
         library = self.get_structured_kb_library(rebuild_if_stale=True, max_sources=max_sources)
         pages = library.get("pages", []) if isinstance(library, dict) else []
         books = library.get("books", []) if isinstance(library, dict) else []
@@ -4814,7 +5033,1247 @@ class ConfigService:
         knowledge = config.setdefault("knowledge_base", {})
         knowledge["library_index"] = updated_library
         self.save_config(config)
+        await self._save_json_section_snapshot("knowledge_base", knowledge)
         return updated_library
+
+    @staticmethod
+    def _humanize_property_scope_label(value: Any) -> str:
+        text = re.sub(r"\s+", " ", str(value or "").replace("_", " ").strip())
+        if not text:
+            return ""
+        return text.title()
+
+    def _property_scope_hints_from_source_name(self, source_name: str) -> list[dict[str, Any]]:
+        raw_name = str(source_name or "").strip()
+        if not raw_name:
+            return []
+        stem = re.sub(r"^[0-9a-f]{8}_", "", Path(raw_name).stem, flags=re.IGNORECASE)
+        tokens = [token for token in re.split(r"[^a-z0-9]+", stem.lower()) if token]
+        if not tokens:
+            return []
+        clean_tokens = [
+            token
+            for token in tokens
+            if token not in _GENERIC_KB_SOURCE_STEMS and len(token) > 2
+        ]
+        if not clean_tokens:
+            return []
+        property_id = self._normalize_slug("_".join(clean_tokens[:4]))
+        if not property_id:
+            return []
+        name = self._humanize_property_scope_label(" ".join(clean_tokens[:4]))
+        aliases: list[str] = []
+        for alias in (
+            name,
+            self._humanize_property_scope_label(clean_tokens[-1]),
+            self._humanize_property_scope_label(" ".join(clean_tokens[-2:])),
+        ):
+            alias_clean = re.sub(r"\s+", " ", str(alias or "").strip())
+            if alias_clean and alias_clean not in aliases:
+                aliases.append(alias_clean)
+        return [
+            {
+                "id": property_id,
+                "name": name or property_id.replace("_", " ").title(),
+                "aliases": aliases,
+                "source_names": [raw_name],
+            }
+        ]
+
+    def _build_property_scope_index_heuristic(
+        self,
+        *,
+        library: dict[str, Any],
+    ) -> dict[str, Any]:
+        documents = library.get("documents", []) if isinstance(library, dict) else []
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        source_signature = str(library.get("source_signature") or "") if isinstance(library, dict) else ""
+        generated_at = datetime.now(UTC).isoformat()
+        properties_map: dict[str, dict[str, Any]] = {}
+        common_source_names: set[str] = set()
+
+        if isinstance(documents, list):
+            for document in documents:
+                if not isinstance(document, dict):
+                    continue
+                source_name = str(document.get("source_name") or "").strip()
+                hints = self._property_scope_hints_from_source_name(source_name)
+                if not hints:
+                    if source_name:
+                        common_source_names.add(source_name)
+                    continue
+                for hint in hints:
+                    property_id = self._normalize_slug(hint.get("id"))
+                    if not property_id:
+                        continue
+                    row = properties_map.setdefault(
+                        property_id,
+                        {
+                            "id": property_id,
+                            "name": str(hint.get("name") or property_id.replace("_", " ").title()).strip(),
+                            "aliases": [],
+                            "source_names": [],
+                            "page_ids": [],
+                        },
+                    )
+                    for alias in hint.get("aliases", []) if isinstance(hint.get("aliases"), list) else []:
+                        alias_clean = re.sub(r"\s+", " ", str(alias or "").strip())
+                        if alias_clean and alias_clean not in row["aliases"]:
+                            row["aliases"].append(alias_clean)
+                    for value in hint.get("source_names", []) if isinstance(hint.get("source_names"), list) else []:
+                        source_clean = str(value or "").strip()
+                        if source_clean and source_clean not in row["source_names"]:
+                            row["source_names"].append(source_clean)
+
+        common_page_ids: list[str] = []
+        if isinstance(pages, list):
+            for page in pages:
+                if not isinstance(page, dict):
+                    continue
+                page_id = str(page.get("id") or "").strip()
+                source_name = str(page.get("source_name") or "").strip()
+                if not page_id:
+                    continue
+                matched_property_ids = [
+                    property_id
+                    for property_id, row in properties_map.items()
+                    if source_name and source_name in row.get("source_names", [])
+                ]
+                if not matched_property_ids:
+                    common_page_ids.append(page_id)
+                    continue
+                for property_id in matched_property_ids:
+                    row = properties_map.get(property_id)
+                    if not row:
+                        continue
+                    if page_id not in row["page_ids"]:
+                        row["page_ids"].append(page_id)
+
+        properties = sorted(
+            [
+                {
+                    "id": property_id,
+                    "name": str(row.get("name") or property_id.replace("_", " ").title()).strip(),
+                    "aliases": [
+                        str(alias).strip()
+                        for alias in row.get("aliases", [])
+                        if str(alias).strip()
+                    ],
+                    "source_names": [
+                        str(source).strip()
+                        for source in row.get("source_names", [])
+                        if str(source).strip()
+                    ],
+                    "page_ids": [
+                        str(page_id).strip()
+                        for page_id in row.get("page_ids", [])
+                        if str(page_id).strip()
+                    ],
+                }
+                for property_id, row in properties_map.items()
+            ],
+            key=lambda row: (str(row.get("name") or "").lower(), str(row.get("id") or "")),
+        )
+        return {
+            "version": "v1",
+            "generator": "heuristic_v1",
+            "generated_at": generated_at,
+            "source_signature": source_signature,
+            "expected_property_count": self._coerce_expected_property_count(
+                self.get_knowledge_config().get("expected_property_count")
+            ),
+            "properties": properties,
+            "common_page_ids": common_page_ids,
+            "common_source_names": sorted(common_source_names),
+        }
+
+    def _normalize_property_scope_index(
+        self,
+        payload: Any,
+        *,
+        source_signature: str,
+        generated_at: str,
+        fallback_common_source_names: list[str] | None = None,
+    ) -> dict[str, Any]:
+        fallback_common_source_names = fallback_common_source_names or []
+        rows = payload.get("properties", []) if isinstance(payload, dict) else []
+        properties: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            property_id = self._normalize_slug(row.get("id") or row.get("name"))
+            if not property_id or property_id in seen_ids:
+                continue
+            seen_ids.add(property_id)
+            name = re.sub(r"\s+", " ", str(row.get("name") or property_id.replace("_", " ").title()).strip())
+            aliases: list[str] = []
+            for alias in row.get("aliases", []) if isinstance(row.get("aliases"), list) else []:
+                alias_clean = re.sub(r"\s+", " ", str(alias or "").strip())
+                if alias_clean and alias_clean.lower() != name.lower() and alias_clean not in aliases:
+                    aliases.append(alias_clean)
+            source_names: list[str] = []
+            for source_name in row.get("source_names", []) if isinstance(row.get("source_names"), list) else []:
+                source_clean = str(source_name or "").strip()
+                if source_clean and source_clean not in source_names:
+                    source_names.append(source_clean)
+            properties.append(
+                {
+                    "id": property_id,
+                    "name": name,
+                    "aliases": aliases,
+                    "source_names": source_names,
+                    "page_ids": [],
+                }
+            )
+        common_sources_value = payload.get("common_source_names", []) if isinstance(payload, dict) else []
+        common_source_names: list[str] = []
+        for source_name in common_sources_value if isinstance(common_sources_value, list) else fallback_common_source_names:
+            source_clean = str(source_name or "").strip()
+            if source_clean and source_clean not in common_source_names:
+                common_source_names.append(source_clean)
+        return {
+            "version": "v1",
+            "generator": "llm_v1",
+            "generated_at": generated_at,
+            "source_signature": source_signature,
+            "expected_property_count": self._coerce_expected_property_count(
+                self.get_knowledge_config().get("expected_property_count")
+            ),
+            "properties": properties,
+            "common_page_ids": [],
+            "common_source_names": common_source_names,
+        }
+
+    async def _identify_property_scopes_with_llm(
+        self,
+        *,
+        library: dict[str, Any],
+        heuristic_index: dict[str, Any],
+    ) -> dict[str, Any]:
+        from config.settings import settings
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        if not bool(getattr(settings, "openai_api_key", "").strip()):
+            return {}
+
+        documents = library.get("documents", []) if isinstance(library, dict) else []
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        if not isinstance(documents, list) or not documents:
+            return {}
+
+        document_lines: list[str] = []
+        page_preview_map: dict[str, str] = {}
+        if isinstance(pages, list):
+            for page in pages[:200]:
+                if not isinstance(page, dict):
+                    continue
+                source_name = str(page.get("source_name") or "").strip()
+                preview = self._safe_page_preview(page.get("text") or "", max_chars=220)
+                if source_name and preview and source_name not in page_preview_map:
+                    page_preview_map[source_name] = preview
+        for document in documents[:80]:
+            if not isinstance(document, dict):
+                continue
+            source_name = str(document.get("source_name") or "").strip()
+            preview = page_preview_map.get(source_name, "")
+            if not source_name:
+                continue
+            document_lines.append(f"SOURCE: {source_name}\nPREVIEW: {preview}")
+        if not document_lines:
+            return {}
+
+        heuristic_lines: list[str] = []
+        for row in heuristic_index.get("properties", []) if isinstance(heuristic_index, dict) else []:
+            if not isinstance(row, dict):
+                continue
+            heuristic_lines.append(
+                f"- {str(row.get('name') or '').strip()} | aliases={', '.join(row.get('aliases', [])[:4])} | "
+                f"sources={', '.join(row.get('source_names', [])[:4])}"
+            )
+
+        expected_property_count = self._coerce_expected_property_count(
+            self.get_knowledge_config().get("expected_property_count")
+        )
+        constraint_text = ""
+        if expected_property_count > 0:
+            constraint_text = (
+                f"The admin configured EXPECTED_PROPERTY_COUNT={expected_property_count}. "
+                "Use that as a constraint to avoid inventing extra properties. "
+                "If the KB clearly supports fewer than that count, return only the supported properties and keep the rest unassigned.\n"
+            )
+        prompt = (
+            "You are indexing a hotel chatbot knowledge base that may contain multiple real hotel properties or locations "
+            "inside one tenant.\n"
+            "Identify the real guest-facing properties/locations represented in the sources below.\n"
+            "Do NOT treat service topics like spa, rooms, dining, or policies as properties.\n"
+            "If a source is general/shared/brand-wide, include it under common_source_names instead of inventing a property.\n"
+        )
+        prompt += constraint_text
+        prompt += (
+            "Return strict JSON only with this schema:\n"
+            "{\n"
+            '  "properties": [\n'
+            '    {"id": "manali", "name": "The Orchid Hotel Manali", "aliases": ["Manali"], "source_names": ["manali.txt"]}\n'
+            "  ],\n"
+            '  "common_source_names": ["intro.txt"]\n'
+            "}\n"
+        )
+        response = await llm_client.chat(
+            messages=[
+                {"role": "system", "content": prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        "HEURISTIC CANDIDATES:\n"
+                        + ("\n".join(heuristic_lines) if heuristic_lines else "(none)\n")
+                        + (
+                            f"\n\nEXPECTED PROPERTY COUNT:\n{expected_property_count}\n"
+                            if expected_property_count > 0
+                            else ""
+                        )
+                        + "\n\nSOURCE CATALOG:\n"
+                        + "\n\n".join(document_lines)
+                    ),
+                },
+            ],
+            temperature=0.0,
+            max_tokens=1600,
+        )
+        return self._extract_json_object(response)
+
+    async def _assign_property_scopes_to_pages_with_llm(
+        self,
+        *,
+        library: dict[str, Any],
+        property_index: dict[str, Any],
+        batch_size: int = 20,
+    ) -> dict[str, list[str]]:
+        from config.settings import settings
+        from llm.client import llm_client  # local import to avoid circular dependency
+
+        assignments: dict[str, list[str]] = {}
+        if not bool(getattr(settings, "openai_api_key", "").strip()):
+            return assignments
+
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        if not isinstance(pages, list) or not isinstance(properties, list) or not properties:
+            return assignments
+
+        catalog_lines: list[str] = []
+        valid_scope_ids = {"common"}
+        for row in properties[:24]:
+            if not isinstance(row, dict):
+                continue
+            property_id = self._normalize_slug(row.get("id"))
+            if not property_id:
+                continue
+            valid_scope_ids.add(property_id)
+            name = str(row.get("name") or "").strip()
+            aliases = ", ".join(str(alias).strip() for alias in row.get("aliases", [])[:6] if str(alias).strip())
+            sources = ", ".join(str(source).strip() for source in row.get("source_names", [])[:4] if str(source).strip())
+            catalog_lines.append(f"{property_id} | name={name} | aliases={aliases} | sources={sources}")
+
+        cleaned_pages = [page for page in pages if isinstance(page, dict) and str(page.get("id") or "").strip()]
+        if not cleaned_pages or not catalog_lines:
+            return assignments
+
+        capped_batch = max(8, min(int(batch_size or 20), 24))
+        for start in range(0, len(cleaned_pages), capped_batch):
+            batch = cleaned_pages[start : start + capped_batch]
+            page_lines: list[str] = []
+            for page in batch:
+                page_id = str(page.get("id") or "").strip()
+                title = str(page.get("title") or "").strip()
+                source_name = str(page.get("source_name") or "").strip()
+                preview = self._safe_page_preview(page.get("text") or "", max_chars=260)
+                page_lines.append(
+                    f"PAGE_ID: {page_id}\nSOURCE: {source_name}\nTITLE: {title}\nPREVIEW: {preview}"
+                )
+
+            prompt = (
+                "You classify KB pages into hotel property scopes.\n"
+                "Use only the provided scope IDs.\n"
+                "A page may belong to:\n"
+                "- ['common'] for shared/brand-wide information\n"
+                "- ['property_id'] for one property\n"
+                "- ['common', 'property_id'] when the page contains both shared context and one property's details\n"
+                "- multiple property IDs only when the page directly compares or jointly describes multiple properties\n"
+                "Return strict JSON only with this schema:\n"
+                "{\n"
+                '  "assignments": [\n'
+                '    {"page_id": "page_00001", "scope_ids": ["common", "manali"]}\n'
+                "  ]\n"
+                "}\n"
+            )
+            response = await llm_client.chat(
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {
+                        "role": "user",
+                        "content": "PROPERTY CATALOG:\n"
+                        + "\n".join(catalog_lines)
+                        + "\n\nPAGE BATCH:\n"
+                        + "\n\n".join(page_lines),
+                    },
+                ],
+                temperature=0.0,
+                max_tokens=2000,
+            )
+            payload = self._extract_json_object(response)
+            rows = payload.get("assignments", [])
+            if not isinstance(rows, list):
+                rows = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    continue
+                page_id = str(row.get("page_id") or "").strip()
+                if not page_id:
+                    continue
+                scope_ids_raw = row.get("scope_ids", [])
+                if not isinstance(scope_ids_raw, list):
+                    scope_ids_raw = []
+                scope_ids: list[str] = []
+                for value in scope_ids_raw:
+                    scope_id = "common" if str(value or "").strip().lower() == "common" else self._normalize_slug(value)
+                    if not scope_id or scope_id not in valid_scope_ids or scope_id in scope_ids:
+                        continue
+                    scope_ids.append(scope_id)
+                if scope_ids:
+                    assignments[page_id] = scope_ids
+        return assignments
+
+    def _finalize_property_scope_index(
+        self,
+        *,
+        library: dict[str, Any],
+        property_index: dict[str, Any],
+        page_assignments: dict[str, list[str]] | None = None,
+    ) -> dict[str, Any]:
+        page_assignments = page_assignments or {}
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        source_signature = str(library.get("source_signature") or "") if isinstance(library, dict) else ""
+        generated_at = datetime.now(UTC).isoformat()
+
+        properties_map: dict[str, dict[str, Any]] = {}
+        for row in property_index.get("properties", []) if isinstance(property_index, dict) else []:
+            if not isinstance(row, dict):
+                continue
+            property_id = self._normalize_slug(row.get("id"))
+            if not property_id:
+                continue
+            properties_map[property_id] = {
+                "id": property_id,
+                "name": str(row.get("name") or property_id.replace("_", " ").title()).strip(),
+                "aliases": [
+                    str(alias).strip()
+                    for alias in row.get("aliases", [])
+                    if str(alias).strip()
+                ] if isinstance(row.get("aliases"), list) else [],
+                "source_names": [
+                    str(source_name).strip()
+                    for source_name in row.get("source_names", [])
+                    if str(source_name).strip()
+                ] if isinstance(row.get("source_names"), list) else [],
+                "page_ids": [],
+            }
+
+        common_source_names = {
+            str(source_name).strip()
+            for source_name in (
+                property_index.get("common_source_names", [])
+                if isinstance(property_index, dict)
+                else []
+            )
+            if str(source_name).strip()
+        }
+        common_page_ids: list[str] = []
+
+        for page in pages if isinstance(pages, list) else []:
+            if not isinstance(page, dict):
+                continue
+            page_id = str(page.get("id") or "").strip()
+            source_name = str(page.get("source_name") or "").strip()
+            if not page_id:
+                continue
+            scope_ids = page_assignments.get(page_id, [])
+            normalized_scope_ids: list[str] = []
+            for scope_id in scope_ids:
+                normalized_scope = "common" if str(scope_id).strip().lower() == "common" else self._normalize_slug(scope_id)
+                if not normalized_scope or normalized_scope in normalized_scope_ids:
+                    continue
+                normalized_scope_ids.append(normalized_scope)
+            if not normalized_scope_ids:
+                matched = [
+                    property_id
+                    for property_id, row in properties_map.items()
+                    if source_name and source_name in row.get("source_names", [])
+                ]
+                if matched:
+                    normalized_scope_ids = matched
+                elif source_name in common_source_names:
+                    normalized_scope_ids = ["common"]
+            if not normalized_scope_ids:
+                normalized_scope_ids = ["common"]
+
+            if "common" in normalized_scope_ids and page_id not in common_page_ids:
+                common_page_ids.append(page_id)
+            for scope_id in normalized_scope_ids:
+                if scope_id == "common":
+                    continue
+                row = properties_map.get(scope_id)
+                if not row:
+                    continue
+                if page_id not in row["page_ids"]:
+                    row["page_ids"].append(page_id)
+                if source_name and source_name not in row["source_names"]:
+                    row["source_names"].append(source_name)
+
+        properties = sorted(
+            [
+                {
+                    "id": property_id,
+                    "name": str(row.get("name") or property_id.replace("_", " ").title()).strip(),
+                    "aliases": [
+                        str(alias).strip()
+                        for alias in row.get("aliases", [])
+                        if str(alias).strip()
+                    ],
+                    "source_names": [
+                        str(source_name).strip()
+                        for source_name in row.get("source_names", [])
+                        if str(source_name).strip()
+                    ],
+                    "page_ids": [
+                        str(page_id).strip()
+                        for page_id in row.get("page_ids", [])
+                        if str(page_id).strip()
+                    ],
+                }
+                for property_id, row in properties_map.items()
+            ],
+            key=lambda row: (str(row.get("name") or "").lower(), str(row.get("id") or "")),
+        )
+        expected_property_count = self._coerce_expected_property_count(
+            property_index.get("expected_property_count")
+            if isinstance(property_index, dict)
+            else 0
+        ) or self._coerce_expected_property_count(self.get_knowledge_config().get("expected_property_count"))
+        detected_property_count = len(properties)
+        return {
+            "version": "v1",
+            "generator": str(property_index.get("generator") or "heuristic_v1") if isinstance(property_index, dict) else "heuristic_v1",
+            "generated_at": generated_at,
+            "source_signature": source_signature,
+            "expected_property_count": expected_property_count,
+            "detected_property_count": detected_property_count,
+            "count_mismatch": bool(expected_property_count > 0 and detected_property_count != expected_property_count),
+            "properties": properties,
+            "common_page_ids": common_page_ids,
+            "common_source_names": sorted(common_source_names),
+        }
+
+    async def ensure_property_scope_index(
+        self,
+        *,
+        max_sources: int = 50,
+        force: bool = False,
+    ) -> dict[str, Any]:
+        await self._hydrate_json_section_from_db(
+            "knowledge_base",
+            expected_type=dict,
+            default_factory=dict,
+        )
+        library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
+        config = self.load_config()
+        knowledge = config.setdefault("knowledge_base", {})
+        if not isinstance(knowledge, dict):
+            knowledge = {}
+            config["knowledge_base"] = knowledge
+        source_signature = str(library.get("source_signature") or "") if isinstance(library, dict) else ""
+        expected_property_count = self._coerce_expected_property_count(
+            knowledge.get("expected_property_count")
+        )
+        cached = knowledge.get("property_index", {})
+        if (
+            not force
+            and isinstance(cached, dict)
+            and str(cached.get("source_signature") or "") == source_signature
+            and self._coerce_expected_property_count(cached.get("expected_property_count")) == expected_property_count
+            and isinstance(cached.get("properties"), list)
+        ):
+            finalized_cached = self._finalize_property_scope_index(
+                property_index=cached,
+                library=library,
+                page_assignments=cached.get("page_assignments", {}) if isinstance(cached.get("page_assignments"), dict) else {},
+            )
+            if finalized_cached != cached:
+                knowledge["property_index"] = finalized_cached
+                if self.save_config(config):
+                    self._schedule_json_section_db_sync("knowledge_base", knowledge)
+            return finalized_cached
+
+        heuristic_index = self._build_property_scope_index_heuristic(library=library)
+        property_index = heuristic_index
+        page_assignments: dict[str, list[str]] = {}
+
+        llm_payload = await self._identify_property_scopes_with_llm(
+            library=library,
+            heuristic_index=heuristic_index,
+        )
+        if isinstance(llm_payload, dict) and llm_payload.get("properties"):
+            property_index = self._normalize_property_scope_index(
+                llm_payload,
+                source_signature=source_signature,
+                generated_at=datetime.now(UTC).isoformat(),
+                fallback_common_source_names=heuristic_index.get("common_source_names", []),
+            )
+            page_assignments = await self._assign_property_scopes_to_pages_with_llm(
+                library=library,
+                property_index=property_index,
+            )
+
+        finalized = self._finalize_property_scope_index(
+            library=library,
+            property_index=property_index,
+            page_assignments=page_assignments,
+        )
+        knowledge["property_index"] = finalized
+        self.save_config(config)
+        await self._save_json_section_snapshot("knowledge_base", knowledge)
+        return finalized
+
+    def _match_property_scope_ids_from_text(
+        self,
+        text: str,
+        *,
+        property_index: dict[str, Any],
+        limit: int = 4,
+    ) -> list[str]:
+        blob = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        if not blob:
+            return []
+        rows = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        scored: list[tuple[float, str]] = []
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            property_id = self._normalize_slug(row.get("id"))
+            if not property_id:
+                continue
+            candidates = [str(row.get("name") or "").strip(), *list(row.get("aliases") or [])]
+            score = 0.0
+            for candidate in candidates:
+                candidate_clean = re.sub(r"\s+", " ", str(candidate or "").strip())
+                if not candidate_clean:
+                    continue
+                lowered = candidate_clean.lower()
+                if len(lowered) >= 4 and lowered in blob:
+                    score = max(score, 6.0 + min(len(lowered) / 24.0, 2.0))
+                    continue
+                tokens = [
+                    token
+                    for token in re.findall(r"[a-z0-9]+", lowered)
+                    if token not in _LIBRARY_TOPIC_STOPWORDS and len(token) > 2
+                ]
+                if not tokens:
+                    continue
+                hits = sum(1 for token in tokens if token in blob)
+                if hits:
+                    score = max(score, float(hits) + min(len(tokens) * 0.35, 1.25))
+            if score > 0:
+                scored.append((score, property_id))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        selected: list[str] = []
+        for _, property_id in scored:
+            if property_id in selected:
+                continue
+            selected.append(property_id)
+            if len(selected) >= max(1, limit):
+                break
+        return selected
+
+    @staticmethod
+    def _is_property_compare_request(text: str) -> bool:
+        blob = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        if not blob:
+            return False
+        markers = (
+            "compare",
+            "difference",
+            "different",
+            "diff",
+            "versus",
+            " vs ",
+            "between",
+            "better",
+            "which one is better",
+            "what is the difference",
+            "what's the difference",
+            "these 2",
+            "these two",
+            "both hotels",
+            "both properties",
+        )
+        return any(marker in blob for marker in markers)
+
+    @staticmethod
+    def _is_property_listing_request(text: str) -> bool:
+        blob = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        if not blob:
+            return False
+        markers = (
+            "multiple locations",
+            "multiple properties",
+            "multiple properties rooms",
+            "across multiple",
+            "across properties",
+            "across locations",
+            "across hotels",
+            "which locations",
+            "what locations",
+            "what properties",
+            "which hotels",
+            "all locations",
+            "all properties",
+            "all hotels",
+            "do you have multiple",
+            "how many locations",
+            "how many properties",
+            "do you have locations",
+            "what hotels do you have",
+            "which hotel locations",
+            "each property",
+            "every property",
+            "every location",
+            "both properties",
+            "both locations",
+            "both hotels",
+        )
+        return any(marker in blob for marker in markers)
+
+    @staticmethod
+    def _is_property_sensitive_request(text: str) -> bool:
+        blob = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        if not blob:
+            return False
+        markers = (
+            "this hotel",
+            "that hotel",
+            "this property",
+            "that property",
+            "which hotel is this",
+            "which property is this",
+            "amenities",
+            "facility",
+            "facilities",
+            "room",
+            "suite",
+            "spa",
+            "pool",
+            "restaurant",
+            "dining",
+            "location",
+            "address",
+            "contact",
+            "phone",
+            "email",
+            "policy",
+            "policies",
+            "check in",
+            "check-in",
+            "check out",
+            "check-out",
+            "book",
+            "booking",
+            "reserve",
+            "reservation",
+            "rate",
+            "price",
+            "pricing",
+            "offer",
+            "offers",
+            "package",
+            "timings",
+            "hours",
+            "treatments",
+        )
+        return any(marker in blob for marker in markers)
+
+    def _build_property_scope_manifest(
+        self,
+        *,
+        property_index: dict[str, Any],
+        max_properties: int = 12,
+    ) -> list[dict[str, Any]]:
+        rows = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        manifest: list[dict[str, Any]] = []
+        for row in rows[: max(1, max_properties)] if isinstance(rows, list) else []:
+            if not isinstance(row, dict):
+                continue
+            manifest.append(
+                {
+                    "id": self._normalize_slug(row.get("id")),
+                    "name": str(row.get("name") or "").strip(),
+                    "aliases": [
+                        str(alias).strip()
+                        for alias in row.get("aliases", [])
+                        if str(alias).strip()
+                    ] if isinstance(row.get("aliases"), list) else [],
+                    "source_names": [
+                        str(source).strip()
+                        for source in row.get("source_names", [])
+                        if str(source).strip()
+                    ][:6] if isinstance(row.get("source_names"), list) else [],
+                }
+            )
+        return [row for row in manifest if row.get("id") and row.get("name")]
+
+    def _build_property_scope_manifest_text(
+        self,
+        *,
+        property_index: dict[str, Any],
+        max_properties: int = 12,
+    ) -> str:
+        manifest = self._build_property_scope_manifest(
+            property_index=property_index,
+            max_properties=max_properties,
+        )
+        expected_count = self._coerce_expected_property_count(
+            property_index.get("expected_property_count")
+            if isinstance(property_index, dict)
+            else 0
+        )
+        detected_count = len(manifest)
+        lines: list[str] = ["=== PROPERTY SCOPE MANIFEST ==="]
+        if expected_count > 0:
+            lines.append(f"Expected property count: {expected_count}")
+        lines.append(f"Detected property count: {detected_count}")
+        if expected_count > 0 and expected_count != detected_count:
+            lines.append("Warning: detected property count does not match the expected property count.")
+        if manifest:
+            lines.append("Detected properties:")
+            for row in manifest:
+                aliases = ", ".join(row.get("aliases", [])[:6])
+                source_names = ", ".join(row.get("source_names", [])[:4])
+                details = []
+                if aliases:
+                    details.append(f"aliases: {aliases}")
+                if source_names:
+                    details.append(f"sources: {source_names}")
+                suffix = f" ({'; '.join(details)})" if details else ""
+                lines.append(f"- {row.get('name')}{suffix}")
+        else:
+            lines.append("No properties detected from KB indexing.")
+        return "\n".join(lines).strip()
+
+    async def build_property_scoped_kb_context(
+        self,
+        *,
+        user_message: str,
+        history_text: str = "",
+        seed_property_id: str = "",
+        max_sources: int = 50,
+        max_scope_chars: int = 90000,
+        max_properties: int = 4,
+    ) -> dict[str, Any]:
+        library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
+        property_index = await self.ensure_property_scope_index(max_sources=max_sources)
+        properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        manifest = self._build_property_scope_manifest(
+            property_index=property_index,
+            max_properties=12,
+        )
+        detected_property_count = len(manifest)
+        expected_property_count = self._coerce_expected_property_count(
+            property_index.get("expected_property_count")
+            if isinstance(property_index, dict)
+            else 0
+        )
+        full_kb_text = self.get_full_kb_text_with_sources(max_sources=max_sources, max_chars=None)
+        if not isinstance(properties, list) or not properties:
+            return {
+                "mode": "unscoped",
+                "active_property_id": "",
+                "active_property_name": "",
+                "matched_property_ids": [],
+                "history_property_ids": [],
+                "property_manifest": manifest,
+                "expected_property_count": expected_property_count,
+                "detected_property_count": detected_property_count,
+                "count_mismatch": False,
+                "requires_clarification": False,
+                "scoped_full_kb_text": full_kb_text,
+                "clarification_question": "",
+            }
+
+        property_rows_map = {
+            self._normalize_slug(row.get("id")): row
+            for row in properties
+            if isinstance(row, dict) and self._normalize_slug(row.get("id"))
+        }
+        current_matches = self._match_property_scope_ids_from_text(
+            user_message,
+            property_index=property_index,
+            limit=max(1, min(max_properties * 2, 8)),
+        )
+        history_matches = self._match_property_scope_ids_from_text(
+            history_text,
+            property_index=property_index,
+            limit=max(1, min(max_properties * 2, 8)),
+        ) if history_text else []
+        seeded_property_id = self._normalize_slug(seed_property_id)
+
+        listing_requested = self._is_property_listing_request(user_message)
+        compare_requested = self._is_property_compare_request(user_message)
+        property_sensitive = self._is_property_sensitive_request(user_message) or bool(current_matches)
+
+        selected_property_ids: list[str] = []
+        active_property_id = ""
+        mode = "common"
+        if detected_property_count <= 1:
+            selected_property_ids = [manifest[0]["id"]] if manifest else []
+            active_property_id = selected_property_ids[0] if selected_property_ids else ""
+            mode = "single" if active_property_id else "common"
+        else:
+            if compare_requested:
+                compare_ids: list[str] = []
+                for property_id in [*current_matches, *history_matches]:
+                    if property_id and property_id not in compare_ids:
+                        compare_ids.append(property_id)
+                if len(compare_ids) >= 2:
+                    selected_property_ids = compare_ids[: max(2, min(max_properties, 6))]
+                    mode = "compare"
+            if not selected_property_ids and len(current_matches) == 1:
+                active_property_id = current_matches[0]
+                selected_property_ids = [active_property_id]
+                mode = "single"
+            elif not selected_property_ids and seeded_property_id and seeded_property_id in property_rows_map and not listing_requested:
+                active_property_id = seeded_property_id
+                selected_property_ids = [active_property_id]
+                mode = "single"
+            elif not selected_property_ids and len(history_matches) == 1 and not listing_requested:
+                active_property_id = history_matches[0]
+                selected_property_ids = [active_property_id]
+                mode = "single"
+            elif not selected_property_ids and listing_requested:
+                mode = "listing"
+            elif not selected_property_ids and property_sensitive:
+                mode = "clarify"
+            elif not selected_property_ids:
+                mode = "common"
+
+        if not active_property_id and len(selected_property_ids) == 1:
+            active_property_id = selected_property_ids[0]
+        active_row = property_rows_map.get(active_property_id) if active_property_id else None
+        active_property_name = str((active_row or {}).get("name") or "").strip()
+        common_context = self._compose_page_scope_context(
+            library=library,
+            page_ids=property_index.get("common_page_ids", []) if isinstance(property_index, dict) else [],
+            scope_label="COMMON",
+            max_chars=max_scope_chars,
+        )
+        common_text = str(common_context.get("context_text") or "").strip()
+        manifest_text = self._build_property_scope_manifest_text(property_index=property_index)
+
+        sections: list[str] = [manifest_text]
+        if active_property_name:
+            sections.append(f"=== ACTIVE PROPERTY ===\n{active_property_name}")
+        if common_text:
+            sections.append("=== COMMON KNOWLEDGE ===\n" + common_text)
+
+        property_contexts: list[dict[str, Any]] = []
+        for property_id in selected_property_ids[: max(1, min(max_properties, 6))]:
+            row = property_rows_map.get(property_id)
+            if not isinstance(row, dict):
+                continue
+            scope_context = self._compose_page_scope_context(
+                library=library,
+                page_ids=row.get("page_ids", []) if isinstance(row.get("page_ids"), list) else [],
+                scope_label=str(row.get("name") or property_id).strip() or property_id,
+                max_chars=max_scope_chars,
+            )
+            scope_text = str(scope_context.get("context_text") or "").strip()
+            if not scope_text:
+                continue
+            property_name = str(row.get("name") or property_id.replace("_", " ").title()).strip()
+            aliases = [
+                str(alias).strip()
+                for alias in row.get("aliases", [])
+                if str(alias).strip()
+            ] if isinstance(row.get("aliases"), list) else []
+            alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
+            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{scope_text}")
+            property_contexts.append(
+                {
+                    "property_id": property_id,
+                    "property_name": property_name,
+                    "aliases": aliases,
+                    "source_names": scope_context.get("source_names", []),
+                    "page_ids": scope_context.get("page_ids", []),
+                }
+            )
+
+        clarification_question = ""
+        requires_clarification = bool(mode == "clarify" and detected_property_count > 1)
+        if requires_clarification:
+            property_names = [row.get("name") for row in manifest if row.get("name")]
+            if len(property_names) <= 5:
+                clarification_question = "Which property would you like details for: " + ", ".join(property_names) + "?"
+            else:
+                clarification_question = "Which property would you like details for?"
+
+        scoped_full_kb_text = "\n\n".join(section for section in sections if str(section).strip()).strip()
+        if not scoped_full_kb_text:
+            scoped_full_kb_text = full_kb_text
+
+        return {
+            "mode": mode,
+            "active_property_id": active_property_id,
+            "active_property_name": active_property_name,
+            "matched_property_ids": current_matches,
+            "history_property_ids": history_matches,
+            "selected_property_ids": selected_property_ids,
+            "property_manifest": manifest,
+            "property_contexts": property_contexts,
+            "expected_property_count": expected_property_count,
+            "detected_property_count": detected_property_count,
+            "count_mismatch": bool(expected_property_count > 0 and expected_property_count != detected_property_count),
+            "requires_clarification": requires_clarification,
+            "clarification_question": clarification_question,
+            "scoped_full_kb_text": scoped_full_kb_text,
+        }
+
+    def _compose_page_scope_context(
+        self,
+        *,
+        library: dict[str, Any],
+        page_ids: list[str],
+        scope_label: str,
+        max_chars: int = 90000,
+    ) -> dict[str, Any]:
+        page_id_set = {str(page_id).strip() for page_id in page_ids if str(page_id).strip()}
+        if not page_id_set:
+            return {"context_text": "", "page_ids": [], "source_names": []}
+        pages = library.get("pages", []) if isinstance(library, dict) else []
+        used_page_ids: list[str] = []
+        source_names: list[str] = []
+        total_chars = 0
+        blocks: list[str] = []
+        for page in pages if isinstance(pages, list) else []:
+            if not isinstance(page, dict):
+                continue
+            page_id = str(page.get("id") or "").strip()
+            if not page_id or page_id not in page_id_set or page_id in used_page_ids:
+                continue
+            title = str(page.get("title") or "").strip()
+            source_name = str(page.get("source_name") or "").strip()
+            location = str(page.get("location") or "").strip()
+            text = str(page.get("text") or "").strip()
+            if not text:
+                continue
+            block = (
+                f"[SCOPE:{scope_label} | PAGE:{page_id} | SOURCE:{source_name} | LOCATION:{location}]\n"
+                f"{title}\n{text}\n"
+            )
+            projected = total_chars + len(block) + 1
+            if max_chars > 0 and projected > max_chars:
+                break
+            blocks.append(block)
+            total_chars = projected
+            used_page_ids.append(page_id)
+            if source_name and source_name not in source_names:
+                source_names.append(source_name)
+        return {
+            "context_text": "\n".join(blocks).strip(),
+            "page_ids": used_page_ids,
+            "source_names": source_names,
+        }
+
+    async def build_property_aware_service_knowledge(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        existing_menu_facts: list[str] | None = None,
+        max_sources: int = 50,
+        max_scope_chars: int = 90000,
+        max_properties: int = 8,
+    ) -> dict[str, Any]:
+        library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
+        property_index = await self.ensure_property_scope_index(max_sources=max_sources)
+        properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        property_manifest_text = self._build_property_scope_manifest_text(
+            property_index=property_index if isinstance(property_index, dict) else {},
+        )
+        full_kb_text = self.get_full_kb_text_with_sources(max_sources=max_sources, max_chars=None)
+        existing_menu_facts = [str(item).strip() for item in (existing_menu_facts or []) if str(item).strip()]
+        extraction_prompt = await self._generate_service_extraction_prompt(
+            service_name=service_name,
+            service_description=service_description,
+            full_kb_text=full_kb_text,
+            existing_menu_facts=existing_menu_facts,
+        )
+
+        if not isinstance(properties, list) or not properties:
+            extracted = await self._extract_service_knowledge_from_kb(
+                extraction_prompt=extraction_prompt,
+                full_kb_text=full_kb_text,
+                knowledge_context=full_kb_text,
+            )
+            return {
+                "extracted_knowledge": extracted,
+                "mode": "unscoped",
+                "matched_property_ids": [],
+                "property_scopes": [],
+                "property_index": property_index if isinstance(property_index, dict) else {},
+            }
+
+        search_text = re.sub(r"\s+", " ", f"{service_name} {service_description}".strip())
+
+        property_rows_map = {
+            self._normalize_slug(row.get("id")): row
+            for row in properties
+            if isinstance(row, dict) and self._normalize_slug(row.get("id"))
+        }
+        all_property_ids = list(property_rows_map.keys())
+
+        # If description explicitly mentions multiple/all properties or comparison,
+        # skip narrow matching and include ALL properties.
+        force_all = (
+            self._is_property_listing_request(search_text)
+            or self._is_property_compare_request(search_text)
+        )
+        if force_all:
+            matched_property_ids = []
+        else:
+            matched_property_ids = self._match_property_scope_ids_from_text(
+                search_text,
+                property_index=property_index,
+                limit=max(1, min(max_properties, 4)),
+            )
+
+        selected_property_ids = matched_property_ids or all_property_ids[: max(1, min(max_properties, 12))]
+
+        common_context = self._compose_page_scope_context(
+            library=library,
+            page_ids=property_index.get("common_page_ids", []) if isinstance(property_index, dict) else [],
+            scope_label="COMMON",
+            max_chars=max_scope_chars,
+        )
+        common_extracted = ""
+        if common_context.get("context_text"):
+            common_prompt = (
+                extraction_prompt
+                + "\n\nCOMMON SCOPE RULE: This KB context is shared/common across multiple properties. "
+                  "Extract only service details that are genuinely shared or brand-wide."
+            )
+            common_extracted = await self._extract_service_knowledge_from_kb(
+                extraction_prompt=common_prompt,
+                full_kb_text=full_kb_text,
+                knowledge_context=str(common_context.get("context_text") or ""),
+            )
+
+        property_scopes: list[dict[str, Any]] = []
+        property_blocks: list[str] = []
+        if property_manifest_text:
+            property_blocks.append(property_manifest_text)
+        if common_extracted:
+            property_blocks.append("=== COMMON KNOWLEDGE ===\n" + common_extracted.strip())
+
+        import asyncio as _asyncio
+
+        for property_id in selected_property_ids:
+            row = property_rows_map.get(property_id)
+            if not isinstance(row, dict):
+                continue
+            scope_context = self._compose_page_scope_context(
+                library=library,
+                page_ids=row.get("page_ids", []) if isinstance(row.get("page_ids"), list) else [],
+                scope_label=str(row.get("name") or property_id).strip() or property_id,
+                max_chars=max_scope_chars,
+            )
+            scope_text = str(scope_context.get("context_text") or "").strip()
+            if not scope_text:
+                continue
+            property_name = str(row.get("name") or property_id.replace("_", " ").title()).strip()
+            aliases = [
+                str(alias).strip()
+                for alias in row.get("aliases", [])
+                if str(alias).strip()
+            ] if isinstance(row.get("aliases"), list) else []
+            property_prompt = (
+                extraction_prompt
+                + "\n\nPROPERTY SCOPE RULE: The current KB context belongs only to property/location "
+                + f"'{property_name}'. Extract only service information that applies to this property. "
+                  "Do not mix in facts from other properties."
+            )
+            extracted = ""
+            try:
+                extracted = await self._extract_service_knowledge_from_kb(
+                    extraction_prompt=property_prompt,
+                    full_kb_text=full_kb_text,
+                    knowledge_context=scope_text,
+                )
+            except Exception:
+                pass
+            # If LLM extraction failed or returned empty, use the raw scoped KB
+            # text so no property is ever silently dropped.
+            if not extracted:
+                await _asyncio.sleep(1.0)
+                try:
+                    extracted = await self._extract_service_knowledge_from_kb(
+                        extraction_prompt=property_prompt,
+                        full_kb_text=full_kb_text,
+                        knowledge_context=scope_text,
+                    )
+                except Exception:
+                    pass
+            if not extracted:
+                # Final fallback: include raw KB pages for this property
+                extracted = scope_text
+
+            property_scopes.append(
+                {
+                    "property_id": property_id,
+                    "property_name": property_name,
+                    "aliases": aliases,
+                    "page_ids": scope_context.get("page_ids", []),
+                    "source_names": scope_context.get("source_names", []),
+                    "extracted_knowledge": extracted,
+                }
+            )
+            alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
+            property_blocks.append(
+                f"=== PROPERTY: {property_name}{alias_block} ===\n{extracted.strip()}"
+            )
+
+        combined_text = "\n\n".join(block for block in property_blocks if str(block).strip()).strip()
+        if not combined_text:
+            extracted = await self._extract_service_knowledge_from_kb(
+                extraction_prompt=extraction_prompt,
+                full_kb_text=full_kb_text,
+                knowledge_context=full_kb_text,
+            )
+            return {
+                "extracted_knowledge": extracted,
+                "mode": "fallback_full_kb",
+                "matched_property_ids": matched_property_ids,
+                "property_scopes": property_scopes,
+                "property_index": property_index if isinstance(property_index, dict) else {},
+                "property_manifest_text": property_manifest_text,
+            }
+
+        return {
+            "extracted_knowledge": combined_text,
+            "mode": "property_specific" if matched_property_ids else "all_properties",
+            "matched_property_ids": matched_property_ids,
+            "property_scopes": property_scopes,
+            "property_index": property_index if isinstance(property_index, dict) else {},
+            "common_knowledge": common_extracted,
+            "property_manifest_text": property_manifest_text,
+        }
 
     async def _select_relevant_book_ids_with_llm(
         self,
@@ -5413,6 +6872,11 @@ class ConfigService:
                 else:
                     knowledge[key] = updates[key]
 
+        if "expected_property_count" in updates:
+            knowledge["expected_property_count"] = self._coerce_expected_property_count(
+                updates.get("expected_property_count")
+            )
+
         if "nlu_policy" in updates and isinstance(updates["nlu_policy"], dict):
             knowledge.setdefault("nlu_policy", {}).update(updates["nlu_policy"])
 
@@ -5423,6 +6887,7 @@ class ConfigService:
                     self.rebuild_structured_kb_library(max_sources=50, save=True)
                 except Exception:
                     pass
+            self._schedule_json_section_db_sync("knowledge_base", knowledge)
             self._maybe_auto_compile_service_kb()
         return knowledge
 
@@ -5828,42 +7293,7 @@ class ConfigService:
         capabilities = config.get("capabilities", {})
         services = self.get_services()
         service_kb_records = self.get_service_kb_records(active_only=True)
-        service_kb_summary: list[dict[str, Any]] = []
-        for record in service_kb_records[:120]:
-            if not isinstance(record, dict):
-                continue
-            approved_facts: list[dict[str, Any]] = []
-            for fact in (record.get("facts") or []):
-                if not isinstance(fact, dict):
-                    continue
-                status = str(fact.get("status") or "").strip().lower()
-                if status != "approved":
-                    continue
-                approved_facts.append(
-                    {
-                        "id": str(fact.get("id") or "").strip(),
-                        "text": str(fact.get("text") or "").strip(),
-                        "source": str(fact.get("source") or "").strip(),
-                        "origin": str(fact.get("origin") or "").strip(),
-                        "tags": fact.get("tags", []) if isinstance(fact.get("tags"), list) else [],
-                        "confidence": float(fact.get("confidence") or 0.0),
-                    }
-                )
-            service_kb_summary.append(
-                {
-                    "id": str(record.get("id") or "").strip(),
-                    "service_id": str(record.get("service_id") or "").strip(),
-                    "plugin_id": str(record.get("plugin_id") or "").strip(),
-                    "strict_mode": bool(record.get("strict_mode", True)),
-                    "version": int(record.get("version") or 0),
-                    "published_at": str(record.get("published_at") or "").strip(),
-                    "published_by": str(record.get("published_by") or "").strip(),
-                    "completeness": record.get("completeness", {}) if isinstance(record.get("completeness"), dict) else {},
-                    "facts": approved_facts,
-                    "extracted_knowledge": str(record.get("extracted_knowledge") or "").strip(),
-                    "generated_extraction_prompt": str(record.get("generated_extraction_prompt") or "").strip(),
-                }
-            )
+        service_kb_summary = self.summarize_service_kb_records(service_kb_records, limit=120)
 
         # Build normalized service catalog from services.
         service_catalog = []
@@ -5950,6 +7380,9 @@ class ConfigService:
             "prompts": config.get("prompts", {}),
             "knowledge_sources": config.get("knowledge_base", {}).get("sources", []),
             "knowledge_notes": config.get("knowledge_base", {}).get("notes", ""),
+            "expected_property_count": self._coerce_expected_property_count(
+                config.get("knowledge_base", {}).get("expected_property_count")
+            ),
             "nlu_policy": config.get("knowledge_base", {}).get("nlu_policy", {}),
             "ui_settings": config.get("ui_settings", {}),
             "can_send_multiple_menus": False,

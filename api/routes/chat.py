@@ -1739,6 +1739,15 @@ async def get_contextual_suggestions(
                 raw_caps = db_caps
         except Exception:
             pass
+        if runtime_overlay_db:
+            try:
+                db_knowledge = await db_config_service.get_knowledge_config()
+                if isinstance(db_knowledge, dict):
+                    db_nlu_policy = db_knowledge.get("nlu_policy", {})
+                    if isinstance(db_nlu_policy, dict):
+                        nlu_policy = db_nlu_policy
+            except Exception:
+                pass
 
         if request.session_id:
             try:
@@ -1838,6 +1847,16 @@ async def get_contextual_suggestions(
         )
 
         service_kb_records = cap_summary.get("service_kb_records", [])
+        if runtime_overlay_db:
+            try:
+                db_service_kb_records = await db_config_service.get_service_kb_records(active_only=True)
+                if isinstance(db_service_kb_records, list):
+                    service_kb_records = config_service.summarize_service_kb_records(
+                        db_service_kb_records,
+                        limit=120,
+                    )
+            except Exception:
+                pass
         if not isinstance(service_kb_records, list):
             service_kb_records = []
         service_kb_by_service: dict[str, dict[str, Any]] = {}

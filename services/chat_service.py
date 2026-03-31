@@ -16535,6 +16535,30 @@ class ChatService:
         except Exception:
             pass
 
+        try:
+            db_knowledge = await db_config_service.get_knowledge_config()
+            if isinstance(db_knowledge, dict):
+                db_sources = db_knowledge.get("sources", [])
+                if isinstance(db_sources, list):
+                    merged["knowledge_sources"] = db_sources
+                if "notes" in db_knowledge:
+                    merged["knowledge_notes"] = str(db_knowledge.get("notes") or "").strip()
+                db_nlu_policy = db_knowledge.get("nlu_policy", {})
+                if isinstance(db_nlu_policy, dict):
+                    merged["nlu_policy"] = db_nlu_policy
+        except Exception:
+            pass
+
+        try:
+            db_service_kb_records = await db_config_service.get_service_kb_records(active_only=True)
+            if isinstance(db_service_kb_records, list):
+                merged["service_kb_records"] = config_service.summarize_service_kb_records(
+                    db_service_kb_records,
+                    limit=120,
+                )
+        except Exception:
+            pass
+
         return merged
 
     @staticmethod
