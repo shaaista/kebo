@@ -3718,5 +3718,225 @@
     "chunk_id": "e2e0c81b_the_orchid_hotel_manali_kb.txt:7",
     "section": "The Chamber",
     "content": "Section: The Chamber\n- Area: 3600 sq. ft. - Capacity: 75-80 (Cluster), 120 (Theatre) - Features: Modern AV facilities, curated catering, versatile layouts === Policies & Rules === Status: Not found on reviewed pages. === Location & Transport === Address: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN Nearby landmarks: - Mall Road: 5 miles - Hadimba Temple: Nearby - Solang Valley: 11 miles - Rohtang Pass: 30 miles - Atal Tunnel: 20 miles === Contact Information === Phone: +91 9169166789 Email: resv.manali@orchidhotel.com, reservations@orchidhotel.com === Special Offers & Packages === Status: Not found on reviewed pages."
+  },
+  {
+    "id": "3c10fb7cbd82e38590f983d6a41c27ee",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 0,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:0",
+    "section": "document",
+    "content": "================================================================ HOTEL KNOWLEDGE BASE Property: The Orchid Hotel Manali Source: https://www.khil.com Generated: 2026-03-30 10:08:46 UTC Generator: Hotel KB Scraper v1.0 ================================================================ === Property Overview === Canonical property name: The Orchid Hotel Manali Brand: Orchid Hotels Property type: Boutique Hotel Positioning: 5-Star Luxury Hotel Address: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN Star rating: 5/5 Overview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices. === Rooms & Suites ==="
+  },
+  {
+    "id": "7ad007635a98f38ea2fca757c4b3b729",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 1,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:1",
+    "section": "Deluxe Room",
+    "content": "Section: Deluxe Room\n- Views: Mountain views - Amenities: Modern amenities"
+  },
+  {
+    "id": "0de870a708ebbdc77a927eb9da43571e",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 2,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:2",
+    "section": "Premier Valley View Room",
+    "content": "Section: Premier Valley View Room\n- Features: Private balcony overlooking scenic valleys"
+  },
+  {
+    "id": "111fa726a9c288547ca041afa0e731cd",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 3,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:3",
+    "section": "Premier Family Room",
+    "content": "Section: Premier Family Room\n- Layout: Spacious - Views: Panoramic valley views - Suitable for: Families"
+  },
+  {
+    "id": "ab622fdae5844f196e70f339924ba5c3",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 4,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:4",
+    "section": "Club Room",
+    "content": "Section: Club Room\n- Features: Balcony with stunning valley views"
+  },
+  {
+    "id": "5c2ee546204d7027bc132ef2772ab910",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 5,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:5",
+    "section": "Presidential Suite",
+    "content": "Section: Presidential Suite\n- Views: Exclusive river views - Amenities: Premium luxury amenities === Dining & Restaurants ==="
+  },
+  {
+    "id": "cd2554ed1db68e6dc5b55820e56615fa",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 6,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:6",
+    "section": "Café Vindhyas",
+    "content": "Section: Café Vindhyas\n- Cuisine: Himachali and global cuisines - Location: Shuru, Naggar Road - Features: Scenic views, bar - Dining options: Breakfast, lunch, dinner === Amenities & Facilities === - Pool: Heated swimming pool - Spa: Available - Fitness: Fitness center - Wellness: Yoga and meditation sessions - Wi-Fi: Free WiFi - Parking: Free parking, EV charging station - Recreation: Indoor games room === Spa & Wellness === - Spa: Available - Wellness: Yoga and meditation sessions - Fitness center: Available === Meetings & Events ==="
+  },
+  {
+    "id": "fe54c0dd40b1498c54f5cff654ce1922",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+    "chunk_index": 7,
+    "chunk_id": "d9b9c0cb_the_orchid_hotel_manali_kb.txt:7",
+    "section": "The Chamber",
+    "content": "Section: The Chamber\n- Area: 3600 sq. ft. - Capacity: 75-80 (Cluster), 120 (Theatre) - Features: Modern AV facilities, curated catering, versatile layouts === Policies & Rules === Status: Not found on reviewed pages. === Location & Transport === Address: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN Nearby landmarks: - Mall Road: 5 miles - Hadimba Temple: Nearby - Solang Valley: 11 miles - Rohtang Pass: 30 miles - Atal Tunnel: 20 miles === Contact Information === Phone: +91 9169166789 Email: resv.manali@orchidhotel.com, reservations@orchidhotel.com === Special Offers & Packages === Status: Not found on reviewed pages."
+  },
+  {
+    "id": "a5f2d6f376810a9c2b20a42f3eb251c4",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 0,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:0",
+    "section": "document",
+    "content": "================================================================ HOTEL KNOWLEDGE BASE Property: The Orchid Hotel Shimla Source: https://www.khil.com Generated: 2026-03-30 10:08:46 UTC Generator: Hotel KB Scraper v1.0 ================================================================ === Property Overview === Field: Canonical property name: The Orchid Hotel Shimla Field: Brand: Orchid Hotels Field: Property type: Luxury hotel Field: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN Field: Star rating: 5-star Field: Check-in: 14:00 Field: Check-out: 12:00 Field: Overview notes: The Orchid Hotel Shimla offers luxury accommodations with eco-friendly features, scenic mountain and valley views, and modern amenities. === Rooms & Suites ==="
+  },
+  {
+    "id": "41e5e2235fce91beb24cdfc8a96d7606",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 1,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:1",
+    "section": "Deluxe King Room",
+    "content": "Section: Deluxe King Room\n- Size: 300 sq. ft. - Bed configuration: King-size bed - Occupancy: Suitable for solo travelers or couples - View: Inner hill-facing - In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization - Notable differentiators: 10-inch mattress, 300 thread count Egyptian cotton linen"
+  },
+  {
+    "id": "6d5a3e5df4dbf5ad41d6150b5767c359",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 2,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:2",
+    "section": "Deluxe Twin Room",
+    "content": "Section: Deluxe Twin Room\n- Size: 300 sq. ft. - Bed configuration: Two single beds - Occupancy: Ideal for friends or solo travelers - View: Inner hill-facing - In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping"
+  },
+  {
+    "id": "ba2c4b3f69d70d72346c744ba31265a6",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 3,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:3",
+    "section": "Premier Valley View Room",
+    "content": "Section: Premier Valley View Room\n- Size: 220 sq. ft. - Bed configuration: King-size bed - View: Valley view - Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization - Occupancy: Ideal for solo travelers or couples"
+  },
+  {
+    "id": "bfadd91a284dda182c86ed7743d585b8",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 4,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:4",
+    "section": "Family Room",
+    "content": "Section: Family Room\n- Size: 384 sq. ft. - Bed configuration: 1 King Bed and 2 Twin Beds - Occupancy: Up to 4 guests - Views: Valley views - In-room amenities: Free Wi-Fi, air-conditioning, en-suite bathroom, laundry service, 24-hour front desk"
+  },
+  {
+    "id": "08862e5710c377f486dbf43887933fd0",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 5,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:5",
+    "section": "Orchid Suite",
+    "content": "Section: Orchid Suite\n- Size: 700 sq. ft. - Bed configuration: King-size bed - Views: Valley - In-room amenities: Living area, plush sofa seating, HD LED TV, mini-bar, tea/coffee maker, daily housekeeping - Bathroom features: Hydrotherapy shower, private jacuzzi bathtub - Linen: 300-thread-count Egyptian cotton"
+  },
+  {
+    "id": "8f946904ff8258f28b91a1ec179ff3e5",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 6,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:6",
+    "section": "Mayflower Suites",
+    "content": "Section: Mayflower Suites\n- Size: 850 sq. ft. - Views: Valley views - In-room amenities: Complimentary Wi-Fi, separate living room, LED TV, electronic safe, work desk, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers - Notable inclusions: Complimentary in-room breakfast"
+  },
+  {
+    "id": "0dbfbb06c71d43bbd9767f23b9a49139",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 7,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:7",
+    "section": "Presidential Suites",
+    "content": "Section: Presidential Suites\n- Size: 900 sq. ft. - Views: Panoramic views - In-room amenities: High-speed Wi-Fi, separate living and dining areas, LED TV, desk, electronic safe, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers - Notable inclusions: In-room dining === Dining & Restaurants === - Cafe Vindhyas: Multi-cuisine, regional - Harrington Bar: Craft cocktails, bar food - The House of Glass: Oriental, continental, Indian, rooftop dining === Amenities & Facilities === - Heated Swimming Pool - Rooftop Restaurant - EV Charging Station - Wellness Center & Spa - Banquet Hall for Weddings & Events - Parking Available - Free WiFi - Luxury Spa - Unisex Salon - Business center === Spa & Wellness === Status: Not found on reviewed pages. === Meetings & Events ==="
+  },
+  {
+    "id": "07515c6aabf99eb9c62d3bb6ba91d800",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 8,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:8",
+    "section": "Chamber Hall",
+    "content": "Section: Chamber Hall\n- Area: 5500 SqFt - Pre Function Area: 1250 SqFt - Height: 10 Ft - Seating Capacity: 600-800 (Casual), 400 (Theatre), 200 (Cluster), 120 (Ushape), 60 (Board Room) - Features: AV Equipment, Projectors"
+  },
+  {
+    "id": "cf0c57b2ae7a7219ec44b53e5303424a",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 9,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:9",
+    "section": "Chancery Banquet Hall",
+    "content": "Section: Chancery Banquet Hall\n- Area: 850 SqFt - Height: 10 Ft - Seating Capacity: 50 (Casual, Theatre), 24 (Cluster), 18 (Ushape, Board Room) - Features: Corporate Setup"
+  },
+  {
+    "id": "0d8fe1a61f6dfafd8d2dc6e16468ede3",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 10,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:10",
+    "section": "Rooftop Venue - House of Glass",
+    "content": "Section: Rooftop Venue - House of Glass\n- Capacity: 150-200 guests - Features: Scenic Rooftop View, Buffet Setup === Policies & Rules === Status: Not found on reviewed pages. === Location & Transport === Field: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN Field: Nearby landmarks: Mall Road (2 km), Jakhoo Temple (3 km), The Ridge Shimla (2.5 km), Christ Church (2.5 km), Kufri (15 km) Field: Travel convenience: Located 10–15 minutes from Mall Road === Contact Information === Field: Phone: +91 916 916 6789 Field: Email: resv.shimla@orchidhotel.com, reservations@orchidhotel.com === Special Offers & Packages ==="
+  },
+  {
+    "id": "571ddee8f870b7c5bb4fc29fab97d4e5",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 11,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:11",
+    "section": "Get 30% Discount on Website Bookings",
+    "content": "Section: Get 30% Discount on Website Bookings\n- Offer: 30% off on direct website bookings - Conditions: No hidden charges or third-party fees"
+  },
+  {
+    "id": "fe44d5ac872449afdaa4477be34c1814",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 12,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:12",
+    "section": "Shimla's Serene Retreat - Orchid Suite",
+    "content": "Section: Shimla's Serene Retreat - Orchid Suite\n- Offer: Eco-luxury getaway with premium amenities and scenic views"
+  },
+  {
+    "id": "34005722ef26370a7f1e9dcad9262c08",
+    "tenant_id": "khil_manali_shimla",
+    "business_type": "hotel",
+    "source": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+    "chunk_index": 13,
+    "chunk_id": "8a50a3fd_the_orchid_hotel_shimla_kb.txt:13",
+    "section": "Stay Longer, Save More",
+    "content": "Section: Stay Longer, Save More\n- Offer: Discounted stays for 2 or 5 nights - Inclusions: Luxury amenities and serene surroundings"
   }
 ]

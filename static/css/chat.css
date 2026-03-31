@@ -502,6 +502,17 @@ input, select, textarea, button {
     font-size: 0.925rem;
 }
 
+.message-content a.chat-link {
+    color: #0f766e;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+}
+
+.message-content a.chat-link:hover {
+    color: #115e59;
+}
+
 .llm-source-label {
     margin-top: 6px;
     font-size: 0.7rem;

@@ -129,6 +129,162 @@ class LLMOrchestrationService:
         return normalized
 
     @staticmethod
+    def _split_kb_text_for_llm(*, kb_text: str, chunk_chars: int) -> list[str]:
+        text = str(kb_text or "").strip()
+        if not text:
+            return []
+        target = max(4000, int(chunk_chars or 18000))
+        if len(text) <= target:
+            return [text]
+
+        chunks: list[str] = []
+        current_lines: list[str] = []
+        current_chars = 0
+        for raw_line in text.splitlines():
+            line = raw_line.rstrip()
+            line_len = len(line) + 1
+            if current_lines and current_chars + line_len > target:
+                chunks.append("\n".join(current_lines).strip())
+                current_lines = []
+                current_chars = 0
+            current_lines.append(line)
+            current_chars += line_len
+        if current_lines:
+            chunks.append("\n".join(current_lines).strip())
+        return [chunk for chunk in chunks if chunk]
+
+    @staticmethod
+    def _build_kb_source_manifest(kb_text: str, *, max_sources: int = 120) -> list[str]:
+        names: list[str] = []
+        seen: set[str] = set()
+        for match in re.finditer(r"^=== SOURCE: (.+?) ===$", str(kb_text or ""), flags=re.MULTILINE):
+            name = str(match.group(1) or "").strip()
+            if not name or name in seen:
+                continue
+            seen.add(name)
+            names.append(name)
+            if len(names) >= max_sources:
+                break
+        return names
+
+    async def _prepare_full_kb_context_for_message(
+        self,
+        *,
+        user_message: str,
+        context: ConversationContext,
+        full_kb_text: str,
+    ) -> str:
+        raw_text = str(full_kb_text or "").strip()
+        if not raw_text:
+            return ""
+
+        inline_budget = max(
+            12000,
+            int(getattr(settings, "full_kb_llm_max_kb_chars", 180000) or 180000),
+        )
+        if len(raw_text) <= inline_budget:
+            return raw_text
+
+        if not bool(getattr(settings, "full_kb_llm_chunk_scan_enabled", True)):
+            return raw_text[:inline_budget]
+        if not str(settings.openai_api_key or "").strip():
+            return raw_text[:inline_budget]
+
+        max_scan_chunks = max(
+            1,
+            int(getattr(settings, "full_kb_llm_chunk_max_chunks", 24) or 24),
+        )
+        chunk_chars = max(
+            4000,
+            int(getattr(settings, "full_kb_llm_chunk_chars", 18000) or 18000),
+        )
+        if len(raw_text) > chunk_chars * max_scan_chunks:
+            chunk_chars = max(chunk_chars, (len(raw_text) + max_scan_chunks - 1) // max_scan_chunks)
+        chunks = self._split_kb_text_for_llm(kb_text=raw_text, chunk_chars=chunk_chars)
+        if not chunks:
+            return raw_text[:inline_budget]
+
+        model = (
+            str(getattr(settings, "llm_orchestration_model", "") or "").strip()
+            or str(getattr(settings, "openai_model", "") or "").strip()
+            or None
+        )
+        temperature = float(getattr(settings, "full_kb_llm_temperature", 0.1) or 0.1)
+        source_manifest = self._build_kb_source_manifest(raw_text)
+        system_prompt = (
+            "You are scanning one chunk of the hotel's full knowledge base for the main concierge orchestrator.\n"
+            "Extract only the facts from this chunk that are relevant to the guest's latest message.\n"
+            "Keep factual details concrete: offerings, timings, policies, amenities, room details, prices, options, locations, or restrictions.\n"
+            "Do not invent facts. Do not answer the guest directly. Do not summarize unrelated material.\n"
+            "If this chunk contains nothing useful for the guest's message, return exactly: NO_RELEVANT_INFO"
+        )
+
+        extracted_parts: list[str] = []
+        for index, chunk in enumerate(chunks, start=1):
+            user_prompt = (
+                f"GUEST MESSAGE:\n{str(user_message or '').strip()}\n\n"
+                f"KB CHUNK {index}/{len(chunks)}:\n{chunk}\n\n"
+                "Return only the relevant facts from this KB chunk. "
+                "If none, return exactly: NO_RELEVANT_INFO"
+            )
+            try:
+                result = await llm_client.chat(
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    model=model,
+                    temperature=temperature,
+                    max_tokens=2200,
+                    trace_context={
+                        "responder_type": "main",
+                        "agent": "full_kb_chunk_scan",
+                        "session_id": str(getattr(context, "session_id", "")),
+                        "chunk_index": index,
+                        "chunk_count": len(chunks),
+                    },
+                )
+            except Exception:
+                continue
+            text = str(result or "").strip()
+            if not text or text.upper().startswith("NO_RELEVANT_INFO"):
+                continue
+            if text not in extracted_parts:
+                extracted_parts.append(text)
+
+        if not extracted_parts:
+            return raw_text[:inline_budget]
+
+        result_budget = max(
+            8000,
+            int(getattr(settings, "full_kb_llm_chunk_result_chars", 32000) or 32000),
+        )
+        sections: list[str] = []
+        if source_manifest:
+            sections.append(
+                "=== FULL KB SOURCES INCLUDED ===\n"
+                + "\n".join(f"- {name}" for name in source_manifest)
+            )
+        sections.append(
+            "=== QUESTION-RELEVANT FACTS FROM FULL KB CHUNK SCAN ===\n"
+            + "\n\n---\n\n".join(extracted_parts)
+        )
+        prepared = "\n\n".join(section for section in sections if section).strip()
+        _log_llm_call(
+            label="FULL KB CHUNK SCAN SUMMARY",
+            session_id=str(getattr(context, "session_id", "")),
+            user_message=user_message,
+            system_prompt="",
+            payload={
+                "raw_kb_chars": len(raw_text),
+                "chunk_count": len(chunks),
+                "result_chars": len(prepared),
+                "source_manifest": source_manifest[:50],
+            },
+        )
+        return prepared[:result_budget]
+
+    @staticmethod
     def _phase_transition_timing_hint(current_phase_id: str, service_phase_id: str) -> str:
         current_norm = str(current_phase_id or "").strip().lower().replace(" ", "_")
         service_norm = str(service_phase_id or "").strip().lower().replace(" ", "_")
@@ -614,7 +770,10 @@ class LLMOrchestrationService:
             return {"full_kb_text": ""}
         # No extracted knowledge yet — fall back to full KB so LLM can still answer
         from services.config_service import config_service as _cs
-        full_kb_text = _cs.get_full_kb_text(max_chars=40_000)
+        full_kb_text = _cs.get_full_kb_text_with_sources(
+            max_chars=40_000,
+            max_sources=200,
+        )
         return {"full_kb_text": full_kb_text}
 
     def _build_pending_action_context(self, context: Any) -> str:
@@ -1952,7 +2111,10 @@ class LLMOrchestrationService:
         full_kb_text = ""
         if not extracted_knowledge:
             from services.config_service import config_service as _cs
-            full_kb_text = _cs.get_full_kb_text(max_chars=40_000) or ""
+            full_kb_text = _cs.get_full_kb_text_with_sources(
+                max_chars=40_000,
+                max_sources=200,
+            ) or ""
 
         # Prefer LLM-generated prompt if available; append KB knowledge so the
         # agent always has access to its data even when using the generated prompt.
@@ -2434,7 +2596,10 @@ class LLMOrchestrationService:
             for row in out_of_phase_services
             if isinstance(row, dict)
         ][:160]
-        full_kb_text = config_service.get_full_kb_text(max_chars=60_000)
+        full_kb_text = config_service.get_full_kb_text_with_sources(
+            max_chars=None,
+            max_sources=200,
+        )
         # Augment full_kb_text with extracted_knowledge from ALL service KB records.
         # This ensures admin-entered KB content (stored in service_kb_records, not in flat files)
         # is always visible to the orchestrator when it needs to answer directly.
@@ -2454,7 +2619,12 @@ class LLMOrchestrationService:
                     (full_kb_text + "\n\n" if full_kb_text else "")
                     + "=== SERVICE KNOWLEDGE BASE ===\n\n"
                     + combined_service_kb
-                )[:80_000]
+                )
+        full_kb_text = await self._prepare_full_kb_context_for_message(
+            user_message=user_message,
+            context=context,
+            full_kb_text=full_kb_text,
+        )
         history_bundle = self._build_history_bundle(
             context=context,
             memory_snapshot=memory_snapshot,

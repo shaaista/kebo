@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-31T05:56:03.567841+00:00",
+  "saved_at": "2026-03-31T09:43:47.023214+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -73572,6 +73572,916 @@
       ],
       "created_at": "2026-03-31T05:40:07.088830Z",
       "updated_at": "2026-03-31T05:56:03.480363Z"
+    },
+    "session_1774947796240_2hrso7dnq": {
+      "session_id": "session_1774947796240_2hrso7dnq",
+      "hotel_code": "khil_manali_shimla",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_guest_name",
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is interested in staying at The Orchid Hotel Manali. They have inquired about the room options available, which include the Deluxe Room, Premier Family Room, Club Room, and Presidential Suite. The user has requested more information about these rooms, and the assistant has provided details on each. The user has not yet made a final decision on which room to book and may need further assistance in selecting the right room or completing the booking process.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi wheres this hotel located",
+              "timestamp": "2026-03-31T09:04:11.186432+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "Can I book a room?",
+              "timestamp": "2026-03-31T09:08:48.928403+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-31T09:13:25.979178+00:00",
+          "last_user_message": "Can I book the Club Room?",
+          "last_assistant_message": "Great choice! To proceed with booking the Club Room at The Orchid Hotel Manali, I'll need a few details from you:\n- Full Name\n- Phone Number\n- Check-in Date\n- Check-out Date\nPlease provide these details, and I'll assist you with the booking process."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_guest_name",
+            "pending_data": {
+              "service_id": "room_booking"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect guest name flow",
+            "updated_at": "2026-03-31T09:13:25.978836+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T09:13:25.978870+00:00"
+        },
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking",
+        "service_id": "room_booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "25205865-78e2-4eb2-ab54-df82037f0631",
+          "role": "user",
+          "content": "hi wheres this hotel located",
+          "timestamp": "2026-03-31T09:04:11.186244Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Hi, where's this hotel located?"
+          }
+        },
+        {
+          "id": "0101017d-574b-4d10-80bc-45605402ffc7",
+          "role": "assistant",
+          "content": "The Orchid Hotel Shimla is located on Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, India. It is conveniently situated about 10–15 minutes from Mall Road, a popular area in Shimla.",
+          "timestamp": "2026-03-31T09:04:32.205364Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 1.0,
+            "service_llm_label": "main",
+            "service_llm_confidence": 1.0,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-6a4c75d4e9e8",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "83ce57db-0c2a-410f-9a5c-de3cfb51cd5e",
+          "role": "user",
+          "content": "do u have multiple locations",
+          "timestamp": "2026-03-31T09:05:10.364088Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have multiple locations?"
+          }
+        },
+        {
+          "id": "2ab7046f-6532-432f-8738-c3dee0f0c832",
+          "role": "assistant",
+          "content": "Yes, Orchid Hotels has multiple locations. In addition to The Orchid Hotel Shimla, there is also The Orchid Hotel Manali located in Himachal Pradesh. Each location offers luxury accommodations and a range of amenities.",
+          "timestamp": "2026-03-31T09:05:30.212357Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-79e51d49d49f",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "15c09b0c-86c0-4074-b037-ede72c409b96",
+          "role": "user",
+          "content": "what is the diff bw these 2 hotels",
+          "timestamp": "2026-03-31T09:06:53.895687Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What is the diff between these 2 hotels?"
+          }
+        },
+        {
+          "id": "f08c9d76-d386-45d4-9f57-03f57828b034",
+          "role": "assistant",
+          "content": "The Orchid Hotel Shimla and The Orchid Hotel Manali both offer luxury accommodations but have some differences:\n**The Orchid Hotel Shimla:**\n- Located on Shimla Bypass Road, Sanjauli, Shimla.\n- Offers a variety of rooms including Deluxe King Room, Deluxe Twin Room, Premier Valley View Room, Family Room, Orchid Suite, Mayflower Suites, and Presidential Suites.\n- Features include a heated swimming pool, rooftop restaurant, wellness center & spa, and banquet hall.\n- Dining options include Cafe Vindhyas, Harrington Bar, and The House of Glass.\n**The Orchid Hotel Manali:**\n- Located on Shuru, Naggar Road, Manali.\n- Offers rooms such as Deluxe Room, Premier Valley View Room, Premier Family Room, Club Room, and Presidential Suite.\n- Features include a heated swimming pool, spa, fitness center, and yoga and meditation sessions.\n- Dining option includes Café Vindhyas with Himachali and global cuisines.\nBoth hotels focus on eco-friendly practices and provide scenic views, but they differ in their specific room offerings, amenities, and dining options.",
+          "timestamp": "2026-03-31T09:07:14.106050Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-be65be54332c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "8bcea3eb-5884-449f-aa85-08d90ff03047",
+          "role": "user",
+          "content": "Can I book a room?",
+          "timestamp": "2026-03-31T09:08:48.927971Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "0d35b980-b4b9-4e83-879b-9b3f5e70751f",
+          "role": "assistant",
+          "content": "Certainly! We have a variety of room options available at both The Orchid Hotel Shimla and The Orchid Hotel Manali. Here are some of the options you can choose from:\n**The Orchid Hotel Shimla:**\n- Deluxe King Room\n- Deluxe Twin Room\n- Premier Valley View Room\n- Family Room\n- Orchid Suite\n- Mayflower Suites\n- Presidential Suites\n**The Orchid Hotel Manali:**\n- Deluxe Room\n- Premier Family Room\n- Club Room\n- Presidential Suite\nPlease let me know which room type and location you are interested in, and I can assist you further with the booking process.",
+          "timestamp": "2026-03-31T09:09:07.973720Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-4ce0cfb929da",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "41033b68-3a20-44fe-8bee-a5a3555c8d5a",
+          "role": "user",
+          "content": "ill be staying in manali",
+          "timestamp": "2026-03-31T09:09:29.326626Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'll be staying in Manali."
+          }
+        },
+        {
+          "id": "2262e12e-ee0d-4cb5-8649-f562b0d82a86",
+          "role": "assistant",
+          "content": "Great! For your stay at The Orchid Hotel Manali, here are the room options available:\n- Deluxe Room\n- Premier Family Room\n- Club Room\n- Presidential Suite\nPlease let me know which room type you are interested in, and I can assist you further with the booking process.",
+          "timestamp": "2026-03-31T09:09:48.995636Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-bfe2b1e943fd",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "1064edeb-c7da-4c45-8f70-e88f4ca6cd5f",
+          "role": "user",
+          "content": "tell me more about these rooms",
+          "timestamp": "2026-03-31T09:10:44.203398Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Tell me more about these rooms."
+          }
+        },
+        {
+          "id": "b11d6c8d-ed0c-434c-ba4a-47e37081bb1d",
+          "role": "assistant",
+          "content": "Here are the details about the room options available at The Orchid Hotel Manali:\n- **Deluxe Room**: Offers modern amenities with mountain views, perfect for a comfortable stay.\n- **Premier Family Room**: Spacious layout with panoramic valley views, ideal for families.\n- **Club Room**: Features a balcony with stunning valley views, providing a luxurious experience.\n- **Presidential Suite**: Offers exclusive river views and premium luxury amenities for a truly upscale stay.\nIf you have any specific questions about these rooms or need further assistance, feel free to ask!",
+          "timestamp": "2026-03-31T09:11:00.263661Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-a48badb20cda",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3f4645c0-e484-45e3-b175-1b40395551c6",
+          "role": "user",
+          "content": "whihc is best for a couple",
+          "timestamp": "2026-03-31T09:11:18.804248Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which is best for a couple"
+          }
+        },
+        {
+          "id": "5c3d6ace-95b9-494c-9957-6f12831be6f9",
+          "role": "assistant",
+          "content": "For a couple, the **Club Room** at The Orchid Hotel Manali is a great choice. It features a balcony with stunning valley views, offering a luxurious and romantic experience.",
+          "timestamp": "2026-03-31T09:11:37.633627Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-3900f855a869",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "c33afd5b-2782-4fbf-b400-5bbed5b78675",
+          "role": "user",
+          "content": "Can I book the Club Room?",
+          "timestamp": "2026-03-31T09:13:07.424549Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I book the club room?"
+          }
+        },
+        {
+          "id": "0edea8e2-633c-45c1-86d9-8397a94e20a9",
+          "role": "assistant",
+          "content": "Great choice! To proceed with booking the Club Room at The Orchid Hotel Manali, I'll need a few details from you:\n- Full Name\n- Phone Number\n- Check-in Date\n- Check-out Date\nPlease provide these details, and I'll assist you with the booking process.",
+          "timestamp": "2026-03-31T09:13:25.979065Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-bdf0b9422f9d",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T09:04:06.140895Z",
+      "updated_at": "2026-03-31T09:13:25.979198Z"
+    },
+    "sess_test_form": {
+      "session_id": "sess_test_form",
+      "hotel_code": "orchid_manali",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {},
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [],
+      "created_at": "2026-03-31T09:23:46.540728Z",
+      "updated_at": "2026-03-31T09:23:46.540742Z"
+    },
+    "sess-test": {
+      "session_id": "sess-test",
+      "hotel_code": "orchid_manali",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {},
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [],
+      "created_at": "2026-03-31T09:25:55.748864Z",
+      "updated_at": "2026-03-31T09:25:55.748880Z"
+    },
+    "session_1774949410153_nkc0mfi2p": {
+      "session_id": "session_1774949410153_nkc0mfi2p",
+      "hotel_code": "test",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "service_id": "room_booking",
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and has decided to book the Orchid Suite at The Orchid Hotel Shimla. The suite features a king-size bed, valley views, and a private jacuzzi. The user needs to provide their full name, phone number, check-in date, and check-out date to proceed with the booking. There is an unresolved request for the hotel's location, which is on Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, India. The assistant is ready to assist with completing the booking once the user provides the necessary details.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-31T09:30:33.599194+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "Can I book a room?",
+              "timestamp": "2026-03-31T09:34:00.766852+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-31T09:40:57.176853+00:00",
+          "last_user_message": "what is the location of ur hotel",
+          "last_assistant_message": "I'm sorry, but I don't have the location details for the hotel you are inquiring about. Could you please specify the name of the hotel?"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T09:40:54.729980+00:00"
+        },
+        "_last_service_id": "room_booking",
+        "_last_service_name": "room booking"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "a5e881e2-60df-4e88-a960-d80489745e2e",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-31T09:30:33.599086Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "e61726d3-2a9e-47ab-bb24-1147b39288e3",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today at The Orchid Hotel Shimla? If you have any questions or need help with room bookings, feel free to let me know.",
+          "timestamp": "2026-03-31T09:30:52.206194Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-ae3ac5662417",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "edb63d69-4bdd-46f9-b4e8-9b753b4c8991",
+          "role": "user",
+          "content": "what is the location of ur hotel",
+          "timestamp": "2026-03-31T09:31:10.530024Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What is the location of your hotel?"
+          }
+        },
+        {
+          "id": "590a9fe0-91c3-47e6-a42b-b08cd28134bd",
+          "role": "assistant",
+          "content": "The Orchid Hotel Shimla is located on Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, India. It is conveniently situated about 10–15 minutes from Mall Road, making it easily accessible to nearby attractions.",
+          "timestamp": "2026-03-31T09:31:28.547902Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-441f164c39d8",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "d49a5e17-6054-4cbb-8133-8c077888c670",
+          "role": "user",
+          "content": "Can I book a room?",
+          "timestamp": "2026-03-31T09:34:00.766710Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "ad837424-4e1e-44d9-b18b-0f07d1485ee8",
+          "role": "assistant",
+          "content": "Certainly! We have a variety of room options available at The Orchid Hotel Shimla. Here are some of the choices:\n- Deluxe King Room: 300 sq. ft., king-size bed, inner hill-facing view\n- Deluxe Twin Room: 300 sq. ft., two single beds, inner hill-facing view\n- Premier Valley View Room: 220 sq. ft., king-size bed, valley view\n- Family Room: 384 sq. ft., 1 king bed and 2 twin beds, valley views\n- Orchid Suite: 700 sq. ft., king-size bed, valley views, private jacuzzi\n- Mayflower Suites: 850 sq. ft., valley views, complimentary in-room breakfast\n- Presidential Suites: 900 sq. ft., panoramic views, in-room dining\nPlease let me know which room type you are interested in, and I can assist you with the booking process.",
+          "timestamp": "2026-03-31T09:34:19.502390Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-bf126ab35a07",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2035eb23-ceb5-4c13-a74f-f396cf70b29b",
+          "role": "user",
+          "content": "Book the Orchid Suite",
+          "timestamp": "2026-03-31T09:34:46.494121Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book the Orchid Suite."
+          }
+        },
+        {
+          "id": "51b298ac-5106-4bf4-951c-818396d2fea2",
+          "role": "assistant",
+          "content": "Great choice! The Orchid Suite offers a luxurious stay with a king-size bed, valley views, and a private jacuzzi. To proceed with your booking, could you please provide the following details:\n- Full Name\n- Phone Number\n- Check-in Date\n- Check-out Date",
+          "timestamp": "2026-03-31T09:35:03.927319Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-7f62608a121b",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7e0fcd4f-d645-463c-8ab5-003263906648",
+          "role": "user",
+          "content": "send location of ur hotele",
+          "timestamp": "2026-03-31T09:39:21.977676Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Send location of ur hotel."
+          }
+        },
+        {
+          "id": "a05a0f0a-f265-4d42-a71b-5a0ec011b91e",
+          "role": "assistant",
+          "content": "I'm sorry, but I don't have the location details for the hotel you are inquiring about. Please provide the name of the hotel or check the hotel's website for accurate location information.",
+          "timestamp": "2026-03-31T09:39:52.635089Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-0ba585456726",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "04eb1941-2232-4d15-aa5b-6b9d394855d9",
+          "role": "user",
+          "content": "what is the location of ur hotel",
+          "timestamp": "2026-03-31T09:40:21.108133Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What is the location of your hotel?"
+          }
+        },
+        {
+          "id": "28cc15d2-75d6-44ea-8177-5987a1635b6a",
+          "role": "assistant",
+          "content": "I'm sorry, but I don't have the location details for the hotel you are inquiring about. Could you please specify the name of the hotel?",
+          "timestamp": "2026-03-31T09:40:54.730069Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-caaa4784928c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T09:30:26.592577Z",
+      "updated_at": "2026-03-31T09:40:57.176889Z"
+    },
+    "session_1774950071989_s7prcytqa": {
+      "session_id": "session_1774950071989_s7prcytqa",
+      "hotel_code": "test",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "what is ur location",
+              "timestamp": "2026-03-31T09:41:45.322461+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-31T09:43:46.871782+00:00",
+          "last_user_message": "give maps location",
+          "last_assistant_message": "You can view the location of ICONIQA Hotel on Google Maps using this link: [Hotel Location on Google Maps](https://maps.app.goo.gl/zvGW4DQF5prhpexM6)."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T09:43:46.871487+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "8648ce3e-547f-47c0-bb92-5d60ef61d95c",
+          "role": "user",
+          "content": "what is ur location",
+          "timestamp": "2026-03-31T09:41:45.322412Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what is your location"
+          }
+        },
+        {
+          "id": "617e6339-5dac-4798-b60e-49204f266796",
+          "role": "assistant",
+          "content": "ICONIQA Hotel is located near Terminal 2, Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099. You can find us just 300 meters from Terminal 2, making it a convenient location for travelers.",
+          "timestamp": "2026-03-31T09:42:16.131352Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-500b1db0b001",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "3032f540-5a50-4c4c-b7d2-336a15560771",
+          "role": "user",
+          "content": "give maps location",
+          "timestamp": "2026-03-31T09:43:19.532128Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "give map location"
+          }
+        },
+        {
+          "id": "0e24920f-a733-4f67-8b80-d6a10302b01a",
+          "role": "assistant",
+          "content": "You can view the location of ICONIQA Hotel on Google Maps using this link: [Hotel Location on Google Maps](https://maps.app.goo.gl/zvGW4DQF5prhpexM6).",
+          "timestamp": "2026-03-31T09:43:46.871656Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-aba6b28a8d83",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T09:41:40.810411Z",
+      "updated_at": "2026-03-31T09:43:46.871801Z"
     }
   }
 }

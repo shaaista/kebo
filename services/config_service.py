@@ -3520,6 +3520,34 @@ class ConfigService:
     # LLM-based service knowledge enrichment
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _display_kb_source_name(path: Path) -> str:
+        name = str(path.name or "").strip() or "kb_source"
+        cleaned = re.sub(r"^[0-9a-f]{8}_", "", name, flags=re.IGNORECASE)
+        return cleaned or name
+
+    def get_full_kb_documents(
+        self,
+        *,
+        max_sources: int = 200,
+        max_source_chars: int | None = None,
+    ) -> list[dict[str, str]]:
+        """Return KB documents with source labels for prompt assembly."""
+        source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
+        documents: list[dict[str, str]] = []
+        for path in source_paths:
+            text = self._load_knowledge_source_text(path, max_chars=max_source_chars)
+            if not text:
+                continue
+            documents.append(
+                {
+                    "source_name": self._display_kb_source_name(path),
+                    "source_path": str(path.resolve()),
+                    "content": text,
+                }
+            )
+        return documents
+
     def get_full_kb_text(self, max_chars: int | None = None) -> str:
         """Return combined text of all knowledge sources (for LLM context)."""
         source_paths = self._resolve_knowledge_source_paths(max_sources=25)
@@ -3528,6 +3556,30 @@ class ConfigService:
             text = self._load_knowledge_source_text(path)
             if text:
                 parts.append(text)
+        result = "\n\n".join(parts)
+        if max_chars is not None:
+            result = result[:max_chars]
+        return result
+
+    def get_full_kb_text_with_sources(
+        self,
+        *,
+        max_chars: int | None = None,
+        max_sources: int = 200,
+        max_source_chars: int | None = None,
+    ) -> str:
+        """Return combined KB text with explicit source separators."""
+        documents = self.get_full_kb_documents(
+            max_sources=max_sources,
+            max_source_chars=max_source_chars,
+        )
+        parts: list[str] = []
+        for document in documents:
+            source_name = str(document.get("source_name") or "").strip() or "kb_source"
+            content = str(document.get("content") or "").strip()
+            if not content:
+                continue
+            parts.append(f"=== SOURCE: {source_name} ===\n{content}")
         result = "\n\n".join(parts)
         if max_chars is not None:
             result = result[:max_chars]

@@ -1236,6 +1236,21 @@
                         <pre id="rag-upload-result" style="background: #f9f9fa; border: 1px solid var(--border); padding: 10px; border-radius: 6px; font-size: 0.8rem; max-height: 180px; overflow: auto; margin-top: 10px;">No upload run yet.</pre>
                     </div>
                     <div class="form-group">
+                        <div style="display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:8px;">
+                            <label style="margin:0;">Uploaded KB Files</label>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="btn btn-outline btn-small" type="button" onclick="loadRagFiles()">Refresh Files</button>
+                                <button class="btn btn-primary btn-small" type="button" id="rag-save-selection-btn" onclick="saveRagFileSelection()">Save Selection</button>
+                            </div>
+                        </div>
+                        <div style="font-size:0.82rem; color:#6b7280; margin-bottom:8px;">
+                            Checked files become the selected Knowledge Sources for this property and will be sent to the LLM together.
+                        </div>
+                        <div id="rag-files-list" style="border: 1px solid var(--border); border-radius: 8px; background: #fff; min-height: 72px; padding: 10px;">
+                            No KB files loaded yet.
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Optional File Paths (one per line)</label>
                         <textarea class="form-control" id="rag-file-paths" rows="4" placeholder="Leave empty to scan default knowledge directory"></textarea>
                     </div>
@@ -1770,6 +1785,8 @@
         let currentBusinessId = 'default';
         let currentRagJobId = null;
         let ragJobPollingTimer = null;
+        let ragFileSelectionDraft = new Set();
+        let ragFilesCache = [];
         let serviceKbRecordsCache = [];
         let currentToolEditId = null;
         let toolTicketingCasesDraft = [];
@@ -3082,6 +3099,165 @@
             return values.join('\n');
         }
 
+        function formatRagTimestamp(value) {
+            if (!value) return '-';
+            try {
+                return new Date(value).toLocaleString();
+            } catch (error) {
+                return String(value);
+            }
+        }
+
+        function renderRagFiles(files, selectedSources = []) {
+            const listEl = document.getElementById('rag-files-list');
+            if (!listEl) return;
+
+            ragFilesCache = Array.isArray(files) ? files : [];
+            const selected = new Set(Array.isArray(selectedSources) ? selectedSources : []);
+            ragFileSelectionDraft = new Set(selected);
+
+            if (!ragFilesCache.length) {
+                listEl.innerHTML = '<div style="color:#6b7280; font-size:0.9rem;">No KB files uploaded for this property yet.</div>';
+                return;
+            }
+
+            let html = '';
+            ragFilesCache.forEach((file, index) => {
+                const pathValue = String(file.path || '').trim();
+                const checked = selected.has(pathValue) || !!file.is_selected;
+                const displayName = escapeHtml(file.original_name || file.stored_name || `KB file ${index + 1}`);
+                const storedName = escapeHtml(file.stored_name || '');
+                const metaParts = [
+                    `${Number(file.content_chars || 0).toLocaleString()} chars`,
+                    formatRagTimestamp(file.created_at),
+                    file.exists_on_disk ? 'on disk' : 'db only',
+                ];
+                html += `
+                    <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; padding:10px 0; border-bottom:${index === ragFilesCache.length - 1 ? 'none' : '1px solid var(--border)'};">
+                        <label style="display:flex; gap:10px; align-items:flex-start; flex:1; cursor:pointer;">
+                            <input type="checkbox" data-rag-path="${escapeHtml(pathValue)}" ${checked ? 'checked' : ''} style="margin-top:4px;">
+                            <div style="min-width:0;">
+                                <div style="font-weight:600; color:#111827; word-break:break-word;">${displayName}</div>
+                                <div style="font-size:0.78rem; color:#6b7280; word-break:break-all;">${storedName}</div>
+                                <div style="font-size:0.78rem; color:#6b7280; margin-top:4px;">${escapeHtml(metaParts.join(' • '))}</div>
+                            </div>
+                        </label>
+                        <button
+                            class="btn btn-danger btn-small"
+                            type="button"
+                            data-rag-delete="${storedName}"
+                            data-rag-label="${displayName}"
+                        >
+                            Delete
+                        </button>
+                    </div>
+                `;
+            });
+            listEl.innerHTML = html;
+
+            listEl.querySelectorAll('input[data-rag-path]').forEach((input) => {
+                input.addEventListener('change', (event) => {
+                    const pathValue = String(event.target.dataset.ragPath || '').trim();
+                    if (!pathValue) return;
+                    if (event.target.checked) {
+                        ragFileSelectionDraft.add(pathValue);
+                    } else {
+                        ragFileSelectionDraft.delete(pathValue);
+                    }
+                });
+            });
+
+            listEl.querySelectorAll('button[data-rag-delete]').forEach((button) => {
+                button.addEventListener('click', async (event) => {
+                    const storedName = String(event.currentTarget.dataset.ragDelete || '').trim();
+                    const label = String(event.currentTarget.dataset.ragLabel || storedName || 'this KB file').trim();
+                    await deleteRagFile(storedName, label);
+                });
+            });
+        }
+
+        async function loadRagFiles() {
+            syncRagDefaultsFromBusiness();
+            const listEl = document.getElementById('rag-files-list');
+            const tenantId = (document.getElementById('rag-tenant-id')?.value || currentBusinessId || 'default').trim();
+            if (listEl) listEl.innerHTML = '<div style="color:#6b7280; font-size:0.9rem;">Loading KB files...</div>';
+            try {
+                const res = await fetch(`${API_BASE}/rag/files?tenant_id=${encodeURIComponent(tenantId)}`);
+                const data = await res.json();
+                if (!res.ok) {
+                    if (listEl) listEl.innerHTML = `<div style="color:#ef4444;">${escapeHtml(JSON.stringify(data))}</div>`;
+                    return;
+                }
+                renderRagFiles(data.files || [], data.selected_sources || []);
+                const selectedPathSet = new Set(Array.isArray(data.selected_sources) ? data.selected_sources : []);
+                const selectedUploadedPaths = (Array.isArray(data.files) ? data.files : [])
+                    .map(file => String(file.path || '').trim())
+                    .filter(pathValue => pathValue && selectedPathSet.has(pathValue));
+                document.getElementById('rag-file-paths').value = selectedUploadedPaths.join('\n');
+            } catch (error) {
+                if (listEl) listEl.innerHTML = '<div style="color:#ef4444;">Error loading KB files</div>';
+            }
+        }
+
+        async function saveRagFileSelection() {
+            const button = document.getElementById('rag-save-selection-btn');
+            const selectedPaths = Array.from(ragFileSelectionDraft).filter(Boolean);
+            const uploadedPaths = (Array.isArray(ragFilesCache) ? ragFilesCache : [])
+                .map(file => String(file.path || '').trim())
+                .filter(Boolean);
+            const currentSources = splitLines(document.getElementById('cfg-kb-sources').value);
+            const preservedSources = currentSources.filter(source => !uploadedPaths.includes(source));
+            const nextSources = [...new Set([...preservedSources, ...selectedPaths])];
+            document.getElementById('cfg-kb-sources').value = nextSources.join('\n');
+            document.getElementById('rag-file-paths').value = selectedPaths.join('\n');
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Saving...';
+            }
+            try {
+                await saveKnowledgeConfig();
+                await loadKnowledgeConfig();
+                await loadRagFiles();
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = 'Save Selection';
+                }
+            }
+        }
+
+        async function deleteRagFile(storedName, displayName = '') {
+            const target = String(storedName || '').trim();
+            if (!target) return;
+            const label = String(displayName || target).trim();
+            if (!confirm(`Delete KB file "${label}"?`)) return;
+
+            syncRagDefaultsFromBusiness();
+            const tenantId = (document.getElementById('rag-tenant-id')?.value || currentBusinessId || 'default').trim();
+            const resultEl = document.getElementById('rag-upload-result');
+            if (resultEl) resultEl.textContent = `Deleting ${label}...`;
+            try {
+                const res = await fetch(`${API_BASE}/rag/files/${encodeURIComponent(target)}?tenant_id=${encodeURIComponent(tenantId)}`, {
+                    method: 'DELETE',
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    if (resultEl) resultEl.textContent = JSON.stringify(data, null, 2);
+                    showToast('KB delete failed', 'error');
+                    return;
+                }
+                if (resultEl) resultEl.textContent = JSON.stringify(data, null, 2);
+                await loadKnowledgeConfig();
+                await loadRagFiles();
+                await loadRagStatus();
+                showToast('KB file deleted');
+            } catch (error) {
+                if (resultEl) resultEl.textContent = 'KB delete request failed';
+                showToast('Error deleting KB file', 'error');
+            }
+        }
+
         async function loadPromptTemplates() {
             try {
                 const res = await fetch(`${API_BASE}/config/onboarding/prompt-templates`);
@@ -3169,11 +3345,16 @@
                 const res = await fetch(`${API_BASE}/config/onboarding/knowledge`);
                 const knowledge = await res.json();
                 const nlu = knowledge.nlu_policy || {};
+                const sources = Array.isArray(knowledge.sources) ? knowledge.sources : [];
 
-                document.getElementById('cfg-kb-sources').value = joinLines(knowledge.sources || []);
+                document.getElementById('cfg-kb-sources').value = joinLines(sources);
                 document.getElementById('cfg-kb-notes').value = knowledge.notes || '';
                 document.getElementById('cfg-nlu-dos').value = joinLines(nlu.dos || []);
                 document.getElementById('cfg-nlu-donts').value = joinLines(nlu.donts || []);
+                ragFileSelectionDraft = new Set(sources);
+                if (Array.isArray(ragFilesCache) && ragFilesCache.length > 0) {
+                    renderRagFiles(ragFilesCache, sources);
+                }
             } catch (error) {
                 console.error('Error loading knowledge config:', error);
             }
@@ -3198,6 +3379,7 @@
                 if (res.ok) {
                     showToast('Knowledge and NLU rules saved');
                     loadRagStatus();
+                    loadRagFiles();
                 } else {
                     showToast('Error saving knowledge config', 'error');
                 }
@@ -3361,6 +3543,7 @@
                 showToast(`Uploaded ${data.uploaded_count || 0} file(s)`);
                 await loadKnowledgeConfig();
                 await loadRagStatus();
+                await loadRagFiles();
             } catch (error) {
                 resultEl.textContent = 'Upload request failed';
                 showToast('Error uploading files', 'error');
@@ -5798,6 +5981,7 @@
             loadJourneyPhasesWorkspace(currentPhaseId);
             loadEscalationConfig();
             loadRagStatus();
+            loadRagFiles();
             loadRagJobs();
             loadServiceKnowledgeWorkspace();
             loadEvaluationSummary();

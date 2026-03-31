@@ -1283,6 +1283,63 @@ class DBConfigService:
                 pass
             return False
 
+    async def list_kb_files(self) -> List[Dict[str, Any]]:
+        """List KB files for the current hotel."""
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            from models.database import KBFile
+
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(KBFile)
+                    .where(KBFile.hotel_id == hotel_id)
+                    .order_by(KBFile.created_at.asc(), KBFile.id.asc())
+                )
+                rows = result.scalars().all()
+
+            files: List[Dict[str, Any]] = []
+            for row in rows:
+                content = str(row.content or "")
+                files.append(
+                    {
+                        "id": int(row.id),
+                        "original_name": str(row.original_name or ""),
+                        "stored_name": str(row.stored_name or ""),
+                        "content_chars": len(content),
+                        "content_hash": str(row.content_hash or ""),
+                        "created_at": row.created_at.isoformat() if getattr(row, "created_at", None) else None,
+                        "updated_at": row.updated_at.isoformat() if getattr(row, "updated_at", None) else None,
+                    }
+                )
+            return files
+        except Exception as e:
+            print(f"[DB] list_kb_files failed: {e}")
+            return []
+
+    async def delete_kb_file(self, stored_name: str) -> int:
+        """Delete a single KB file record for the current hotel."""
+        hotel_id = await self.get_current_hotel_id()
+        target = str(stored_name or "").strip()
+        if not target:
+            return 0
+        try:
+            from models.database import KBFile
+
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    delete(KBFile).where(
+                        KBFile.hotel_id == hotel_id,
+                        KBFile.stored_name == target,
+                    )
+                )
+                await session.commit()
+                count = int(result.rowcount or 0)
+                print(f"[DB] Deleted {count} KB file record(s) named {target} for hotel {hotel_id}")
+                return count
+        except Exception as e:
+            print(f"[DB] delete_kb_file failed: {e}")
+            return 0
+
     async def restore_kb_files(self, kb_dir: str) -> int:
         """
         On startup, restore all KB files for the current hotel from DB to disk.

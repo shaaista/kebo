@@ -1,0 +1,132 @@
+================================================================
+HOTEL KNOWLEDGE BASE
+Property: The Orchid Hotel Shimla
+Source: https://www.khil.com
+Generated: 2026-03-30 10:08:46 UTC
+Generator: Hotel KB Scraper v1.0
+================================================================
+
+=== Property Overview ===
+Field: Canonical property name: The Orchid Hotel Shimla  
+Field: Brand: Orchid Hotels  
+Field: Property type: Luxury hotel  
+Field: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN  
+Field: Star rating: 5-star  
+Field: Check-in: 14:00  
+Field: Check-out: 12:00  
+Field: Overview notes: The Orchid Hotel Shimla offers luxury accommodations with eco-friendly features, scenic mountain and valley views, and modern amenities.
+
+=== Rooms & Suites ===
+
+## Deluxe King Room
+- Size: 300 sq. ft.
+- Bed configuration: King-size bed
+- Occupancy: Suitable for solo travelers or couples
+- View: Inner hill-facing
+- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization
+- Notable differentiators: 10-inch mattress, 300 thread count Egyptian cotton linen
+
+## Deluxe Twin Room
+- Size: 300 sq. ft.
+- Bed configuration: Two single beds
+- Occupancy: Ideal for friends or solo travelers
+- View: Inner hill-facing
+- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping
+
+## Premier Valley View Room
+- Size: 220 sq. ft.
+- Bed configuration: King-size bed
+- View: Valley view
+- Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization
+- Occupancy: Ideal for solo travelers or couples
+
+## Family Room
+- Size: 384 sq. ft.
+- Bed configuration: 1 King Bed and 2 Twin Beds
+- Occupancy: Up to 4 guests
+- Views: Valley views
+- In-room amenities: Free Wi-Fi, air-conditioning, en-suite bathroom, laundry service, 24-hour front desk
+
+## Orchid Suite
+- Size: 700 sq. ft.
+- Bed configuration: King-size bed
+- Views: Valley
+- In-room amenities: Living area, plush sofa seating, HD LED TV, mini-bar, tea/coffee maker, daily housekeeping
+- Bathroom features: Hydrotherapy shower, private jacuzzi bathtub
+- Linen: 300-thread-count Egyptian cotton
+
+## Mayflower Suites
+- Size: 850 sq. ft.
+- Views: Valley views
+- In-room amenities: Complimentary Wi-Fi, separate living room, LED TV, electronic safe, work desk, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers
+- Notable inclusions: Complimentary in-room breakfast
+
+## Presidential Suites
+- Size: 900 sq. ft.
+- Views: Panoramic views
+- In-room amenities: High-speed Wi-Fi, separate living and dining areas, LED TV, desk, electronic safe, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers
+- Notable inclusions: In-room dining
+
+=== Dining & Restaurants ===
+- Cafe Vindhyas: Multi-cuisine, regional
+- Harrington Bar: Craft cocktails, bar food
+- The House of Glass: Oriental, continental, Indian, rooftop dining
+
+=== Amenities & Facilities ===
+- Heated Swimming Pool
+- Rooftop Restaurant
+- EV Charging Station
+- Wellness Center & Spa
+- Banquet Hall for Weddings & Events
+- Parking Available
+- Free WiFi
+- Luxury Spa
+- Unisex Salon
+- Business center
+
+=== Spa & Wellness ===
+Status: Not found on reviewed pages.
+
+=== Meetings & Events ===
+
+## Chamber Hall
+- Area: 5500 SqFt
+- Pre Function Area: 1250 SqFt
+- Height: 10 Ft
+- Seating Capacity: 600-800 (Casual), 400 (Theatre), 200 (Cluster), 120 (Ushape), 60 (Board Room)
+- Features: AV Equipment, Projectors
+
+## Chancery Banquet Hall
+- Area: 850 SqFt
+- Height: 10 Ft
+- Seating Capacity: 50 (Casual, Theatre), 24 (Cluster), 18 (Ushape, Board Room)
+- Features: Corporate Setup
+
+## Rooftop Venue - House of Glass
+- Capacity: 150-200 guests
+- Features: Scenic Rooftop View, Buffet Setup
+
+=== Policies & Rules ===
+Status: Not found on reviewed pages.
+
+=== Location & Transport ===
+Field: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN  
+Field: Nearby landmarks: Mall Road (2 km), Jakhoo Temple (3 km), The Ridge Shimla (2.5 km), Christ Church (2.5 km), Kufri (15 km)  
+Field: Travel convenience: Located 10–15 minutes from Mall Road
+
+=== Contact Information ===
+Field: Phone: +91 916 916 6789  
+Field: Email: resv.shimla@orchidhotel.com, reservations@orchidhotel.com  
+
+=== Special Offers & Packages ===
+
+## Get 30% Discount on Website Bookings
+- Offer: 30% off on direct website bookings
+- Conditions: No hidden charges or third-party fees
+
+## Shimla's Serene Retreat - Orchid Suite
+- Offer: Eco-luxury getaway with premium amenities and scenic views
+
+## Stay Longer, Save More
+- Offer: Discounted stays for 2 or 5 nights
+- Inclusions: Luxury amenities and serene surroundings

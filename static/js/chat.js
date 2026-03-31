@@ -450,8 +450,15 @@ async function sendMessage(message, interactionMeta = null) {
             && messageHintsCollection
         );
         const shouldShowInlineForm = (explicitFormTrigger || inferredFormTrigger) && formFields.length > 0;
+        const orchestrationDecision = data.metadata?.orchestration_decision || data.metadata?.decision || {};
         const resolvedFormServiceId = String(
-            data.metadata?.form_service_id || data.form_service_id || serviceLabel || ''
+            data.metadata?.form_service_id
+            || data.form_service_id
+            || data.metadata?.pending_service_id
+            || data.metadata?.orchestration_target_service_id
+            || orchestrationDecision?.target_service_id
+            || serviceLabel
+            || ''
         ).trim();
 
         console.log('[form_trigger]', {
@@ -570,6 +577,63 @@ function renderAssistantMessageHtml(text) {
     rendered = rendered.replace(/(?<!\w)_((?!\s)[^_]+(?<!\s))_(?!\w)/g, '<em>$1</em>');
     // Markdown headers: ### heading, ## heading, # heading → just plain bold text
     rendered = rendered.replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
+    return rendered;
+}
+
+function normalizeSafeLink(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    const decoder = document.createElement('textarea');
+    decoder.innerHTML = raw;
+    const decoded = String(decoder.value || raw).trim();
+    const withProtocol = /^https?:\/\//i.test(decoded) ? decoded : `https://${decoded}`;
+    try {
+        const parsed = new URL(withProtocol);
+        if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+        return parsed.href;
+    } catch (error) {
+        return '';
+    }
+}
+
+function buildAssistantLinkHtml(url, label) {
+    const href = normalizeSafeLink(url);
+    const text = String(label || url || '').trim();
+    if (!href || !text) return text;
+    return `<a class="chat-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+}
+
+function renderMarkdownLinks(rendered) {
+    return rendered.replace(/\[([^\]\n]+?)\]\((https?:\/\/[^\s)]+)\)/g, (_match, label, url) => {
+        return buildAssistantLinkHtml(url, label);
+    });
+}
+
+function linkifyPlainUrls(rendered) {
+    return rendered.replace(/(^|[\s(>])((?:https?:\/\/|www\.)[^\s<]+)/gi, (_match, prefix, url) => {
+        const trailing = (url.match(/[).,!?:;]+$/) || [''])[0];
+        const cleanUrl = trailing ? url.slice(0, -trailing.length) : url;
+        const linked = buildAssistantLinkHtml(cleanUrl, cleanUrl);
+        return `${prefix}${linked}${trailing}`;
+    });
+}
+
+function applyAssistantTextFormatting(rendered) {
+    let output = rendered;
+    output = output.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>');
+    output = output.replace(/__([\s\S]+?)__/g, '<strong>$1</strong>');
+    output = output.replace(/(?<!\w)\*((?!\s)[^*]+(?<!\s))\*(?!\w)/g, '<em>$1</em>');
+    output = output.replace(/(?<!\w)_((?!\s)[^_]+(?<!\s))_(?!\w)/g, '<em>$1</em>');
+    output = output.replace(/^#{1,3}\s+(.+)$/gm, '<strong>$1</strong>');
+    return output;
+}
+
+function renderAssistantMessageHtml(text) {
+    const escaped = escapeHtml(text);
+    if (!escaped) return '';
+    let rendered = applyAssistantTextFormatting(escaped);
+    rendered = renderMarkdownLinks(rendered);
+    rendered = linkifyPlainUrls(rendered);
     return rendered;
 }
 

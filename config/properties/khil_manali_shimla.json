@@ -1,0 +1,2152 @@
+{
+  "business": {
+    "id": "khil_manali_shimla",
+    "name": "manshim",
+    "type": "hotel",
+    "city": "manali shimla",
+    "location": "",
+    "address": "",
+    "timezone": "Asia/Kolkata",
+    "currency": "INR",
+    "language": "en",
+    "timestamp_format": "24h",
+    "bot_name": "Kai",
+    "welcome_message": "",
+    "contact_email": "",
+    "contact_phone": "",
+    "website": "",
+    "channels": {
+      "web_widget": true,
+      "whatsapp": true
+    },
+    "code": "khil_manali_shimla"
+  },
+  "capabilities": {},
+  "services": [
+    {
+      "id": "room_booking",
+      "name": "room booking",
+      "type": "service",
+      "description": "Allows guests to explore and book rooms across various regions and properties before their stay.",
+      "is_active": true,
+      "is_builtin": false,
+      "ticketing_enabled": true,
+      "ticketing_policy": "Create a backend ticket for room booking when a guest confirms their booking by providing their full name, contact information, check-in and check-out dates",
+      "ticketing_mode": "form",
+      "form_config": {
+        "trigger_field": {
+          "id": "room_booking_type",
+          "label": "room booking Type",
+          "description": "Confirm the request type before showing the form."
+        },
+        "fields": [
+          {
+            "id": "full_name",
+            "label": "Full Name",
+            "type": "text",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "phone",
+            "label": "Phone Number",
+            "type": "tel",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "checkin_date",
+            "label": "Check-in Date",
+            "type": "date",
+            "required": true,
+            "validation_prompt": ""
+          },
+          {
+            "id": "checkout_date",
+            "label": "Check-out Date",
+            "type": "date",
+            "required": true,
+            "validation_prompt": ""
+          }
+        ],
+        "pre_form_instructions": "Confirm the request details, then show this form and collect all required fields."
+      },
+      "phase_id": "pre_booking",
+      "service_prompt_pack": {
+        "version": 1,
+        "generator": "service_prompt_pack_v2",
+        "source": "manual_override",
+        "profile": "",
+        "role": "You are the dedicated assistant for room booking.",
+        "professional_behavior": "Use only admin-configured policy and KB evidence. Ask concise clarifying questions when required details are missing. Do not invent fixed field schemas.",
+        "phase_id": "pre_booking",
+        "required_slots": [],
+        "validation_rules": [],
+        "confirmation_format": {
+          "style": "summary_then_explicit_confirm",
+          "template": "Please confirm these details before execution: {summary}. Reply 'yes confirm' to proceed or share corrections.",
+          "required_phrase": "yes confirm"
+        },
+        "ticketing_policy": {
+          "enabled": true,
+          "policy": "Create a backend ticket for room booking when a guest confirms their booking by providing their full name, contact information, check-in and check-out dates",
+          "decision_template": ""
+        },
+        "execution_guard": {},
+        "extracted_knowledge": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Shimla\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================\n\n=== Rooms & Suites ===\n\n## Deluxe King Room\n- Size: 300 sq. ft.\n- Bed configuration: King-size bed\n- Occupancy: Suitable for solo travelers or couples\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Notable differentiators: 10-inch mattress, 300 thread count Egyptian cotton linen\n\n## Deluxe Twin Room\n- Size: 300 sq. ft.\n- Bed configuration: Two single beds\n- Occupancy: Ideal for friends or solo travelers\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping\n\n## Premier Valley View Room\n- Size: 220 sq. ft.\n- Bed configuration: King-size bed\n- View: Valley view\n- Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Occupancy: Ideal for solo travelers or couples\n\n## Family Room\n- Size: 384 sq. ft.\n- Bed configuration: 1 King Bed and 2 Twin Beds\n- Occupancy: Up to 4 guests\n- Views: Valley views\n- In-room amenities: Free Wi-Fi, air-conditioning, en-suite bathroom, laundry service, 24-hour front desk\n\n## Orchid Suite\n- Size: 700 sq. ft.\n- Bed configuration: King-size bed\n- Views: Valley\n- In-room amenities: Living area, plush sofa seating, HD LED TV, mini-bar, tea/coffee maker, daily housekeeping\n- Bathroom features: Hydrotherapy shower, private jacuzzi bathtub\n- Linen: 300-thread-count Egyptian cotton\n\n## Mayflower Suites\n- Size: 850 sq. ft.\n- Views: Valley views\n- In-room amenities: Complimentary Wi-Fi, separate living room, LED TV, electronic safe, work desk, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers\n- Notable inclusions: Complimentary in-room breakfast\n\n## Presidential Suites\n- Size: 900 sq. ft.\n- Views: Panoramic views\n- In-room amenities: High-speed Wi-Fi, separate living and dining areas, LED TV, desk, electronic safe, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers\n- Notable inclusions: In-room dining\n\n=== Special Offers & Packages ===\n\n## Get 30% Discount on Website Bookings\n- Offer: 30% off on direct website bookings\n- Conditions: No hidden charges or third-party fees\n\n## Shimla's Serene Retreat - Orchid Suite\n- Offer: Eco-luxury getaway with premium amenities and scenic views\n\n## Stay Longer, Save More\n- Offer: Discounted stays for 2 or 5 nights\n- Inclusions: Luxury amenities and serene surroundings\n\n================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Manali\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================\n\n=== Rooms & Suites ===\n## Deluxe Room\n- Views: Mountain views\n- Amenities: Modern amenities\n\n## Premier Valley View Room\n- Features: Private balcony overlooking scenic valleys\n\n## Premier Family Room\n- Layout: Spacious\n- Views: Panoramic valley views\n- Suitable for: Families\n\n## Club Room\n- Features: Balcony with stunning valley views\n\n## Presidential Suite\n- Views: Exclusive river views\n- Amenities: Premium luxury amenities",
+        "ticketing_conditions": "Create a backend ticket for room booking when a guest confirms their booking by providing their full name, contact information, check-in and check-out dates"
+      },
+      "service_prompt_pack_custom": true,
+      "generated_system_prompt": "You are the Room Booking Service Agent for The Orchid Hotel, responsible for assisting guests in exploring and booking rooms across various regions and properties before their stay. Your primary role is to guide guests through the room selection process, provide detailed information about available room types, and facilitate the booking process when the guest is ready to proceed.\n\nYour knowledge is based on the hotel's knowledge base, which includes details about room types, amenities, and special offers. You can provide information about room sizes, bed configurations, views, in-room amenities, and notable features. You also have access to current special offers and packages, such as discounts on website bookings and extended stay promotions.\n\nWhen interacting with guests, adhere to the following guidelines:\n\n1. **Scope and Handoff**: Your focus is on room booking. If a guest asks about other hotel services like restaurants, spa, or transport, you must set context_switched=true and transfer the conversation back to the orchestrator. Do not attempt to answer questions outside your scope.\n\n2. **Booking Intent and Slot Collection**: Only begin collecting booking details after the guest has expressed explicit booking intent. For example, when a guest says, \"I'd like to book the Deluxe King Room,\" you can proceed. For informational queries, provide detailed answers and gently offer to proceed with booking if they express interest.\n\n3. **Knowledge Boundaries**: Only provide information available in the knowledge base. If a guest asks a question that falls within your scope but lacks specific data, share any relevant information you do have and ask a clarifying question to better understand their needs. If you still cannot assist, offer to connect them with a staff member.\n\n4. **Confirmation and Ticketing**: When a guest confirms their choice of room, provide a warm confirmation highlighting 1-2 key features of their selection. Then, inform them that the booking form will appear for them to fill in their details. Ensure you confirm the room booking type before the form appears by stating, \"Great, so you would like to go with [chosen option]. Shall I proceed with the booking?\"\n\n5. **Guest Facts and Known Context**: Always check the known_context field before asking for guest information. During the pre_booking phase, only collect contact information if it is genuinely needed and not already present in known_context. Never ask for information the hotel already has on file.\n\n6. **Phase-Aware Complaint Escalation**: For important complaints or explicit requests for human assistance, escalate via ticketing if the service is available. If it is not available, acknowledge the concern and offer to connect the guest with a staff member, without promising immediate resolution.\n\n7. **Response Style**: Maintain a warm, concise, and professional tone. Avoid using markdown formatting. When requesting multiple details, use bullet points for clarity:\n   - Full Name\n   - Phone Number\n   - Check-in Date\n   - Check-out Date\n\nBy following these guidelines, you will ensure a smooth and efficient room booking experience for guests, while maintaining the highest standards of service and professionalism.",
+      "cuisine": null,
+      "hours": {},
+      "delivery_zones": []
+    }
+  ],
+  "faq_bank": [],
+  "tools": [],
+  "intents": [],
+  "escalation": {
+    "confidence_threshold": 0.4,
+    "max_clarification_attempts": 3,
+    "escalation_message": "Let me connect you with our team.",
+    "modes": [
+      "live_chat",
+      "ticket"
+    ]
+  },
+  "prompts": {
+    "template_id": "generic_assistant",
+    "system_prompt": "",
+    "classifier_prompt": "",
+    "response_style": ""
+  },
+  "knowledge_base": {
+    "sources": [
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+    ],
+    "notes": "",
+    "nlu_policy": {
+      "dos": [],
+      "donts": [],
+      "capability_constraints": {}
+    },
+    "library_index": {
+      "version": "v1",
+      "source_signature": "ea2a546bf513ae680e1e8d8205c0eac459e56eac",
+      "generated_at": "2026-03-31T08:53:53.835546+00:00",
+      "book_index_generator": "default_v1",
+      "book_index_generated_at": "2026-03-31T08:53:53.835546+00:00",
+      "source_count": 2,
+      "documents": [
+        {
+          "id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "content_hash": "a0154f9677303dd5049d5846a11af898b7398071",
+          "char_count": 4780
+        },
+        {
+          "id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "content_hash": "171dc594030f36ae6aa7642eda2aaff496b47943",
+          "char_count": 2383
+        }
+      ],
+      "pages": [
+        {
+          "id": "page_00001",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_1",
+          "title": "Section 1",
+          "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Shimla\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
+          "topics": [
+            "section_1"
+          ],
+          "char_count": 281
+        },
+        {
+          "id": "page_00002",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_2",
+          "title": "Section 2",
+          "text": "=== Property Overview ===\nField: Canonical property name: The Orchid Hotel Shimla \nField: Brand: Orchid Hotels \nField: Property type: Luxury hotel \nField: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN \nField: Star rating: 5-star \nField: Check-in: 14:00 \nField: Check-out: 12:00 \nField: Overview notes: The Orchid Hotel Shimla offers luxury accommodations with eco-friendly features, scenic mountain and valley views, and modern amenities.",
+          "topics": [
+            "section_2"
+          ],
+          "char_count": 468
+        },
+        {
+          "id": "page_00003",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_3",
+          "title": "Section 3",
+          "text": "=== Rooms & Suites ===",
+          "topics": [
+            "section_3"
+          ],
+          "char_count": 22
+        },
+        {
+          "id": "page_00004",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_4",
+          "title": "Section 4",
+          "text": "## Deluxe King Room\n- Size: 300 sq. ft.\n- Bed configuration: King-size bed\n- Occupancy: Suitable for solo travelers or couples\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Notable differentiators: 10-inch mattress, 300 thread count Egyptian cotton linen",
+          "topics": [
+            "section_4"
+          ],
+          "char_count": 376
+        },
+        {
+          "id": "page_00005",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_5",
+          "title": "Section 5",
+          "text": "## Deluxe Twin Room\n- Size: 300 sq. ft.\n- Bed configuration: Two single beds\n- Occupancy: Ideal for friends or solo travelers\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping",
+          "topics": [
+            "section_5"
+          ],
+          "char_count": 286
+        },
+        {
+          "id": "page_00006",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_6",
+          "title": "Section 6",
+          "text": "## Premier Valley View Room\n- Size: 220 sq. ft.\n- Bed configuration: King-size bed\n- View: Valley view\n- Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Occupancy: Ideal for solo travelers or couples",
+          "topics": [
+            "section_6"
+          ],
+          "char_count": 283
+        },
+        {
+          "id": "page_00007",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_7",
+          "title": "Section 7",
+          "text": "## Family Room\n- Size: 384 sq. ft.\n- Bed configuration: 1 King Bed and 2 Twin Beds\n- Occupancy: Up to 4 guests\n- Views: Valley views\n- In-room amenities: Free Wi-Fi, air-conditioning, en-suite bathroom, laundry service, 24-hour front desk",
+          "topics": [
+            "section_7"
+          ],
+          "char_count": 238
+        },
+        {
+          "id": "page_00008",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_8",
+          "title": "Section 8",
+          "text": "## Orchid Suite\n- Size: 700 sq. ft.\n- Bed configuration: King-size bed\n- Views: Valley\n- In-room amenities: Living area, plush sofa seating, HD LED TV, mini-bar, tea/coffee maker, daily housekeeping\n- Bathroom features: Hydrotherapy shower, private jacuzzi bathtub\n- Linen: 300-thread-count Egyptian cotton",
+          "topics": [
+            "section_8"
+          ],
+          "char_count": 306
+        },
+        {
+          "id": "page_00009",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_9",
+          "title": "Section 9",
+          "text": "## Mayflower Suites\n- Size: 850 sq. ft.\n- Views: Valley views\n- In-room amenities: Complimentary Wi-Fi, separate living room, LED TV, electronic safe, work desk, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers\n- Notable inclusions: Complimentary in-room breakfast",
+          "topics": [
+            "section_9"
+          ],
+          "char_count": 291
+        },
+        {
+          "id": "page_00010",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_10",
+          "title": "Section 10",
+          "text": "## Presidential Suites\n- Size: 900 sq. ft.\n- Views: Panoramic views\n- In-room amenities: High-speed Wi-Fi, separate living and dining areas, LED TV, desk, electronic safe, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers\n- Notable inclusions: In-room dining",
+          "topics": [
+            "section_10"
+          ],
+          "char_count": 284
+        },
+        {
+          "id": "page_00011",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_11",
+          "title": "Section 11",
+          "text": "=== Dining & Restaurants ===\n- Cafe Vindhyas: Multi-cuisine, regional\n- Harrington Bar: Craft cocktails, bar food\n- The House of Glass: Oriental, continental, Indian, rooftop dining",
+          "topics": [
+            "section_11"
+          ],
+          "char_count": 181
+        },
+        {
+          "id": "page_00012",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_12",
+          "title": "Section 12",
+          "text": "=== Amenities & Facilities ===\n- Heated Swimming Pool\n- Rooftop Restaurant\n- EV Charging Station\n- Wellness Center & Spa\n- Banquet Hall for Weddings & Events\n- Parking Available\n- Free WiFi\n- Luxury Spa\n- Unisex Salon\n- Business center",
+          "topics": [
+            "section_12"
+          ],
+          "char_count": 235
+        },
+        {
+          "id": "page_00013",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_13",
+          "title": "Section 13",
+          "text": "=== Spa & Wellness ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "section_13"
+          ],
+          "char_count": 59
+        },
+        {
+          "id": "page_00014",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_14",
+          "title": "Section 14",
+          "text": "=== Meetings & Events ===",
+          "topics": [
+            "section_14"
+          ],
+          "char_count": 25
+        },
+        {
+          "id": "page_00015",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_15",
+          "title": "Section 15",
+          "text": "## Chamber Hall\n- Area: 5500 SqFt\n- Pre Function Area: 1250 SqFt\n- Height: 10 Ft\n- Seating Capacity: 600-800 (Casual), 400 (Theatre), 200 (Cluster), 120 (Ushape), 60 (Board Room)\n- Features: AV Equipment, Projectors",
+          "topics": [
+            "section_15"
+          ],
+          "char_count": 215
+        },
+        {
+          "id": "page_00016",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_16",
+          "title": "Section 16",
+          "text": "## Chancery Banquet Hall\n- Area: 850 SqFt\n- Height: 10 Ft\n- Seating Capacity: 50 (Casual, Theatre), 24 (Cluster), 18 (Ushape, Board Room)\n- Features: Corporate Setup",
+          "topics": [
+            "section_16"
+          ],
+          "char_count": 165
+        },
+        {
+          "id": "page_00017",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_17",
+          "title": "Section 17",
+          "text": "## Rooftop Venue - House of Glass\n- Capacity: 150-200 guests\n- Features: Scenic Rooftop View, Buffet Setup",
+          "topics": [
+            "section_17"
+          ],
+          "char_count": 106
+        },
+        {
+          "id": "page_00018",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_18",
+          "title": "Section 18",
+          "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "section_18"
+          ],
+          "char_count": 61
+        },
+        {
+          "id": "page_00019",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_19",
+          "title": "Section 19",
+          "text": "=== Location & Transport ===\nField: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN \nField: Nearby landmarks: Mall Road (2 km), Jakhoo Temple (3 km), The Ridge Shimla (2.5 km), Christ Church (2.5 km), Kufri (15 km) \nField: Travel convenience: Located 10–15 minutes from Mall Road",
+          "topics": [
+            "section_19"
+          ],
+          "char_count": 307
+        },
+        {
+          "id": "page_00020",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_20",
+          "title": "Section 20",
+          "text": "=== Contact Information ===\nField: Phone: +91 916 916 6789 \nField: Email: resv.shimla@orchidhotel.com, reservations@orchidhotel.com",
+          "topics": [
+            "section_20"
+          ],
+          "char_count": 131
+        },
+        {
+          "id": "page_00021",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_21",
+          "title": "Section 21",
+          "text": "=== Special Offers & Packages ===",
+          "topics": [
+            "section_21"
+          ],
+          "char_count": 33
+        },
+        {
+          "id": "page_00022",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_22",
+          "title": "Section 22",
+          "text": "## Get 30% Discount on Website Bookings\n- Offer: 30% off on direct website bookings\n- Conditions: No hidden charges or third-party fees",
+          "topics": [
+            "section_22"
+          ],
+          "char_count": 135
+        },
+        {
+          "id": "page_00023",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_23",
+          "title": "Section 23",
+          "text": "## Shimla's Serene Retreat - Orchid Suite\n- Offer: Eco-luxury getaway with premium amenities and scenic views",
+          "topics": [
+            "section_23"
+          ],
+          "char_count": 109
+        },
+        {
+          "id": "page_00024",
+          "document_id": "doc_001_a0154f9677",
+          "source_name": "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+          "location": "text.section_24",
+          "title": "Section 24",
+          "text": "## Stay Longer, Save More\n- Offer: Discounted stays for 2 or 5 nights\n- Inclusions: Luxury amenities and serene surroundings",
+          "topics": [
+            "section_24"
+          ],
+          "char_count": 124
+        },
+        {
+          "id": "page_00025",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_1",
+          "title": "Section 1",
+          "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Manali\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
+          "topics": [
+            "section_1"
+          ],
+          "char_count": 281
+        },
+        {
+          "id": "page_00026",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_2",
+          "title": "Section 2",
+          "text": "=== Property Overview ===\nCanonical property name: The Orchid Hotel Manali \nBrand: Orchid Hotels \nProperty type: Boutique Hotel \nPositioning: 5-Star Luxury Hotel \nAddress: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN \nStar rating: 5/5 \nOverview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.",
+          "topics": [
+            "section_2"
+          ],
+          "char_count": 442
+        },
+        {
+          "id": "page_00027",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_3",
+          "title": "Section 3",
+          "text": "=== Rooms & Suites ===\n## Deluxe Room\n- Views: Mountain views\n- Amenities: Modern amenities",
+          "topics": [
+            "section_3"
+          ],
+          "char_count": 91
+        },
+        {
+          "id": "page_00028",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_4",
+          "title": "Section 4",
+          "text": "## Premier Valley View Room\n- Features: Private balcony overlooking scenic valleys",
+          "topics": [
+            "section_4"
+          ],
+          "char_count": 82
+        },
+        {
+          "id": "page_00029",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_5",
+          "title": "Section 5",
+          "text": "## Premier Family Room\n- Layout: Spacious\n- Views: Panoramic valley views\n- Suitable for: Families",
+          "topics": [
+            "section_5"
+          ],
+          "char_count": 98
+        },
+        {
+          "id": "page_00030",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_6",
+          "title": "Section 6",
+          "text": "## Club Room\n- Features: Balcony with stunning valley views",
+          "topics": [
+            "section_6"
+          ],
+          "char_count": 59
+        },
+        {
+          "id": "page_00031",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_7",
+          "title": "Section 7",
+          "text": "## Presidential Suite\n- Views: Exclusive river views\n- Amenities: Premium luxury amenities",
+          "topics": [
+            "section_7"
+          ],
+          "char_count": 90
+        },
+        {
+          "id": "page_00032",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_8",
+          "title": "Section 8",
+          "text": "=== Dining & Restaurants ===\n## Café Vindhyas\n- Cuisine: Himachali and global cuisines\n- Location: Shuru, Naggar Road\n- Features: Scenic views, bar\n- Dining options: Breakfast, lunch, dinner",
+          "topics": [
+            "section_8"
+          ],
+          "char_count": 190
+        },
+        {
+          "id": "page_00033",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_9",
+          "title": "Section 9",
+          "text": "=== Amenities & Facilities ===\n- Pool: Heated swimming pool\n- Spa: Available\n- Fitness: Fitness center\n- Wellness: Yoga and meditation sessions\n- Wi-Fi: Free WiFi\n- Parking: Free parking, EV charging station\n- Recreation: Indoor games room",
+          "topics": [
+            "section_9"
+          ],
+          "char_count": 239
+        },
+        {
+          "id": "page_00034",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_10",
+          "title": "Section 10",
+          "text": "=== Spa & Wellness ===\n- Spa: Available\n- Wellness: Yoga and meditation sessions\n- Fitness center: Available",
+          "topics": [
+            "section_10"
+          ],
+          "char_count": 108
+        },
+        {
+          "id": "page_00035",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_11",
+          "title": "Section 11",
+          "text": "=== Meetings & Events ===\n## The Chamber\n- Area: 3600 sq. ft.\n- Capacity: 75-80 (Cluster), 120 (Theatre)\n- Features: Modern AV facilities, curated catering, versatile layouts",
+          "topics": [
+            "section_11"
+          ],
+          "char_count": 174
+        },
+        {
+          "id": "page_00036",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_12",
+          "title": "Section 12",
+          "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "section_12"
+          ],
+          "char_count": 61
+        },
+        {
+          "id": "page_00037",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_13",
+          "title": "Section 13",
+          "text": "=== Location & Transport ===\nAddress: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN \nNearby landmarks:\n - Mall Road: 5 miles\n - Hadimba Temple: Nearby\n - Solang Valley: 11 miles\n - Rohtang Pass: 30 miles\n - Atal Tunnel: 20 miles",
+          "topics": [
+            "section_13"
+          ],
+          "char_count": 239
+        },
+        {
+          "id": "page_00038",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_14",
+          "title": "Section 14",
+          "text": "=== Contact Information ===\nPhone: +91 9169166789 \nEmail: resv.manali@orchidhotel.com, reservations@orchidhotel.com",
+          "topics": [
+            "section_14"
+          ],
+          "char_count": 115
+        },
+        {
+          "id": "page_00039",
+          "document_id": "doc_002_171dc59403",
+          "source_name": "d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "source_path": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil_manali_shimla\\d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+          "location": "text.section_15",
+          "title": "Section 15",
+          "text": "=== Special Offers & Packages ===\nStatus: Not found on reviewed pages.",
+          "topics": [
+            "section_15"
+          ],
+          "char_count": 70
+        }
+      ],
+      "books": [
+        {
+          "id": "section_1",
+          "title": "Section 1",
+          "aliases": [
+            "section_1"
+          ],
+          "keywords": [
+            "03",
+            "08",
+            "10",
+            "2026",
+            "30",
+            "46",
+            "base",
+            "com",
+            "generated",
+            "generator",
+            "https",
+            "kb",
+            "khil",
+            "knowledge",
+            "manali",
+            "orchid",
+            "property",
+            "scraper",
+            "shimla",
+            "source",
+            "utc",
+            "v1",
+            "www"
+          ],
+          "page_ids": [
+            "page_00001",
+            "page_00025"
+          ],
+          "page_count": 2,
+          "char_count": 562,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_10",
+          "title": "Section 10",
+          "aliases": [
+            "section_10"
+          ],
+          "keywords": [
+            "10",
+            "900",
+            "amenities",
+            "areas",
+            "available",
+            "basket",
+            "bathrobe",
+            "board",
+            "center",
+            "desk",
+            "dining",
+            "electronic",
+            "fi",
+            "fitness",
+            "fruit",
+            "ft",
+            "high",
+            "in",
+            "inclusions",
+            "iron",
+            "ironing",
+            "led",
+            "living",
+            "meditation",
+            "notable",
+            "panoramic",
+            "premium",
+            "presidential",
+            "room",
+            "safe",
+            "separate",
+            "sessions",
+            "size",
+            "slippers",
+            "spa",
+            "speed",
+            "sq",
+            "suites",
+            "toiletries",
+            "tv",
+            "views",
+            "wellness",
+            "wi",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00010",
+            "page_00034"
+          ],
+          "page_count": 2,
+          "char_count": 392,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_11",
+          "title": "Section 11",
+          "aliases": [
+            "section_11"
+          ],
+          "keywords": [
+            "11",
+            "120",
+            "3600",
+            "75",
+            "80",
+            "area",
+            "av",
+            "bar",
+            "cafe",
+            "capacity",
+            "catering",
+            "chamber",
+            "cluster",
+            "cocktails",
+            "continental",
+            "craft",
+            "cuisine",
+            "curated",
+            "dining",
+            "events",
+            "facilities",
+            "features",
+            "food",
+            "ft",
+            "glass",
+            "harrington",
+            "house",
+            "indian",
+            "layouts",
+            "meetings",
+            "modern",
+            "multi",
+            "of",
+            "oriental",
+            "regional",
+            "restaurants",
+            "rooftop",
+            "sq",
+            "theatre",
+            "versatile",
+            "vindhyas"
+          ],
+          "page_ids": [
+            "page_00011",
+            "page_00035"
+          ],
+          "page_count": 2,
+          "char_count": 355,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_12",
+          "title": "Section 12",
+          "aliases": [
+            "section_12"
+          ],
+          "keywords": [
+            "12",
+            "amenities",
+            "available",
+            "banquet",
+            "business",
+            "center",
+            "charging",
+            "ev",
+            "events",
+            "facilities",
+            "found",
+            "free",
+            "hall",
+            "heated",
+            "luxury",
+            "not",
+            "on",
+            "pages",
+            "parking",
+            "policies",
+            "pool",
+            "restaurant",
+            "reviewed",
+            "rooftop",
+            "rules",
+            "salon",
+            "spa",
+            "station",
+            "status",
+            "swimming",
+            "unisex",
+            "weddings",
+            "wellness",
+            "wifi"
+          ],
+          "page_ids": [
+            "page_00012",
+            "page_00036"
+          ],
+          "page_count": 2,
+          "char_count": 296,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_13",
+          "title": "Section 13",
+          "aliases": [
+            "section_13"
+          ],
+          "keywords": [
+            "11",
+            "13",
+            "175143",
+            "20",
+            "30",
+            "address",
+            "atal",
+            "found",
+            "hadimba",
+            "himachal",
+            "in",
+            "landmarks",
+            "location",
+            "mall",
+            "manali",
+            "miles",
+            "naggar",
+            "nearby",
+            "not",
+            "on",
+            "pages",
+            "pass",
+            "pradesh",
+            "reviewed",
+            "road",
+            "rohtang",
+            "shuru",
+            "solang",
+            "spa",
+            "status",
+            "temple",
+            "transport",
+            "tunnel",
+            "valley",
+            "wellness"
+          ],
+          "page_ids": [
+            "page_00013",
+            "page_00037"
+          ],
+          "page_count": 2,
+          "char_count": 298,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_14",
+          "title": "Section 14",
+          "aliases": [
+            "section_14"
+          ],
+          "keywords": [
+            "14",
+            "91",
+            "9169166789",
+            "com",
+            "contact",
+            "email",
+            "events",
+            "manali",
+            "meetings",
+            "orchidhotel",
+            "phone",
+            "reservations",
+            "resv"
+          ],
+          "page_ids": [
+            "page_00014",
+            "page_00038"
+          ],
+          "page_count": 2,
+          "char_count": 140,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_15",
+          "title": "Section 15",
+          "aliases": [
+            "section_15"
+          ],
+          "keywords": [
+            "10",
+            "120",
+            "1250",
+            "15",
+            "200",
+            "400",
+            "5500",
+            "60",
+            "600",
+            "800",
+            "area",
+            "av",
+            "board",
+            "capacity",
+            "casual",
+            "chamber",
+            "cluster",
+            "equipment",
+            "features",
+            "found",
+            "ft",
+            "function",
+            "hall",
+            "height",
+            "not",
+            "offers",
+            "on",
+            "packages",
+            "pages",
+            "pre",
+            "projectors",
+            "reviewed",
+            "room",
+            "seating",
+            "special",
+            "sqft",
+            "status",
+            "theatre",
+            "ushape"
+          ],
+          "page_ids": [
+            "page_00015",
+            "page_00039"
+          ],
+          "page_count": 2,
+          "char_count": 285,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_16",
+          "title": "Section 16",
+          "aliases": [
+            "section_16"
+          ],
+          "keywords": [
+            "10",
+            "16",
+            "18",
+            "24",
+            "50",
+            "850",
+            "area",
+            "banquet",
+            "board",
+            "capacity",
+            "casual",
+            "chancery",
+            "cluster",
+            "corporate",
+            "features",
+            "ft",
+            "hall",
+            "height",
+            "room",
+            "seating",
+            "setup",
+            "sqft",
+            "theatre",
+            "ushape"
+          ],
+          "page_ids": [
+            "page_00016"
+          ],
+          "page_count": 1,
+          "char_count": 165,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_17",
+          "title": "Section 17",
+          "aliases": [
+            "section_17"
+          ],
+          "keywords": [
+            "150",
+            "17",
+            "200",
+            "buffet",
+            "capacity",
+            "features",
+            "glass",
+            "house",
+            "of",
+            "rooftop",
+            "scenic",
+            "setup",
+            "venue",
+            "view"
+          ],
+          "page_ids": [
+            "page_00017"
+          ],
+          "page_count": 1,
+          "char_count": 106,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_18",
+          "title": "Section 18",
+          "aliases": [
+            "section_18"
+          ],
+          "keywords": [
+            "18",
+            "found",
+            "not",
+            "on",
+            "pages",
+            "policies",
+            "reviewed",
+            "rules",
+            "status"
+          ],
+          "page_ids": [
+            "page_00018"
+          ],
+          "page_count": 1,
+          "char_count": 61,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_19",
+          "title": "Section 19",
+          "aliases": [
+            "section_19"
+          ],
+          "keywords": [
+            "10",
+            "15",
+            "171006",
+            "19",
+            "address",
+            "bypass",
+            "christ",
+            "church",
+            "convenience",
+            "field",
+            "himachal",
+            "in",
+            "jakhoo",
+            "km",
+            "kufri",
+            "landmarks",
+            "located",
+            "location",
+            "mall",
+            "minutes",
+            "nearby",
+            "pradesh",
+            "ridge",
+            "road",
+            "sanjauli",
+            "shimla",
+            "temple",
+            "transport",
+            "travel"
+          ],
+          "page_ids": [
+            "page_00019"
+          ],
+          "page_count": 1,
+          "char_count": 307,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_2",
+          "title": "Section 2",
+          "aliases": [
+            "section_2"
+          ],
+          "keywords": [
+            "00",
+            "12",
+            "14",
+            "171006",
+            "175143",
+            "accommodations",
+            "address",
+            "amenities",
+            "attractions",
+            "boutique",
+            "brand",
+            "bypass",
+            "canonical",
+            "check",
+            "dining",
+            "eco",
+            "facilities",
+            "features",
+            "field",
+            "focus",
+            "friendly",
+            "hadimba",
+            "himachal",
+            "hotels",
+            "in",
+            "located",
+            "luxury",
+            "mall",
+            "manali",
+            "modern",
+            "mountain",
+            "naggar",
+            "name",
+            "near",
+            "notes",
+            "offers",
+            "on",
+            "orchid",
+            "other",
+            "out",
+            "overview",
+            "positioning",
+            "practices",
+            "pradesh",
+            "property",
+            "rating",
+            "road",
+            "rooms",
+            "sanjauli",
+            "scenic",
+            "shimla",
+            "shuru",
+            "solang",
+            "star",
+            "suites",
+            "temple",
+            "type",
+            "valley",
+            "views",
+            "wellness"
+          ],
+          "page_ids": [
+            "page_00002",
+            "page_00026"
+          ],
+          "page_count": 2,
+          "char_count": 910,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_20",
+          "title": "Section 20",
+          "aliases": [
+            "section_20"
+          ],
+          "keywords": [
+            "20",
+            "6789",
+            "91",
+            "916",
+            "com",
+            "contact",
+            "email",
+            "field",
+            "orchidhotel",
+            "phone",
+            "reservations",
+            "resv",
+            "shimla"
+          ],
+          "page_ids": [
+            "page_00020"
+          ],
+          "page_count": 1,
+          "char_count": 131,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_21",
+          "title": "Section 21",
+          "aliases": [
+            "section_21"
+          ],
+          "keywords": [
+            "21",
+            "offers",
+            "packages",
+            "special"
+          ],
+          "page_ids": [
+            "page_00021"
+          ],
+          "page_count": 1,
+          "char_count": 33,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_22",
+          "title": "Section 22",
+          "aliases": [
+            "section_22"
+          ],
+          "keywords": [
+            "22",
+            "30",
+            "bookings",
+            "charges",
+            "conditions",
+            "direct",
+            "discount",
+            "fees",
+            "get",
+            "hidden",
+            "no",
+            "off",
+            "offer",
+            "on",
+            "or",
+            "party",
+            "third",
+            "website"
+          ],
+          "page_ids": [
+            "page_00022"
+          ],
+          "page_count": 1,
+          "char_count": 135,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_23",
+          "title": "Section 23",
+          "aliases": [
+            "section_23"
+          ],
+          "keywords": [
+            "23",
+            "amenities",
+            "eco",
+            "getaway",
+            "luxury",
+            "offer",
+            "orchid",
+            "premium",
+            "retreat",
+            "scenic",
+            "serene",
+            "shimla",
+            "suite",
+            "views"
+          ],
+          "page_ids": [
+            "page_00023"
+          ],
+          "page_count": 1,
+          "char_count": 109,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_24",
+          "title": "Section 24",
+          "aliases": [
+            "section_24"
+          ],
+          "keywords": [
+            "24",
+            "amenities",
+            "discounted",
+            "inclusions",
+            "longer",
+            "luxury",
+            "more",
+            "nights",
+            "offer",
+            "or",
+            "save",
+            "serene",
+            "stay",
+            "stays",
+            "surroundings"
+          ],
+          "page_ids": [
+            "page_00024"
+          ],
+          "page_count": 1,
+          "char_count": 124,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "section_3",
+          "title": "Section 3",
+          "aliases": [
+            "section_3"
+          ],
+          "keywords": [
+            "amenities",
+            "deluxe",
+            "modern",
+            "mountain",
+            "room",
+            "rooms",
+            "suites",
+            "views"
+          ],
+          "page_ids": [
+            "page_00003",
+            "page_00027"
+          ],
+          "page_count": 2,
+          "char_count": 113,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_4",
+          "title": "Section 4",
+          "aliases": [
+            "section_4"
+          ],
+          "keywords": [
+            "10",
+            "300",
+            "air",
+            "amenities",
+            "balcony",
+            "bed",
+            "bottled",
+            "channels",
+            "coffee",
+            "complimentary",
+            "conditioning",
+            "configuration",
+            "cotton",
+            "count",
+            "couples",
+            "daily",
+            "deluxe",
+            "differentiators",
+            "egyptian",
+            "facing",
+            "features",
+            "ft",
+            "hill",
+            "in",
+            "inch",
+            "inner",
+            "king",
+            "led",
+            "linen",
+            "maker",
+            "mattress",
+            "notable",
+            "occupancy",
+            "or",
+            "overlooking",
+            "premier",
+            "premium",
+            "private",
+            "room",
+            "sanitization",
+            "scenic",
+            "size",
+            "solo",
+            "sq",
+            "suitable",
+            "tea",
+            "thread",
+            "travelers",
+            "tv",
+            "valley",
+            "valleys",
+            "view",
+            "water"
+          ],
+          "page_ids": [
+            "page_00004",
+            "page_00028"
+          ],
+          "page_count": 2,
+          "char_count": 458,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_5",
+          "title": "Section 5",
+          "aliases": [
+            "section_5"
+          ],
+          "keywords": [
+            "300",
+            "air",
+            "amenities",
+            "bed",
+            "beds",
+            "bottled",
+            "channels",
+            "coffee",
+            "complimentary",
+            "conditioning",
+            "configuration",
+            "daily",
+            "deluxe",
+            "facing",
+            "families",
+            "family",
+            "friends",
+            "ft",
+            "hill",
+            "housekeeping",
+            "ideal",
+            "in",
+            "inner",
+            "layout",
+            "led",
+            "maker",
+            "occupancy",
+            "or",
+            "panoramic",
+            "premier",
+            "premium",
+            "room",
+            "single",
+            "size",
+            "solo",
+            "spacious",
+            "sq",
+            "suitable",
+            "tea",
+            "travelers",
+            "tv",
+            "twin",
+            "two",
+            "valley",
+            "view",
+            "views",
+            "water"
+          ],
+          "page_ids": [
+            "page_00005",
+            "page_00029"
+          ],
+          "page_count": 2,
+          "char_count": 384,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_6",
+          "title": "Section 6",
+          "aliases": [
+            "section_6"
+          ],
+          "keywords": [
+            "220",
+            "air",
+            "amenities",
+            "balcony",
+            "bed",
+            "bottled",
+            "channels",
+            "club",
+            "coffee",
+            "complimentary",
+            "conditioning",
+            "configuration",
+            "couples",
+            "daily",
+            "features",
+            "ft",
+            "ideal",
+            "king",
+            "led",
+            "maker",
+            "occupancy",
+            "or",
+            "premier",
+            "premium",
+            "room",
+            "sanitization",
+            "size",
+            "solo",
+            "sq",
+            "stunning",
+            "tea",
+            "travelers",
+            "tv",
+            "valley",
+            "view",
+            "views",
+            "water"
+          ],
+          "page_ids": [
+            "page_00006",
+            "page_00030"
+          ],
+          "page_count": 2,
+          "char_count": 342,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_7",
+          "title": "Section 7",
+          "aliases": [
+            "section_7"
+          ],
+          "keywords": [
+            "24",
+            "384",
+            "air",
+            "amenities",
+            "bathroom",
+            "bed",
+            "beds",
+            "conditioning",
+            "configuration",
+            "desk",
+            "en",
+            "exclusive",
+            "family",
+            "fi",
+            "free",
+            "front",
+            "ft",
+            "hour",
+            "in",
+            "king",
+            "laundry",
+            "luxury",
+            "occupancy",
+            "premium",
+            "presidential",
+            "river",
+            "room",
+            "size",
+            "sq",
+            "suite",
+            "to",
+            "twin",
+            "up",
+            "valley",
+            "views",
+            "wi"
+          ],
+          "page_ids": [
+            "page_00007",
+            "page_00031"
+          ],
+          "page_count": 2,
+          "char_count": 328,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_8",
+          "title": "Section 8",
+          "aliases": [
+            "section_8"
+          ],
+          "keywords": [
+            "300",
+            "700",
+            "amenities",
+            "area",
+            "bar",
+            "bathroom",
+            "bathtub",
+            "bed",
+            "breakfast",
+            "caf",
+            "coffee",
+            "configuration",
+            "cotton",
+            "count",
+            "cuisine",
+            "cuisines",
+            "daily",
+            "dining",
+            "dinner",
+            "egyptian",
+            "features",
+            "ft",
+            "global",
+            "hd",
+            "himachali",
+            "housekeeping",
+            "hydrotherapy",
+            "in",
+            "jacuzzi",
+            "king",
+            "led",
+            "linen",
+            "living",
+            "location",
+            "lunch",
+            "maker",
+            "mini",
+            "naggar",
+            "options",
+            "orchid",
+            "plush",
+            "private",
+            "restaurants",
+            "road",
+            "room",
+            "scenic",
+            "seating",
+            "shower",
+            "shuru",
+            "size",
+            "sofa",
+            "sq",
+            "suite",
+            "tea",
+            "thread",
+            "tv",
+            "valley",
+            "views",
+            "vindhyas"
+          ],
+          "page_ids": [
+            "page_00008",
+            "page_00032"
+          ],
+          "page_count": 2,
+          "char_count": 496,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "section_9",
+          "title": "Section 9",
+          "aliases": [
+            "section_9"
+          ],
+          "keywords": [
+            "850",
+            "amenities",
+            "available",
+            "basket",
+            "bathrobe",
+            "board",
+            "breakfast",
+            "center",
+            "charging",
+            "complimentary",
+            "desk",
+            "electronic",
+            "ev",
+            "facilities",
+            "fi",
+            "fitness",
+            "free",
+            "fruit",
+            "ft",
+            "games",
+            "heated",
+            "in",
+            "inclusions",
+            "indoor",
+            "iron",
+            "ironing",
+            "led",
+            "living",
+            "mayflower",
+            "meditation",
+            "notable",
+            "parking",
+            "pool",
+            "premium",
+            "recreation",
+            "room",
+            "safe",
+            "separate",
+            "sessions",
+            "size",
+            "slippers",
+            "spa",
+            "sq",
+            "station",
+            "suites",
+            "swimming",
+            "toiletries",
+            "tv",
+            "valley",
+            "views",
+            "wellness",
+            "wi",
+            "wifi",
+            "work",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00009",
+            "page_00033"
+          ],
+          "page_count": 2,
+          "char_count": 530,
+          "sources": [
+            "8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "d9b9c0cb_the_orchid_hotel_manali_kb.txt"
+          ]
+        }
+      ],
+      "coverage": {
+        "total_pages": 39,
+        "covered_pages": 39,
+        "uncovered_pages": 0,
+        "coverage_ratio": 1.0
+      }
+    }
+  },
+  "ui_settings": {
+    "theme": {
+      "primary_color": "#2563eb",
+      "accent_color": "#22c55e",
+      "background_color": "#f8fafc",
+      "text_color": "#1e293b"
+    },
+    "widget": {
+      "position": "right",
+      "show_branding": true,
+      "compact_mode": false
+    },
+    "channels": {
+      "web_widget": {
+        "enabled": true
+      },
+      "whatsapp": {
+        "enabled": true
+      }
+    },
+    "industry_features": []
+  },
+  "journey_phases": [
+    {
+      "id": "pre_booking",
+      "name": "Pre Booking",
+      "description": "Guest is exploring and asking questions before reservation confirmation.",
+      "is_active": true,
+      "order": 1
+    },
+    {
+      "id": "pre_checkin",
+      "name": "Pre Checkin",
+      "description": "Guest booking is confirmed and needs support before arrival.",
+      "is_active": true,
+      "order": 2
+    },
+    {
+      "id": "during_stay",
+      "name": "During Stay",
+      "description": "Guest is in-house and needs operational or service support.",
+      "is_active": true,
+      "order": 3
+    },
+    {
+      "id": "post_checkout",
+      "name": "Post Checkout",
+      "description": "Guest has checked out and needs follow-up assistance.",
+      "is_active": true,
+      "order": 4
+    }
+  ],
+  "agent_plugins": {
+    "enabled": true,
+    "shared_context": true,
+    "strict_mode": true,
+    "strict_unavailable_response": "I can only help with configured service-agent data right now. Please contact staff for anything outside this scope.",
+    "plugins": []
+  },
+  "service_kb": {
+    "records": [
+      {
+        "id": "room_booking_kb",
+        "service_id": "room_booking",
+        "plugin_id": "room_booking_agent",
+        "strict_mode": true,
+        "facts": [
+          {
+            "id": "fact_fff73295b0",
+            "text": "room booking is configured as an active service for Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.202506+00:00",
+            "created_at": "2026-03-31T09:04:11.202506+00:00",
+            "updated_at": "2026-03-31T09:04:11.202506+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_c8af38d8ec",
+            "text": "room booking: Allows guests to explore and book rooms across various regions and properties before their stay.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "description"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.202802+00:00",
+            "created_at": "2026-03-31T09:04:11.202802+00:00",
+            "updated_at": "2026-03-31T09:04:11.202802+00:00",
+            "confidence": 0.98,
+            "evidence": null
+          },
+          {
+            "id": "fact_4987e31c57",
+            "text": "Ticketing is enabled for room booking in Pre Booking phase.",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.203010+00:00",
+            "created_at": "2026-03-31T09:04:11.203010+00:00",
+            "updated_at": "2026-03-31T09:04:11.203010+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_adf46723dd",
+            "text": "Ticketing policy for room booking: Create a backend ticket for room booking when a guest confirms their booking by providing their full name, contact information, check-in and check-out dates",
+            "source": "admin_config",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "admin_config",
+              "service_kb",
+              "ticketing_policy"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.203175+00:00",
+            "created_at": "2026-03-31T09:04:11.203175+00:00",
+            "updated_at": "2026-03-31T09:04:11.203175+00:00",
+            "confidence": 0.99,
+            "evidence": null
+          },
+          {
+            "id": "fact_4778539f7a",
+            "text": "=== Rooms & Suites === ## Deluxe King Room - Size: 300 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.210256+00:00",
+            "created_at": "2026-03-31T09:04:11.210256+00:00",
+            "updated_at": "2026-03-31T09:04:11.210256+00:00",
+            "confidence": 0.61,
+            "evidence": null
+          },
+          {
+            "id": "fact_f56b6133b6",
+            "text": "Bed configuration: 1 King Bed and 2 Twin Beds - Occupancy: Up to 4 guests - Views: Valley views - In-room amenities: Free Wi-Fi, air-conditioning, en-suite bathroom, laundry service, 24-hour front desk ## Orchid Suite - Size: 700 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.210492+00:00",
+            "created_at": "2026-03-31T09:04:11.210492+00:00",
+            "updated_at": "2026-03-31T09:04:11.210492+00:00",
+            "confidence": 0.5900000000000001,
+            "evidence": null
+          },
+          {
+            "id": "fact_5f2eeafeba",
+            "text": "Bed configuration: King-size bed - Views: Valley - In-room amenities: Living area, plush sofa seating, HD LED TV, mini-bar, tea/coffee maker, daily housekeeping - Bathroom features: Hydrotherapy shower, private jacuzzi bathtub - Linen: 300-thread-count Egyptian cotton ## Mayflower Suites - Size: 850 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.210637+00:00",
+            "created_at": "2026-03-31T09:04:11.210637+00:00",
+            "updated_at": "2026-03-31T09:04:11.210637+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_7333c702c2",
+            "text": "Bed configuration: Two single beds - Occupancy: Ideal for friends or solo travelers - View: Inner hill-facing - In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping ## Premier Valley View Room - Size: 220 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.210792+00:00",
+            "created_at": "2026-03-31T09:04:11.210792+00:00",
+            "updated_at": "2026-03-31T09:04:11.210792+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_db283c8408",
+            "text": "Views: Valley views - In-room amenities: Complimentary Wi-Fi, separate living room, LED TV, electronic safe, work desk, fruit basket, iron & ironing board, premium toiletries, bathrobe & slippers - Notable inclusions: Complimentary in-room breakfast ## Presidential Suites - Size: 900 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.210921+00:00",
+            "created_at": "2026-03-31T09:04:11.210921+00:00",
+            "updated_at": "2026-03-31T09:04:11.210921+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_dcc69b7845",
+            "text": "Bed configuration: King-size bed - View: Valley view - Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization - Occupancy: Ideal for solo travelers or couples ## Family Room - Size: 384 sq.",
+            "source": "kb_source:8a50a3fd_the_orchid_hotel_shimla_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.211034+00:00",
+            "created_at": "2026-03-31T09:04:11.211034+00:00",
+            "updated_at": "2026-03-31T09:04:11.211034+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          },
+          {
+            "id": "fact_b6b984fdca",
+            "text": "Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.",
+            "source": "kb_source:d9b9c0cb_the_orchid_hotel_manali_kb.txt",
+            "origin": "auto",
+            "tags": [
+              "room_booking",
+              "pre_booking",
+              "service_kb",
+              "knowledge_source"
+            ],
+            "status": "approved",
+            "approved_by": "system",
+            "approved_at": "2026-03-31T09:04:11.211146+00:00",
+            "created_at": "2026-03-31T09:04:11.211146+00:00",
+            "updated_at": "2026-03-31T09:04:11.211146+00:00",
+            "confidence": 0.53,
+            "evidence": null
+          }
+        ],
+        "menu_documents": [],
+        "version": 1,
+        "is_active": true,
+        "published_at": "2026-03-31T09:04:11.200789+00:00",
+        "published_by": "system",
+        "release_notes": "Auto-compiled service knowledge pack (v1) at 2026-03-31T09:04:11.200789+00:00.",
+        "completeness": {
+          "generated_at": "2026-03-31T09:04:11.200789+00:00",
+          "compiler_version": "v1",
+          "service_signature": "3b414e42835897b14a6f7b402d248f31ed6a1d26",
+          "source_signature": "6f51909897ab827e38edebb0264d2b6d9dfff9b6",
+          "source_count": 2,
+          "manual_fact_count": 0,
+          "auto_fact_count": 11,
+          "total_fact_count": 11
+        },
+        "extracted_knowledge": "",
+        "generated_extraction_prompt": ""
+      }
+    ],
+    "compiler": {
+      "enabled": true,
+      "max_facts_per_service": 60,
+      "max_source_chars": 220000,
+      "max_sources": 25,
+      "version": "v1"
+    }
+  },
+  "service_agent_releases": [],
+  "runtime": {
+    "menu_runtime_enabled": false,
+    "service_kb_auto_compile": true
+  }
+}

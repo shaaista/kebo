@@ -235,13 +235,22 @@ def _service_kb_fact_lines(record: dict[str, Any], max_items: int = 16) -> list[
     return lines
 
 
-async def _load_latest_kb_text_from_db(
+def _display_kb_source_name(value: str) -> str:
+    name = str(value or "").strip()
+    if not name:
+        return "kb_source"
+    name = name.replace("\\", "/").rsplit("/", 1)[-1]
+    cleaned = re.sub(r"^[0-9a-f]{8}_", "", name, flags=re.IGNORECASE)
+    return cleaned or name
+
+
+async def _load_all_kb_text_from_db(
     *,
     db: AsyncSession,
     hotel_code: str,
     max_chars: int = 50000,
 ) -> str:
-    """Best-effort DB fallback for KB text when file-sourced KB is stale/empty."""
+    """Best-effort DB fallback for combined KB text when file sources are stale/empty."""
     code = config_service.resolve_hotel_code(hotel_code)
     hotel_id: Optional[int] = None
     try:
@@ -252,18 +261,24 @@ async def _load_latest_kb_text_from_db(
         if hotel_id is None:
             return ""
 
-        row = await db.execute(
-            select(KBFile.content)
+        rows = await db.execute(
+            select(KBFile.stored_name, KBFile.content)
             .where(KBFile.hotel_id == hotel_id)
-            .order_by(KBFile.id.desc())
-            .limit(1)
+            .order_by(KBFile.id.asc())
         )
-        content = str(row.scalar_one_or_none() or "").strip()
-        if not content:
+        blocks: list[str] = []
+        for stored_name, content in rows.all():
+            body = str(content or "").strip()
+            if not body:
+                continue
+            source_name = _display_kb_source_name(str(stored_name or "kb_file"))
+            blocks.append(f"=== SOURCE: {source_name} (db) ===\n{body}")
+        combined = "\n\n".join(blocks).strip()
+        if not combined:
             return ""
         if max_chars and max_chars > 0:
-            return content[:max_chars]
-        return content
+            return combined[:max_chars]
+        return combined
     except Exception:
         return ""
 
@@ -820,6 +835,8 @@ async def _generate_confirmation_message(
 
 
 @router.post("/form-submit")
+@router.post("/submit-form")
+@router.post("/form_submit")
 async def submit_form(
     request: FormSubmitRequest,
     http_request: Request,
@@ -832,138 +849,151 @@ async def submit_form(
     from services.ticketing_service import ticketing_service
     from services.config_service import config_service
 
-    service = config_service.get_service(request.service_id)
-    if not service:
-        raise HTTPException(status_code=404, detail=f"Service '{request.service_id}' not found.")
-    if not bool(service.get("ticketing_enabled", False)):
-        raise HTTPException(status_code=400, detail="Ticketing is not enabled for this service.")
-
-    form_data = request.form_data or {}
-    req_meta = request.metadata or {}
-    service_name = str(service.get("name") or request.service_id)
-
-    # Build a human-readable issue summary from the submitted fields
-    issue_parts = [
-        f"{k.replace('_', ' ').title()}: {v}"
-        for k, v in form_data.items()
-        if str(v).strip()
-    ]
-    issue_summary = "; ".join(issue_parts) or f"{service_name} booking request"
-
-    # Resolve phase from service config (authoritative), then metadata fallback
-    phase = str(
-        service.get("phase_id")
-        or req_meta.get("phase") or req_meta.get("phase_id")
-        or ""
-    )
-
-    # Resolve department from service config if available
-    department_id = str(service.get("department_id") or req_meta.get("department_id") or "")
-    department_name = str(service.get("department_name") or req_meta.get("department_name") or "")
-
-    # Get or create conversation context for proper payload building
-    context = await context_manager.get_or_create_context(
-        session_id=request.session_id,
-        hotel_code=request.hotel_code,
-    )
-
-    # Seed pending_data so build_lumira_ticket_payload can pick up metadata
-    if isinstance(context.pending_data, dict):
-        context.pending_data.update({
-            k: str(v) for k, v in form_data.items() if str(v).strip()
-        })
-        context.pending_data["service_id"] = request.service_id
-        context.pending_data["service_name"] = service_name
-        if req_meta.get("guest_id"):
-            context.pending_data.setdefault("guest_id", str(req_meta["guest_id"]))
-        if req_meta.get("entity_id"):
-            context.pending_data.setdefault("entity_id", str(req_meta["entity_id"]))
-    else:
-        context.pending_data = {
-            k: str(v) for k, v in form_data.items() if str(v).strip()
-        }
-
-    # Room number: form field takes precedence, then metadata
-    room_number = str(
-        form_data.get("room_number") or req_meta.get("room_number") or ""
-    )
-    if room_number:
-        context.room_number = room_number
-
-    # Build the full Lumira-compatible payload via the proper builder
-    ticket_payload = ticketing_service.build_lumira_ticket_payload(
-        context=context,
-        issue=issue_summary,
-        message=issue_summary,
-        category=service_name,
-        priority=str(req_meta.get("priority") or "medium"),
-        department_id=department_id,
-        department_manager=department_name,
-        phase=phase,
-        source=str(req_meta.get("ticket_source") or "web_widget"),
-    )
-
-    # Ensure service identifiers are on the payload
-    ticket_payload["service_id"] = request.service_id
-    ticket_payload["service_name"] = service_name
-
-    # Merge all form fields so they are persisted on the ticket
-    for k, v in form_data.items():
-        ticket_payload.setdefault(k, str(v))
-
+    resolved_hotel_code = config_service.resolve_hotel_code(request.hotel_code)
+    request.hotel_code = resolved_hotel_code
+    scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
     try:
-        result = await ticketing_service.create_ticket(ticket_payload)
-    except Exception as exc:
-        import traceback as _tb
-        logger.exception("form-submit: create_ticket raised an exception")
+        requested_service_id = _normalize_service_identifier(request.service_id)
+        service = config_service.get_service(requested_service_id)
+        if not service and bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
+            try:
+                db_services = await db_config_service.get_services()
+            except Exception:
+                db_services = []
+            for candidate in db_services:
+                if _normalize_service_identifier(candidate.get("id")) == requested_service_id:
+                    service = dict(candidate)
+                    break
+                if _normalize_service_identifier(candidate.get("name")) == requested_service_id:
+                    service = dict(candidate)
+                    break
+        if not service:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"Service '{request.service_id}' not found for hotel "
+                    f"'{resolved_hotel_code}'."
+                ),
+            )
+        if not bool(service.get("ticketing_enabled", False)):
+            raise HTTPException(status_code=400, detail="Ticketing is not enabled for this service.")
+
+        resolved_service_id = str(service.get("id") or requested_service_id).strip()
+        form_data = request.form_data or {}
+        req_meta = request.metadata or {}
+        service_name = str(service.get("name") or resolved_service_id)
+
+        issue_parts = [
+            f"{k.replace('_', ' ').title()}: {v}"
+            for k, v in form_data.items()
+            if str(v).strip()
+        ]
+        issue_summary = "; ".join(issue_parts) or f"{service_name} booking request"
+
+        phase = str(
+            service.get("phase_id")
+            or req_meta.get("phase") or req_meta.get("phase_id")
+            or ""
+        )
+
+        department_id = str(service.get("department_id") or req_meta.get("department_id") or "")
+        department_name = str(service.get("department_name") or req_meta.get("department_name") or "")
+
+        context = await context_manager.get_or_create_context(
+            session_id=request.session_id,
+            hotel_code=resolved_hotel_code,
+        )
+
+        if isinstance(context.pending_data, dict):
+            context.pending_data.update({
+                k: str(v) for k, v in form_data.items() if str(v).strip()
+            })
+            context.pending_data["service_id"] = resolved_service_id
+            context.pending_data["service_name"] = service_name
+            if req_meta.get("guest_id"):
+                context.pending_data.setdefault("guest_id", str(req_meta["guest_id"]))
+            if req_meta.get("entity_id"):
+                context.pending_data.setdefault("entity_id", str(req_meta["entity_id"]))
+        else:
+            context.pending_data = {
+                k: str(v) for k, v in form_data.items() if str(v).strip()
+            }
+
+        room_number = str(
+            form_data.get("room_number") or req_meta.get("room_number") or ""
+        )
+        if room_number:
+            context.room_number = room_number
+
+        ticket_payload = ticketing_service.build_lumira_ticket_payload(
+            context=context,
+            issue=issue_summary,
+            message=issue_summary,
+            category=service_name,
+            priority=str(req_meta.get("priority") or "medium"),
+            department_id=department_id,
+            department_manager=department_name,
+            phase=phase,
+            source=str(req_meta.get("ticket_source") or "web_widget"),
+        )
+
+        ticket_payload["service_id"] = resolved_service_id
+        ticket_payload["service_name"] = service_name
+
+        for k, v in form_data.items():
+            ticket_payload.setdefault(k, str(v))
+
+        try:
+            result = await ticketing_service.create_ticket(ticket_payload)
+        except Exception:
+            logger.exception("form-submit: create_ticket raised an exception")
+            return {
+                "success": False,
+                "ticket_id": "",
+                "message": "Something went wrong while creating your request. Please try again.",
+            }
+
+        if result.success:
+            confirm_msg = await _generate_confirmation_message(
+                service_name=service_name,
+                form_data=form_data,
+                ticket_id=result.ticket_id or "assigned",
+            )
+        else:
+            confirm_msg = (
+                f"There was an issue submitting your {service_name} request."
+                " Please try again or contact our staff."
+            )
+
+        try:
+            from schemas.chat import MessageRole
+            context.add_message(MessageRole.ASSISTANT, confirm_msg)
+        except Exception:
+            pass
+
+        if result.success:
+            return {
+                "success": True,
+                "ticket_id": result.ticket_id or "",
+                "message": confirm_msg,
+            }
+
+        raw_error = str(result.error or "").strip()
+        if "<html" in raw_error.lower() or len(raw_error) > 300:
+            clean_error = "The booking system is temporarily unavailable"
+        else:
+            clean_error = raw_error or "Unknown error"
+
         return {
             "success": False,
             "ticket_id": "",
-            "message": "Something went wrong while creating your request. Please try again.",
+            "message": (
+                f"Submission failed: {clean_error}."
+                " Please try again or contact our staff."
+            ),
         }
-
-    # Generate confirmation message
-    if result.success:
-        confirm_msg = await _generate_confirmation_message(
-            service_name=service_name,
-            form_data=form_data,
-            ticket_id=result.ticket_id or "assigned",
-        )
-    else:
-        confirm_msg = (
-            f"There was an issue submitting your {service_name} request."
-            " Please try again or contact our staff."
-        )
-
-    # Record in conversation context so history stays accurate
-    try:
-        from schemas.chat import MessageRole
-        context.add_message(MessageRole.ASSISTANT, confirm_msg)
-    except Exception:
-        pass
-
-    if result.success:
-        return {
-            "success": True,
-            "ticket_id": result.ticket_id or "",
-            "message": confirm_msg,
-        }
-
-    # Sanitize error message — never expose raw HTML or internal details
-    raw_error = str(result.error or "").strip()
-    if "<html" in raw_error.lower() or len(raw_error) > 300:
-        clean_error = "The booking system is temporarily unavailable"
-    else:
-        clean_error = raw_error or "Unknown error"
-
-    return {
-        "success": False,
-        "ticket_id": "",
-        "message": (
-            f"Submission failed: {clean_error}."
-            " Please try again or contact our staff."
-        ),
-    }
+    finally:
+        db_config_service.reset_hotel_context(scope_token)
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -1909,11 +1939,17 @@ async def get_contextual_suggestions(
                 }
                 break
 
-        kb_text = str(config_service.get_full_kb_text(max_chars=38000) or "").strip()
-        db_kb_text = await _load_latest_kb_text_from_db(
+        full_kb_budget = max(38000, int(getattr(settings, "full_kb_llm_max_kb_chars", 180000) or 180000))
+        kb_text = str(
+            config_service.get_full_kb_text_with_sources(
+                max_chars=full_kb_budget,
+                max_sources=200,
+            ) or ""
+        ).strip()
+        db_kb_text = await _load_all_kb_text_from_db(
             db=db,
             hotel_code=hotel_code,
-            max_chars=42000,
+            max_chars=full_kb_budget,
         )
         prefer_db_kb = bool(getattr(settings, "chat_db_prefer_kb_content", False))
         if prefer_db_kb and db_kb_text:
@@ -1921,7 +1957,7 @@ async def get_contextual_suggestions(
         elif not kb_text and db_kb_text:
             kb_text = db_kb_text
         elif db_kb_text and len(kb_text) < 2500:
-            kb_text = (kb_text + "\n\n" + db_kb_text).strip()[:42000]
+            kb_text = (kb_text + "\n\n" + db_kb_text).strip()[:full_kb_budget]
 
         service_knowledge_parts: list[str] = []
         seen_ids: set[str] = set()

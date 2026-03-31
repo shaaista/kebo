@@ -863,7 +863,7 @@ async def upload_rag_files(
     tenant_id: str = Form(default=""),
     add_to_sources: bool = Form(default=True),
 ):
-    """Upload knowledge files for one tenant/property and replace only that tenant's KB."""
+    """Upload knowledge files for one tenant/property and append them to that tenant's KB set."""
     if not files:
         raise HTTPException(status_code=400, detail="No files provided")
 
@@ -875,20 +875,8 @@ async def upload_rag_files(
     uploads_dir = uploads_root / normalized_tenant
 
     try:
-        # 1) Delete only this tenant's uploaded files on disk.
         _files_wiped = 0
-        if uploads_dir.exists():
-            import shutil
-            _files_wiped = sum(1 for _ in uploads_dir.rglob("*") if _.is_file())
-            shutil.rmtree(str(uploads_dir), ignore_errors=True)
-
-        # 2) Delete only this tenant's KB file records from DB.
         _db_deleted = 0
-        try:
-            _db_deleted = await db_config_service.delete_all_kb_files()
-        except Exception as _del_err:
-            _safe_print(f"[DB] KB file delete failed (non-fatal): {_del_err}")
-
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
         saved: list[dict[str, str]] = []
@@ -923,8 +911,14 @@ async def upload_rag_files(
                 _safe_print(traceback.format_exc())
 
         if add_to_sources:
-            # For this property scope, keep only newly uploaded files as KB sources.
-            sources = [entry["path"] for entry in saved]
+            existing_sources = config_service.get_knowledge_config().get("sources", [])
+            if not isinstance(existing_sources, list):
+                existing_sources = []
+            sources = [str(source).strip() for source in existing_sources if str(source).strip()]
+            for entry in saved:
+                path_value = str(entry.get("path") or "").strip()
+                if path_value and path_value not in sources:
+                    sources.append(path_value)
             try:
                 await db_config_service.update_knowledge_config({"sources": sources})
             except Exception as kb_cfg_err:
@@ -964,6 +958,125 @@ async def upload_rag_files(
             "uploaded_count": len(saved),
             "files": saved,
             "add_to_sources": add_to_sources,
+        }
+    finally:
+        db_config_service.reset_hotel_context(scope_token)
+
+
+@router.get("/api/rag/files")
+async def list_rag_files(
+    request: Request,
+    tenant_id: str = "",
+):
+    """List uploaded KB files for one tenant/property."""
+    resolved_tenant = _resolve_scoped_rag_tenant(request, tenant_id)
+    await _ensure_property_registered(resolved_tenant)
+    normalized_tenant = _normalize_tenant(resolved_tenant)
+    scope_token = db_config_service.set_hotel_context(resolved_tenant)
+    uploads_dir = Path(rag_service.kb_dir) / "uploads" / normalized_tenant
+
+    try:
+        selected_sources_raw = config_service.get_knowledge_config().get("sources", [])
+        if not isinstance(selected_sources_raw, list):
+            selected_sources_raw = []
+        selected_sources: set[str] = set()
+        for source in selected_sources_raw:
+            try:
+                selected_sources.add(str(Path(str(source)).resolve()))
+            except Exception:
+                continue
+
+        rows = await db_config_service.list_kb_files()
+        files: list[dict[str, Any]] = []
+        for row in rows:
+            stored_name = str(row.get("stored_name") or "").strip()
+            file_path = uploads_dir / stored_name if stored_name else uploads_dir
+            try:
+                resolved_path = str(file_path.resolve())
+            except Exception:
+                resolved_path = str(file_path)
+            files.append(
+                {
+                    **row,
+                    "path": resolved_path,
+                    "exists_on_disk": bool(stored_name and file_path.exists()),
+                    "is_selected": resolved_path in selected_sources,
+                }
+            )
+
+        return {
+            "tenant_id": normalized_tenant,
+            "files": files,
+            "selected_sources": sorted(selected_sources),
+        }
+    finally:
+        db_config_service.reset_hotel_context(scope_token)
+
+
+@router.delete("/api/rag/files/{stored_name}")
+async def delete_rag_file(
+    stored_name: str,
+    request: Request,
+    tenant_id: str = "",
+):
+    """Delete one uploaded KB file for one tenant/property."""
+    safe_stored_name = Path(str(stored_name or "")).name
+    if not safe_stored_name or safe_stored_name != str(stored_name or ""):
+        raise HTTPException(status_code=400, detail="Invalid KB file name")
+
+    resolved_tenant = _resolve_scoped_rag_tenant(request, tenant_id)
+    await _ensure_property_registered(resolved_tenant)
+    normalized_tenant = _normalize_tenant(resolved_tenant)
+    scope_token = db_config_service.set_hotel_context(resolved_tenant)
+    uploads_dir = Path(rag_service.kb_dir) / "uploads" / normalized_tenant
+    target_path = uploads_dir / safe_stored_name
+
+    try:
+        db_deleted = await db_config_service.delete_kb_file(safe_stored_name)
+
+        disk_deleted = False
+        if target_path.exists() and target_path.is_file():
+            try:
+                target_path.unlink()
+                disk_deleted = True
+            except Exception as exc:
+                _safe_print(f"[KB] Failed to delete KB file on disk {target_path}: {exc}")
+
+        selected_sources_raw = config_service.get_knowledge_config().get("sources", [])
+        if not isinstance(selected_sources_raw, list):
+            selected_sources_raw = []
+        try:
+            target_resolved = str(target_path.resolve())
+        except Exception:
+            target_resolved = str(target_path)
+        next_sources = [
+            str(source).strip()
+            for source in selected_sources_raw
+            if str(source).strip() and str(source).strip() != target_resolved
+        ]
+        removed_from_sources = next_sources != selected_sources_raw
+        if removed_from_sources:
+            try:
+                await db_config_service.update_knowledge_config({"sources": next_sources})
+            except Exception as kb_cfg_err:
+                _safe_print(f"DB sync warning (kb source delete): {kb_cfg_err}")
+                config_service.update_knowledge_config({"sources": next_sources})
+
+        try:
+            asyncio.create_task(config_service.ensure_structured_kb_llm_books(max_sources=50, force=True))
+        except Exception:
+            pass
+        try:
+            asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
+        except Exception:
+            pass
+
+        return {
+            "tenant_id": normalized_tenant,
+            "stored_name": safe_stored_name,
+            "db_deleted": db_deleted,
+            "disk_deleted": disk_deleted,
+            "removed_from_sources": removed_from_sources,
         }
     finally:
         db_config_service.reset_hotel_context(scope_token)

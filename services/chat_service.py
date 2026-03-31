@@ -16537,6 +16537,15 @@ class ChatService:
 
         return merged
 
+    @staticmethod
+    def _display_kb_source_name(value: str) -> str:
+        name = str(value or "").strip()
+        if not name:
+            return "kb_source"
+        name = name.replace("\\", "/").rsplit("/", 1)[-1]
+        cleaned = re.sub(r"^[0-9a-f]{8}_", "", name, flags=re.IGNORECASE)
+        return cleaned or name
+
     async def _load_latest_kb_text_from_db(
         self,
         *,
@@ -16544,6 +16553,7 @@ class ChatService:
         hotel_code: str = "",
         max_chars: int = 90000,
     ) -> str:
+        """Best-effort DB fallback for combined KB text when file sources are stale/empty."""
         if db_session is None:
             return ""
 
@@ -16561,17 +16571,23 @@ class ChatService:
                 return ""
 
             row = await db_session.execute(
-                select(KBFile.content)
+                select(KBFile.stored_name, KBFile.content)
                 .where(KBFile.hotel_id == hotel_id)
-                .order_by(KBFile.id.desc())
-                .limit(1)
+                .order_by(KBFile.id.asc())
             )
-            content = str(row.scalar_one_or_none() or "").strip()
-            if not content:
+            blocks: list[str] = []
+            for stored_name, content in row.all():
+                body = str(content or "").strip()
+                if not body:
+                    continue
+                source_name = self._display_kb_source_name(str(stored_name or "kb_file"))
+                blocks.append(f"=== SOURCE: {source_name} (db) ===\n{body}")
+            combined = "\n\n".join(blocks).strip()
+            if not combined:
                 return ""
             if max_chars and max_chars > 0:
-                return content[:max_chars]
-            return content
+                return combined[:max_chars]
+            return combined
         except Exception:
             return ""
 
@@ -16582,7 +16598,12 @@ class ChatService:
         hotel_code: str = "",
         max_chars: int = 90000,
     ) -> str:
-        kb_text = str(config_service.get_full_kb_text(max_chars=max_chars) or "").strip()
+        kb_text = str(
+            config_service.get_full_kb_text_with_sources(
+                max_chars=max_chars,
+                max_sources=200,
+            ) or ""
+        ).strip()
         db_kb_text = await self._load_latest_kb_text_from_db(
             db_session=db_session,
             hotel_code=hotel_code,
