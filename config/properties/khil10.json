@@ -204,7 +204,27 @@
       "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\a4bba47d_the_orchid_hotel_pune_kb.txt",
       "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\e14a34f7_the_orchid_hotel_panchgani_kb.txt",
       "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\eb08d866_the_orchid_hotel_manali_kb.txt",
-      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\f3751329_the_orchid_hotel_mumbai_kb.txt"
+      "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\f3751329_the_orchid_hotel_mumbai_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\17065d21_the_orchid_hotel_shimla_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\7ff32bfb_the_orchid_hotel_lonavala_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\86360947_the_orchid_hotel_chandigarh_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\9b2430da_the_orchid_hotel_jamnagar_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\a4bba47d_the_orchid_hotel_pune_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\e14a34f7_the_orchid_hotel_panchgani_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\eb08d866_the_orchid_hotel_manali_kb.txt",
+      "/app/D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\config\\knowledge_base\\uploads\\khil10\\f3751329_the_orchid_hotel_mumbai_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/86360947_the_orchid_hotel_chandigarh_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/9b2430da_the_orchid_hotel_jamnagar_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/7ff32bfb_the_orchid_hotel_lonavala_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/f3751329_the_orchid_hotel_mumbai_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/eb08d866_the_orchid_hotel_manali_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/e14a34f7_the_orchid_hotel_panchgani_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/a4bba47d_the_orchid_hotel_pune_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/17065d21_the_orchid_hotel_shimla_kb.txt",
+      "/app/config/knowledge_base/uploads/khil10/0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
     ],
     "notes": "",
     "expected_property_count": 10,
@@ -216,9 +236,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "f4e27c318caa422886d3dd697251a8e85bc254c9",
-      "generated_at": "2026-03-31T16:55:44.981558+00:00",
+      "generated_at": "2026-03-31T19:04:26.580342+00:00",
       "book_index_generator": "llm_v1",
-      "book_index_generated_at": "2026-03-31T16:57:42.177841+00:00",
+      "book_index_generated_at": "2026-03-31T19:05:31.515033+00:00",
       "source_count": 10,
       "documents": [
         {
@@ -332,7 +352,7 @@
           "text": "=== Rooms & Suites ===",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 22,
           "primary_topic_name": "Rooms & Suites"
@@ -347,7 +367,7 @@
           "text": "## Sunbird Haven\n- Description: Romantic luxury room designed for couples\n- Occupancy: 2\n- Amenities: Intercom, Television, Wi-Fi, Tea & Coffee Maker, Mini Fridge, Locker",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 170,
           "primary_topic_name": "Rooms & Suites"
@@ -362,7 +382,7 @@
           "text": "## Kingfisher Haven\n- Description: Luxury room with modern comforts and private balcony\n- Occupancy: 2\n- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Private Balcony",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 172,
           "primary_topic_name": "Rooms & Suites"
@@ -377,7 +397,7 @@
           "text": "## Bulbul Nest\n- Description: Luxury room featuring a private Jacuzzi\n- Occupancy: 2\n- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Jacuzzi",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 146,
           "primary_topic_name": "Rooms & Suites"
@@ -392,7 +412,7 @@
           "text": "## Bee Eater Oasis\n- Description: Cozy romantic hideaway\n- Occupancy: 2\n- Amenities: Locker, Mini Fridge, Tea & Coffee Maker",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 124,
           "primary_topic_name": "Rooms & Suites"
@@ -407,7 +427,7 @@
           "text": "## Treepie Retreat\n- Description: Luxury room with intimate ambiance\n- Occupancy: 2\n- Amenities: Locker, Mini Fridge, Tea & Coffee Maker, Intercom, Television, Wi-Fi",
           "topics": [
             "rooms_suites",
-            "luxury_resorts"
+            "luxury_accommodations"
           ],
           "char_count": 165,
           "primary_topic_name": "Rooms & Suites"
@@ -435,7 +455,8 @@
           "title": "Section 10",
           "text": "## Tipsy Sparrow\n- Type: All-day dining restaurant\n- Cuisine: Goan, International\n- Location: Steps from Benaulim Beach\n- Features: Intimate and relaxed setting",
           "topics": [
-            "dining_restaurants"
+            "dining_restaurants",
+            "goan_cuisine"
           ],
           "char_count": 160,
           "primary_topic_name": "Dining & Restaurants"
@@ -449,7 +470,8 @@
           "title": "Section 11",
           "text": "## Splash Poolbar\n- Type: Poolside bar\n- Features: Swim-up bar, chilled cocktails, craft beers, shareable bites",
           "topics": [
-            "dining_restaurants"
+            "dining_restaurants",
+            "poolside_bars"
           ],
           "char_count": 111,
           "primary_topic_name": "Dining & Restaurants"
@@ -463,7 +485,8 @@
           "title": "Section 12",
           "text": "## Falcon Bar & Grills\n- Type: Open-air grill house\n- Features: Wood-fired flavors, handcrafted cocktails, ocean breeze ambiance",
           "topics": [
-            "dining_restaurants"
+            "dining_restaurants",
+            "grill_houses"
           ],
           "char_count": 128,
           "primary_topic_name": "Dining & Restaurants"
@@ -506,7 +529,8 @@
           "title": "Section 15",
           "text": "## Feather Touch Couple Spa\n- Type: Couples spa\n- Location: Within Orchid Passaros, 3-minute walk from Benaulim Beach\n- Features: Side-by-side treatment rooms, candlelight ambiance\n- Signature Treatments: Warm herbal foot soak, synchronized massages with coconut oil and Goan lemongrass\n- Hours: Mo-Su 10:00-20:00",
           "topics": [
-            "spa_wellness"
+            "spa_wellness",
+            "couples_spa"
           ],
           "char_count": 313,
           "primary_topic_name": "Spa & Wellness"
@@ -534,7 +558,8 @@
           "title": "Section 17",
           "text": "## Hornbill Banquet\n- Description: Intimate banquet hall\n- Capacity: 25-60 guests\n- Features: Tropical calm setting, catering service, audio-visual equipment, flexible seating arrangements, parking facility",
           "topics": [
-            "meetings_events"
+            "meetings_events",
+            "banquet_halls"
           ],
           "char_count": 206,
           "primary_topic_name": "Meetings & Events"
@@ -562,7 +587,8 @@
           "title": "Section 19",
           "text": "=== Location & Transport ===\nField: Address: Benaulim Beach Road, Via Maria Hall, Vaswaddo, Benaulim, Goa, 403716, IN \nField: Nearby landmarks: Benaulim Beach, Colva Beach, Margao Market \nField: Travel convenience notes: Located just 270 meters from Benaulim Beach",
           "topics": [
-            "location_transport"
+            "location_transport",
+            "travel_convenience"
           ],
           "char_count": 264,
           "primary_topic_name": "Location & Transport"
@@ -634,7 +660,7 @@
           "text": "=== Rooms & Suites ===",
           "topics": [
             "rooms_suites",
-            "eco_friendly_resorts"
+            "eco_friendly_accommodations"
           ],
           "char_count": 22,
           "primary_topic_name": "Rooms & Suites"
@@ -769,7 +795,7 @@
           "text": "=== Amenities & Facilities ===\n- Pool: Outdoor swimming pool\n- Gym: Modern gym\n- Spa: Luxury spa\n- Yoga: Open-air yoga shala, daily yoga and meditation sessions\n- Wi-Fi: Free WiFi\n- Family Amenities: Kids play area\n- Business Services: Banquet & wedding venues\n- Other: Travel desk services, Kund waterbody, Yagya Shala",
           "topics": [
             "hotel_amenities",
-            "recreational_facilities"
+            "facilities_and_services"
           ],
           "char_count": 319,
           "primary_topic_name": "Hotel Amenities"
@@ -858,7 +884,8 @@
           "title": "Section 18",
           "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_policies"
+            "hotel_policies",
+            "rules_and_regulations"
           ],
           "char_count": 61,
           "primary_topic_name": "Hotel Policies"
@@ -887,7 +914,8 @@
           "title": "Section 20",
           "text": "=== Contact Information ===\n- Phone: +91 916 916 6789\n- Email: reservations@orchidhotel.com",
           "topics": [
-            "contact_information"
+            "contact_information",
+            "hotel_contact_details"
           ],
           "char_count": 91,
           "primary_topic_name": "Contact Information"
@@ -901,10 +929,11 @@
           "title": "Section 21",
           "text": "=== Special Offers & Packages ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "special_offers_and_packages"
+            "special_offers",
+            "hotel_packages"
           ],
           "char_count": 70,
-          "primary_topic_name": "Special Offers and Packages"
+          "primary_topic_name": "Special Offers"
         },
         {
           "id": "page_00043",
@@ -945,11 +974,11 @@
           "title": "Section 3",
           "text": "=== Rooms & Suites ===",
           "topics": [
-            "rooms_and_suites",
-            "accommodation_options"
+            "luxury_accommodations",
+            "hotel_room_features"
           ],
           "char_count": 22,
-          "primary_topic_name": "Rooms and Suites"
+          "primary_topic_name": "Luxury Accommodations"
         },
         {
           "id": "page_00046",
@@ -960,11 +989,11 @@
           "title": "Section 4",
           "text": "## Deluxe King Room\n- Size: 300 sq. ft.\n- Bed configuration: King-size bed\n- Occupancy: Suitable for solo travelers or couples\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Notable differentiators: 10-inch mattress, 300 thread count Egyptian cotton linen",
           "topics": [
-            "rooms_and_suites",
-            "accommodation_options"
+            "luxury_accommodations",
+            "hotel_room_features"
           ],
           "char_count": 376,
-          "primary_topic_name": "Rooms and Suites"
+          "primary_topic_name": "Luxury Accommodations"
         },
         {
           "id": "page_00047",
@@ -975,11 +1004,11 @@
           "title": "Section 5",
           "text": "## Deluxe Twin Room\n- Size: 300 sq. ft.\n- Bed configuration: Two single beds\n- Occupancy: Ideal for friends or solo travelers\n- View: Inner hill-facing\n- In-room amenities: Air conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily housekeeping",
           "topics": [
-            "rooms_and_suites",
-            "accommodation_options"
+            "luxury_accommodations",
+            "hotel_room_features"
           ],
           "char_count": 286,
-          "primary_topic_name": "Rooms and Suites"
+          "primary_topic_name": "Luxury Accommodations"
         },
         {
           "id": "page_00048",
@@ -990,11 +1019,11 @@
           "title": "Section 6",
           "text": "## Premier Valley View Room\n- Size: 220 sq. ft.\n- Bed configuration: King-size bed\n- View: Valley view\n- Amenities: Air-conditioning, LED TV with premium channels, tea/coffee maker, complimentary bottled water, daily room sanitization\n- Occupancy: Ideal for solo travelers or couples",
           "topics": [
-            "rooms_and_suites",
-            "accommodation_options"
+            "luxury_accommodations",
+            "hotel_room_features"
           ],
           "char_count": 283,
-          "primary_topic_name": "Rooms and Suites"
+          "primary_topic_name": "Luxury Accommodations"
         },
         {
           "id": "page_00049",
@@ -1066,7 +1095,7 @@
           "text": "=== Dining & Restaurants ===\n- Cafe Vindhyas: Multi-cuisine, regional\n- Harrington Bar: Craft cocktails, bar food\n- The House of Glass: Oriental, continental, Indian, rooftop dining",
           "topics": [
             "dining_options_at_the_orchid_hotel_shimla",
-            "hotel_amenities"
+            "hotel_dining_and_restaurants"
           ],
           "char_count": 181,
           "primary_topic_name": "Dining Options at The Orchid Hotel Shimla"
@@ -1080,11 +1109,11 @@
           "title": "Section 12",
           "text": "=== Amenities & Facilities ===\n- Heated Swimming Pool\n- Rooftop Restaurant\n- EV Charging Station\n- Wellness Center & Spa\n- Banquet Hall for Weddings & Events\n- Parking Available\n- Free WiFi\n- Luxury Spa\n- Unisex Salon\n- Business center",
           "topics": [
-            "hotel_amenities",
+            "hotel_amenities_and_facilities",
             "facilities_at_the_orchid_hotel_shimla"
           ],
           "char_count": 235,
-          "primary_topic_name": "Hotel Amenities"
+          "primary_topic_name": "Hotel Amenities and Facilities"
         },
         {
           "id": "page_00055",
@@ -1095,11 +1124,11 @@
           "title": "Section 13",
           "text": "=== Spa & Wellness ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_amenities",
-            "spa_wellness_at_the_orchid_hotel_shimla"
+            "hotel_amenities_and_facilities",
+            "spa_and_wellness_at_the_orchid_hotel_shimla"
           ],
           "char_count": 59,
-          "primary_topic_name": "Hotel Amenities"
+          "primary_topic_name": "Hotel Amenities and Facilities"
         },
         {
           "id": "page_00056",
@@ -1110,10 +1139,11 @@
           "title": "Section 14",
           "text": "=== Meetings & Events ===",
           "topics": [
-            "meetings_events_at_the_orchid_hotel_shimla"
+            "meetings_and_events_at_the_orchid_hotel_shimla",
+            "event_spaces_and_conference_rooms"
           ],
           "char_count": 25,
-          "primary_topic_name": "Meetings & Events at The Orchid Hotel Shimla"
+          "primary_topic_name": "Meetings and Events at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00057",
@@ -1124,10 +1154,11 @@
           "title": "Section 15",
           "text": "## Chamber Hall\n- Area: 5500 SqFt\n- Pre Function Area: 1250 SqFt\n- Height: 10 Ft\n- Seating Capacity: 600-800 (Casual), 400 (Theatre), 200 (Cluster), 120 (Ushape), 60 (Board Room)\n- Features: AV Equipment, Projectors",
           "topics": [
-            "meetings_events_at_the_orchid_hotel_shimla"
+            "meetings_and_events_at_the_orchid_hotel_shimla",
+            "event_spaces_and_conference_rooms"
           ],
           "char_count": 215,
-          "primary_topic_name": "Meetings & Events at The Orchid Hotel Shimla"
+          "primary_topic_name": "Meetings and Events at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00058",
@@ -1138,10 +1169,11 @@
           "title": "Section 16",
           "text": "## Chancery Banquet Hall\n- Area: 850 SqFt\n- Height: 10 Ft\n- Seating Capacity: 50 (Casual, Theatre), 24 (Cluster), 18 (Ushape, Board Room)\n- Features: Corporate Setup",
           "topics": [
-            "meetings_events_at_the_orchid_hotel_shimla"
+            "meetings_and_events_at_the_orchid_hotel_shimla",
+            "event_spaces_and_conference_rooms"
           ],
           "char_count": 165,
-          "primary_topic_name": "Meetings & Events at The Orchid Hotel Shimla"
+          "primary_topic_name": "Meetings and Events at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00059",
@@ -1152,10 +1184,11 @@
           "title": "Section 17",
           "text": "## Rooftop Venue - House of Glass\n- Capacity: 150-200 guests\n- Features: Scenic Rooftop View, Buffet Setup",
           "topics": [
-            "meetings_events_at_the_orchid_hotel_shimla"
+            "meetings_and_events_at_the_orchid_hotel_shimla",
+            "event_spaces_and_conference_rooms"
           ],
           "char_count": 106,
-          "primary_topic_name": "Meetings & Events at The Orchid Hotel Shimla"
+          "primary_topic_name": "Meetings and Events at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00060",
@@ -1166,11 +1199,10 @@
           "title": "Section 18",
           "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_policies",
-            "rules_regulations_at_the_orchid_hotel_shimla"
+            "hotel_policies_and_rules"
           ],
           "char_count": 61,
-          "primary_topic_name": "Hotel Policies"
+          "primary_topic_name": "Hotel Policies and Rules"
         },
         {
           "id": "page_00061",
@@ -1181,11 +1213,11 @@
           "title": "Section 19",
           "text": "=== Location & Transport ===\nField: Address: Shimla Bypass Road, Sanjauli, Shimla, Himachal Pradesh, 171006, IN \nField: Nearby landmarks: Mall Road (2 km), Jakhoo Temple (3 km), The Ridge Shimla (2.5 km), Christ Church (2.5 km), Kufri (15 km) \nField: Travel convenience: Located 10–15 minutes from Mall Road",
           "topics": [
-            "location_transport_information",
-            "nearby_attractions"
+            "location_and_transport_information",
+            "hotel_location_and_nearby_attractions"
           ],
           "char_count": 307,
-          "primary_topic_name": "Location & Transport Information"
+          "primary_topic_name": "Location and Transport Information"
         },
         {
           "id": "page_00062",
@@ -1196,11 +1228,10 @@
           "title": "Section 20",
           "text": "=== Contact Information ===\nField: Phone: +91 916 916 6789 \nField: Email: resv.shimla@orchidhotel.com, reservations@orchidhotel.com",
           "topics": [
-            "contact_information",
-            "hotel_contact_details"
+            "contact_information_for_the_orchid_hotel_shimla"
           ],
           "char_count": 131,
-          "primary_topic_name": "Contact Information"
+          "primary_topic_name": "Contact Information for The Orchid Hotel Shimla"
         },
         {
           "id": "page_00063",
@@ -1211,11 +1242,10 @@
           "title": "Section 21",
           "text": "=== Special Offers & Packages ===",
           "topics": [
-            "special_offers_packages",
-            "promotions_at_the_orchid_hotel_shimla"
+            "special_offers_and_packages_at_the_orchid_hotel_shimla"
           ],
           "char_count": 33,
-          "primary_topic_name": "Special Offers & Packages"
+          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00064",
@@ -1226,11 +1256,10 @@
           "title": "Section 22",
           "text": "## Get 30% Discount on Website Bookings\n- Offer: 30% off on direct website bookings\n- Conditions: No hidden charges or third-party fees",
           "topics": [
-            "special_offers_packages",
-            "promotions_at_the_orchid_hotel_shimla"
+            "special_offers_and_packages_at_the_orchid_hotel_shimla"
           ],
           "char_count": 135,
-          "primary_topic_name": "Special Offers & Packages"
+          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00065",
@@ -1241,11 +1270,10 @@
           "title": "Section 23",
           "text": "## Shimla's Serene Retreat - Orchid Suite\n- Offer: Eco-luxury getaway with premium amenities and scenic views",
           "topics": [
-            "special_offers_packages",
-            "promotions_at_the_orchid_hotel_shimla"
+            "special_offers_and_packages_at_the_orchid_hotel_shimla"
           ],
           "char_count": 109,
-          "primary_topic_name": "Special Offers & Packages"
+          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00066",
@@ -1256,11 +1284,10 @@
           "title": "Section 24",
           "text": "## Stay Longer, Save More\n- Offer: Discounted stays for 2 or 5 nights\n- Inclusions: Luxury amenities and serene surroundings",
           "topics": [
-            "special_offers_packages",
-            "promotions_at_the_orchid_hotel_shimla"
+            "special_offers_and_packages_at_the_orchid_hotel_shimla"
           ],
           "char_count": 124,
-          "primary_topic_name": "Special Offers & Packages"
+          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Shimla"
         },
         {
           "id": "page_00067",
@@ -1272,7 +1299,7 @@
           "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Lonavala\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
           "topics": [
             "hotel_overview",
-            "the_orchid_hotel_lonavala"
+            "the_orchid_hotel_lonavala_overview"
           ],
           "char_count": 283,
           "primary_topic_name": "Hotel Overview"
@@ -1287,7 +1314,7 @@
           "text": "=== Property Overview ===\nField: Canonical property name: The Orchid Hotel Lonavala \nField: Brand: Orchid Hotels \nField: Property type: Luxury Resort \nField: Address: 10/1, Old Mumbai-Pune Highway, Valvan, Lonavala, Maharashtra, 410401, IN \nField: Star rating: 5/5 \nField: Check-in/Check-out: Status: Not found on reviewed pages. \nField: Overview notes: The Orchid Hotel Lonavala is a luxurious eco-friendly retreat offering accommodations, dining, and event spaces amidst the scenic hills of Lonavala. It is located near attractions such as Bhushi Dam, Kune Waterfalls, Narayani Dham, and Ryewood Park, with easy access to Lonavala Station and Malavli Station.",
           "topics": [
             "hotel_overview",
-            "the_orchid_hotel_lonavala"
+            "the_orchid_hotel_lonavala_overview"
           ],
           "char_count": 661,
           "primary_topic_name": "Hotel Overview"
@@ -1361,10 +1388,10 @@
           "title": "Section 7",
           "text": "=== Dining & Restaurants ===",
           "topics": [
-            "dining_options_at_the_orchid_hotel_lonavala"
+            "dining_restaurants_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 28,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00074",
@@ -1375,10 +1402,10 @@
           "title": "Section 8",
           "text": "## Boulevard\n- Cuisine: Multi-cuisine\n- Dining style: Fine dining\n- Location: Within The Orchid Hotel Lonavala",
           "topics": [
-            "dining_options_at_the_orchid_hotel_lonavala"
+            "dining_restaurants_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 110,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00075",
@@ -1389,10 +1416,10 @@
           "title": "Section 9",
           "text": "## Café Vindhyas\n- Cuisine: South Indian\n- Dining style: Breakfast spot\n- Ambience: Cozy",
           "topics": [
-            "dining_options_at_the_orchid_hotel_lonavala"
+            "dining_restaurants_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 88,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00076",
@@ -1403,10 +1430,10 @@
           "title": "Section 10",
           "text": "=== Amenities & Facilities ===\n- Outdoor Swimming Pool\n- Free WiFi\n- Free Parking\n- Banquet Halls",
           "topics": [
-            "amenities_and_facilities_at_the_orchid_hotel_lonavala"
+            "amenities_facilities_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 97,
-          "primary_topic_name": "Amenities and Facilities at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Amenities & Facilities at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00077",
@@ -1417,10 +1444,10 @@
           "title": "Section 11",
           "text": "=== Spa & Wellness ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "spa_and_wellness_at_the_orchid_hotel_lonavala"
+            "spa_wellness_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 59,
-          "primary_topic_name": "Spa and Wellness at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Spa & Wellness at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00078",
@@ -1431,10 +1458,10 @@
           "title": "Section 12",
           "text": "=== Meetings & Events ===",
           "topics": [
-            "meetings_and_events_at_the_orchid_hotel_lonavala"
+            "meetings_events_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 25,
-          "primary_topic_name": "Meetings and Events at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Meetings & Events at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00079",
@@ -1445,10 +1472,10 @@
           "title": "Section 13",
           "text": "## Grand Banquet Hall\n- Maximum Attendee Capacity: 300\n- Features: Modern AV support, catering services",
           "topics": [
-            "meetings_and_events_at_the_orchid_hotel_lonavala"
+            "meetings_events_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 103,
-          "primary_topic_name": "Meetings and Events at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Meetings & Events at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00080",
@@ -1459,10 +1486,10 @@
           "title": "Section 14",
           "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "policies_and_rules_at_the_orchid_hotel_lonavala"
+            "policies_rules_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 61,
-          "primary_topic_name": "Policies and Rules at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Policies & Rules at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00081",
@@ -1473,10 +1500,10 @@
           "title": "Section 15",
           "text": "=== Location & Transport ===\nField: Address: 10/1, Old Mumbai-Pune Highway, Valvan, Lonavala, Maharashtra, 410401, IN \nField: Nearby attractions: Rajmachi Fort (6 km), Bhushi Dam (3 km), Lonavala Lake (2 km), Tungarli Dam (1.5 km) \nField: Travel convenience: Easy access to Lonavala Station and Malavli Station",
           "topics": [
-            "location_and_transport_for_the_orchid_hotel_lonavala"
+            "location_transport_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 310,
-          "primary_topic_name": "Location and Transport for The Orchid Hotel Lonavala"
+          "primary_topic_name": "Location & Transport at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00082",
@@ -1501,10 +1528,10 @@
           "title": "Section 17",
           "text": "=== Special Offers & Packages ===",
           "topics": [
-            "special_offers_and_packages_at_the_orchid_hotel_lonavala"
+            "special_offers_packages_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 33,
-          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Special Offers & Packages at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00084",
@@ -1515,10 +1542,10 @@
           "title": "Section 18",
           "text": "## Luxury Stay Package\n- Inclusions: Elegant rooms, gourmet dining\n- Offer: 40% off",
           "topics": [
-            "special_offers_and_packages_at_the_orchid_hotel_lonavala"
+            "special_offers_packages_at_the_orchid_hotel_lonavala"
           ],
           "char_count": 83,
-          "primary_topic_name": "Special Offers and Packages at The Orchid Hotel Lonavala"
+          "primary_topic_name": "Special Offers & Packages at The Orchid Hotel Lonavala"
         },
         {
           "id": "page_00085",
@@ -1529,10 +1556,10 @@
           "title": "Section 1",
           "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Chandigarh\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
           "topics": [
-            "overview_of_the_orchid_hotel_chandigarh"
+            "hotel_overview_for_the_orchid_hotel_chandigarh"
           ],
           "char_count": 285,
-          "primary_topic_name": "Overview of The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Hotel Overview for The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00086",
@@ -1543,10 +1570,10 @@
           "title": "Section 2",
           "text": "=== Property Overview ===\n- Canonical property name: The Orchid Hotel Chandigarh\n- Brand: Orchid Hotels\n- Property type: 5-Star luxury eco-friendly hotel\n- Address: Tricity Trade Tower, Patiala Road, Village Nabha, Mohali, Punjab, 140603, IN\n- Star rating: 5/5\n- Location summary: Located in Zirakpur near Chandigarh Airport, close to Gurudwara Shri Nabha Sahib and Mahendra Chaudhary Zoological Park\n- Overview notes: The hotel offers premium accommodations, fine dining, event venues, and modern facilities. Suitable for business and leisure travelers.",
           "topics": [
-            "overview_of_the_orchid_hotel_chandigarh"
+            "hotel_overview_for_the_orchid_hotel_chandigarh"
           ],
           "char_count": 554,
-          "primary_topic_name": "Overview of The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Hotel Overview for The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00087",
@@ -1557,10 +1584,10 @@
           "title": "Section 3",
           "text": "=== Rooms & Suites ===",
           "topics": [
-            "rooms_and_suites_at_the_orchid_hotel_chandigarh"
+            "rooms_suites_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 22,
-          "primary_topic_name": "Rooms and Suites at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Rooms & Suites at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00088",
@@ -1571,10 +1598,10 @@
           "title": "Section 4",
           "text": "## Deluxe Room\n- Size: 306 sq. ft.\n- Bed configuration: King-size bed or twin beds\n- Views: Panoramic city views\n- Amenities: Air-conditioning, complimentary high-speed Wi-Fi, flat-screen TV, tea & coffee maker, premium toiletries, minibar, 24-hour room service",
           "topics": [
-            "rooms_and_suites_at_the_orchid_hotel_chandigarh"
+            "rooms_suites_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 261,
-          "primary_topic_name": "Rooms and Suites at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Rooms & Suites at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00089",
@@ -1585,10 +1612,10 @@
           "title": "Section 5",
           "text": "## Premier Room\n- Size: 420 sq. ft.\n- Bed configuration: King-size bed\n- Amenities: Wi-Fi, flat-screen TV, tea/coffee maker, premium toiletries, in-room safe\n- Room count: 14 rooms",
           "topics": [
-            "rooms_and_suites_at_the_orchid_hotel_chandigarh"
+            "rooms_suites_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 180,
-          "primary_topic_name": "Rooms and Suites at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Rooms & Suites at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00090",
@@ -1599,10 +1626,10 @@
           "title": "Section 6",
           "text": "## Club Room\n- Size: 306 sq. ft.\n- Bed configuration: King-size bed or twin beds\n- Views: City views\n- Amenities: Air-conditioning, complimentary Wi-Fi, TV, tea & coffee maker, eco-friendly toiletries, 24-hour room service\n- Room count: 22 rooms",
           "topics": [
-            "rooms_and_suites_at_the_orchid_hotel_chandigarh"
+            "rooms_suites_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 245,
-          "primary_topic_name": "Rooms and Suites at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Rooms & Suites at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00091",
@@ -1613,10 +1640,10 @@
           "title": "Section 7",
           "text": "=== Dining & Restaurants ===",
           "topics": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 28,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00092",
@@ -1627,10 +1654,10 @@
           "title": "Section 8",
           "text": "## Boulevard\n- Type: 24-Hour Coffee Shop & All-Day Dining\n- Cuisine: Global comfort food, light bites, pastries, desserts, aromatic brews\n- Features: Open 24 hours, suitable for early breakfasts, midnight snacks, casual lunches",
           "topics": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 227,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00093",
@@ -1641,10 +1668,10 @@
           "title": "Section 9",
           "text": "## Skydip\n- Type: Rooftop Pool Deck & Bar\n- Features: Handcrafted cocktails, gourmet snacks, rooftop dining, skyline views",
           "topics": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 122,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00094",
@@ -1655,10 +1682,10 @@
           "title": "Section 10",
           "text": "## South of Vindhyas\n- Cuisine: Authentic South Indian\n- Menu Highlights: Dosas, idlis, sambhar, biryanis",
           "topics": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 105,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00095",
@@ -1669,10 +1696,10 @@
           "title": "Section 11",
           "text": "## The Lobby Lounge\n- Type: Casual & Cozy Dining\n- Features: Light meals, beverages, cozy setting",
           "topics": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 97,
-          "primary_topic_name": "Dining Options at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Dining & Restaurants at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00096",
@@ -1683,10 +1710,10 @@
           "title": "Section 12",
           "text": "=== Amenities & Facilities ===\n- Pool: Well-maintained swimming pool\n- Gym: Fitness centre\n- Spa: Available\n- Wi-Fi: High-speed, complimentary\n- Business services: Meeting rooms, banquet halls, work-friendly desks, high-speed Wi-Fi\n- Parking: Available\n- Family amenities: Child-friendly environment\n- Other: Rooftop deck, comfortable lounges, EV Charging Station",
           "topics": [
-            "amenities_and_facilities_at_the_orchid_hotel_chandigarh"
+            "amenities_facilities_at_the_orchid_hotel_chandigarh"
           ],
           "char_count": 363,
-          "primary_topic_name": "Amenities and Facilities at The Orchid Hotel Chandigarh"
+          "primary_topic_name": "Amenities & Facilities at The Orchid Hotel Chandigarh"
         },
         {
           "id": "page_00097",
@@ -1697,8 +1724,7 @@
           "title": "Section 13",
           "text": "=== Spa & Wellness ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_spa_wellness",
-            "the_orchid_hotel_chandigarh"
+            "hotel_spa_wellness"
           ],
           "char_count": 59,
           "primary_topic_name": "Hotel Spa & Wellness"
@@ -1713,7 +1739,7 @@
           "text": "=== Meetings & Events ===\n- Banquet halls: Available for weddings, receptions, sangeet, and pre-wedding functions\n- Meeting rooms: Fully equipped for conferences, corporate events, seminars, product launches, and board meetings\n- Features: Advanced AV technology, customizable layouts, professional services\n- Location advantage: Near Chandigarh Airport and Patiala Road",
           "topics": [
             "hotel_meetings_events",
-            "the_orchid_hotel_chandigarh"
+            "hotel_facilities"
           ],
           "char_count": 370,
           "primary_topic_name": "Hotel Meetings & Events"
@@ -1727,8 +1753,7 @@
           "title": "Section 15",
           "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_policies_rules",
-            "the_orchid_hotel_chandigarh"
+            "hotel_policies_rules"
           ],
           "char_count": 61,
           "primary_topic_name": "Hotel Policies & Rules"
@@ -1743,7 +1768,7 @@
           "text": "=== Location & Transport ===\n- Address: Tricity Trade Tower, Patiala Road, Village Nabha, Mohali, Punjab, 140603, IN\n- Airport access: Close to Chandigarh Airport\n- Nearby landmarks: Gurudwara Shri Nabha Sahib, Elante Mall, Mohali, Panchkula\n- Travel convenience notes: Excellent connectivity for business and leisure travelers\n- Transport: Airport shuttle services available on request",
           "topics": [
             "hotel_location_transport",
-            "the_orchid_hotel_chandigarh"
+            "hotel_accessibility"
           ],
           "char_count": 386,
           "primary_topic_name": "Hotel Location & Transport"
@@ -1757,8 +1782,7 @@
           "title": "Section 17",
           "text": "=== Contact Information ===\n- Phone: +91 916 916 6789\n- Email: reservations@orchidhotel.com\n- Website: [orchidhotel.com](https://www.orchidhotel.com/chandigarh/)",
           "topics": [
-            "hotel_contact_information",
-            "the_orchid_hotel_chandigarh"
+            "hotel_contact_information"
           ],
           "char_count": 161,
           "primary_topic_name": "Hotel Contact Information"
@@ -1772,8 +1796,7 @@
           "title": "Section 18",
           "text": "=== Special Offers & Packages ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_special_offers_packages",
-            "the_orchid_hotel_chandigarh"
+            "hotel_special_offers_packages"
           ],
           "char_count": 70,
           "primary_topic_name": "Hotel Special Offers & Packages"
@@ -1787,10 +1810,10 @@
           "title": "Section 1",
           "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Jamnagar\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
           "topics": [
-            "the_orchid_hotel_jamnagar"
+            "hotel_overview"
           ],
           "char_count": 283,
-          "primary_topic_name": "The Orchid Hotel Jamnagar"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00104",
@@ -1801,11 +1824,10 @@
           "title": "Section 2",
           "text": "=== Property Overview ===\n- Canonical property name: The Orchid Hotel Jamnagar\n- Brand: Orchid Hotels\n- Property type: Hotel\n- Address: Khambhalia Highway, Opp. Swan Sweet Factory, Jamnagar, Gujarat, 361006, IN\n- Star rating: 5/5\n- Check-in/check-out: Status: Not found on reviewed pages.\n- Overview notes: The Orchid Hotel Jamnagar offers premium comfort with modern amenities for business and leisure travel. Located near Jamnagar Airport, the hotel features spacious rooms, a vegetarian restaurant, and elegant banquet halls.",
           "topics": [
-            "hotel_property_overview",
-            "the_orchid_hotel_jamnagar"
+            "hotel_overview"
           ],
           "char_count": 528,
-          "primary_topic_name": "Hotel Property Overview"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00105",
@@ -1816,8 +1838,7 @@
           "title": "Section 3",
           "text": "=== Rooms & Suites ===\n## Deluxe Rooms\n- Bed configuration: King or Twin Beds\n- Suitable for: Business and leisure stays",
           "topics": [
-            "hotel_rooms_suites",
-            "the_orchid_hotel_jamnagar"
+            "hotel_rooms_suites"
           ],
           "char_count": 120,
           "primary_topic_name": "Hotel Rooms & Suites"
@@ -1831,8 +1852,7 @@
           "title": "Section 4",
           "text": "## Orchid Suites\n- Notable for: Luxury accommodation",
           "topics": [
-            "hotel_rooms_suites",
-            "the_orchid_hotel_jamnagar"
+            "hotel_rooms_suites"
           ],
           "char_count": 52,
           "primary_topic_name": "Hotel Rooms & Suites"
@@ -1846,8 +1866,7 @@
           "title": "Section 5",
           "text": "## Premier Rooms\n- Ideal for: Business stays",
           "topics": [
-            "hotel_rooms_suites",
-            "the_orchid_hotel_jamnagar"
+            "hotel_rooms_suites"
           ],
           "char_count": 44,
           "primary_topic_name": "Hotel Rooms & Suites"
@@ -1861,8 +1880,7 @@
           "title": "Section 6",
           "text": "=== Dining & Restaurants ===\n## Boulevard Restaurant\n- Cuisine: Pure vegetarian, Gujarati, Indian, Continental\n- Notable for: Fine dining experience\n- Description: Offers traditional Gujarati specialties and global vegetarian delights using fresh local produce.\n- Price Range: ₹₹₹₹\n- Aggregate Rating: 4.5 from 35 reviews\n- Location: Near key areas like Lakhota Lake and Khambhalia Road",
           "topics": [
-            "hotel_dining_restaurants",
-            "the_orchid_hotel_jamnagar"
+            "hotel_dining_restaurants"
           ],
           "char_count": 386,
           "primary_topic_name": "Hotel Dining & Restaurants"
@@ -1876,8 +1894,7 @@
           "title": "Section 7",
           "text": "=== Amenities & Facilities ===\n- Swimming Pool\n- Gym\n- Vegetarian Restaurant\n- Free WiFi\n- Free Parking\n- Banquet Halls",
           "topics": [
-            "hotel_amenities_facilities",
-            "the_orchid_hotel_jamnagar"
+            "hotel_amenities_facilities"
           ],
           "char_count": 119,
           "primary_topic_name": "Hotel Amenities & Facilities"
@@ -1891,8 +1908,7 @@
           "title": "Section 8",
           "text": "=== Spa & Wellness ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_spa_wellness",
-            "the_orchid_hotel_jamnagar"
+            "hotel_spa_wellness"
           ],
           "char_count": 59,
           "primary_topic_name": "Hotel Spa & Wellness"
@@ -1907,7 +1923,7 @@
           "text": "=== Meetings & Events ===\n## Outdoor Lawn\n- Area: 12,000 SqFt\n- Capacity (Theatre): 250–400\n- Capacity (Casual): 250–400\n- Features: Lush greenery, elegant décor",
           "topics": [
             "hotel_meetings_events",
-            "the_orchid_hotel_jamnagar"
+            "hotel_facilities"
           ],
           "char_count": 161,
           "primary_topic_name": "Hotel Meetings & Events"
@@ -1922,7 +1938,7 @@
           "text": "## Grand Banquet Hall\n- Maximum Attendee Capacity: 300\n- Features: Modern amenities, spacious seating, business-friendly services",
           "topics": [
             "hotel_meetings_events",
-            "the_orchid_hotel_jamnagar"
+            "hotel_facilities"
           ],
           "char_count": 129,
           "primary_topic_name": "Hotel Meetings & Events"
@@ -1936,8 +1952,7 @@
           "title": "Section 11",
           "text": "=== Policies & Rules ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_policies_rules",
-            "the_orchid_hotel_jamnagar"
+            "hotel_policies_rules"
           ],
           "char_count": 61,
           "primary_topic_name": "Hotel Policies & Rules"
@@ -1952,7 +1967,7 @@
           "text": "=== Location & Transport ===\n- Address: Khambhalia Highway, Opp. Swan Sweet Factory, Jamnagar, Gujarat, 361006, IN\n- Nearby landmarks: Lakhota Lake, Dwarkadhish Temple, Bala Hanuman Temple, Khijadiya Bird Sanctuary\n- Airport access: Near Jamnagar Airport\n- Geo coordinates: 22.43277580937305, 69.94287168895161",
           "topics": [
             "hotel_location_transport",
-            "the_orchid_hotel_jamnagar"
+            "hotel_accessibility"
           ],
           "char_count": 310,
           "primary_topic_name": "Hotel Location & Transport"
@@ -1966,8 +1981,7 @@
           "title": "Section 13",
           "text": "=== Contact Information ===\n- Phone: +91 916 916 6789\n- Email: reservations@orchidhotel.com\n- General Manager Email: gm.jga@orchidhotel.com",
           "topics": [
-            "hotel_contact_information",
-            "the_orchid_hotel_jamnagar"
+            "hotel_contact_information"
           ],
           "char_count": 139,
           "primary_topic_name": "Hotel Contact Information"
@@ -1981,8 +1995,7 @@
           "title": "Section 14",
           "text": "=== Special Offers & Packages ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_special_offers_packages",
-            "the_orchid_hotel_jamnagar"
+            "hotel_special_offers_packages"
           ],
           "char_count": 70,
           "primary_topic_name": "Hotel Special Offers & Packages"
@@ -1996,10 +2009,10 @@
           "title": "Section 1",
           "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Pune\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
           "topics": [
-            "the_orchid_hotel_pune"
+            "hotel_overview"
           ],
           "char_count": 279,
-          "primary_topic_name": "The Orchid Hotel Pune"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00118",
@@ -2010,11 +2023,10 @@
           "title": "Section 2",
           "text": "=== Property Overview ===\nField: Canonical property name: The Orchid Hotel Pune \nField: Brand: Orchid Hotels \nField: Property type: 5-star luxury hotel \nField: Address: SHREE SHIV CHHATRAPATI SPORTS COMPLEX, Bengaluru - Mumbai Hwy, adjacent Chhatrapati Shivaji Maharaj Road, National Games Park, Balewadi, Pune, Maharashtra, 411045, IN \nField: Star rating: 5/5 \nField: Location summary: Near Balewadi Sports Complex and Hinjewadi IT Park, approximately 10 to 15 minutes from Pune International Airport \nField: Overview notes: The Orchid Hotel Pune offers elegantly designed rooms and suites, fine-dining restaurants, an outdoor swimming pool, spa, and modern fitness center. Known for sustainable hospitality, it includes expansive banquet halls, conference venues, and wedding spaces.",
           "topics": [
-            "hotel_property_overview",
-            "the_orchid_hotel_pune"
+            "hotel_overview"
           ],
           "char_count": 785,
-          "primary_topic_name": "Hotel Property Overview"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00119",
@@ -2025,8 +2037,7 @@
           "title": "Section 3",
           "text": "=== Rooms & Suites ===\nStatus: Not found on reviewed pages.",
           "topics": [
-            "hotel_rooms_suites",
-            "the_orchid_hotel_pune"
+            "hotel_rooms_suites"
           ],
           "char_count": 59,
           "primary_topic_name": "Hotel Rooms & Suites"
@@ -2040,8 +2051,7 @@
           "title": "Section 4",
           "text": "=== Dining & Restaurants ===\n## Boulevard\n- Type: 24-hour coffee shop\n- Cuisine: North Indian, Chinese, Continental, Italian\n- Features: Breakfast, lunch, dinner, midnight buffet, live music, online reservations",
           "topics": [
-            "hotel_dining_restaurants",
-            "the_orchid_hotel_pune"
+            "hotel_dining_restaurants"
           ],
           "char_count": 211,
           "primary_topic_name": "Hotel Dining & Restaurants"
@@ -2529,11 +2539,11 @@
           "title": "Section 1",
           "text": "================================================================\nHOTEL KNOWLEDGE BASE\nProperty: The Orchid Hotel Manali\nSource: https://www.khil.com\nGenerated: 2026-03-30 10:08:46 UTC\nGenerator: Hotel KB Scraper v1.0\n================================================================",
           "topics": [
-            "hotel_knowledge_base",
+            "hotel_overview",
             "orchid_hotel_manali"
           ],
           "char_count": 281,
-          "primary_topic_name": "Hotel Knowledge Base"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00155",
@@ -2544,11 +2554,11 @@
           "title": "Section 2",
           "text": "=== Property Overview ===\nCanonical property name: The Orchid Hotel Manali \nBrand: Orchid Hotels \nProperty type: Boutique Hotel \nPositioning: 5-Star Luxury Hotel \nAddress: Shuru, Naggar Road, Manali, Himachal Pradesh, 175143, IN \nStar rating: 5/5 \nOverview notes: Located near Mall Road, Solang Valley, Hadimba Temple, and other attractions. Offers luxury rooms, suites, dining, and wellness facilities with a focus on eco-friendly practices.",
           "topics": [
-            "hotel_property_overview",
+            "hotel_overview",
             "orchid_hotel_manali"
           ],
           "char_count": 442,
-          "primary_topic_name": "Hotel Property Overview"
+          "primary_topic_name": "Hotel Overview"
         },
         {
           "id": "page_00156",
@@ -3122,10 +3132,11 @@
           "title": "Section 27",
           "text": "=== Contact Information ===\nField: Phone: +91 916 916 6789 \nField: Email: reservations@orchidhotel.com",
           "topics": [
-            "hotel_contact_information"
+            "contact_information",
+            "hotel_communication"
           ],
           "char_count": 102,
-          "primary_topic_name": "Hotel Contact Information"
+          "primary_topic_name": "Contact Information"
         },
         {
           "id": "page_00196",
@@ -3136,91 +3147,15 @@
           "title": "Section 28",
           "text": "=== Special Offers & Packages ===\n- Weekend packages\n- Seasonal offers\n- Dining discounts\n- Long-stay rates\n- Direct booking benefits: best price guarantee, room upgrades, special discounts on dining and events\n- Orchid Rewards program: earn points on stays, dining, and services",
           "topics": [
-            "hotel_special_offers",
+            "special_offers",
+            "hotel_packages",
             "loyalty_programs"
           ],
           "char_count": 279,
-          "primary_topic_name": "Hotel Special Offers"
+          "primary_topic_name": "Special Offers"
         }
       ],
       "books": [
-        {
-          "id": "accommodation_options",
-          "title": "Accommodation Options",
-          "aliases": [
-            "accommodation_options"
-          ],
-          "keywords": [
-            "10",
-            "220",
-            "300",
-            "air",
-            "amenities",
-            "bed",
-            "beds",
-            "bottled",
-            "channels",
-            "coffee",
-            "complimentary",
-            "conditioning",
-            "configuration",
-            "cotton",
-            "count",
-            "couples",
-            "daily",
-            "deluxe",
-            "differentiators",
-            "egyptian",
-            "facing",
-            "friends",
-            "ft",
-            "hill",
-            "housekeeping",
-            "ideal",
-            "in",
-            "inch",
-            "inner",
-            "king",
-            "led",
-            "linen",
-            "maker",
-            "mattress",
-            "notable",
-            "occupancy",
-            "or",
-            "premier",
-            "premium",
-            "room",
-            "rooms",
-            "sanitization",
-            "single",
-            "size",
-            "solo",
-            "sq",
-            "suitable",
-            "suites",
-            "tea",
-            "thread",
-            "travelers",
-            "tv",
-            "twin",
-            "two",
-            "valley",
-            "view",
-            "water"
-          ],
-          "page_ids": [
-            "page_00045",
-            "page_00046",
-            "page_00047",
-            "page_00048"
-          ],
-          "page_count": 4,
-          "char_count": 967,
-          "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
-          ]
-        },
         {
           "id": "accommodation_options_at_the_orchid_hotel_lonavala",
           "title": "Accommodation Options At The Orchid Hotel Lonavala",
@@ -3427,10 +3362,11 @@
           ]
         },
         {
-          "id": "amenities_and_facilities_at_the_orchid_hotel_chandigarh",
-          "title": "Amenities and Facilities at The Orchid Hotel Chandigarh",
+          "id": "amenities_facilities_at_the_orchid_hotel_chandigarh",
+          "title": "Amenities & Facilities at The Orchid Hotel Chandigarh",
           "aliases": [
-            "amenities_and_facilities_at_the_orchid_hotel_chandigarh"
+            "Amenities Facilities At The Orchid Hotel Chandigarh",
+            "amenities_facilities_at_the_orchid_hotel_chandigarh"
           ],
           "keywords": [
             "12",
@@ -3481,10 +3417,11 @@
           ]
         },
         {
-          "id": "amenities_and_facilities_at_the_orchid_hotel_lonavala",
-          "title": "Amenities and Facilities at The Orchid Hotel Lonavala",
+          "id": "amenities_facilities_at_the_orchid_hotel_lonavala",
+          "title": "Amenities & Facilities at The Orchid Hotel Lonavala",
           "aliases": [
-            "amenities_and_facilities_at_the_orchid_hotel_lonavala"
+            "Amenities Facilities At The Orchid Hotel Lonavala",
+            "amenities_facilities_at_the_orchid_hotel_lonavala"
           ],
           "keywords": [
             "10",
@@ -3585,6 +3522,45 @@
           ]
         },
         {
+          "id": "banquet_halls",
+          "title": "Banquet Halls",
+          "aliases": [
+            "banquet_halls"
+          ],
+          "keywords": [
+            "17",
+            "25",
+            "60",
+            "arrangements",
+            "audio",
+            "banquet",
+            "calm",
+            "capacity",
+            "catering",
+            "description",
+            "equipment",
+            "facility",
+            "features",
+            "flexible",
+            "hall",
+            "hornbill",
+            "intimate",
+            "parking",
+            "seating",
+            "setting",
+            "tropical",
+            "visual"
+          ],
+          "page_ids": [
+            "page_00017"
+          ],
+          "page_count": 1,
+          "char_count": 206,
+          "sources": [
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
+          ]
+        },
+        {
           "id": "caf_s_and_gourmet_shops",
           "title": "Caf S And Gourmet Shops",
           "aliases": [
@@ -3670,6 +3646,7 @@
           ],
           "keywords": [
             "20",
+            "27",
             "6789",
             "91",
             "916",
@@ -3682,21 +3659,19 @@
             "orchidresortgoa",
             "phone",
             "reservations",
-            "resv",
-            "shimla",
             "website"
           ],
           "page_ids": [
             "page_00020",
             "page_00041",
-            "page_00062"
+            "page_00195"
           ],
           "page_count": 3,
-          "char_count": 370,
+          "char_count": 341,
           "sources": [
             "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
             "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "f3751329_the_orchid_hotel_mumbai_kb.txt"
           ]
         },
         {
@@ -3759,6 +3734,93 @@
           "char_count": 179,
           "sources": [
             "a4bba47d_the_orchid_hotel_pune_kb.txt"
+          ]
+        },
+        {
+          "id": "contact_information_for_the_orchid_hotel_shimla",
+          "title": "Contact Information for The Orchid Hotel Shimla",
+          "aliases": [
+            "contact_information_for_the_orchid_hotel_shimla"
+          ],
+          "keywords": [
+            "20",
+            "6789",
+            "91",
+            "916",
+            "com",
+            "contact",
+            "email",
+            "field",
+            "orchidhotel",
+            "phone",
+            "reservations",
+            "resv",
+            "shimla"
+          ],
+          "page_ids": [
+            "page_00062"
+          ],
+          "page_count": 1,
+          "char_count": 131,
+          "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
+          "id": "couples_spa",
+          "title": "Couples Spa",
+          "aliases": [
+            "couples_spa"
+          ],
+          "keywords": [
+            "00",
+            "10",
+            "15",
+            "20",
+            "ambiance",
+            "beach",
+            "benaulim",
+            "by",
+            "candlelight",
+            "coconut",
+            "couple",
+            "couples",
+            "feather",
+            "features",
+            "foot",
+            "goan",
+            "herbal",
+            "hours",
+            "lemongrass",
+            "location",
+            "massages",
+            "minute",
+            "mo",
+            "oil",
+            "orchid",
+            "passaros",
+            "rooms",
+            "side",
+            "signature",
+            "soak",
+            "spa",
+            "su",
+            "synchronized",
+            "touch",
+            "treatment",
+            "treatments",
+            "type",
+            "walk",
+            "warm",
+            "within"
+          ],
+          "page_ids": [
+            "page_00015"
+          ],
+          "page_count": 1,
+          "char_count": 313,
+          "sources": [
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
           ]
         },
         {
@@ -3830,59 +3892,11 @@
           ]
         },
         {
-          "id": "dining_options",
-          "title": "Dining Options",
+          "id": "dining_restaurants_at_the_orchid_hotel_chandigarh",
+          "title": "Dining & Restaurants at The Orchid Hotel Chandigarh",
           "aliases": [
-            "dining_options"
-          ],
-          "keywords": [
-            "10",
-            "11",
-            "2000",
-            "400",
-            "5000",
-            "asian",
-            "bar",
-            "cocktails",
-            "continental",
-            "cuisine",
-            "dining",
-            "features",
-            "fyoli",
-            "ganga",
-            "halaahal",
-            "himalayan",
-            "indian",
-            "lounge",
-            "multi",
-            "premium",
-            "price",
-            "range",
-            "restaurant",
-            "restaurants",
-            "riverside",
-            "side",
-            "spirits",
-            "type",
-            "vibes",
-            "views"
-          ],
-          "page_ids": [
-            "page_00030",
-            "page_00031",
-            "page_00032"
-          ],
-          "page_count": 3,
-          "char_count": 292,
-          "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
-          ]
-        },
-        {
-          "id": "dining_options_at_the_orchid_hotel_chandigarh",
-          "title": "Dining Options at The Orchid Hotel Chandigarh",
-          "aliases": [
-            "dining_options_at_the_orchid_hotel_chandigarh"
+            "Dining Restaurants At The Orchid Hotel Chandigarh",
+            "dining_restaurants_at_the_orchid_hotel_chandigarh"
           ],
           "keywords": [
             "10",
@@ -3959,10 +3973,11 @@
           ]
         },
         {
-          "id": "dining_options_at_the_orchid_hotel_lonavala",
-          "title": "Dining Options at The Orchid Hotel Lonavala",
+          "id": "dining_restaurants_at_the_orchid_hotel_lonavala",
+          "title": "Dining & Restaurants at The Orchid Hotel Lonavala",
           "aliases": [
-            "dining_options_at_the_orchid_hotel_lonavala"
+            "Dining Restaurants At The Orchid Hotel Lonavala",
+            "dining_restaurants_at_the_orchid_hotel_lonavala"
           ],
           "keywords": [
             "ambience",
@@ -3994,6 +4009,55 @@
           "char_count": 226,
           "sources": [
             "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
+          ]
+        },
+        {
+          "id": "dining_options",
+          "title": "Dining Options",
+          "aliases": [
+            "dining_options"
+          ],
+          "keywords": [
+            "10",
+            "11",
+            "2000",
+            "400",
+            "5000",
+            "asian",
+            "bar",
+            "cocktails",
+            "continental",
+            "cuisine",
+            "dining",
+            "features",
+            "fyoli",
+            "ganga",
+            "halaahal",
+            "himalayan",
+            "indian",
+            "lounge",
+            "multi",
+            "premium",
+            "price",
+            "range",
+            "restaurant",
+            "restaurants",
+            "riverside",
+            "side",
+            "spirits",
+            "type",
+            "vibes",
+            "views"
+          ],
+          "page_ids": [
+            "page_00030",
+            "page_00031",
+            "page_00032"
+          ],
+          "page_count": 3,
+          "char_count": 292,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -4148,6 +4212,25 @@
           ]
         },
         {
+          "id": "eco_friendly_accommodations",
+          "title": "Eco Friendly Accommodations",
+          "aliases": [
+            "eco_friendly_accommodations"
+          ],
+          "keywords": [
+            "rooms",
+            "suites"
+          ],
+          "page_ids": [
+            "page_00024"
+          ],
+          "page_count": 1,
+          "char_count": 22,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
+          ]
+        },
+        {
           "id": "eco_friendly_hotels",
           "title": "Eco Friendly Hotels",
           "aliases": [
@@ -4293,11 +4376,10 @@
             "wellness"
           ],
           "page_ids": [
-            "page_00023",
-            "page_00024"
+            "page_00023"
           ],
-          "page_count": 2,
-          "char_count": 592,
+          "page_count": 1,
+          "char_count": 570,
           "sources": [
             "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
@@ -4353,6 +4435,78 @@
           ]
         },
         {
+          "id": "event_spaces_and_conference_rooms",
+          "title": "Event Spaces And Conference Rooms",
+          "aliases": [
+            "event_spaces_and_conference_rooms"
+          ],
+          "keywords": [
+            "10",
+            "120",
+            "1250",
+            "14",
+            "15",
+            "150",
+            "16",
+            "17",
+            "18",
+            "200",
+            "24",
+            "400",
+            "50",
+            "5500",
+            "60",
+            "600",
+            "800",
+            "850",
+            "area",
+            "av",
+            "banquet",
+            "board",
+            "buffet",
+            "capacity",
+            "casual",
+            "chamber",
+            "chancery",
+            "cluster",
+            "corporate",
+            "equipment",
+            "events",
+            "features",
+            "ft",
+            "function",
+            "glass",
+            "hall",
+            "height",
+            "house",
+            "meetings",
+            "of",
+            "pre",
+            "projectors",
+            "rooftop",
+            "room",
+            "scenic",
+            "seating",
+            "setup",
+            "sqft",
+            "theatre",
+            "ushape",
+            "venue",
+            "view"
+          ],
+          "page_ids": [
+            "page_00056",
+            "page_00057",
+            "page_00058",
+            "page_00059"
+          ],
+          "page_count": 4,
+          "char_count": 511,
+          "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
           "id": "event_venues",
           "title": "Event Venues",
           "aliases": [
@@ -4381,6 +4535,58 @@
           "char_count": 127,
           "sources": [
             "e14a34f7_the_orchid_hotel_panchgani_kb.txt"
+          ]
+        },
+        {
+          "id": "facilities_and_services",
+          "title": "Facilities And Services",
+          "aliases": [
+            "facilities_and_services"
+          ],
+          "keywords": [
+            "12",
+            "air",
+            "amenities",
+            "area",
+            "banquet",
+            "business",
+            "daily",
+            "desk",
+            "facilities",
+            "family",
+            "fi",
+            "free",
+            "gym",
+            "kids",
+            "kund",
+            "luxury",
+            "meditation",
+            "modern",
+            "open",
+            "other",
+            "outdoor",
+            "play",
+            "pool",
+            "sessions",
+            "shala",
+            "spa",
+            "swimming",
+            "travel",
+            "venues",
+            "waterbody",
+            "wedding",
+            "wi",
+            "wifi",
+            "yagya",
+            "yoga"
+          ],
+          "page_ids": [
+            "page_00033"
+          ],
+          "page_count": 1,
+          "char_count": 319,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -4427,6 +4633,77 @@
           ]
         },
         {
+          "id": "goan_cuisine",
+          "title": "Goan Cuisine",
+          "aliases": [
+            "goan_cuisine"
+          ],
+          "keywords": [
+            "10",
+            "all",
+            "beach",
+            "benaulim",
+            "cuisine",
+            "day",
+            "dining",
+            "features",
+            "goan",
+            "international",
+            "intimate",
+            "location",
+            "relaxed",
+            "restaurant",
+            "setting",
+            "sparrow",
+            "steps",
+            "tipsy",
+            "type"
+          ],
+          "page_ids": [
+            "page_00010"
+          ],
+          "page_count": 1,
+          "char_count": 160,
+          "sources": [
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
+          ]
+        },
+        {
+          "id": "grill_houses",
+          "title": "Grill Houses",
+          "aliases": [
+            "grill_houses"
+          ],
+          "keywords": [
+            "12",
+            "air",
+            "ambiance",
+            "bar",
+            "breeze",
+            "cocktails",
+            "falcon",
+            "features",
+            "fired",
+            "flavors",
+            "grill",
+            "grills",
+            "handcrafted",
+            "house",
+            "ocean",
+            "open",
+            "type",
+            "wood"
+          ],
+          "page_ids": [
+            "page_00012"
+          ],
+          "page_count": 1,
+          "char_count": 128,
+          "sources": [
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
+          ]
+        },
+        {
           "id": "guest_services",
           "title": "Guest Services",
           "aliases": [
@@ -4466,100 +4743,140 @@
           ]
         },
         {
+          "id": "hotel_accessibility",
+          "title": "Hotel Accessibility",
+          "aliases": [
+            "hotel_accessibility"
+          ],
+          "keywords": [
+            "12",
+            "140603",
+            "16",
+            "22",
+            "361006",
+            "43277580937305",
+            "69",
+            "94287168895161",
+            "access",
+            "address",
+            "airport",
+            "available",
+            "bala",
+            "bird",
+            "business",
+            "chandigarh",
+            "close",
+            "connectivity",
+            "convenience",
+            "coordinates",
+            "dwarkadhish",
+            "elante",
+            "excellent",
+            "factory",
+            "geo",
+            "gujarat",
+            "gurudwara",
+            "hanuman",
+            "highway",
+            "in",
+            "jamnagar",
+            "khambhalia",
+            "khijadiya",
+            "lake",
+            "lakhota",
+            "landmarks",
+            "leisure",
+            "location",
+            "mall",
+            "mohali",
+            "nabha",
+            "near",
+            "nearby",
+            "notes",
+            "on",
+            "opp",
+            "panchkula",
+            "patiala",
+            "punjab",
+            "request",
+            "road",
+            "sahib",
+            "sanctuary",
+            "shri",
+            "shuttle",
+            "swan",
+            "sweet",
+            "temple",
+            "to",
+            "tower",
+            "trade",
+            "transport",
+            "travel",
+            "travelers",
+            "tricity",
+            "village"
+          ],
+          "page_ids": [
+            "page_00100",
+            "page_00114"
+          ],
+          "page_count": 2,
+          "char_count": 696,
+          "sources": [
+            "86360947_the_orchid_hotel_chandigarh_kb.txt",
+            "9b2430da_the_orchid_hotel_jamnagar_kb.txt"
+          ]
+        },
+        {
           "id": "hotel_amenities",
           "title": "Hotel Amenities",
           "aliases": [
             "hotel_amenities"
           ],
           "keywords": [
-            "11",
             "12",
-            "13",
             "air",
             "amenities",
             "area",
-            "available",
             "banquet",
-            "bar",
             "business",
-            "cafe",
-            "center",
-            "charging",
-            "cocktails",
-            "continental",
-            "craft",
-            "cuisine",
             "daily",
             "desk",
-            "dining",
-            "ev",
-            "events",
             "facilities",
             "family",
             "fi",
-            "food",
-            "found",
             "free",
-            "glass",
             "gym",
-            "hall",
-            "harrington",
-            "heated",
-            "house",
-            "indian",
             "kids",
             "kund",
             "luxury",
             "meditation",
             "modern",
-            "multi",
-            "not",
-            "of",
-            "on",
             "open",
-            "oriental",
             "other",
             "outdoor",
-            "pages",
-            "parking",
             "play",
             "pool",
-            "regional",
-            "restaurant",
-            "restaurants",
-            "reviewed",
-            "rooftop",
-            "salon",
             "sessions",
             "shala",
             "spa",
-            "station",
-            "status",
             "swimming",
             "travel",
-            "unisex",
             "venues",
-            "vindhyas",
             "waterbody",
             "wedding",
-            "weddings",
-            "wellness",
             "wi",
             "wifi",
             "yagya",
             "yoga"
           ],
           "page_ids": [
-            "page_00033",
-            "page_00053",
-            "page_00054",
-            "page_00055"
+            "page_00033"
           ],
-          "page_count": 4,
-          "char_count": 794,
+          "page_count": 1,
+          "char_count": 319,
           "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -4620,39 +4937,64 @@
           ],
           "keywords": [
             "11",
+            "12",
+            "13",
             "ac",
             "airport",
             "amenities",
+            "available",
             "banquet",
             "business",
             "catering",
+            "center",
             "centre",
             "charging",
             "complimentary",
             "dining",
             "eco",
             "ev",
+            "events",
             "facilities",
             "fi",
+            "found",
             "free",
             "friendly",
             "hall",
+            "heated",
+            "luxury",
+            "not",
+            "on",
+            "pages",
             "parking",
+            "pool",
             "practices",
+            "restaurant",
+            "reviewed",
             "rooftop",
+            "salon",
             "secure",
             "shuttle",
+            "spa",
             "station",
+            "status",
+            "swimming",
+            "unisex",
             "venues",
             "wedding",
-            "wi"
+            "weddings",
+            "wellness",
+            "wi",
+            "wifi"
           ],
           "page_ids": [
+            "page_00054",
+            "page_00055",
             "page_00179"
           ],
-          "page_count": 1,
-          "char_count": 250,
+          "page_count": 3,
+          "char_count": 544,
           "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt",
             "f3751329_the_orchid_hotel_mumbai_kb.txt"
           ]
         },
@@ -4688,6 +5030,34 @@
           ]
         },
         {
+          "id": "hotel_communication",
+          "title": "Hotel Communication",
+          "aliases": [
+            "hotel_communication"
+          ],
+          "keywords": [
+            "27",
+            "6789",
+            "91",
+            "916",
+            "com",
+            "contact",
+            "email",
+            "field",
+            "orchidhotel",
+            "phone",
+            "reservations"
+          ],
+          "page_ids": [
+            "page_00195"
+          ],
+          "page_count": 1,
+          "char_count": 102,
+          "sources": [
+            "f3751329_the_orchid_hotel_mumbai_kb.txt"
+          ]
+        },
+        {
           "id": "hotel_contact_details",
           "title": "Hotel Contact Details",
           "aliases": [
@@ -4701,20 +5071,17 @@
             "com",
             "contact",
             "email",
-            "field",
             "orchidhotel",
             "phone",
-            "reservations",
-            "resv",
-            "shimla"
+            "reservations"
           ],
           "page_ids": [
-            "page_00062"
+            "page_00041"
           ],
           "page_count": 1,
-          "char_count": 131,
+          "char_count": 91,
           "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -4728,7 +5095,6 @@
             "14",
             "17",
             "22",
-            "27",
             "6789",
             "91",
             "916",
@@ -4755,17 +5121,15 @@
             "page_00101",
             "page_00115",
             "page_00152",
-            "page_00167",
-            "page_00195"
+            "page_00167"
           ],
-          "page_count": 5,
-          "char_count": 665,
+          "page_count": 4,
+          "char_count": 563,
           "sources": [
             "86360947_the_orchid_hotel_chandigarh_kb.txt",
             "9b2430da_the_orchid_hotel_jamnagar_kb.txt",
             "e14a34f7_the_orchid_hotel_panchgani_kb.txt",
-            "eb08d866_the_orchid_hotel_manali_kb.txt",
-            "f3751329_the_orchid_hotel_mumbai_kb.txt"
+            "eb08d866_the_orchid_hotel_manali_kb.txt"
           ]
         },
         {
@@ -4864,30 +5228,128 @@
           ],
           "keywords": [
             "10",
+            "11",
             "authentic",
             "available",
             "bar",
             "buffet",
             "buffets",
+            "cafe",
+            "cocktails",
+            "continental",
+            "craft",
             "cuisine",
             "dining",
             "experiences",
+            "food",
+            "glass",
+            "harrington",
+            "house",
             "indian",
             "lounge",
             "luxury",
             "midnight",
             "multi",
+            "of",
+            "oriental",
+            "regional",
             "restaurants",
             "rooftop",
-            "south"
+            "south",
+            "vindhyas"
           ],
           "page_ids": [
+            "page_00053",
             "page_00178"
           ],
-          "page_count": 1,
-          "char_count": 175,
+          "page_count": 2,
+          "char_count": 356,
           "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt",
             "f3751329_the_orchid_hotel_mumbai_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_facilities",
+          "title": "Hotel Facilities",
+          "aliases": [
+            "hotel_facilities"
+          ],
+          "keywords": [
+            "000",
+            "10",
+            "12",
+            "14",
+            "250",
+            "300",
+            "400",
+            "advanced",
+            "advantage",
+            "airport",
+            "amenities",
+            "area",
+            "attendee",
+            "av",
+            "available",
+            "banquet",
+            "board",
+            "business",
+            "capacity",
+            "casual",
+            "chandigarh",
+            "conferences",
+            "cor",
+            "corporate",
+            "customizable",
+            "elegant",
+            "equipped",
+            "events",
+            "features",
+            "friendly",
+            "fully",
+            "functions",
+            "grand",
+            "greenery",
+            "hall",
+            "halls",
+            "launches",
+            "lawn",
+            "layouts",
+            "location",
+            "lush",
+            "maximum",
+            "meeting",
+            "meetings",
+            "modern",
+            "near",
+            "outdoor",
+            "patiala",
+            "pre",
+            "product",
+            "professional",
+            "receptions",
+            "road",
+            "rooms",
+            "sangeet",
+            "seating",
+            "seminars",
+            "spacious",
+            "sqft",
+            "technology",
+            "theatre",
+            "wedding",
+            "weddings"
+          ],
+          "page_ids": [
+            "page_00098",
+            "page_00111",
+            "page_00112"
+          ],
+          "page_count": 3,
+          "char_count": 660,
+          "sources": [
+            "86360947_the_orchid_hotel_chandigarh_kb.txt",
+            "9b2430da_the_orchid_hotel_jamnagar_kb.txt"
           ]
         },
         {
@@ -4951,7 +5413,6 @@
             "kb",
             "khil",
             "knowledge",
-            "manali",
             "orchid",
             "passaros",
             "property",
@@ -4966,15 +5427,13 @@
           ],
           "page_ids": [
             "page_00001",
-            "page_00022",
-            "page_00154"
+            "page_00022"
           ],
-          "page_count": 3,
-          "char_count": 855,
+          "page_count": 2,
+          "char_count": 574,
           "sources": [
             "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
-            "eb08d866_the_orchid_hotel_manali_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -5153,6 +5612,52 @@
             "9b2430da_the_orchid_hotel_jamnagar_kb.txt",
             "e14a34f7_the_orchid_hotel_panchgani_kb.txt",
             "eb08d866_the_orchid_hotel_manali_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_location_and_nearby_attractions",
+          "title": "Hotel Location And Nearby Attractions",
+          "aliases": [
+            "hotel_location_and_nearby_attractions"
+          ],
+          "keywords": [
+            "10",
+            "15",
+            "171006",
+            "19",
+            "address",
+            "bypass",
+            "christ",
+            "church",
+            "convenience",
+            "field",
+            "himachal",
+            "in",
+            "jakhoo",
+            "km",
+            "kufri",
+            "landmarks",
+            "located",
+            "location",
+            "mall",
+            "minutes",
+            "nearby",
+            "pradesh",
+            "ridge",
+            "road",
+            "sanjauli",
+            "shimla",
+            "temple",
+            "transport",
+            "travel"
+          ],
+          "page_ids": [
+            "page_00061"
+          ],
+          "page_count": 1,
+          "char_count": 307,
+          "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
           ]
         },
         {
@@ -5368,79 +5873,117 @@
             "12",
             "13",
             "14",
+            "15",
             "171006",
+            "175143",
             "2026",
             "249192",
             "270",
             "30",
+            "361006",
             "400099",
             "403716",
             "410401",
+            "411045",
             "46",
             "70",
             "access",
             "accommodations",
             "address",
+            "adjacent",
             "adult",
             "airport",
             "amenities",
             "amidst",
+            "an",
+            "approximately",
             "as",
             "asia",
             "atali",
             "attractions",
+            "balewadi",
+            "banquet",
             "base",
             "beach",
             "beauty",
             "benaulim",
+            "bengaluru",
             "bhushi",
             "blend",
+            "boutique",
             "brand",
+            "business",
             "byasi",
             "bypass",
             "canonical",
+            "center",
             "certified",
             "check",
             "chhatrapati",
             "com",
+            "comfort",
+            "complex",
+            "conference",
             "cottages",
             "couples",
             "dam",
+            "designed",
             "destination",
             "dham",
             "dining",
             "domestic",
             "easy",
             "eco",
+            "elegant",
+            "elegantly",
             "event",
+            "expansive",
+            "facilities",
+            "factory",
             "family",
             "features",
             "field",
+            "fine",
             "first",
+            "fitness",
+            "focus",
             "found",
             "friendly",
+            "games",
             "generated",
             "generator",
             "getaways",
             "goa",
+            "gujarat",
+            "hadimba",
             "hall",
+            "halls",
             "highway",
             "hill",
             "hills",
             "himachal",
+            "hinjewadi",
             "honeymooners",
+            "hospitality",
             "hotels",
             "https",
+            "hwy",
             "ideal",
             "in",
+            "includes",
             "international",
             "is",
             "it",
+            "jamnagar",
             "kb",
+            "khambhalia",
             "khil",
             "knowledge",
+            "known",
             "kune",
+            "leisure",
             "located",
+            "location",
             "lonavala",
             "luxurious",
             "luxury",
@@ -5448,14 +5991,18 @@
             "maharashtra",
             "majil",
             "malavli",
+            "mall",
+            "manali",
             "maria",
             "meters",
             "minutes",
             "modern",
             "mountain",
             "mumbai",
+            "naggar",
             "name",
             "narayani",
+            "national",
             "natural",
             "near",
             "nehru",
@@ -5467,21 +6014,29 @@
             "old",
             "on",
             "only",
+            "opp",
             "orchid",
+            "other",
             "out",
+            "outdoor",
             "overview",
             "pages",
             "park",
             "parle",
             "passaros",
             "po",
+            "pool",
             "positioning",
+            "practices",
             "pradesh",
+            "premium",
             "property",
             "pune",
             "rating",
             "recognized",
             "resort",
+            "restaurant",
+            "restaurants",
             "retreat",
             "retreats",
             "reviewed",
@@ -5496,19 +6051,33 @@
             "scraper",
             "seaside",
             "shimla",
+            "shiv",
             "shivaji",
+            "shree",
+            "shuru",
+            "solang",
             "source",
             "south",
+            "spa",
             "spaces",
+            "spacious",
+            "sports",
             "star",
             "station",
             "status",
             "such",
             "suitable",
             "suites",
+            "summary",
+            "sustainable",
+            "swan",
+            "sweet",
+            "swimming",
+            "temple",
             "terminal",
             "time",
             "to",
+            "travel",
             "type",
             "utc",
             "uttarakhand",
@@ -5517,12 +6086,15 @@
             "valley",
             "valvan",
             "vaswaddo",
+            "vegetarian",
+            "venues",
             "via",
             "view",
             "views",
             "vile",
             "village",
             "waterfalls",
+            "wedding",
             "weddings",
             "wellness",
             "www"
@@ -5534,15 +6106,168 @@
             "page_00044",
             "page_00067",
             "page_00068",
+            "page_00103",
+            "page_00104",
+            "page_00117",
+            "page_00118",
+            "page_00154",
+            "page_00155",
             "page_00170"
           ],
-          "page_count": 7,
-          "char_count": 3393,
+          "page_count": 13,
+          "char_count": 5991,
           "sources": [
             "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
             "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
             "17065d21_the_orchid_hotel_shimla_kb.txt",
             "7ff32bfb_the_orchid_hotel_lonavala_kb.txt",
+            "9b2430da_the_orchid_hotel_jamnagar_kb.txt",
+            "a4bba47d_the_orchid_hotel_pune_kb.txt",
+            "eb08d866_the_orchid_hotel_manali_kb.txt",
+            "f3751329_the_orchid_hotel_mumbai_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_overview_for_the_orchid_hotel_chandigarh",
+          "title": "Hotel Overview for The Orchid Hotel Chandigarh",
+          "aliases": [
+            "hotel_overview_for_the_orchid_hotel_chandigarh"
+          ],
+          "keywords": [
+            "03",
+            "08",
+            "10",
+            "140603",
+            "2026",
+            "30",
+            "46",
+            "accommodations",
+            "address",
+            "airport",
+            "base",
+            "brand",
+            "business",
+            "canonical",
+            "chandigarh",
+            "chaudhary",
+            "close",
+            "com",
+            "dining",
+            "eco",
+            "event",
+            "facilities",
+            "fine",
+            "friendly",
+            "generated",
+            "generator",
+            "gurudwara",
+            "hotels",
+            "https",
+            "in",
+            "kb",
+            "khil",
+            "knowledge",
+            "leisure",
+            "located",
+            "location",
+            "luxury",
+            "mahendra",
+            "modern",
+            "mohali",
+            "nabha",
+            "name",
+            "near",
+            "notes",
+            "offers",
+            "orchid",
+            "overview",
+            "park",
+            "patiala",
+            "premium",
+            "property",
+            "punjab",
+            "rating",
+            "road",
+            "sahib",
+            "scraper",
+            "shri",
+            "source",
+            "star",
+            "suitable",
+            "summary",
+            "to",
+            "tower",
+            "trade",
+            "travelers",
+            "tricity",
+            "type",
+            "utc",
+            "v1",
+            "venues",
+            "village",
+            "www",
+            "zirakpur",
+            "zoological"
+          ],
+          "page_ids": [
+            "page_00085",
+            "page_00086"
+          ],
+          "page_count": 2,
+          "char_count": 839,
+          "sources": [
+            "86360947_the_orchid_hotel_chandigarh_kb.txt"
+          ]
+        },
+        {
+          "id": "hotel_packages",
+          "title": "Hotel Packages",
+          "aliases": [
+            "hotel_packages"
+          ],
+          "keywords": [
+            "21",
+            "28",
+            "benefits",
+            "best",
+            "booking",
+            "dining",
+            "direct",
+            "discounts",
+            "earn",
+            "events",
+            "found",
+            "guarantee",
+            "long",
+            "not",
+            "offers",
+            "on",
+            "orchid",
+            "packages",
+            "pages",
+            "points",
+            "price",
+            "program",
+            "rates",
+            "reviewed",
+            "rewards",
+            "room",
+            "seasonal",
+            "special",
+            "status",
+            "stay",
+            "stays",
+            "upgrades",
+            "weekend"
+          ],
+          "page_ids": [
+            "page_00042",
+            "page_00196"
+          ],
+          "page_count": 2,
+          "char_count": 349,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
             "f3751329_the_orchid_hotel_mumbai_kb.txt"
           ]
         },
@@ -5585,14 +6310,12 @@
           ],
           "page_ids": [
             "page_00039",
-            "page_00060",
             "page_00193"
           ],
-          "page_count": 3,
-          "char_count": 311,
+          "page_count": 2,
+          "char_count": 250,
           "sources": [
             "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
-            "17065d21_the_orchid_hotel_shimla_kb.txt",
             "f3751329_the_orchid_hotel_mumbai_kb.txt"
           ]
         },
@@ -5633,147 +6356,29 @@
           ]
         },
         {
-          "id": "hotel_property_overview",
-          "title": "Hotel Property Overview",
+          "id": "hotel_policies_and_rules",
+          "title": "Hotel Policies and Rules",
           "aliases": [
-            "hotel_property_overview"
+            "hotel_policies_and_rules"
           ],
           "keywords": [
-            "10",
-            "15",
-            "175143",
-            "361006",
-            "411045",
-            "address",
-            "adjacent",
-            "airport",
-            "amenities",
-            "an",
-            "approximately",
-            "attractions",
-            "balewadi",
-            "banquet",
-            "bengaluru",
-            "boutique",
-            "brand",
-            "business",
-            "canonical",
-            "center",
-            "check",
-            "chhatrapati",
-            "comfort",
-            "complex",
-            "conference",
-            "designed",
-            "dining",
-            "eco",
-            "elegant",
-            "elegantly",
-            "expansive",
-            "facilities",
-            "factory",
-            "features",
-            "field",
-            "fine",
-            "fitness",
-            "focus",
+            "18",
             "found",
-            "friendly",
-            "games",
-            "gujarat",
-            "hadimba",
-            "halls",
-            "highway",
-            "himachal",
-            "hinjewadi",
-            "hospitality",
-            "hotels",
-            "hwy",
-            "in",
-            "includes",
-            "international",
-            "it",
-            "jamnagar",
-            "khambhalia",
-            "known",
-            "leisure",
-            "located",
-            "location",
-            "luxury",
-            "maharaj",
-            "maharashtra",
-            "mall",
-            "manali",
-            "minutes",
-            "modern",
-            "mumbai",
-            "naggar",
-            "name",
-            "national",
-            "near",
             "not",
-            "notes",
-            "offers",
             "on",
-            "opp",
-            "orchid",
-            "other",
-            "out",
-            "outdoor",
-            "overview",
             "pages",
-            "park",
-            "pool",
-            "positioning",
-            "practices",
-            "pradesh",
-            "premium",
-            "property",
-            "pune",
-            "rating",
-            "restaurant",
-            "restaurants",
+            "policies",
             "reviewed",
-            "road",
-            "rooms",
-            "shiv",
-            "shivaji",
-            "shree",
-            "shuru",
-            "solang",
-            "spa",
-            "spaces",
-            "spacious",
-            "sports",
-            "star",
-            "status",
-            "suites",
-            "summary",
-            "sustainable",
-            "swan",
-            "sweet",
-            "swimming",
-            "temple",
-            "to",
-            "travel",
-            "type",
-            "valley",
-            "vegetarian",
-            "venues",
-            "wedding",
-            "wellness"
+            "rules",
+            "status"
           ],
           "page_ids": [
-            "page_00104",
-            "page_00118",
-            "page_00155"
+            "page_00060"
           ],
-          "page_count": 3,
-          "char_count": 1755,
+          "page_count": 1,
+          "char_count": 61,
           "sources": [
-            "9b2430da_the_orchid_hotel_jamnagar_kb.txt",
-            "a4bba47d_the_orchid_hotel_pune_kb.txt",
-            "eb08d866_the_orchid_hotel_manali_kb.txt"
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
           ]
         },
         {
@@ -5955,62 +6560,113 @@
             "hotel_room_features"
           ],
           "keywords": [
+            "10",
+            "220",
+            "300",
             "430",
             "440",
             "450",
             "550",
+            "air",
             "amenities",
             "anand",
             "balcony",
+            "bed",
+            "beds",
+            "bottled",
+            "channels",
+            "coffee",
+            "complimentary",
+            "conditioning",
+            "configuration",
             "conscious",
             "cosy",
             "cottage",
+            "cotton",
+            "count",
             "couples",
             "cozy",
+            "daily",
             "deluxe",
+            "differentiators",
             "drishti",
             "eco",
+            "egyptian",
+            "facing",
             "features",
             "forest",
             "friendly",
+            "friends",
+            "ft",
             "garden",
+            "hill",
             "himalayan",
+            "housekeeping",
             "ideal",
+            "in",
+            "inch",
+            "inner",
             "interiors",
+            "king",
             "kutir",
+            "led",
+            "linen",
             "luxury",
+            "maker",
+            "mattress",
+            "notable",
+            "occupancy",
+            "or",
             "panoramic",
             "prakruti",
+            "premier",
             "premium",
             "private",
             "pushpa",
             "rekha",
             "room",
+            "rooms",
+            "sanitization",
+            "single",
             "size",
             "solo",
             "spacious",
+            "sq",
             "sqft",
+            "suitable",
+            "suites",
+            "tea",
             "terrace",
+            "thread",
             "travelers",
             "treeline",
+            "tv",
+            "twin",
+            "two",
             "valley",
             "van",
             "vatika",
             "veranda",
             "view",
-            "views"
+            "views",
+            "water"
           ],
           "page_ids": [
             "page_00025",
             "page_00026",
             "page_00027",
             "page_00028",
-            "page_00029"
+            "page_00029",
+            "page_00045",
+            "page_00046",
+            "page_00047",
+            "page_00048"
           ],
-          "page_count": 5,
-          "char_count": 680,
+          "page_count": 9,
+          "char_count": 1647,
           "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
           ]
         },
         {
@@ -6208,50 +6864,6 @@
           ]
         },
         {
-          "id": "hotel_special_offers",
-          "title": "Hotel Special Offers",
-          "aliases": [
-            "hotel_special_offers"
-          ],
-          "keywords": [
-            "28",
-            "benefits",
-            "best",
-            "booking",
-            "dining",
-            "direct",
-            "discounts",
-            "earn",
-            "events",
-            "guarantee",
-            "long",
-            "offers",
-            "on",
-            "orchid",
-            "packages",
-            "points",
-            "price",
-            "program",
-            "rates",
-            "rewards",
-            "room",
-            "seasonal",
-            "special",
-            "stay",
-            "stays",
-            "upgrades",
-            "weekend"
-          ],
-          "page_ids": [
-            "page_00196"
-          ],
-          "page_count": 1,
-          "char_count": 279,
-          "sources": [
-            "f3751329_the_orchid_hotel_mumbai_kb.txt"
-          ]
-        },
-        {
           "id": "hotel_special_offers_packages",
           "title": "Hotel Special Offers & Packages",
           "aliases": [
@@ -6382,98 +6994,11 @@
           ]
         },
         {
-          "id": "location_transport_information",
-          "title": "Location & Transport Information",
+          "id": "location_transport_at_the_orchid_hotel_lonavala",
+          "title": "Location & Transport at The Orchid Hotel Lonavala",
           "aliases": [
-            "Location Transport Information",
-            "location_transport_information"
-          ],
-          "keywords": [
-            "10",
-            "15",
-            "171006",
-            "19",
-            "address",
-            "bypass",
-            "christ",
-            "church",
-            "convenience",
-            "field",
-            "himachal",
-            "in",
-            "jakhoo",
-            "km",
-            "kufri",
-            "landmarks",
-            "located",
-            "location",
-            "mall",
-            "minutes",
-            "nearby",
-            "pradesh",
-            "ridge",
-            "road",
-            "sanjauli",
-            "shimla",
-            "temple",
-            "transport",
-            "travel"
-          ],
-          "page_ids": [
-            "page_00061"
-          ],
-          "page_count": 1,
-          "char_count": 307,
-          "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
-          ]
-        },
-        {
-          "id": "location_and_transport",
-          "title": "Location and Transport",
-          "aliases": [
-            "location_and_transport"
-          ],
-          "keywords": [
-            "19",
-            "249192",
-            "address",
-            "atali",
-            "attractions",
-            "byasi",
-            "ghat",
-            "in",
-            "jhula",
-            "laxman",
-            "location",
-            "mahadev",
-            "majil",
-            "national",
-            "nearby",
-            "neelkanth",
-            "park",
-            "po",
-            "rajaji",
-            "rishikesh",
-            "transport",
-            "triveni",
-            "uttarakhand",
-            "village"
-          ],
-          "page_ids": [
-            "page_00040"
-          ],
-          "page_count": 1,
-          "char_count": 195,
-          "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
-          ]
-        },
-        {
-          "id": "location_and_transport_for_the_orchid_hotel_lonavala",
-          "title": "Location and Transport for The Orchid Hotel Lonavala",
-          "aliases": [
-            "location_and_transport_for_the_orchid_hotel_lonavala"
+            "Location Transport At The Orchid Hotel Lonavala",
+            "location_transport_at_the_orchid_hotel_lonavala"
           ],
           "keywords": [
             "10",
@@ -6515,6 +7040,47 @@
           "char_count": 310,
           "sources": [
             "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
+          ]
+        },
+        {
+          "id": "location_and_transport",
+          "title": "Location and Transport",
+          "aliases": [
+            "location_and_transport"
+          ],
+          "keywords": [
+            "19",
+            "249192",
+            "address",
+            "atali",
+            "attractions",
+            "byasi",
+            "ghat",
+            "in",
+            "jhula",
+            "laxman",
+            "location",
+            "mahadev",
+            "majil",
+            "national",
+            "nearby",
+            "neelkanth",
+            "park",
+            "po",
+            "rajaji",
+            "rishikesh",
+            "transport",
+            "triveni",
+            "uttarakhand",
+            "village"
+          ],
+          "page_ids": [
+            "page_00040"
+          ],
+          "page_count": 1,
+          "char_count": 195,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -6590,6 +7156,52 @@
           ]
         },
         {
+          "id": "location_and_transport_information",
+          "title": "Location and Transport Information",
+          "aliases": [
+            "location_and_transport_information"
+          ],
+          "keywords": [
+            "10",
+            "15",
+            "171006",
+            "19",
+            "address",
+            "bypass",
+            "christ",
+            "church",
+            "convenience",
+            "field",
+            "himachal",
+            "in",
+            "jakhoo",
+            "km",
+            "kufri",
+            "landmarks",
+            "located",
+            "location",
+            "mall",
+            "minutes",
+            "nearby",
+            "pradesh",
+            "ridge",
+            "road",
+            "sanjauli",
+            "shimla",
+            "temple",
+            "transport",
+            "travel"
+          ],
+          "page_ids": [
+            "page_00061"
+          ],
+          "page_count": 1,
+          "char_count": 307,
+          "sources": [
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
+          ]
+        },
+        {
           "id": "loyalty_programs",
           "title": "Loyalty Programs",
           "aliases": [
@@ -6640,62 +7252,147 @@
             "luxury_accommodations"
           ],
           "keywords": [
+            "10",
+            "220",
+            "300",
             "430",
             "440",
             "450",
             "550",
+            "air",
+            "ambiance",
             "amenities",
             "anand",
             "balcony",
+            "bed",
+            "beds",
+            "bee",
+            "bottled",
+            "bulbul",
+            "channels",
+            "coffee",
+            "comforts",
+            "complimentary",
+            "conditioning",
+            "configuration",
             "conscious",
             "cosy",
             "cottage",
+            "cotton",
+            "count",
             "couples",
             "cozy",
+            "daily",
             "deluxe",
+            "description",
+            "designed",
+            "differentiators",
             "drishti",
+            "eater",
             "eco",
+            "egyptian",
+            "facing",
             "features",
+            "featuring",
+            "fi",
             "forest",
+            "fridge",
             "friendly",
+            "friends",
+            "ft",
             "garden",
+            "haven",
+            "hideaway",
+            "hill",
             "himalayan",
+            "housekeeping",
             "ideal",
+            "in",
+            "inch",
+            "inner",
+            "intercom",
             "interiors",
+            "intimate",
+            "jacuzzi",
+            "king",
+            "kingfisher",
             "kutir",
+            "led",
+            "linen",
+            "locker",
             "luxury",
+            "maker",
+            "mattress",
+            "mini",
+            "modern",
+            "nest",
+            "notable",
+            "oasis",
+            "occupancy",
+            "or",
             "panoramic",
             "prakruti",
+            "premier",
             "premium",
             "private",
             "pushpa",
             "rekha",
+            "retreat",
+            "romantic",
             "room",
+            "rooms",
+            "sanitization",
+            "single",
             "size",
             "solo",
             "spacious",
+            "sq",
             "sqft",
+            "suitable",
+            "suites",
+            "sunbird",
+            "tea",
+            "television",
             "terrace",
+            "thread",
             "travelers",
             "treeline",
+            "treepie",
+            "tv",
+            "twin",
+            "two",
             "valley",
             "van",
             "vatika",
             "veranda",
             "view",
-            "views"
+            "views",
+            "water",
+            "wi"
           ],
           "page_ids": [
+            "page_00003",
+            "page_00004",
+            "page_00005",
+            "page_00006",
+            "page_00007",
+            "page_00008",
             "page_00025",
             "page_00026",
             "page_00027",
             "page_00028",
-            "page_00029"
+            "page_00029",
+            "page_00045",
+            "page_00046",
+            "page_00047",
+            "page_00048"
           ],
-          "page_count": 5,
-          "char_count": 680,
+          "page_count": 15,
+          "char_count": 2446,
           "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
           ]
         },
         {
@@ -6715,61 +7412,36 @@
             "address",
             "adult",
             "adults",
-            "ambiance",
             "amenities",
             "available",
-            "balcony",
             "beach",
             "beauty",
-            "bee",
             "benaulim",
             "blend",
             "brand",
-            "bulbul",
             "canonical",
             "check",
-            "coffee",
-            "comforts",
             "couple",
             "couples",
-            "cozy",
-            "description",
-            "designed",
-            "eater",
             "experiences",
             "facilities",
-            "featuring",
             "fi",
             "field",
-            "fridge",
             "getaways",
             "goa",
             "hall",
-            "haven",
-            "hideaway",
             "honeymooners",
             "hotels",
             "ideal",
             "in",
             "infinity",
-            "intercom",
-            "intimate",
-            "jacuzzi",
-            "kingfisher",
             "located",
-            "locker",
             "luxury",
-            "maker",
             "maria",
             "meters",
-            "mini",
-            "modern",
             "name",
             "natural",
-            "nest",
             "notes",
-            "oasis",
-            "occupancy",
             "of",
             "offering",
             "only",
@@ -6779,24 +7451,16 @@
             "passaros",
             "pool",
             "positioning",
-            "private",
             "property",
             "rating",
             "resort",
             "retreat",
             "road",
             "romantic",
-            "room",
-            "rooms",
             "seaside",
             "south",
             "spa",
             "star",
-            "suites",
-            "sunbird",
-            "tea",
-            "television",
-            "treepie",
             "type",
             "vaswaddo",
             "via",
@@ -6804,16 +7468,10 @@
           ],
           "page_ids": [
             "page_00002",
-            "page_00003",
-            "page_00004",
-            "page_00005",
-            "page_00006",
-            "page_00007",
-            "page_00008",
             "page_00013"
           ],
-          "page_count": 8,
-          "char_count": 1484,
+          "page_count": 2,
+          "char_count": 685,
           "sources": [
             "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
           ]
@@ -6863,11 +7521,138 @@
           ]
         },
         {
-          "id": "meetings_events_at_the_orchid_hotel_shimla",
-          "title": "Meetings & Events at The Orchid Hotel Shimla",
+          "id": "meetings_events_at_the_orchid_hotel_lonavala",
+          "title": "Meetings & Events at The Orchid Hotel Lonavala",
           "aliases": [
-            "Meetings Events At The Orchid Hotel Shimla",
-            "meetings_events_at_the_orchid_hotel_shimla"
+            "Meetings Events At The Orchid Hotel Lonavala",
+            "meetings_events_at_the_orchid_hotel_lonavala"
+          ],
+          "keywords": [
+            "12",
+            "13",
+            "300",
+            "attendee",
+            "av",
+            "banquet",
+            "capacity",
+            "catering",
+            "events",
+            "features",
+            "grand",
+            "hall",
+            "maximum",
+            "meetings",
+            "modern",
+            "support"
+          ],
+          "page_ids": [
+            "page_00078",
+            "page_00079"
+          ],
+          "page_count": 2,
+          "char_count": 128,
+          "sources": [
+            "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
+          ]
+        },
+        {
+          "id": "meetings_and_events",
+          "title": "Meetings and Events",
+          "aliases": [
+            "meetings_and_events"
+          ],
+          "keywords": [
+            "14",
+            "15",
+            "16",
+            "17",
+            "athekeli",
+            "audio",
+            "banquet",
+            "eco",
+            "equipment",
+            "event",
+            "events",
+            "features",
+            "friendly",
+            "ganga",
+            "hall",
+            "high",
+            "indoor",
+            "kauthik",
+            "lawn",
+            "meetings",
+            "open",
+            "outdoor",
+            "scenic",
+            "space",
+            "speed",
+            "triveni",
+            "venue",
+            "views",
+            "visual",
+            "wifi"
+          ],
+          "page_ids": [
+            "page_00035",
+            "page_00036",
+            "page_00037",
+            "page_00038"
+          ],
+          "page_count": 4,
+          "char_count": 261,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
+          ]
+        },
+        {
+          "id": "meetings_and_events_at_the_orchid_hotel_pune",
+          "title": "Meetings and Events at The Orchid Hotel Pune",
+          "aliases": [
+            "meetings_and_events_at_the_orchid_hotel_pune"
+          ],
+          "keywords": [
+            "10",
+            "advanced",
+            "annual",
+            "av",
+            "banquet",
+            "celebrations",
+            "conference",
+            "conferences",
+            "corporate",
+            "equipment",
+            "events",
+            "fi",
+            "flexible",
+            "halls",
+            "high",
+            "meetings",
+            "modern",
+            "premium",
+            "receptions",
+            "rooms",
+            "social",
+            "spaces",
+            "speed",
+            "weddings",
+            "wi",
+            "workshops"
+          ],
+          "page_ids": [
+            "page_00126"
+          ],
+          "page_count": 1,
+          "char_count": 273,
+          "sources": [
+            "a4bba47d_the_orchid_hotel_pune_kb.txt"
+          ]
+        },
+        {
+          "id": "meetings_and_events_at_the_orchid_hotel_shimla",
+          "title": "Meetings and Events at The Orchid Hotel Shimla",
+          "aliases": [
+            "meetings_and_events_at_the_orchid_hotel_shimla"
           ],
           "keywords": [
             "10",
@@ -6936,196 +7721,44 @@
           ]
         },
         {
-          "id": "meetings_and_events",
-          "title": "Meetings and Events",
-          "aliases": [
-            "meetings_and_events"
-          ],
-          "keywords": [
-            "14",
-            "15",
-            "16",
-            "17",
-            "athekeli",
-            "audio",
-            "banquet",
-            "eco",
-            "equipment",
-            "event",
-            "events",
-            "features",
-            "friendly",
-            "ganga",
-            "hall",
-            "high",
-            "indoor",
-            "kauthik",
-            "lawn",
-            "meetings",
-            "open",
-            "outdoor",
-            "scenic",
-            "space",
-            "speed",
-            "triveni",
-            "venue",
-            "views",
-            "visual",
-            "wifi"
-          ],
-          "page_ids": [
-            "page_00035",
-            "page_00036",
-            "page_00037",
-            "page_00038"
-          ],
-          "page_count": 4,
-          "char_count": 261,
-          "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
-          ]
-        },
-        {
-          "id": "meetings_and_events_at_the_orchid_hotel_lonavala",
-          "title": "Meetings and Events at The Orchid Hotel Lonavala",
-          "aliases": [
-            "meetings_and_events_at_the_orchid_hotel_lonavala"
-          ],
-          "keywords": [
-            "12",
-            "13",
-            "300",
-            "attendee",
-            "av",
-            "banquet",
-            "capacity",
-            "catering",
-            "events",
-            "features",
-            "grand",
-            "hall",
-            "maximum",
-            "meetings",
-            "modern",
-            "support"
-          ],
-          "page_ids": [
-            "page_00078",
-            "page_00079"
-          ],
-          "page_count": 2,
-          "char_count": 128,
-          "sources": [
-            "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
-          ]
-        },
-        {
-          "id": "meetings_and_events_at_the_orchid_hotel_pune",
-          "title": "Meetings and Events at The Orchid Hotel Pune",
-          "aliases": [
-            "meetings_and_events_at_the_orchid_hotel_pune"
-          ],
-          "keywords": [
-            "10",
-            "advanced",
-            "annual",
-            "av",
-            "banquet",
-            "celebrations",
-            "conference",
-            "conferences",
-            "corporate",
-            "equipment",
-            "events",
-            "fi",
-            "flexible",
-            "halls",
-            "high",
-            "meetings",
-            "modern",
-            "premium",
-            "receptions",
-            "rooms",
-            "social",
-            "spaces",
-            "speed",
-            "weddings",
-            "wi",
-            "workshops"
-          ],
-          "page_ids": [
-            "page_00126"
-          ],
-          "page_count": 1,
-          "char_count": 273,
-          "sources": [
-            "a4bba47d_the_orchid_hotel_pune_kb.txt"
-          ]
-        },
-        {
           "id": "nearby_attractions",
           "title": "Nearby Attractions",
           "aliases": [
             "nearby_attractions"
           ],
           "keywords": [
-            "10",
-            "15",
-            "171006",
             "19",
             "249192",
             "address",
             "atali",
             "attractions",
             "byasi",
-            "bypass",
-            "christ",
-            "church",
-            "convenience",
-            "field",
             "ghat",
-            "himachal",
             "in",
-            "jakhoo",
             "jhula",
-            "km",
-            "kufri",
-            "landmarks",
             "laxman",
-            "located",
             "location",
             "mahadev",
             "majil",
-            "mall",
-            "minutes",
             "national",
             "nearby",
             "neelkanth",
             "park",
             "po",
-            "pradesh",
             "rajaji",
-            "ridge",
             "rishikesh",
-            "road",
-            "sanjauli",
-            "shimla",
-            "temple",
             "transport",
-            "travel",
             "triveni",
             "uttarakhand",
             "village"
           ],
           "page_ids": [
-            "page_00040",
-            "page_00061"
+            "page_00040"
           ],
-          "page_count": 2,
-          "char_count": 502,
+          "page_count": 1,
+          "char_count": 195,
           "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -7477,98 +8110,6 @@
           ]
         },
         {
-          "id": "overview_of_the_orchid_hotel_chandigarh",
-          "title": "Overview of The Orchid Hotel Chandigarh",
-          "aliases": [
-            "overview_of_the_orchid_hotel_chandigarh"
-          ],
-          "keywords": [
-            "03",
-            "08",
-            "10",
-            "140603",
-            "2026",
-            "30",
-            "46",
-            "accommodations",
-            "address",
-            "airport",
-            "base",
-            "brand",
-            "business",
-            "canonical",
-            "chandigarh",
-            "chaudhary",
-            "close",
-            "com",
-            "dining",
-            "eco",
-            "event",
-            "facilities",
-            "fine",
-            "friendly",
-            "generated",
-            "generator",
-            "gurudwara",
-            "hotels",
-            "https",
-            "in",
-            "kb",
-            "khil",
-            "knowledge",
-            "leisure",
-            "located",
-            "location",
-            "luxury",
-            "mahendra",
-            "modern",
-            "mohali",
-            "nabha",
-            "name",
-            "near",
-            "notes",
-            "offers",
-            "orchid",
-            "overview",
-            "park",
-            "patiala",
-            "premium",
-            "property",
-            "punjab",
-            "rating",
-            "road",
-            "sahib",
-            "scraper",
-            "shri",
-            "source",
-            "star",
-            "suitable",
-            "summary",
-            "to",
-            "tower",
-            "trade",
-            "travelers",
-            "tricity",
-            "type",
-            "utc",
-            "v1",
-            "venues",
-            "village",
-            "www",
-            "zirakpur",
-            "zoological"
-          ],
-          "page_ids": [
-            "page_00085",
-            "page_00086"
-          ],
-          "page_count": 2,
-          "char_count": 839,
-          "sources": [
-            "86360947_the_orchid_hotel_chandigarh_kb.txt"
-          ]
-        },
-        {
           "id": "overview_of_the_orchid_hotel_panchgani",
           "title": "Overview of The Orchid Hotel Panchgani",
           "aliases": [
@@ -7693,10 +8234,11 @@
           ]
         },
         {
-          "id": "policies_and_rules_at_the_orchid_hotel_lonavala",
-          "title": "Policies and Rules at The Orchid Hotel Lonavala",
+          "id": "policies_rules_at_the_orchid_hotel_lonavala",
+          "title": "Policies & Rules at The Orchid Hotel Lonavala",
           "aliases": [
-            "policies_and_rules_at_the_orchid_hotel_lonavala"
+            "Policies Rules At The Orchid Hotel Lonavala",
+            "policies_rules_at_the_orchid_hotel_lonavala"
           ],
           "keywords": [
             "14",
@@ -7745,68 +8287,35 @@
           ]
         },
         {
-          "id": "promotions_at_the_orchid_hotel_shimla",
-          "title": "Promotions At The Orchid Hotel Shimla",
+          "id": "poolside_bars",
+          "title": "Poolside Bars",
           "aliases": [
-            "promotions_at_the_orchid_hotel_shimla"
+            "poolside_bars"
           ],
           "keywords": [
-            "21",
-            "22",
-            "23",
-            "24",
-            "30",
-            "amenities",
-            "bookings",
-            "charges",
-            "conditions",
-            "direct",
-            "discount",
-            "discounted",
-            "eco",
-            "fees",
-            "get",
-            "getaway",
-            "hidden",
-            "inclusions",
-            "longer",
-            "luxury",
-            "more",
-            "nights",
-            "no",
-            "off",
-            "offer",
-            "offers",
-            "on",
-            "or",
-            "orchid",
-            "packages",
-            "party",
-            "premium",
-            "retreat",
-            "save",
-            "scenic",
-            "serene",
-            "shimla",
-            "special",
-            "stay",
-            "stays",
-            "suite",
-            "surroundings",
-            "third",
-            "views",
-            "website"
+            "11",
+            "bar",
+            "beers",
+            "bites",
+            "chilled",
+            "cocktails",
+            "craft",
+            "features",
+            "poolbar",
+            "poolside",
+            "shareable",
+            "splash",
+            "swim",
+            "type",
+            "up"
           ],
           "page_ids": [
-            "page_00063",
-            "page_00064",
-            "page_00065",
-            "page_00066"
+            "page_00011"
           ],
-          "page_count": 4,
-          "char_count": 401,
+          "page_count": 1,
+          "char_count": 111,
           "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
           ]
         },
         {
@@ -7882,58 +8391,6 @@
           "char_count": 749,
           "sources": [
             "17065d21_the_orchid_hotel_shimla_kb.txt"
-          ]
-        },
-        {
-          "id": "recreational_facilities",
-          "title": "Recreational Facilities",
-          "aliases": [
-            "recreational_facilities"
-          ],
-          "keywords": [
-            "12",
-            "air",
-            "amenities",
-            "area",
-            "banquet",
-            "business",
-            "daily",
-            "desk",
-            "facilities",
-            "family",
-            "fi",
-            "free",
-            "gym",
-            "kids",
-            "kund",
-            "luxury",
-            "meditation",
-            "modern",
-            "open",
-            "other",
-            "outdoor",
-            "play",
-            "pool",
-            "sessions",
-            "shala",
-            "spa",
-            "swimming",
-            "travel",
-            "venues",
-            "waterbody",
-            "wedding",
-            "wi",
-            "wifi",
-            "yagya",
-            "yoga"
-          ],
-          "page_ids": [
-            "page_00033"
-          ],
-          "page_count": 1,
-          "char_count": 319,
-          "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -8045,87 +8502,11 @@
           ]
         },
         {
-          "id": "rooms_and_suites",
-          "title": "Rooms and Suites",
+          "id": "rooms_suites_at_the_orchid_hotel_chandigarh",
+          "title": "Rooms & Suites at The Orchid Hotel Chandigarh",
           "aliases": [
-            "rooms_and_suites"
-          ],
-          "keywords": [
-            "10",
-            "220",
-            "300",
-            "air",
-            "amenities",
-            "bed",
-            "beds",
-            "bottled",
-            "channels",
-            "coffee",
-            "complimentary",
-            "conditioning",
-            "configuration",
-            "cotton",
-            "count",
-            "couples",
-            "daily",
-            "deluxe",
-            "differentiators",
-            "egyptian",
-            "facing",
-            "friends",
-            "ft",
-            "hill",
-            "housekeeping",
-            "ideal",
-            "in",
-            "inch",
-            "inner",
-            "king",
-            "led",
-            "linen",
-            "maker",
-            "mattress",
-            "notable",
-            "occupancy",
-            "or",
-            "premier",
-            "premium",
-            "room",
-            "rooms",
-            "sanitization",
-            "single",
-            "size",
-            "solo",
-            "sq",
-            "suitable",
-            "suites",
-            "tea",
-            "thread",
-            "travelers",
-            "tv",
-            "twin",
-            "two",
-            "valley",
-            "view",
-            "water"
-          ],
-          "page_ids": [
-            "page_00045",
-            "page_00046",
-            "page_00047",
-            "page_00048"
-          ],
-          "page_count": 4,
-          "char_count": 967,
-          "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
-          ]
-        },
-        {
-          "id": "rooms_and_suites_at_the_orchid_hotel_chandigarh",
-          "title": "Rooms and Suites at The Orchid Hotel Chandigarh",
-          "aliases": [
-            "rooms_and_suites_at_the_orchid_hotel_chandigarh"
+            "Rooms Suites At The Orchid Hotel Chandigarh",
+            "rooms_suites_at_the_orchid_hotel_chandigarh"
           ],
           "keywords": [
             "14",
@@ -8275,10 +8656,10 @@
           ]
         },
         {
-          "id": "rules_regulations_at_the_orchid_hotel_shimla",
-          "title": "Rules Regulations At The Orchid Hotel Shimla",
+          "id": "rules_and_regulations",
+          "title": "Rules And Regulations",
           "aliases": [
-            "rules_regulations_at_the_orchid_hotel_shimla"
+            "rules_and_regulations"
           ],
           "keywords": [
             "18",
@@ -8292,12 +8673,12 @@
             "status"
           ],
           "page_ids": [
-            "page_00060"
+            "page_00039"
           ],
           "page_count": 1,
           "char_count": 61,
           "sources": [
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
           ]
         },
         {
@@ -8362,6 +8743,33 @@
           ]
         },
         {
+          "id": "spa_wellness_at_the_orchid_hotel_lonavala",
+          "title": "Spa & Wellness at The Orchid Hotel Lonavala",
+          "aliases": [
+            "Spa Wellness At The Orchid Hotel Lonavala",
+            "spa_wellness_at_the_orchid_hotel_lonavala"
+          ],
+          "keywords": [
+            "11",
+            "found",
+            "not",
+            "on",
+            "pages",
+            "reviewed",
+            "spa",
+            "status",
+            "wellness"
+          ],
+          "page_ids": [
+            "page_00077"
+          ],
+          "page_count": 1,
+          "char_count": 59,
+          "sources": [
+            "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
+          ]
+        },
+        {
           "id": "spa_and_wellness",
           "title": "Spa and Wellness",
           "aliases": [
@@ -8393,32 +8801,6 @@
           ]
         },
         {
-          "id": "spa_and_wellness_at_the_orchid_hotel_lonavala",
-          "title": "Spa and Wellness at The Orchid Hotel Lonavala",
-          "aliases": [
-            "spa_and_wellness_at_the_orchid_hotel_lonavala"
-          ],
-          "keywords": [
-            "11",
-            "found",
-            "not",
-            "on",
-            "pages",
-            "reviewed",
-            "spa",
-            "status",
-            "wellness"
-          ],
-          "page_ids": [
-            "page_00077"
-          ],
-          "page_count": 1,
-          "char_count": 59,
-          "sources": [
-            "7ff32bfb_the_orchid_hotel_lonavala_kb.txt"
-          ]
-        },
-        {
           "id": "spa_and_wellness_at_the_orchid_hotel_pune",
           "title": "Spa and Wellness at The Orchid Hotel Pune",
           "aliases": [
@@ -8444,10 +8826,10 @@
           ]
         },
         {
-          "id": "spa_wellness_at_the_orchid_hotel_shimla",
-          "title": "Spa Wellness At The Orchid Hotel Shimla",
+          "id": "spa_and_wellness_at_the_orchid_hotel_shimla",
+          "title": "Spa And Wellness At The Orchid Hotel Shimla",
           "aliases": [
-            "spa_wellness_at_the_orchid_hotel_shimla"
+            "spa_and_wellness_at_the_orchid_hotel_shimla"
           ],
           "keywords": [
             "13",
@@ -8470,83 +8852,63 @@
           ]
         },
         {
+          "id": "special_offers",
+          "title": "Special Offers",
+          "aliases": [
+            "special_offers"
+          ],
+          "keywords": [
+            "21",
+            "28",
+            "benefits",
+            "best",
+            "booking",
+            "dining",
+            "direct",
+            "discounts",
+            "earn",
+            "events",
+            "found",
+            "guarantee",
+            "long",
+            "not",
+            "offers",
+            "on",
+            "orchid",
+            "packages",
+            "pages",
+            "points",
+            "price",
+            "program",
+            "rates",
+            "reviewed",
+            "rewards",
+            "room",
+            "seasonal",
+            "special",
+            "status",
+            "stay",
+            "stays",
+            "upgrades",
+            "weekend"
+          ],
+          "page_ids": [
+            "page_00042",
+            "page_00196"
+          ],
+          "page_count": 2,
+          "char_count": 349,
+          "sources": [
+            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt",
+            "f3751329_the_orchid_hotel_mumbai_kb.txt"
+          ]
+        },
+        {
           "id": "special_offers_packages",
           "title": "Special Offers & Packages",
           "aliases": [
             "Special Offers Packages",
             "special_offers_packages"
-          ],
-          "keywords": [
-            "21",
-            "22",
-            "23",
-            "24",
-            "30",
-            "amenities",
-            "bookings",
-            "charges",
-            "conditions",
-            "direct",
-            "discount",
-            "discounted",
-            "eco",
-            "fees",
-            "found",
-            "get",
-            "getaway",
-            "hidden",
-            "inclusions",
-            "longer",
-            "luxury",
-            "more",
-            "nights",
-            "no",
-            "not",
-            "off",
-            "offer",
-            "offers",
-            "on",
-            "or",
-            "orchid",
-            "packages",
-            "pages",
-            "party",
-            "premium",
-            "retreat",
-            "reviewed",
-            "save",
-            "scenic",
-            "serene",
-            "shimla",
-            "special",
-            "status",
-            "stay",
-            "stays",
-            "suite",
-            "surroundings",
-            "third",
-            "views",
-            "website"
-          ],
-          "page_ids": [
-            "page_00021",
-            "page_00063",
-            "page_00064",
-            "page_00065",
-            "page_00066"
-          ],
-          "page_count": 5,
-          "char_count": 471,
-          "sources": [
-            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt",
-            "17065d21_the_orchid_hotel_shimla_kb.txt"
-          ]
-        },
-        {
-          "id": "special_offers_and_packages",
-          "title": "Special Offers and Packages",
-          "aliases": [
-            "special_offers_and_packages"
           ],
           "keywords": [
             "21",
@@ -8561,19 +8923,20 @@
             "status"
           ],
           "page_ids": [
-            "page_00042"
+            "page_00021"
           ],
           "page_count": 1,
           "char_count": 70,
           "sources": [
-            "0dd7ca72_the_orchid_rishivan_rishikesh_kb.txt"
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
           ]
         },
         {
-          "id": "special_offers_and_packages_at_the_orchid_hotel_lonavala",
-          "title": "Special Offers and Packages at The Orchid Hotel Lonavala",
+          "id": "special_offers_packages_at_the_orchid_hotel_lonavala",
+          "title": "Special Offers & Packages at The Orchid Hotel Lonavala",
           "aliases": [
-            "special_offers_and_packages_at_the_orchid_hotel_lonavala"
+            "Special Offers Packages At The Orchid Hotel Lonavala",
+            "special_offers_packages_at_the_orchid_hotel_lonavala"
           ],
           "keywords": [
             "17",
@@ -8633,342 +8996,75 @@
           ]
         },
         {
-          "id": "the_orchid_hotel_chandigarh",
-          "title": "The Orchid Hotel Chandigarh",
+          "id": "special_offers_and_packages_at_the_orchid_hotel_shimla",
+          "title": "Special Offers and Packages at The Orchid Hotel Shimla",
           "aliases": [
-            "the_orchid_hotel_chandigarh"
+            "special_offers_and_packages_at_the_orchid_hotel_shimla"
           ],
           "keywords": [
-            "13",
-            "14",
-            "140603",
-            "15",
-            "16",
-            "17",
-            "18",
-            "6789",
-            "91",
-            "916",
-            "access",
-            "address",
-            "advanced",
-            "advantage",
-            "airport",
-            "av",
-            "available",
-            "banquet",
-            "board",
-            "business",
-            "chandigarh",
-            "close",
-            "com",
-            "conferences",
-            "connectivity",
-            "contact",
-            "convenience",
-            "corporate",
-            "customizable",
-            "elante",
-            "email",
-            "equipped",
-            "events",
-            "excellent",
-            "features",
-            "found",
-            "fully",
-            "functions",
-            "gurudwara",
-            "halls",
-            "https",
-            "in",
-            "landmarks",
-            "launches",
-            "layouts",
-            "leisure",
-            "location",
-            "mall",
-            "meeting",
-            "meetings",
-            "mohali",
-            "nabha",
-            "near",
-            "nearby",
-            "not",
-            "notes",
-            "offers",
-            "on",
-            "orchidhotel",
-            "packages",
-            "pages",
-            "panchkula",
-            "patiala",
-            "phone",
-            "policies",
-            "pre",
-            "product",
-            "professional",
-            "punjab",
-            "receptions",
-            "request",
-            "reservations",
-            "reviewed",
-            "road",
-            "rooms",
-            "rules",
-            "sahib",
-            "sangeet",
-            "seminars",
-            "shri",
-            "shuttle",
-            "spa",
-            "special",
-            "status",
-            "technology",
-            "to",
-            "tower",
-            "trade",
-            "transport",
-            "travel",
-            "travelers",
-            "tricity",
-            "village",
-            "website",
-            "wedding",
-            "weddings",
-            "wellness",
-            "www"
-          ],
-          "page_ids": [
-            "page_00097",
-            "page_00098",
-            "page_00099",
-            "page_00100",
-            "page_00101",
-            "page_00102"
-          ],
-          "page_count": 6,
-          "char_count": 1107,
-          "sources": [
-            "86360947_the_orchid_hotel_chandigarh_kb.txt"
-          ]
-        },
-        {
-          "id": "the_orchid_hotel_jamnagar",
-          "title": "The Orchid Hotel Jamnagar",
-          "aliases": [
-            "the_orchid_hotel_jamnagar"
-          ],
-          "keywords": [
-            "000",
-            "03",
-            "08",
-            "10",
-            "11",
-            "12",
-            "13",
-            "14",
-            "2026",
+            "21",
             "22",
-            "250",
+            "23",
+            "24",
             "30",
-            "300",
-            "35",
-            "361006",
-            "400",
-            "43277580937305",
-            "46",
-            "6789",
-            "69",
-            "91",
-            "916",
-            "94287168895161",
-            "access",
-            "accommodation",
-            "address",
-            "aggregate",
-            "airport",
             "amenities",
-            "area",
-            "areas",
-            "attendee",
-            "bala",
-            "banquet",
-            "base",
-            "bed",
-            "beds",
-            "bird",
-            "boulevard",
-            "brand",
-            "business",
-            "canonical",
-            "capacity",
-            "casual",
-            "check",
-            "com",
-            "comfort",
-            "configuration",
-            "contact",
-            "continental",
-            "coordinates",
-            "cor",
-            "cuisine",
-            "delights",
-            "deluxe",
-            "description",
-            "dining",
-            "dwarkadhish",
-            "elegant",
-            "email",
-            "events",
-            "experience",
-            "facilities",
-            "factory",
-            "features",
-            "fine",
-            "found",
-            "free",
-            "fresh",
-            "friendly",
-            "general",
-            "generated",
-            "generator",
-            "geo",
-            "global",
-            "gm",
-            "grand",
-            "greenery",
-            "gujarat",
-            "gujarati",
-            "gym",
-            "hall",
-            "halls",
-            "hanuman",
-            "highway",
-            "hotels",
-            "https",
-            "ideal",
-            "in",
-            "indian",
-            "jamnagar",
-            "jga",
-            "kb",
-            "key",
-            "khambhalia",
-            "khijadiya",
-            "khil",
-            "king",
-            "knowledge",
-            "lake",
-            "lakhota",
-            "landmarks",
-            "lawn",
-            "leisure",
-            "like",
-            "local",
-            "located",
-            "location",
-            "lush",
+            "bookings",
+            "charges",
+            "conditions",
+            "direct",
+            "discount",
+            "discounted",
+            "eco",
+            "fees",
+            "get",
+            "getaway",
+            "hidden",
+            "inclusions",
+            "longer",
             "luxury",
-            "manager",
-            "maximum",
-            "meetings",
-            "modern",
-            "name",
-            "near",
-            "nearby",
-            "not",
-            "notable",
-            "notes",
+            "more",
+            "nights",
+            "no",
+            "off",
+            "offer",
             "offers",
             "on",
-            "opp",
             "or",
             "orchid",
-            "orchidhotel",
-            "out",
-            "outdoor",
-            "overview",
             "packages",
-            "pages",
-            "parking",
-            "phone",
-            "policies",
-            "pool",
-            "premier",
+            "party",
             "premium",
-            "price",
-            "produce",
-            "property",
-            "pure",
-            "range",
-            "rating",
-            "reservations",
-            "restaurant",
-            "restaurants",
-            "reviewed",
-            "reviews",
-            "road",
-            "rooms",
-            "rules",
-            "sanctuary",
-            "scraper",
-            "seating",
-            "source",
-            "spa",
-            "spacious",
+            "retreat",
+            "save",
+            "scenic",
+            "serene",
+            "shimla",
             "special",
-            "specialties",
-            "sqft",
-            "star",
-            "status",
+            "stay",
             "stays",
-            "suitable",
-            "suites",
-            "swan",
-            "sweet",
-            "swimming",
-            "temple",
-            "theatre",
-            "traditional",
-            "transport",
-            "travel",
-            "twin",
-            "type",
-            "using",
-            "utc",
-            "v1",
-            "vegetarian",
-            "wellness",
-            "wifi",
-            "www"
+            "suite",
+            "surroundings",
+            "third",
+            "views",
+            "website"
           ],
           "page_ids": [
-            "page_00103",
-            "page_00104",
-            "page_00105",
-            "page_00106",
-            "page_00107",
-            "page_00108",
-            "page_00109",
-            "page_00110",
-            "page_00111",
-            "page_00112",
-            "page_00113",
-            "page_00114",
-            "page_00115",
-            "page_00116"
+            "page_00063",
+            "page_00064",
+            "page_00065",
+            "page_00066"
           ],
-          "page_count": 14,
-          "char_count": 2461,
+          "page_count": 4,
+          "char_count": 401,
           "sources": [
-            "9b2430da_the_orchid_hotel_jamnagar_kb.txt"
+            "17065d21_the_orchid_hotel_shimla_kb.txt"
           ]
         },
         {
-          "id": "the_orchid_hotel_lonavala",
-          "title": "The Orchid Hotel Lonavala",
+          "id": "the_orchid_hotel_lonavala_overview",
+          "title": "The Orchid Hotel Lonavala Overview",
           "aliases": [
-            "the_orchid_hotel_lonavala"
+            "the_orchid_hotel_lonavala_overview"
           ],
           "keywords": [
             "03",
@@ -9067,144 +9163,6 @@
           ]
         },
         {
-          "id": "the_orchid_hotel_pune",
-          "title": "The Orchid Hotel Pune",
-          "aliases": [
-            "the_orchid_hotel_pune"
-          ],
-          "keywords": [
-            "03",
-            "08",
-            "10",
-            "15",
-            "2026",
-            "24",
-            "30",
-            "411045",
-            "46",
-            "address",
-            "adjacent",
-            "airport",
-            "an",
-            "approximately",
-            "balewadi",
-            "banquet",
-            "base",
-            "bengaluru",
-            "boulevard",
-            "brand",
-            "breakfast",
-            "buffet",
-            "canonical",
-            "center",
-            "chhatrapati",
-            "chinese",
-            "coffee",
-            "com",
-            "complex",
-            "conference",
-            "continental",
-            "cuisine",
-            "designed",
-            "dining",
-            "dinner",
-            "elegantly",
-            "expansive",
-            "features",
-            "field",
-            "fine",
-            "fitness",
-            "found",
-            "games",
-            "generated",
-            "generator",
-            "halls",
-            "hinjewadi",
-            "hospitality",
-            "hotels",
-            "hour",
-            "https",
-            "hwy",
-            "in",
-            "includes",
-            "indian",
-            "international",
-            "it",
-            "italian",
-            "kb",
-            "khil",
-            "knowledge",
-            "known",
-            "live",
-            "location",
-            "lunch",
-            "luxury",
-            "maharaj",
-            "maharashtra",
-            "midnight",
-            "minutes",
-            "modern",
-            "mumbai",
-            "music",
-            "name",
-            "national",
-            "near",
-            "north",
-            "not",
-            "notes",
-            "offers",
-            "on",
-            "online",
-            "orchid",
-            "outdoor",
-            "overview",
-            "pages",
-            "park",
-            "pool",
-            "property",
-            "pune",
-            "rating",
-            "reservations",
-            "restaurants",
-            "reviewed",
-            "road",
-            "rooms",
-            "scraper",
-            "shiv",
-            "shivaji",
-            "shop",
-            "shree",
-            "source",
-            "spa",
-            "spaces",
-            "sports",
-            "star",
-            "status",
-            "suites",
-            "summary",
-            "sustainable",
-            "swimming",
-            "to",
-            "type",
-            "utc",
-            "v1",
-            "venues",
-            "wedding",
-            "www"
-          ],
-          "page_ids": [
-            "page_00117",
-            "page_00118",
-            "page_00119",
-            "page_00120"
-          ],
-          "page_count": 4,
-          "char_count": 1334,
-          "sources": [
-            "a4bba47d_the_orchid_hotel_pune_kb.txt"
-          ]
-        },
-        {
           "id": "transport_information",
           "title": "Transport Information",
           "aliases": [
@@ -9254,6 +9212,50 @@
           "char_count": 356,
           "sources": [
             "f3751329_the_orchid_hotel_mumbai_kb.txt"
+          ]
+        },
+        {
+          "id": "travel_convenience",
+          "title": "Travel Convenience",
+          "aliases": [
+            "travel_convenience"
+          ],
+          "keywords": [
+            "19",
+            "270",
+            "403716",
+            "address",
+            "beach",
+            "benaulim",
+            "colva",
+            "convenience",
+            "field",
+            "goa",
+            "hall",
+            "in",
+            "just",
+            "landmarks",
+            "located",
+            "location",
+            "margao",
+            "maria",
+            "market",
+            "meters",
+            "nearby",
+            "notes",
+            "road",
+            "transport",
+            "travel",
+            "vaswaddo",
+            "via"
+          ],
+          "page_ids": [
+            "page_00019"
+          ],
+          "page_count": 1,
+          "char_count": 264,
+          "sources": [
+            "09fdfb9b_orchid_passaros_goa_south_goa_kb.txt"
           ]
         },
         {
@@ -9307,7 +9309,7 @@
     "property_index": {
       "version": "v1",
       "generator": "llm_v1",
-      "generated_at": "2026-03-31T17:29:45.883389+00:00",
+      "generated_at": "2026-03-31T19:37:08.984964+00:00",
       "source_signature": "f4e27c318caa422886d3dd697251a8e85bc254c9",
       "expected_property_count": 10,
       "detected_property_count": 10,

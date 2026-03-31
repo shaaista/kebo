@@ -1100,7 +1100,7 @@ class LLMOrchestrationService:
             ).strip()
             _slots = _svc_pack.get("required_slots") or []
             answering_service_kb = {
-                "extracted_knowledge": _ek[:2000],  # cap to keep payload size reasonable
+                "extracted_knowledge": _ek[:12000],  # bumped from 2000 for multi-property setups
                 "required_slots": _slots if isinstance(_slots, list) else [],
             }
 

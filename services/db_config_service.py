@@ -1369,6 +1369,36 @@ class DBConfigService:
             print(f"[DB] list_kb_files failed: {e}")
             return []
 
+    async def get_kb_files_with_content(self) -> List[Dict[str, str]]:
+        """Return KB files with full content for the current hotel (DB fallback for runtime)."""
+        hotel_id = await self.get_current_hotel_id()
+        try:
+            from models.database import KBFile
+
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(
+                    select(KBFile)
+                    .where(KBFile.hotel_id == hotel_id)
+                    .order_by(KBFile.id.asc())
+                )
+                rows = result.scalars().all()
+
+            documents: List[Dict[str, str]] = []
+            for row in rows:
+                content = str(row.content or "").strip()
+                if not content:
+                    continue
+                name = str(row.original_name or row.stored_name or "kb_source").strip()
+                documents.append({
+                    "source_name": name,
+                    "source_path": f"db://kb_files/{row.id}",
+                    "content": content,
+                })
+            return documents
+        except Exception as e:
+            print(f"[DB] get_kb_files_with_content failed: {e}")
+            return []
+
     async def delete_kb_file(self, stored_name: str) -> int:
         """Delete a single KB file record for the current hotel."""
         hotel_id = await self.get_current_hotel_id()

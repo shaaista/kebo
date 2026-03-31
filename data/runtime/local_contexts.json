@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-31T17:29:53.888954+00:00",
+  "saved_at": "2026-03-31T19:37:29.717929+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -76754,6 +76754,507 @@
       ],
       "created_at": "2026-03-31T17:13:31.326074Z",
       "updated_at": "2026-03-31T17:29:53.802468Z"
+    },
+    "session_1774983839027_a02qasig5": {
+      "session_id": "session_1774983839027_a02qasig5",
+      "hotel_code": "khil10",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is interested in details about the Orchid Passaros Goa South hotel. They have not yet made a booking and may need further assistance with reservations or additional information about the property. There are no unresolved asks at this time.",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "which hotel is this",
+              "timestamp": "2026-03-31T19:04:15.968328+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-31T19:08:33.045285+00:00",
+          "last_user_message": "what dining options do u have",
+          "last_assistant_message": "Orchid Passaros Goa South offers several dining options:\n1. **Tipsy Sparrow**: An all-day dining restaurant offering Goan and international cuisine, located just steps from Benaulim Beach.\n2. **Splash Poolbar**: A poolside bar featuring a swim-up bar, chilled cocktails, craft beers, and shareable bites.\n3. **Falcon Bar & Grills**: An open-air grill house with wood-fired flavors, handcrafted cockta"
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T19:08:33.045112+00:00"
+        },
+        "_known_property_scope_count": 10,
+        "_selected_property_scope_id": "goa_south",
+        "_selected_property_scope_name": "Orchid Passaros Goa South"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "330f48af-702a-4f30-8ce9-a982d86ec4a7",
+          "role": "user",
+          "content": "which hotel is this",
+          "timestamp": "2026-03-31T19:04:15.968187Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Which hotel is this?"
+          }
+        },
+        {
+          "id": "aa783dfe-c345-4066-abc4-fd1c6c8cb75d",
+          "role": "assistant",
+          "content": "Which property would you like details for?",
+          "timestamp": "2026-03-31T19:05:45.527798Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.99,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.99,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "property_scope_guard",
+            "orchestration_trace_id": "orch-c68f2570e958",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "1883d09d-fe9e-42ef-a88a-4c8cabd214e7",
+          "role": "user",
+          "content": "what prperties are there",
+          "timestamp": "2026-03-31T19:06:03.033858Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what properties are there"
+          }
+        },
+        {
+          "id": "5ccdf4fb-5da9-4f44-9f2d-6121a616333c",
+          "role": "assistant",
+          "content": "Here are the properties available:\n1. Orchid Passaros Goa South\n2. The Orchid Chandigarh\n3. The Orchid Hotel Manali\n4. The Orchid Jamnagar\n5. The Orchid Lonavala\n6. The Orchid Mumbai\n7. The Orchid Panchgani\n8. The Orchid Pune\n9. The Orchid Rishivan Rishikesh\n10. The Orchid Shimla\nIf you need more details about any specific property, feel free to ask!",
+          "timestamp": "2026-03-31T19:06:42.626504Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-54fa2bc57ca5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "8837d4d9-0bd7-4ab5-aac0-816e4a8bf370",
+          "role": "user",
+          "content": "giveme details for goa",
+          "timestamp": "2026-03-31T19:07:00.599782Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "give me details for Goa"
+          }
+        },
+        {
+          "id": "3ede064c-2871-40b1-8ab2-f81e29dbbecb",
+          "role": "assistant",
+          "content": "Orchid Passaros Goa South is a luxury adult-only resort located at Benaulim Beach Road, Via Maria Hall, Vaswaddo, Benaulim, Goa. It is a 5-star property positioned as a romantic seaside retreat for couples and honeymooners. The resort offers a variety of luxurious rooms such as the Sunbird Haven, Kingfisher Haven, Bulbul Nest, Bee Eater Oasis, and Treepie Retreat, each designed with unique amenities like private balconies, Jacuzzis, and more.\nDining options include the Tipsy Sparrow, an all-day dining restaurant offering Goan and international cuisine, the Splash Poolbar with a swim-up bar, and the Falcon Bar & Grills for open-air dining. The resort also features an infinity pool, Wi-Fi, and couple spa experiences at the Feather Touch Couple Spa.\nFor more information or to make a booking, you can contact the resort at +91 916 916 6789 or email reservations@orchidhotel.com.",
+          "timestamp": "2026-03-31T19:07:34.075411Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-63db1f0a18c1",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "2690a76d-f9da-4b91-b460-043c9a6a6be7",
+          "role": "user",
+          "content": "what dining options do u have",
+          "timestamp": "2026-03-31T19:07:57.101256Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What dining options do you have?"
+          }
+        },
+        {
+          "id": "cd01a8a4-4151-4bd8-9745-b8b6bea55d0a",
+          "role": "assistant",
+          "content": "Orchid Passaros Goa South offers several dining options:\n1. **Tipsy Sparrow**: An all-day dining restaurant offering Goan and international cuisine, located just steps from Benaulim Beach.\n2. **Splash Poolbar**: A poolside bar featuring a swim-up bar, chilled cocktails, craft beers, and shareable bites.\n3. **Falcon Bar & Grills**: An open-air grill house with wood-fired flavors, handcrafted cocktails, and an ocean breeze ambiance.\nThese options provide a variety of settings and cuisines to enjoy during your stay.",
+          "timestamp": "2026-03-31T19:08:33.045202Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-a829953a0e99",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T19:04:09.278504Z",
+      "updated_at": "2026-03-31T19:08:33.045299Z"
+    },
+    "session_1774985484423_9e3ky98wg": {
+      "session_id": "session_1774985484423_9e3ky98wg",
+      "hotel_code": "khil10",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is looking for a place to stay and has shown interest in a property located in South Goa called Orchid Passaros Goa South. They are in the pre-booking phase and are considering room options such as Sunbird Haven, Kingfisher Haven, Bulbul Nest, Bee Eater Oasis, and Treepie Retreat. The user inquired about the amenities, which include an infinity pool, Wi-Fi, couple spa experiences, and dining options like Tipsy Sparrow restaurant, Splash Poolbar, and Falcon Bar & Grills. The property is adults-only, offering a romantic atmosphere. The user has not yet made a booking decision or requested further specific details.",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "i need a place to stay",
+              "timestamp": "2026-03-31T19:31:44.365793+00:00"
+            }
+          ],
+          "last_summarized_count": 6,
+          "updated_at": "2026-03-31T19:37:29.536601+00:00",
+          "last_user_message": "what spa services do u offer",
+          "last_assistant_message": "At Orchid Passaros Goa South, we offer the Feather Touch Couple Spa, which is designed for couples. It features side-by-side treatment rooms with a candlelight ambiance. Our signature treatments include a warm herbal foot soak and synchronized massages using coconut oil and Goan lemongrass. The spa is open daily from 10:00 AM to 8:00 PM."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T19:37:29.536232+00:00"
+        },
+        "_known_property_scope_count": 10,
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request",
+        "_selected_property_scope_id": "goa_south",
+        "_selected_property_scope_name": "Orchid Passaros Goa South"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "460ed436-96d9-461b-b587-7d30cf3177a7",
+          "role": "user",
+          "content": "i need a place to stay",
+          "timestamp": "2026-03-31T19:31:44.365726Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I need a place to stay."
+          }
+        },
+        {
+          "id": "ff57e80b-500b-47f0-a113-08e83b6c372b",
+          "role": "assistant",
+          "content": "We have several properties available for your stay. Could you please specify which location you are interested in? Here are some options: Goa, Chandigarh, Manali, Jamnagar, Lonavala, Mumbai, Panchgani, Pune, Rishikesh, and Shimla.",
+          "timestamp": "2026-03-31T19:32:31.266680Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-df19a90345f3",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "b2707be1-8b56-469f-8b6e-5fa543710510",
+          "role": "user",
+          "content": "goa",
+          "timestamp": "2026-03-31T19:32:52.923112Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Goa"
+          }
+        },
+        {
+          "id": "d0e36c9d-4887-4ad2-aed0-ff905d30ae8b",
+          "role": "assistant",
+          "content": "We have a beautiful property in South Goa called Orchid Passaros Goa South. Here are the room options available:\n- **Sunbird Haven**: Romantic luxury room designed for couples, with amenities like intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker. Occupancy: 2.\n- **Kingfisher Haven**: Luxury room with modern comforts and a private balcony, featuring a locker, mini fridge, tea & coffee maker. Occupancy: 2.\n- **Bulbul Nest**: Luxury room featuring a private Jacuzzi, with amenities like locker, mini fridge, tea & coffee maker. Occupancy: 2.\n- **Bee Eater Oasis**: Cozy romantic hideaway with a locker, mini fridge, tea & coffee maker. Occupancy: 2.\n- **Treepie Retreat**: Luxury room with an intimate ambiance, offering intercom, television, Wi-Fi, tea & coffee maker, mini fridge, and locker. Occupancy: 2.\nPlease let me know if you would like to book any of these rooms or need more information.",
+          "timestamp": "2026-03-31T19:33:27.413269Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-d5e2322757ab",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "484faa69-a3d7-4187-94c2-2a5cca9fe799",
+          "role": "user",
+          "content": "what amenoties are there",
+          "timestamp": "2026-03-31T19:33:52.082208Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "what amenities are there"
+          }
+        },
+        {
+          "id": "30dfa214-6650-4ee4-86a2-fdd1e5df0096",
+          "role": "assistant",
+          "content": "At Orchid Passaros Goa South, we offer a range of luxurious amenities to enhance your stay. These include an infinity pool, Wi-Fi access, and exclusive couple spa experiences. The property is adults-only, providing a serene and romantic atmosphere. Additionally, the rooms feature amenities such as intercom, television, tea & coffee maker, mini fridge, locker, private balcony, and even a Jacuzzi in some rooms. Dining options include the Tipsy Sparrow restaurant, Splash Poolbar, and Falcon Bar & Grills. If you have any more questions or need further details, feel free to ask!",
+          "timestamp": "2026-03-31T19:34:37.825856Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-28e2c5bf09e5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "39be7eee-f27c-45be-949a-66efbfef867d",
+          "role": "user",
+          "content": "do you have halls for meetings",
+          "timestamp": "2026-03-31T19:35:06.641209Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have halls for meetings?"
+          }
+        },
+        {
+          "id": "59ed7303-c39e-452b-b04b-6030a42e6479",
+          "role": "assistant",
+          "content": "Yes, Orchid Passaros Goa South offers the Hornbill Banquet, which is an intimate banquet hall suitable for meetings and events. It can accommodate 25-60 guests and features a tropical calm setting, catering service, audio-visual equipment, flexible seating arrangements, and a parking facility.",
+          "timestamp": "2026-03-31T19:36:05.678221Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-81623c7ddf8c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "e6f67600-31ea-4c81-a199-10f13188c7c1",
+          "role": "user",
+          "content": "what spa services do u offer",
+          "timestamp": "2026-03-31T19:36:36.517857Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What spa services do you offer?"
+          }
+        },
+        {
+          "id": "913f2b1b-1be0-4936-800c-5a65d8b0ca88",
+          "role": "assistant",
+          "content": "At Orchid Passaros Goa South, we offer the Feather Touch Couple Spa, which is designed for couples. It features side-by-side treatment rooms with a candlelight ambiance. Our signature treatments include a warm herbal foot soak and synchronized massages using coconut oil and Goan lemongrass. The spa is open daily from 10:00 AM to 8:00 PM.",
+          "timestamp": "2026-03-31T19:37:29.536431Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.95,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.95,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-8921f626d479",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T19:31:38.411627Z",
+      "updated_at": "2026-03-31T19:37:29.536632Z"
     }
   }
 }

@@ -3719,7 +3719,9 @@ class ConfigService:
         max_sources: int = 200,
         max_source_chars: int | None = None,
     ) -> list[dict[str, str]]:
-        """Return KB documents with source labels for prompt assembly."""
+        """Return KB documents with source labels for prompt assembly.
+        Falls back to DB kb_files when disk files are unavailable (e.g. Docker).
+        """
         source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
         documents: list[dict[str, str]] = []
         for path in source_paths:
@@ -3733,16 +3735,46 @@ class ConfigService:
                     "content": text,
                 }
             )
+
+        # DB fallback: if no disk files found, load from database
+        if not documents:
+            try:
+                import asyncio
+                from services.db_config_service import db_config_service
+
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        db_docs = pool.submit(
+                            asyncio.run, db_config_service.get_kb_files_with_content()
+                        ).result(timeout=10)
+                else:
+                    db_docs = loop.run_until_complete(
+                        db_config_service.get_kb_files_with_content()
+                    )
+
+                if db_docs:
+                    print(f"[KB] Disk files missing, loaded {len(db_docs)} KB doc(s) from DB")
+                    for doc in db_docs[:max_sources]:
+                        content = str(doc.get("content") or "").strip()
+                        if max_source_chars and len(content) > max_source_chars:
+                            content = content[:max_source_chars]
+                        if content:
+                            documents.append(doc)
+            except Exception as e:
+                print(f"[KB] DB fallback for get_full_kb_documents failed: {e}")
+
         return documents
 
     def get_full_kb_text(self, max_chars: int | None = None) -> str:
         """Return combined text of all knowledge sources (for LLM context)."""
-        source_paths = self._resolve_knowledge_source_paths(max_sources=25)
+        documents = self.get_full_kb_documents(max_sources=25)
         parts: list[str] = []
-        for path in source_paths:
-            text = self._load_knowledge_source_text(path)
-            if text:
-                parts.append(text)
+        for doc in documents:
+            content = str(doc.get("content") or "").strip()
+            if content:
+                parts.append(content)
         result = "\n\n".join(parts)
         if max_chars is not None:
             result = result[:max_chars]
