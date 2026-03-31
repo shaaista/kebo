@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "saved_at": "2026-03-30T15:58:02.647374+00:00",
+  "saved_at": "2026-03-31T05:56:03.567841+00:00",
   "contexts": {
     "session_ctx_1": {
       "session_id": "session_ctx_1",
@@ -72747,6 +72747,831 @@
       ],
       "created_at": "2026-03-30T15:12:15.267777Z",
       "updated_at": "2026-03-30T15:58:02.593775Z"
+    },
+    "session_1774931425503_00niuv4a7": {
+      "session_id": "session_1774931425503_00niuv4a7",
+      "hotel_code": "test",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "do you have a spa",
+              "timestamp": "2026-03-31T04:31:02.832778+00:00"
+            }
+          ],
+          "last_summarized_count": 0,
+          "updated_at": "2026-03-31T04:32:09.142784+00:00",
+          "last_user_message": "what spa treatments therethere",
+          "last_assistant_message": "I'm sorry, but I currently don't have specific details about the spa treatments available. Please let me know if there's anything else I can assist you with."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T04:32:09.142549+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "745c3fca-c0c7-4f4c-a875-05b4a792b788",
+          "role": "user",
+          "content": "do you have a spa",
+          "timestamp": "2026-03-31T04:31:02.832642Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you have a spa?"
+          }
+        },
+        {
+          "id": "58b70f09-2623-4a56-883c-87ce2ea8e03f",
+          "role": "assistant",
+          "content": "Yes, our hotel does have a spa. It offers a range of wellness treatments and is open from 9:00 AM to 11:00 PM. We look forward to welcoming you to enjoy a relaxing experience.",
+          "timestamp": "2026-03-31T04:31:27.446161Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-0283b43415e0",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "7a232d54-77a5-4819-a5ea-e45ee861c21a",
+          "role": "user",
+          "content": "what spa treatments therethere",
+          "timestamp": "2026-03-31T04:31:45.916667Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What spa treatments are there?"
+          }
+        },
+        {
+          "id": "fd72519e-8aff-4841-a1ff-e7f4bca59a42",
+          "role": "assistant",
+          "content": "I'm sorry, but I currently don't have specific details about the spa treatments available. Please let me know if there's anything else I can assist you with.",
+          "timestamp": "2026-03-31T04:32:09.142692Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5d6909775d51",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T04:30:55.082436Z",
+      "updated_at": "2026-03-31T04:32:09.142803Z"
+    },
+    "session_1774934056700_1cwp11n46": {
+      "session_id": "session_1774934056700_1cwp11n46",
+      "hotel_code": "test",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "awaiting_info",
+      "pending_action": "collect_full_name",
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and has decided to book a Lux Suite at the ICONIQA hotel in Mumbai. They have confirmed the hotel's location near Terminal 2 in Andheri and are interested in the spa and pool facilities. The Lux Suite offers a king-size bed and panoramic city views, making it suitable for a bachelor. The user has not yet completed the reservation process and needs to provide booking details to finalize the reservation. There are no unresolved questions from the user at this time.",
+          "facts": {
+            "phase": "pre_booking",
+            "last_user_topic": "reservation"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi wheres ur hotel located",
+              "timestamp": "2026-03-31T05:15:13.080907+00:00"
+            },
+            {
+              "key": "last_user_topic",
+              "old_value": null,
+              "new_value": "reservation",
+              "change_type": "set",
+              "source_message": "can i book one now",
+              "timestamp": "2026-03-31T05:17:01.314686+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-31T05:19:00.037249+00:00",
+          "last_user_message": "Book the Lux Suite",
+          "last_assistant_message": "Great choice! The Lux Suite offers 381 to 485 sq. ft. of luxury with a sumptuous king-size bed and panoramic city views. Please fill in the booking details below."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": {
+            "pending_action": "collect_full_name",
+            "pending_data": {
+              "service_id": "room_booking_request"
+            },
+            "state": "awaiting_info",
+            "phase_id": "pre_booking",
+            "phase_name": "Pre Booking",
+            "summary": "your collect full name flow",
+            "updated_at": "2026-03-31T05:18:58.516098+00:00"
+          },
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T05:18:58.516115+00:00"
+        },
+        "_last_service_id": "room_booking_request",
+        "_last_service_name": "room booking request",
+        "service_id": "room_booking_request"
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "7a140766-ea6a-4384-bb0a-9322e9228109",
+          "role": "user",
+          "content": "hi wheres ur hotel located",
+          "timestamp": "2026-03-31T05:15:13.080846Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Hi, where's your hotel located?"
+          }
+        },
+        {
+          "id": "5965b7e0-6eb3-49be-ad5e-adaa76a91458",
+          "role": "assistant",
+          "content": "Our hotel, ICONIQA, is located near Terminal 2 on Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099. You can find us just 300 meters from Terminal 2, making it a convenient location for travelers.",
+          "timestamp": "2026-03-31T05:15:31.216343Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-46e745df5af0",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "f3d5336f-3ecd-47c8-a46e-f38117c6119f",
+          "role": "user",
+          "content": "do u offer spa and pool",
+          "timestamp": "2026-03-31T05:15:47.952864Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "do you offer spa and pool"
+          }
+        },
+        {
+          "id": "bf2775fb-2af4-4569-b142-395adaa8a241",
+          "role": "assistant",
+          "content": "Yes, ICONIQA offers both a spa and a pool. The spa is open from 9:00 AM to 11:00 PM, and the pool is available from 7:00 AM to 7:00 PM for all guests. Guests with reservations at the Bombay Swim Club can use the pool until 11 PM. Please note that children are not allowed in the pool after 7:00 PM.",
+          "timestamp": "2026-03-31T05:16:07.738458Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-1d3d546d33e7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "9a433289-1f18-46d2-ad3a-58e01134c5e2",
+          "role": "user",
+          "content": "what spa services do u offer",
+          "timestamp": "2026-03-31T05:16:24.505927Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "What spa services do you offer?"
+          }
+        },
+        {
+          "id": "4f53ed53-7001-4e3e-ab00-d9590a682f0f",
+          "role": "assistant",
+          "content": "At ICONIQA, we offer a variety of spa services designed to help you relax and rejuvenate. Our spa features candlelight therapies, functional massages to help with jetlag or hangovers, and foot massages by the poolside at the Bombay Swim Club. The spa is open from 9:00 AM to 11:00 PM.",
+          "timestamp": "2026-03-31T05:16:45.247524Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-f1a2035f479c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "af66eac7-42fa-4d45-b221-4fd650723273",
+          "role": "user",
+          "content": "can i book one now",
+          "timestamp": "2026-03-31T05:17:01.313160Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Can I book one now?"
+          }
+        },
+        {
+          "id": "bfb7950f-b35d-4f8a-a3ae-6970d92797b8",
+          "role": "assistant",
+          "content": "To book a room at ICONIQA, please choose from our available room options:\n- Premier King Room: 229–340 sq. ft., with a king-size bed and versatile table-and-chair duo.\n- Premier Twin Room: 231–380 sq. ft., featuring two plush twin beds.\n- Lux Suite: 381–485 sq. ft., with a king-size bed and panoramic city views.\n- Reserve Suite: 375–415 sq. ft., offering a king-size bed and separate lounge area.\n- Prestige Suite: 487 sq. ft., includes a lavish king-size bed and bathtub.\n- Ultimate Suite: 603 sq. ft., with a king-size bed and separate living and dining area.\nPlease let me know which room you would like to book, and I'll assist you with the next steps.",
+          "timestamp": "2026-03-31T05:17:27.770977Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "dispatch_handler",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-b144f6cc3e7c",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "fb91f980-9840-458f-bcd8-5902831aee23",
+          "role": "user",
+          "content": "whihc isbest for a bachelor",
+          "timestamp": "2026-03-31T05:17:53.025813Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "which is best for a bachelor"
+          }
+        },
+        {
+          "id": "94d70670-7007-4add-8b3f-72d86cf7edca",
+          "role": "assistant",
+          "content": "For a bachelor, the Premier King Room or the Lux Suite at ICONIQA Hotel in Mumbai are excellent choices. The Premier King Room offers a comfortable king-size bed and a versatile space for both work and relaxation, with amenities like a complimentary minibar and high-speed WiFi. The Lux Suite provides more space with a king-size bed and panoramic city views, perfect for a luxurious stay. Both options include an espresso machine and sustainable bathroom amenities.",
+          "timestamp": "2026-03-31T05:18:15.638824Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-d532bb181cc5",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4a80033c-2d43-495f-b1f5-c91a1e769c1f",
+          "role": "user",
+          "content": "Book the Lux Suite",
+          "timestamp": "2026-03-31T05:18:38.213732Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Book the Luxe Suite"
+          }
+        },
+        {
+          "id": "aece43e4-eca3-4ca8-8046-cd2c9e36d53b",
+          "role": "assistant",
+          "content": "Great choice! The Lux Suite offers 381 to 485 sq. ft. of luxury with a sumptuous king-size bed and panoramic city views. Please fill in the booking details below.",
+          "timestamp": "2026-03-31T05:18:58.516308Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "room booking request",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "collect_info",
+            "orchestration_target_service_id": "room_booking_request",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "service_agent",
+            "orchestration_trace_id": "orch-9cbe895d8bb7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T05:15:03.254321Z",
+      "updated_at": "2026-03-31T05:19:00.037318Z"
+    },
+    "session_1774935582360_1fjrl8ecw": {
+      "session_id": "session_1774935582360_1fjrl8ecw",
+      "hotel_code": "test",
+      "guest_phone": null,
+      "guest_name": null,
+      "room_number": null,
+      "channel": "web_widget",
+      "state": "idle",
+      "pending_action": null,
+      "pending_data": {
+        "_integration": {
+          "guest_id": "921345",
+          "organisation_id": "5703",
+          "entity_id": "5703",
+          "phase": "pre_booking",
+          "ticket_source": "whatsapp_bot",
+          "flow": "booking_bot",
+          "channel": "web_widget"
+        },
+        "_memory": {
+          "summary": "The user is in the pre-booking phase and is interested in the ICONIQA Hotel in Mumbai. They have been informed about the hotel's offerings, including rooms, dining, wellness, and event spaces. The user is planning a visit to Mumbai with friends and requested a 2-day itinerary, which was provided, highlighting the hotel's luxurious accommodations, diverse dining options, and wellness facilities. The user also inquired about the doctor on call service, which is available 24/7 with Dr. Deepak Tiwari for ₹2500. Additionally, they asked for the hotel's address, which is Near Terminal 2, Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099. There are no unresolved asks at the moment.",
+          "facts": {
+            "phase": "pre_booking"
+          },
+          "fact_history": [
+            {
+              "key": "phase",
+              "old_value": null,
+              "new_value": "pre_booking",
+              "change_type": "set",
+              "source_message": "hi",
+              "timestamp": "2026-03-31T05:40:14.381226+00:00"
+            }
+          ],
+          "last_summarized_count": 12,
+          "updated_at": "2026-03-31T05:56:03.480351+00:00",
+          "last_user_message": "tell me about spa treatments",
+          "last_assistant_message": "ICONIQA Hotel offers a variety of spa treatments designed to rejuvenate and relax you. The spa is open from 9:00 AM to 11:00 PM and features candlelight therapies, functional massages to help with jetlag or hangovers, and foot massages by the poolside at the Bombay Swim Club. These treatments are crafted to provide a soothing experience during your stay."
+        },
+        "_task_state": {
+          "version": 1,
+          "active_task": null,
+          "parked_tasks": [],
+          "updated_at": "2026-03-31T05:56:03.480176+00:00"
+        }
+      },
+      "suspended_services": [],
+      "resume_prompt_sent": false,
+      "messages": [
+        {
+          "id": "5136ce22-3fcd-4e56-b18b-f6fb7409c5bc",
+          "role": "user",
+          "content": "hi",
+          "timestamp": "2026-03-31T05:40:14.381119Z",
+          "metadata": {
+            "channel": "web_widget"
+          }
+        },
+        {
+          "id": "6391f649-a19b-4628-b45d-efbd9201c9b0",
+          "role": "assistant",
+          "content": "Hello! How can I assist you today? If you have any questions about ICONIQA Hotel in Mumbai or need help with a booking, feel free to let me know.",
+          "timestamp": "2026-03-31T05:40:34.543617Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-1d16474661fe",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "9f0036cd-9987-438c-b459-278380275d11",
+          "role": "user",
+          "content": "i wanna know eveyrthing ur hotel has to offer",
+          "timestamp": "2026-03-31T05:40:57.424874Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "i wanna know everything ur hotel has to offer"
+          }
+        },
+        {
+          "id": "c056bb8f-c3b4-4fd0-b1ec-bcbbc7703ebe",
+          "role": "assistant",
+          "content": "ICONIQA Hotel in Mumbai offers a comprehensive range of facilities and services to ensure a luxurious stay. Here's a detailed overview:\n1. **Rooms and Suites**: The hotel features 291 rooms, including Premier King Rooms, Premier Twin Rooms, Lux Suites, Reserve Suites, Prestige Suites, and Ultimate Suites. Each room is equipped with amenities like in-room smart laundry closets, complimentary non-alcoholic minibars, espresso machines, high-speed WiFi, and more.\n2. **Dining**: Guests can enjoy a global menu at the Aviator Lounge, Pan-Indian cuisine at Kadak Lab, and a Japanese-Mexican kitchen at the Bombay Swim Club with rooftop views.\n3. **Wellness and Recreation**: Facilities include a spa, infinity jacuzzi, gym, and yoga sessions. The Bombay Swim Club offers a day club experience with splash pools.\n4. **Event Spaces**: The hotel provides flexible banquet spaces like the ICONIQA Rooms and Genius Rooms for meetings and events.\n5. **Additional Services**: Services include airport transfers, valet parking, a beauty bar, and a doctor on call.\nFor more detailed information or specific inquiries, feel free to ask!",
+          "timestamp": "2026-03-31T05:41:21.330633Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-77b85fd9930a",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "37075f4c-b8f4-482f-81ad-82ab85077665",
+          "role": "user",
+          "content": "give me about the doctor",
+          "timestamp": "2026-03-31T05:41:51.215966Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "give me info about the doctor"
+          }
+        },
+        {
+          "id": "213d31a4-31b7-4346-8129-09e9a4fbd06c",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a doctor on call service. Dr. Deepak Tiwari, M.B.S (BOM), is available 24/7 for consultations at a fee of ₹2500. If you need further assistance or have specific questions, feel free to ask!",
+          "timestamp": "2026-03-31T05:42:10.867719Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-f3e298b828e7",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "4c8bd4db-5cc6-47e9-b804-b3543f8aa291",
+          "role": "user",
+          "content": "do u offer spa and jacuzzi",
+          "timestamp": "2026-03-31T05:42:29.192266Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Do you offer spa and jacuzzi?"
+          }
+        },
+        {
+          "id": "f5a4a24d-9e48-49ae-a3de-7f916c45b737",
+          "role": "assistant",
+          "content": "Yes, ICONIQA Hotel offers both a spa and a jacuzzi. The spa is open from 9:00 AM to 11:00 PM, providing a range of wellness treatments. The jacuzzi is available from 6:00 AM to 8:00 PM. These facilities are designed to enhance your relaxation and rejuvenation during your stay.",
+          "timestamp": "2026-03-31T05:42:51.520877Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-90b840ae8ad2",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "b9b64a21-cc06-40ab-9bef-b9309b98a105",
+          "role": "user",
+          "content": "im planning to visit mumbai with friends, tell me whyi must choose ur hoteland what all i can do with my frindds in ur hotel, plan a 2 day ietnary",
+          "timestamp": "2026-03-31T05:43:01.913111Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "I'm planning to visit Mumbai with friends, tell me why I must choose your hotel and what all I can do with my friends in your hotel, plan a 2-day itinerary."
+          }
+        },
+        {
+          "id": "51eed75a-a94d-4c59-aaad-af223f9a86d6",
+          "role": "assistant",
+          "content": "ICONIQA Hotel in Mumbai offers a unique blend of luxury, comfort, and vibrant experiences, making it an ideal choice for your visit with friends. Here's why you should choose our hotel and a suggested 2-day itinerary:\n**Why Choose ICONIQA Hotel:**\n1. **Prime Location:** Located near Mumbai International Airport, making it convenient for travelers.\n2. **Luxurious Accommodations:** Choose from a variety of rooms and suites, each equipped with modern amenities like in-room smart laundry closets, complimentary non-alcoholic minibars, and high-speed WiFi.\n3. **Diverse Dining Options:** Enjoy global cuisine at the Aviator Lounge, Pan-Indian dishes at Kadak Lab, and a Japanese-Mexican fusion at the Bombay Swim Club.\n4. **Wellness and Recreation:** Relax at our spa, take a dip in the rooftop pool, or unwind in the jacuzzi.\n5. **Unique Experiences:** Enjoy the vibrant atmosphere of the Aviator Lounge, participate in yoga sessions, or explore the nearby attractions with our concierge's help.\n**2-Day Itinerary:**\n**Day 1:**\n- **Morning:** Start your day with a hearty breakfast at Kadak Lab.\n- **Mid-Morning:** Relax at the spa with a rejuvenating treatment.\n- **Afternoon:** Enjoy lunch at the Aviator Lounge, followed by a swim at the Bombay Swim Club.\n- **Evening:** Experience the vibrant nightlife at the Aviator Lounge with cocktails and live music.\n**Day 2:**\n- **Morning:** Participate in a yoga session or use the AI Yoga Screens for a self-driven workout.\n- **Mid-Morning:** Explore Mumbai with a curated tour arranged by our concierge.\n- **Afternoon:** Return for lunch at the Bombay Swim Club, enjoying the rooftop views.\n- **Evening:** Unwind in the jacuzzi and end your day with a dinner at Kadak Lab, savoring Pan-Indian cuisine.\nThis itinerary ensures a mix of relaxation, exploration, and enjoyment, making your stay at ICONIQA Hotel memorable.",
+          "timestamp": "2026-03-31T05:43:38.938996Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-dccd3f1fa676",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "10ebbf36-dcef-410e-9829-2b833fcd6d71",
+          "role": "user",
+          "content": "google address for ur hote;",
+          "timestamp": "2026-03-31T05:43:56.495029Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Google address for your hotel;"
+          }
+        },
+        {
+          "id": "83662c70-7589-4116-8ce4-7070a6cb5147",
+          "role": "assistant",
+          "content": "The address for ICONIQA Hotel in Mumbai is: Near Terminal 2, Hasan Pada Road, Andheri (E), Mumbai, Maharashtra 400099. You can also find us on Google Maps using this link: [Hotel Location on Google Maps](https://maps.app.goo.gl/zvGW4DQF5prhpexM6).",
+          "timestamp": "2026-03-31T05:44:17.660793Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-90444d178d00",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        },
+        {
+          "id": "ea54b31d-0e0b-4de7-a84d-a06c04b2feac",
+          "role": "user",
+          "content": "tell me about spa treatments",
+          "timestamp": "2026-03-31T05:55:42.773630Z",
+          "metadata": {
+            "channel": "web_widget",
+            "preprocessed_message": "Tell me about spa treatments."
+          }
+        },
+        {
+          "id": "09790ac6-264f-4454-a9ae-87523c7c03e1",
+          "role": "assistant",
+          "content": "ICONIQA Hotel offers a variety of spa treatments designed to rejuvenate and relax you. The spa is open from 9:00 AM to 11:00 PM and features candlelight therapies, functional massages to help with jetlag or hangovers, and foot massages by the poolside at the Bombay Swim Club. These treatments are crafted to provide a soothing experience during your stay.",
+          "timestamp": "2026-03-31T05:56:03.480290Z",
+          "metadata": {
+            "intent": "service_routed",
+            "confidence": 0.7,
+            "service_llm_label": "main",
+            "service_llm_confidence": 0.7,
+            "channel": "web_widget",
+            "orchestration_mode": true,
+            "orchestration_action": "respond_only",
+            "orchestration_target_service_id": "",
+            "orchestration_interrupt_pending": false,
+            "orchestration_source": "orchestrator",
+            "orchestration_trace_id": "orch-5c6118bc5ce4",
+            "policy_blocked_reason": "",
+            "policy_out_of_phase": false,
+            "policy_ticket_skip_reason": "",
+            "orchestration_handler_executed": false,
+            "orchestration_prefer_llm_response": true,
+            "intent_hidden_in_response": true,
+            "response_validator_applied": true,
+            "response_validator_replaced": false,
+            "response_validator_issues": [],
+            "llm_surface_rewrite_attempted": false,
+            "llm_surface_rewrite_applied": false,
+            "llm_surface_rewrite_validator_replaced": false,
+            "llm_surface_rewrite_validation_issues": [],
+            "llm_surface_rewrite_source": "llm_orchestration"
+          }
+        }
+      ],
+      "created_at": "2026-03-31T05:40:07.088830Z",
+      "updated_at": "2026-03-31T05:56:03.480363Z"
     }
   }
 }

@@ -14,7 +14,6 @@ from schemas.chat import ConversationContext
 from schemas.orchestration import OrchestrationDecision, TicketDecision
 from services.config_service import config_service
 from services.everything_trace_service import everything_trace_service
-from services.rag_service import rag_service
 
 # ── LLM Input Logger ─────────────────────────────────────────────────────────
 _log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
@@ -969,6 +968,7 @@ class LLMOrchestrationService:
         selected_phase_id: str,
         selected_phase_name: str,
         target_service: dict[str, Any] | None = None,
+        full_kb_text: str = "",
     ) -> dict[str, Any]:
         if not bool(getattr(settings, "chat_llm_answer_first_guard_enabled", True)):
             return {}
@@ -1005,6 +1005,7 @@ class LLMOrchestrationService:
                 "followup_question": str(decision.followup_question or ""),
             },
             "service": service_payload,
+            "full_knowledge_base": full_kb_text or None,
             "response_contract": {
                 "answers_current_query": "bool",
                 "can_answer_from_context": "bool",
@@ -1046,6 +1047,8 @@ class LLMOrchestrationService:
             "7) If recommended_action=collect_info, set recommended_pending_action to the best next slot prompt id.\n"
             "8) If decision.target_service_id is empty, avoid recommended_action=collect_info.\n"
             "9) For out-of-phase or unavailable-service situations, keep recommended_action=respond_only and provide a clearer response instead.\n"
+            "10) If full_knowledge_base contains explicit facts answering the ask, can_answer_from_context must be true and revised_response_text must use those facts.\n"
+            "11) Do not say details are unavailable when full_knowledge_base or service facts contain them.\n"
         )
         model = (
             str(getattr(settings, "chat_llm_answer_first_guard_model", "") or "").strip()
@@ -1099,6 +1102,7 @@ class LLMOrchestrationService:
         selected_phase_id: str,
         selected_phase_name: str,
         target_service: dict[str, Any] | None = None,
+        full_kb_text: str = "",
     ) -> OrchestrationDecision:
         decision = self._apply_answer_priority_fields(decision)
         guard_raw = await self._run_answer_first_guard(
@@ -1108,6 +1112,7 @@ class LLMOrchestrationService:
             selected_phase_id=selected_phase_id,
             selected_phase_name=selected_phase_name,
             target_service=target_service,
+            full_kb_text=full_kb_text,
         )
         if not guard_raw:
             return decision
@@ -2578,6 +2583,8 @@ class LLMOrchestrationService:
 
         system_prompt = (
             "You are the main concierge assistant for this hotel. "
+            "For informational questions, answer fully yourself from the hotel's KB. "
+            "For bookings, orders, or service execution, never collect transactional details yourself and route to the right service agent when one is available.\n"
             "You are the single authority on routing and responding — no other layer will override your decision.\n"
             "\n"
             "=== ABSOLUTE LANGUAGE RULE ===\n"
@@ -2593,6 +2600,12 @@ class LLMOrchestrationService:
             "The ONLY services you may dispatch or offer are those listed in allowed_service_ids_in_current_phase. "
             "Services listed in blocked_out_of_phase_services are NOT available now — do NOT dispatch to them, do NOT offer them as options, do NOT ask clarification questions about them. "
             "If the guest asks for something that only maps to blocked_out_of_phase_services: respond with factual info and phrase unavailability naturally (never mention phase names).\n"
+            "\n"
+            "=== KNOWLEDGE PRIORITY ===\n"
+            "For every factual or informational ask, inspect full_knowledge_base carefully before answering.\n"
+            "If the answer exists anywhere in full_knowledge_base, use those specific facts directly.\n"
+            "Do not give a generic fallback if full_knowledge_base already contains the needed detail.\n"
+            "Prefer complete factual answers over generic summaries. If the KB lists options or specific offerings, name them explicitly.\n"
             "\n"
             "=== STEP 1: READ HISTORY ===\n"
             "Always read history_last_10 first, then full_history_context before deciding anything. "
@@ -2645,7 +2658,8 @@ class LLMOrchestrationService:
             "=== STEP 3: DECIDE WHAT THE GUEST NEEDS ===\n"
             "\n"
             "A) INFORMATION QUESTION — guest is asking about hotel facilities, timings, policies, menus, room types, or any general details.\n"
-            "   -> Answer directly from extracted_knowledge and full_knowledge_base. Set action=respond_only.\n"
+            "   -> Answer directly from full_knowledge_base. Set action=respond_only.\n"
+            "   -> If full_knowledge_base contains specific offerings, treatments, timings, policies, options, or amenities, include them explicitly instead of giving a generic summary.\n"
             "   -> Asking about room types, availability, prices, or facilities is NEVER a complaint.\n"
             "   -> Never invent facts. If details are not present, say they are not available.\n"
             "\n"
@@ -2791,6 +2805,7 @@ class LLMOrchestrationService:
                 selected_phase_id=selected_phase_id,
                 selected_phase_name=selected_phase_name,
                 target_service=None,
+                full_kb_text=full_kb_text,
             )
             _early_result = await self._ensure_suggested_actions(
                 user_message=user_message,
@@ -2833,6 +2848,7 @@ class LLMOrchestrationService:
                 selected_phase_id=selected_phase_id,
                 selected_phase_name=selected_phase_name,
                 target_service=None,
+                full_kb_text=full_kb_text,
             )
             _early_result = await self._ensure_suggested_actions(
                 user_message=user_message,
@@ -2939,6 +2955,7 @@ class LLMOrchestrationService:
                 selected_phase_id=selected_phase_id,
                 selected_phase_name=selected_phase_name,
                 target_service=target_service,
+                full_kb_text=full_kb_text,
             )
 
         # ── RESUME PROMPT ────────────────────────────────────────────────────
