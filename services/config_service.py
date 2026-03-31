@@ -3713,6 +3713,58 @@ class ConfigService:
         cleaned = re.sub(r"^[0-9a-f]{8}_", "", name, flags=re.IGNORECASE)
         return cleaned or name
 
+    @staticmethod
+    def _load_kb_documents_from_db_sync(hotel_code: str) -> list[dict[str, str]]:
+        """Sync DB query to load KB file content using pymysql directly."""
+        try:
+            import pymysql
+            from models.database import ACTIVE_DATABASE_URL
+            from sqlalchemy.engine import make_url
+
+            parsed = make_url(ACTIVE_DATABASE_URL)
+            normalized_code = str(hotel_code or "DEFAULT").strip().upper()
+
+            conn = pymysql.connect(
+                host=parsed.host or "127.0.0.1",
+                port=parsed.port or 3306,
+                user=parsed.username or "root",
+                password=parsed.password or "",
+                database=parsed.database or "",
+                charset="utf8mb4",
+                connect_timeout=5,
+            )
+            try:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT kb.id, kb.original_name, kb.stored_name, kb.content "
+                        "FROM new_bot_kb_files kb "
+                        "JOIN new_bot_hotels h ON kb.hotel_id = h.id "
+                        "WHERE h.code = %s "
+                        "ORDER BY kb.id ASC",
+                        (normalized_code,),
+                    )
+                    rows = cur.fetchall()
+            finally:
+                conn.close()
+
+            documents: list[dict[str, str]] = []
+            for row in rows:
+                content = str(row[3] or "").strip()
+                if not content:
+                    continue
+                name = str(row[1] or row[2] or "kb_source").strip()
+                documents.append({
+                    "source_name": name,
+                    "source_path": f"db://kb_files/{row[0]}",
+                    "content": content,
+                })
+            return documents
+        except Exception as e:
+            print(f"[KB] _load_kb_documents_from_db_sync failed: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
+
     def get_full_kb_documents(
         self,
         *,
@@ -3736,26 +3788,14 @@ class ConfigService:
                 }
             )
 
-        # DB fallback: if no disk files found, load from database
+        # DB fallback: if no disk files found, load from database (sync query)
         if not documents:
             try:
-                import asyncio
                 from services.db_config_service import db_config_service
-
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as pool:
-                        db_docs = pool.submit(
-                            asyncio.run, db_config_service.get_kb_files_with_content()
-                        ).result(timeout=10)
-                else:
-                    db_docs = loop.run_until_complete(
-                        db_config_service.get_kb_files_with_content()
-                    )
-
+                hotel_code = db_config_service.get_current_hotel_code()
+                db_docs = self._load_kb_documents_from_db_sync(hotel_code)
                 if db_docs:
-                    print(f"[KB] Disk files missing, loaded {len(db_docs)} KB doc(s) from DB")
+                    print(f"[KB] Disk files missing, loaded {len(db_docs)} KB doc(s) from DB for {hotel_code}")
                     for doc in db_docs[:max_sources]:
                         content = str(doc.get("content") or "").strip()
                         if max_source_chars and len(content) > max_source_chars:
@@ -3764,6 +3804,8 @@ class ConfigService:
                             documents.append(doc)
             except Exception as e:
                 print(f"[KB] DB fallback for get_full_kb_documents failed: {e}")
+                import traceback
+                traceback.print_exc()
 
         return documents
 
