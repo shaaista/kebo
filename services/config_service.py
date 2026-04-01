@@ -93,8 +93,10 @@ _GENERIC_KB_SOURCE_STEMS = {
     "general",
     "guide",
     "guides",
-    "hotel",
-    "hotels",
+    # NOTE: "hotel" and "hotels" intentionally REMOVED from this list.
+    # For hotel chains (e.g., "The Orchid Hotel Mumbai"), stripping "hotel"
+    # corrupts the property ID (e.g., "the_mumbai" instead of
+    # "the_orchid_hotel_mumbai"), causing property scoping failures.
     "info",
     "information",
     "intro",
@@ -3715,14 +3717,25 @@ class ConfigService:
 
     @staticmethod
     def _load_kb_documents_from_db_sync(hotel_code: str) -> list[dict[str, str]]:
-        """Sync DB query to load KB file content using pymysql directly."""
+        """Sync DB query to load KB file content. Works with MySQL and SQLite."""
+        from models.database import ACTIVE_DATABASE_URL
+        from sqlalchemy.engine import make_url
+
+        normalized_code = str(hotel_code or "DEFAULT").strip().upper()
+
+        # Try pymysql first (MySQL), then fall back to sqlite3
+        parsed = make_url(ACTIVE_DATABASE_URL)
+        backend = str(parsed.get_backend_name() or "").lower()
+
+        if backend == "sqlite":
+            return ConfigService._load_kb_documents_from_sqlite_sync(
+                str(parsed.database or ""),
+                normalized_code,
+            )
+
+        # MySQL path
         try:
             import pymysql
-            from models.database import ACTIVE_DATABASE_URL
-            from sqlalchemy.engine import make_url
-
-            parsed = make_url(ACTIVE_DATABASE_URL)
-            normalized_code = str(hotel_code or "DEFAULT").strip().upper()
 
             conn = pymysql.connect(
                 host=parsed.host or "127.0.0.1",
@@ -3760,9 +3773,48 @@ class ConfigService:
                 })
             return documents
         except Exception as e:
-            print(f"[KB] _load_kb_documents_from_db_sync failed: {e}")
-            import traceback
-            traceback.print_exc()
+            print(f"[KB] _load_kb_documents_from_db_sync (MySQL) failed: {e}")
+            return []
+
+    @staticmethod
+    def _load_kb_documents_from_sqlite_sync(db_path: str, hotel_code: str) -> list[dict[str, str]]:
+        """Load KB documents from SQLite database."""
+        try:
+            import sqlite3
+
+            # aiosqlite URLs use relative paths like ./kepsla_bot.db
+            clean_path = str(db_path or "").strip().lstrip("/")
+            if not clean_path:
+                return []
+
+            conn = sqlite3.connect(clean_path, timeout=5)
+            try:
+                cur = conn.execute(
+                    "SELECT kb.id, kb.original_name, kb.stored_name, kb.content "
+                    "FROM new_bot_kb_files kb "
+                    "JOIN new_bot_hotels h ON kb.hotel_id = h.id "
+                    "WHERE h.code = ? "
+                    "ORDER BY kb.id ASC",
+                    (hotel_code,),
+                )
+                rows = cur.fetchall()
+            finally:
+                conn.close()
+
+            documents: list[dict[str, str]] = []
+            for row in rows:
+                content = str(row[3] or "").strip()
+                if not content:
+                    continue
+                name = str(row[1] or row[2] or "kb_source").strip()
+                documents.append({
+                    "source_name": name,
+                    "source_path": f"db://kb_files/{row[0]}",
+                    "content": content,
+                })
+            return documents
+        except Exception as e:
+            print(f"[KB] _load_kb_documents_from_sqlite_sync failed: {e}")
             return []
 
     def get_full_kb_documents(
@@ -3772,40 +3824,41 @@ class ConfigService:
         max_source_chars: int | None = None,
     ) -> list[dict[str, str]]:
         """Return KB documents with source labels for prompt assembly.
-        Falls back to DB kb_files when disk files are unavailable (e.g. Docker).
+        DB-first: tries loading from database, falls back to disk files.
         """
-        source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
         documents: list[dict[str, str]] = []
-        for path in source_paths:
-            text = self._load_knowledge_source_text(path, max_chars=max_source_chars)
-            if not text:
-                continue
-            documents.append(
-                {
-                    "source_name": self._display_kb_source_name(path),
-                    "source_path": str(path.resolve()),
-                    "content": text,
-                }
-            )
 
-        # DB fallback: if no disk files found, load from database (sync query)
+        # PRIMARY: load from DB (authoritative source)
+        try:
+            from services.db_config_service import db_config_service
+            hotel_code = db_config_service.get_current_hotel_code()
+            db_docs = self._load_kb_documents_from_db_sync(hotel_code)
+            if db_docs:
+                for doc in db_docs[:max_sources]:
+                    content = str(doc.get("content") or "").strip()
+                    if max_source_chars and len(content) > max_source_chars:
+                        content = content[:max_source_chars]
+                    if content:
+                        documents.append(doc)
+        except Exception as e:
+            print(f"[KB] DB load for get_full_kb_documents failed: {e}")
+
+        # FALLBACK: load from disk if DB returned nothing
         if not documents:
-            try:
-                from services.db_config_service import db_config_service
-                hotel_code = db_config_service.get_current_hotel_code()
-                db_docs = self._load_kb_documents_from_db_sync(hotel_code)
-                if db_docs:
-                    print(f"[KB] Disk files missing, loaded {len(db_docs)} KB doc(s) from DB for {hotel_code}")
-                    for doc in db_docs[:max_sources]:
-                        content = str(doc.get("content") or "").strip()
-                        if max_source_chars and len(content) > max_source_chars:
-                            content = content[:max_source_chars]
-                        if content:
-                            documents.append(doc)
-            except Exception as e:
-                print(f"[KB] DB fallback for get_full_kb_documents failed: {e}")
-                import traceback
-                traceback.print_exc()
+            source_paths = self._resolve_knowledge_source_paths(max_sources=max_sources)
+            for path in source_paths:
+                text = self._load_knowledge_source_text(path, max_chars=max_source_chars)
+                if not text:
+                    continue
+                documents.append(
+                    {
+                        "source_name": self._display_kb_source_name(path),
+                        "source_path": str(path.resolve()),
+                        "content": text,
+                    }
+                )
+            if documents:
+                print(f"[KB] DB empty, loaded {len(documents)} KB doc(s) from disk")
 
         return documents
 
@@ -4017,7 +4070,7 @@ class ConfigService:
                 result = await llm_client.chat(
                     messages,
                     temperature=0.0,
-                    max_tokens=4096,
+                    max_tokens=8192,
                 )
                 candidate = str(result or "").strip()
                 if candidate and not self._is_llm_error_response(candidate):
@@ -4039,6 +4092,104 @@ class ConfigService:
             return partials[0].strip()
         # Preserve full evidence coverage: avoid aggressive compression that can drop details.
         return "\n\n---\n\n".join(partials).strip()
+
+    async def extract_service_knowledge_per_file(
+        self,
+        *,
+        service_name: str,
+        service_description: str,
+        existing_menu_facts: list[str] | None = None,
+        max_sources: int = 200,
+    ) -> str:
+        """
+        Extract service-relevant knowledge by processing each KB file individually.
+
+        Each KB file typically corresponds to one property/hotel. By sending each
+        file separately to the LLM (each is 2-5K chars, well within limits), we
+        guarantee nothing is truncated or lost. Results are labelled with property
+        headers (=== PROPERTY: <name> ===) so downstream code can scope to the
+        active property at chat time.
+        """
+        import asyncio as _asyncio
+        from llm.client import llm_client
+
+        documents = self.get_full_kb_documents(
+            max_sources=max_sources,
+            max_source_chars=None,  # no truncation per file
+        )
+        if not documents:
+            return ""
+
+        extraction_prompt = await self._generate_service_extraction_prompt(
+            service_name=service_name,
+            service_description=service_description,
+            full_kb_text="",  # not needed — each file is sent individually
+            existing_menu_facts=existing_menu_facts,
+        )
+
+        property_blocks: list[str] = []
+
+        for doc in documents:
+            source_name = str(doc.get("source_name") or "").strip() or "kb_source"
+            content = str(doc.get("content") or "").strip()
+            if not content:
+                continue
+
+            # Derive a clean property name from the source filename
+            # e.g. "the_orchid_hotel_shimla_kb.txt" → "The Orchid Hotel Shimla"
+            property_label = re.sub(r"^[0-9a-f]{8}_", "", source_name, flags=re.IGNORECASE)
+            property_label = re.sub(r"_kb\.txt$", "", property_label, flags=re.IGNORECASE)
+            property_label = property_label.replace("_", " ").strip().title() or source_name
+
+            messages = [
+                {"role": "system", "content": extraction_prompt},
+                {
+                    "role": "user",
+                    "content": (
+                        f"PROPERTY: {property_label}\n"
+                        f"KB FILE: {source_name}\n\n"
+                        f"{content}\n\n"
+                        "Copy VERBATIM from this file everything relevant to the service described above.\n"
+                        "IMPORTANT: Copy text EXACTLY word-for-word as it appears — do NOT rephrase, reword, "
+                        "or replace any word with a synonym. Every feature name, material, fixture, price, "
+                        "and detail must be copied exactly as written.\n"
+                        "Do not summarise, shorten, or omit any relevant content.\n"
+                        "Only skip content that is clearly about a completely different service or topic.\n"
+                        "If this file contains nothing relevant to the service, return exactly: NO_RELEVANT_INFO\n"
+                        "Do not invent missing values."
+                    ),
+                },
+            ]
+
+            extracted = ""
+            for attempt in range(1, 3):
+                try:
+                    result = await llm_client.chat(
+                        messages,
+                        temperature=0.0,
+                        max_tokens=8192,
+                    )
+                    candidate = str(result or "").strip()
+                    if candidate and not self._is_llm_error_response(candidate):
+                        extracted = candidate
+                        break
+                except Exception:
+                    pass
+                if attempt < 2:
+                    await _asyncio.sleep(1.0)
+
+            if not extracted or extracted.upper().startswith("NO_RELEVANT_INFO"):
+                continue
+
+            # Wrap extraction with property header for downstream scoping
+            property_blocks.append(
+                f"=== PROPERTY: {property_label} ===\n{extracted.strip()}"
+            )
+
+        if not property_blocks:
+            return ""
+
+        return "\n\n".join(property_blocks).strip()
 
     def set_service_kb_manual_facts(
         self,
@@ -4772,6 +4923,8 @@ class ConfigService:
         seen_document_hashes: set[str] = set()
         page_counter = 0
 
+        # Collect raw content items: either from disk or DB fallback
+        raw_items: list[tuple[str, str]] = []  # (source_name, raw_content)
         for path in source_paths:
             try:
                 raw = path.read_text(encoding="utf-8", errors="ignore")
@@ -4779,19 +4932,39 @@ class ConfigService:
                 continue
             if not str(raw or "").strip():
                 continue
+            raw_items.append((str(path.name or "knowledge_source"), raw))
 
+        # DB fallback: if no disk files found, load from database
+        if not raw_items:
+            try:
+                from services.db_config_service import db_config_service
+                hotel_code = db_config_service.get_current_hotel_code()
+                db_docs = self._load_kb_documents_from_db_sync(hotel_code)
+                if db_docs:
+                    print(f"[KB] Library build: disk empty, loaded {len(db_docs)} doc(s) from DB for {hotel_code}")
+                    # Build a stable signature from DB content
+                    sig_parts = sorted(str(d.get("source_name", "")) + str(len(d.get("content", ""))) for d in db_docs)
+                    source_signature = hashlib.sha1("|".join(sig_parts).encode()).hexdigest()
+                    for doc in db_docs[:max_sources]:
+                        content = str(doc.get("content") or "").strip()
+                        name = str(doc.get("source_name") or "kb_source").strip()
+                        if content:
+                            raw_items.append((name, content))
+            except Exception as e:
+                print(f"[KB] Library build DB fallback failed: {e}")
+
+        for source_name, raw in raw_items:
             doc_hash = hashlib.sha1(raw.encode("utf-8")).hexdigest()
             if doc_hash in seen_document_hashes:
                 continue
             seen_document_hashes.add(doc_hash)
 
             document_id = f"doc_{len(documents) + 1:03d}_{doc_hash[:10]}"
-            source_name = str(path.name or "knowledge_source")
             documents.append(
                 {
                     "id": document_id,
                     "source_name": source_name,
-                    "source_path": str(path),
+                    "source_path": f"db://or/disk/{source_name}",
                     "content_hash": doc_hash,
                     "char_count": len(raw),
                 }
@@ -4812,7 +4985,7 @@ class ConfigService:
                             "id": page_id,
                             "document_id": document_id,
                             "source_name": source_name,
-                            "source_path": str(path),
+                            "source_path": f"db://or/disk/{source_name}",
                             "location": f"editable.{title}",
                             "title": title,
                             "text": text,
@@ -4836,7 +5009,7 @@ class ConfigService:
                         "id": page_id,
                         "document_id": document_id,
                         "source_name": source_name,
-                        "source_path": str(path),
+                        "source_path": f"db://or/disk/{source_name}",
                         "location": str(section.get("location") or f"text.section_{page_counter}"),
                         "title": title,
                         "text": text,
@@ -5125,10 +5298,11 @@ class ConfigService:
         tokens = [token for token in re.split(r"[^a-z0-9]+", stem.lower()) if token]
         if not tokens:
             return []
+        _stop_words = {"the", "and", "for", "from", "with", "near", "by"}
         clean_tokens = [
             token
             for token in tokens
-            if token not in _GENERIC_KB_SOURCE_STEMS and len(token) > 2
+            if token not in _GENERIC_KB_SOURCE_STEMS and token not in _stop_words and len(token) > 2
         ]
         if not clean_tokens:
             return []
@@ -5393,28 +5567,48 @@ class ConfigService:
             '  "common_source_names": ["intro.txt"]\n'
             "}\n"
         )
-        response = await llm_client.chat(
-            messages=[
-                {"role": "system", "content": prompt},
-                {
-                    "role": "user",
-                    "content": (
-                        "HEURISTIC CANDIDATES:\n"
-                        + ("\n".join(heuristic_lines) if heuristic_lines else "(none)\n")
-                        + (
-                            f"\n\nEXPECTED PROPERTY COUNT:\n{expected_property_count}\n"
-                            if expected_property_count > 0
-                            else ""
-                        )
-                        + "\n\nSOURCE CATALOG:\n"
-                        + "\n\n".join(document_lines)
-                    ),
-                },
-            ],
-            temperature=0.0,
-            max_tokens=1600,
+        user_content = (
+            "HEURISTIC CANDIDATES:\n"
+            + ("\n".join(heuristic_lines) if heuristic_lines else "(none)\n")
+            + (
+                f"\n\nEXPECTED PROPERTY COUNT:\n{expected_property_count}\n"
+                if expected_property_count > 0
+                else ""
+            )
+            + "\n\nSOURCE CATALOG:\n"
+            + "\n\n".join(document_lines)
         )
-        return self._extract_json_object(response)
+        messages = [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_content},
+        ]
+
+        # Scale max_tokens based on document count to avoid truncation
+        doc_count = len(document_lines)
+        base_tokens = max(3000, doc_count * 200)
+        max_tokens = min(base_tokens, 8000)
+
+        response = await llm_client.chat(
+            messages=messages,
+            temperature=0.0,
+            max_tokens=max_tokens,
+        )
+        result = self._extract_json_object(response)
+
+        # Retry with higher budget if detected properties < expected
+        detected = len(result.get("properties", [])) if isinstance(result, dict) else 0
+        if expected_property_count > 0 and detected < expected_property_count and max_tokens < 8000:
+            retry_response = await llm_client.chat(
+                messages=messages,
+                temperature=0.0,
+                max_tokens=8000,
+            )
+            retry_result = self._extract_json_object(retry_response)
+            retry_detected = len(retry_result.get("properties", [])) if isinstance(retry_result, dict) else 0
+            if retry_detected > detected:
+                result = retry_result
+
+        return result
 
     async def _assign_property_scopes_to_pages_with_llm(
         self,
@@ -5437,7 +5631,7 @@ class ConfigService:
 
         catalog_lines: list[str] = []
         valid_scope_ids = {"common"}
-        for row in properties[:24]:
+        for row in properties[:50]:
             if not isinstance(row, dict):
                 continue
             property_id = self._normalize_slug(row.get("id"))
@@ -5493,7 +5687,7 @@ class ConfigService:
                     },
                 ],
                 temperature=0.0,
-                max_tokens=2000,
+                max_tokens=max(4000, len(batch) * 150),
             )
             payload = self._extract_json_object(response)
             rows = payload.get("assignments", [])
@@ -5875,11 +6069,53 @@ class ConfigService:
         )
         return any(marker in blob for marker in markers)
 
+    @staticmethod
+    def _is_property_specific_request(text: str) -> bool:
+        """
+        Distinguish property-specific questions (need clarification) from
+        general/cross-property questions (should be answered from full KB).
+
+        Returns True only when the user is clearly asking about ONE specific
+        property's details without naming it. General questions like "which is
+        best for couples" or "list your properties" should return False so
+        the LLM can answer from the full KB.
+        """
+        blob = re.sub(r"\s+", " ", str(text or "").strip().lower())
+        if not blob:
+            return False
+        # General/comparative patterns → NOT property-specific
+        general_patterns = (
+            "which is best", "which one is best", "which property is best",
+            "best for", "recommend", "suggestion", "suggest",
+            "top 5", "top 10", "top three", "top five",
+            "compare", "comparison", "versus", " vs ",
+            "list", "all your", "all the", "all properties", "all hotels",
+            "how many", "do you have", "what do you have",
+            "what all", "everything you", "everything ur",
+            "plan a", "itinerary", "plan my", "plan for",
+            "adventure", "couples", "family", "friends", "group",
+            "budget", "luxury", "romantic", "honeymoon",
+            "which location", "which city", "which place",
+            "where should", "where can", "where do",
+            "can you tell me about your properties",
+            "tell me about your hotels",
+        )
+        if any(p in blob for p in general_patterns):
+            return False
+        # Explicit single-property reference → property-specific
+        specific_patterns = (
+            "this hotel", "this property", "your hotel",
+            "the hotel", "the property",
+            "i want to book", "book a room", "reserve a room",
+            "i want to stay", "i need a room",
+        )
+        return any(p in blob for p in specific_patterns)
+
     def _build_property_scope_manifest(
         self,
         *,
         property_index: dict[str, Any],
-        max_properties: int = 12,
+        max_properties: int = 50,
     ) -> list[dict[str, Any]]:
         rows = property_index.get("properties", []) if isinstance(property_index, dict) else []
         manifest: list[dict[str, Any]] = []
@@ -5908,7 +6144,7 @@ class ConfigService:
         self,
         *,
         property_index: dict[str, Any],
-        max_properties: int = 12,
+        max_properties: int = 50,
     ) -> str:
         manifest = self._build_property_scope_manifest(
             property_index=property_index,
@@ -5957,7 +6193,7 @@ class ConfigService:
         properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
         manifest = self._build_property_scope_manifest(
             property_index=property_index,
-            max_properties=12,
+            max_properties=50,
         )
         detected_property_count = len(manifest)
         expected_property_count = self._coerce_expected_property_count(
@@ -6033,7 +6269,7 @@ class ConfigService:
                 mode = "single"
             elif not selected_property_ids and listing_requested:
                 mode = "listing"
-            elif not selected_property_ids and property_sensitive:
+            elif not selected_property_ids and property_sensitive and self._is_property_specific_request(user_message):
                 mode = "clarify"
             elif not selected_property_ids:
                 mode = "common"
@@ -6172,9 +6408,30 @@ class ConfigService:
         service_description: str,
         existing_menu_facts: list[str] | None = None,
         max_sources: int = 50,
-        max_scope_chars: int = 90000,
-        max_properties: int = 8,
+        max_scope_chars: int = 200000,
+        max_properties: int = 50,
     ) -> dict[str, Any]:
+        # ── PRIMARY: per-file extraction (each KB file = 1 LLM call) ──
+        # This processes each property file individually so nothing is truncated.
+        try:
+            per_file_result = await self.extract_service_knowledge_per_file(
+                service_name=service_name,
+                service_description=service_description,
+                existing_menu_facts=existing_menu_facts,
+                max_sources=max_sources,
+            )
+            if per_file_result and len(per_file_result.strip()) > 50:
+                return {
+                    "extracted_knowledge": per_file_result,
+                    "mode": "per_file",
+                    "matched_property_ids": [],
+                    "property_scopes": [],
+                    "property_index": {},
+                }
+        except Exception as per_file_err:
+            print(f"[KB] Per-file extraction failed, falling back to legacy: {per_file_err}")
+
+        # ── FALLBACK: legacy library-based extraction ──
         library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
         property_index = await self.ensure_property_scope_index(max_sources=max_sources)
         properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
@@ -6228,7 +6485,7 @@ class ConfigService:
                 limit=max(1, min(max_properties, 4)),
             )
 
-        selected_property_ids = matched_property_ids or all_property_ids[: max(1, min(max_properties, 12))]
+        selected_property_ids = matched_property_ids or all_property_ids[:max_properties]
 
         common_context = self._compose_page_scope_context(
             library=library,

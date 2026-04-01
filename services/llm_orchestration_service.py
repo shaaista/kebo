@@ -744,12 +744,50 @@ class LLMOrchestrationService:
         user_message: str,
         context: ConversationContext,
     ) -> str:
+        """Filter extracted_knowledge to only the active property/properties.
+
+        Priority order:
+        1. LLM-determined ``_selected_property_scope_ids`` (set by orchestrator)
+        2. Single property hint ``_selected_property_scope_name`` / ``_selected_property_scope_id``
+        3. Heuristic text-matching against conversation history
+        4. No match → return full KB (general/comparative question)
+        """
         parsed = self._parse_property_scoped_knowledge_sections(service_knowledge)
         properties = parsed.get("properties", [])
         if not isinstance(properties, list) or not properties:
             return str(service_knowledge or "").strip()
 
+        common = str(parsed.get("common") or "").strip()
         pending_raw = context.pending_data if isinstance(context.pending_data, dict) else {}
+
+        # ── Strategy 1: LLM-determined property IDs (supports multi-property) ──
+        llm_prop_ids = pending_raw.get("_selected_property_scope_ids") or []
+        if isinstance(llm_prop_ids, str):
+            llm_prop_ids = [llm_prop_ids]
+        llm_prop_ids = [str(pid).strip().lower() for pid in llm_prop_ids if str(pid).strip()]
+
+        llm_prop_name = str(pending_raw.get("_selected_property_scope_name") or "").strip().lower()
+
+        if llm_prop_ids or llm_prop_name:
+            matched: list[dict[str, Any]] = []
+            for row in properties:
+                if not isinstance(row, dict):
+                    continue
+                prop_name = str(row.get("property_name") or "").strip()
+                aliases = [str(a).strip() for a in (row.get("aliases") or []) if str(a).strip()]
+                all_labels = [prop_name.lower()] + [a.lower() for a in aliases]
+                # Match by ID
+                if any(pid in " ".join(all_labels) for pid in llm_prop_ids):
+                    matched.append(row)
+                    continue
+                # Match by name
+                if llm_prop_name and any(llm_prop_name in label or label in llm_prop_name for label in all_labels if len(label) >= 3):
+                    matched.append(row)
+                    continue
+            if matched:
+                return self._build_scoped_kb_text(common=common, property_rows=matched)
+
+        # ── Strategy 2: Heuristic text-matching (fallback) ──
         explicit_property_hints = [
             str(pending_raw.get("_selected_property_scope_name") or "").strip(),
             str(pending_raw.get("_selected_property_scope_id") or "").strip(),
@@ -792,24 +830,34 @@ class LLMOrchestrationService:
                     score = max(score, float(hits) + min(len(tokens) * 0.35, 1.25))
             if score > 0:
                 scored.append((score, row))
+
         if not scored:
+            # No property match at all → return full KB (general question)
             return str(service_knowledge or "").strip()
 
         scored.sort(key=lambda item: -item[0])
-        best = scored[0][1]
-        common = str(parsed.get("common") or "").strip()
-        property_name = str(best.get("property_name") or "").strip()
-        aliases = [str(alias).strip() for alias in best.get("aliases", []) if str(alias).strip()]
-        content = str(best.get("content") or "").strip()
-        if not content:
-            return str(service_knowledge or "").strip()
+        # Take top-scoring property; also include any others within 80% of the
+        # best score (handles comparisons like "Manali vs Shimla")
+        best_score = scored[0][0]
+        threshold = best_score * 0.8
+        top_matches = [row for sc, row in scored if sc >= threshold]
+        return self._build_scoped_kb_text(common=common, property_rows=top_matches)
 
+    @staticmethod
+    def _build_scoped_kb_text(*, common: str, property_rows: list[dict[str, Any]]) -> str:
+        """Assemble scoped KB text from common knowledge + matched property rows."""
         parts: list[str] = []
         if common:
             parts.append("=== COMMON KNOWLEDGE ===\n" + common)
-        alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
-        parts.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{content}")
-        return "\n\n".join(parts).strip()
+        for row in property_rows:
+            property_name = str(row.get("property_name") or "").strip()
+            aliases = [str(a).strip() for a in (row.get("aliases") or []) if str(a).strip()]
+            content = str(row.get("content") or "").strip()
+            if not content:
+                continue
+            alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
+            parts.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{content}")
+        return "\n\n".join(parts).strip() if parts else ""
 
     @staticmethod
     def _service_routing_keywords(*, service_row: dict[str, Any], prompt_pack: dict[str, Any]) -> list[str]:
@@ -858,6 +906,9 @@ class LLMOrchestrationService:
         services = capabilities_summary.get("service_catalog", [])
         if not isinstance(services, list):
             return []
+        # Merge extracted_knowledge from service_kb_records so service agents
+        # get the same KB data that the main orchestrator sees.
+        kb_by_service = self._service_extracted_knowledge_by_service(capabilities_summary)
         result: list[dict[str, Any]] = []
         for row in services[:80]:
             if not isinstance(row, dict):
@@ -922,10 +973,12 @@ class LLMOrchestrationService:
                     "confirmation_format": self._sanitize_json(confirmation_format),
                     "service_prompt_pack": self._sanitize_json(prompt_pack),
                     "knowledge_facts": [],
-                    # Runtime grounding for service agent should come from DB-backed
-                    # service_prompt_pack only (admin-entered/extracted values).
-                    # Keep full extracted knowledge; do not trim here.
-                    "extracted_knowledge": str(prompt_pack.get("extracted_knowledge") or "").strip(),
+                    # Merge extracted_knowledge: prefer prompt_pack (admin-entered),
+                    # fall back to service_kb_records (auto-compiled from KB files).
+                    "extracted_knowledge": (
+                        str(prompt_pack.get("extracted_knowledge") or "").strip()
+                        or kb_by_service.get(sid, "")
+                    ),
                     "generated_system_prompt": str(row.get("generated_system_prompt") or "").strip(),
                     "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
@@ -1100,7 +1153,7 @@ class LLMOrchestrationService:
             ).strip()
             _slots = _svc_pack.get("required_slots") or []
             answering_service_kb = {
-                "extracted_knowledge": _ek[:12000],  # bumped from 2000 for multi-property setups
+                "extracted_knowledge": _ek,  # no truncation — per-file extraction keeps each property small
                 "required_slots": _slots if isinstance(_slots, list) else [],
             }
 
@@ -2042,6 +2095,15 @@ class LLMOrchestrationService:
             "If something the guest asks is not covered there, say you do not have that detail "
             "and offer to connect them with staff. Never guess, invent, or assume anything."
         )
+        lines.append(
+            "\n=== COMPLETENESS RULE ===\n"
+            "When the guest asks about rooms, options, packages, amenities, services, or any list of offerings:\n"
+            "- List ALL items from the knowledge base — never summarize, skip, or show only a partial list.\n"
+            "- If the KB lists 5 room types, show all 5. If it lists 8 amenities, show all 8.\n"
+            "- Include ALL details for each item (price, description, features, capacity, etc.) as given in the KB.\n"
+            "- Do NOT say 'and more' or 'among others' — be exhaustive.\n"
+            "- The guest deserves complete information to make a decision."
+        )
 
         # ── Operating constraints (hours, zones, cuisine) ─────────────────────
         constraints: list[str] = []
@@ -2066,7 +2128,20 @@ class LLMOrchestrationService:
             "Please share the following details:\n"
             "- Room number\n"
             "- Check-in date\n"
-            "- Check-out date"
+            "- Check-out date\n"
+            "\n=== TONE & LANGUAGE RULES ===\n"
+            "You are speaking to a hotel guest. Use warm, natural, human language at all times.\n"
+            "NEVER use these words or phrases in guest-facing responses:\n"
+            "  - 'escalate', 'ticket', 'reference number', 'ticket ID', 'logged your complaint'\n"
+            "  - 'create a ticket', 'automated', 'system issue', 'ticketing'\n"
+            "INSTEAD use natural alternatives:\n"
+            "  - 'I have noted this down' instead of 'I have created a ticket'\n"
+            "  - 'Our team will look into this' instead of 'This has been escalated'\n"
+            "  - 'I will make sure someone helps you' instead of 'I will escalate this'\n"
+            "  - 'Let me connect you with our team' instead of 'Let me transfer you'\n"
+            "For complaints: ALWAYS empathize first ('I am sorry to hear that', "
+            "'That is not the experience we want for our guests'), then offer help.\n"
+            "Never jump straight to asking for details after a complaint — acknowledge the feeling first."
         )
 
         # ── Scope, handoff, and known context ────────────────────────────────
@@ -2173,6 +2248,18 @@ class LLMOrchestrationService:
             '  },\n'
             '  "metadata": {"context_switched": false}\n'
             "}"
+        )
+
+        # ── FORM-FLOW ACTION RULE ────────────────────────────────────────────
+        lines.append(
+            "\n=== FORM-FLOW ACTION RULE ===\n"
+            "CRITICAL: When the guest has confirmed their choice and you are ready for them to fill in "
+            "booking/order details, you MUST set action='collect_info' and state='awaiting_info'. "
+            "List all uncollected required slots in missing_fields.\n"
+            "Do NOT use action='respond_only' if your response text directs the guest to fill in a form "
+            "or provide their details. The form will only appear when action='collect_info'.\n"
+            "If you say 'please fill in the details below' but set action='respond_only', the form will NOT "
+            "appear and the guest will be confused."
         )
 
         return "\n".join(lines)
@@ -2395,38 +2482,27 @@ class LLMOrchestrationService:
             and known_property_scope_count > 1
             and "=== PROPERTY:" not in str(extracted_knowledge or "")
         )
-        # Get full KB text for fallback when no extracted knowledge exists, or when
-        # a legacy flat service KB needs the runtime property-scoped hotel context.
-        full_kb_text = ""
-        if not extracted_knowledge or needs_property_scoped_kb_support:
-            from services.config_service import config_service as _cs
-            raw_full_kb_text = _cs.get_full_kb_text_with_sources(
-                max_chars=40_000,
-                max_sources=200,
-            ) or ""
-            prepared_kb = await self._prepare_full_kb_context_for_message(
-                user_message=user_message,
-                context=context,
-                full_kb_text=raw_full_kb_text,
-            )
-            full_kb_text = str((prepared_kb or {}).get("full_kb_text") or "").strip()
+        # Service agent uses ONLY its own extracted_knowledge — no full-KB fallback.
+        # The per-file extraction pipeline ensures extracted_knowledge is complete
+        # with per-property headers. No runtime chunk scanning needed.
+        full_kb_text = ""  # kept for backward compat with _build_service_system_prompt
 
         # Prefer LLM-generated prompt if available; append KB knowledge so the
         # agent always has access to its data even when using the generated prompt.
         _generated_prompt = str(service.get("generated_system_prompt") or "").strip()
         if _generated_prompt:
-            kb_parts: list[str] = []
-            if str(extracted_knowledge or "").strip():
-                kb_parts.append(str(extracted_knowledge or "").strip())
-            if str(full_kb_text or "").strip():
-                kb_parts.append("=== PROPERTY-SCOPED HOTEL KNOWLEDGE ===\n" + str(full_kb_text or "").strip())
-            kb_section = "\n\n".join(part for part in kb_parts if part).strip()
+            kb_section = str(extracted_knowledge or "").strip()
             if kb_section:
                 system_prompt = _generated_prompt + "\n\n=== KNOWLEDGE BASE ===\n" + kb_section
             else:
                 system_prompt = _generated_prompt
             system_prompt = (
                 f"{system_prompt}\n\n"
+                "=== COMPLETENESS RULE ===\n"
+                "When the guest asks about rooms, options, packages, amenities, services, or any list of offerings:\n"
+                "- List ALL items from the knowledge base — never summarize, skip, or show only a partial list.\n"
+                "- Include ALL details for each item (price, description, features, capacity, etc.) as given in the KB.\n"
+                "- Do NOT say 'and more' or 'among others' — be exhaustive.\n\n"
                 f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action, current_phase_id=selected_phase_id)}"
             )
         else:
@@ -2854,7 +2930,7 @@ class LLMOrchestrationService:
                     "phase_name": str(row.get("phase_name") or self._phase_label(phase_id, capabilities_summary)).strip(),
                     "description": str(row.get("description") or "").strip(),
                     "profile": str(row.get("profile") or "").strip(),
-                    "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:2500],
+                    "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                     "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                     "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 }
@@ -2870,7 +2946,7 @@ class LLMOrchestrationService:
                 "phase_id": self._normalize_identifier(row.get("phase_id")),
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "knowledge_facts": row.get("knowledge_facts") or [],
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:5000],
+                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                 "profile": str(row.get("profile") or "").strip(),
                 "required_slots": row.get("required_slots") or [],
             }
@@ -2885,7 +2961,7 @@ class LLMOrchestrationService:
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "description": str(row.get("description") or "").strip(),
                 "profile": str(row.get("profile") or "").strip(),
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip()[:2500],
+                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                 "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                 "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 "availability_hint": self._phase_transition_timing_hint(
@@ -2979,63 +3055,10 @@ class LLMOrchestrationService:
             "requires_clarification": bool(property_scope.get("requires_clarification")),
             "clarification_question": str(property_scope.get("clarification_question") or "").strip(),
         }
-        if property_scope_payload["requires_clarification"] and not str(context.pending_action or "").strip():
-            clarification_text = (
-                property_scope_payload["clarification_question"]
-                or "Which property would you like details for?"
-            )
-            clarification_decision = OrchestrationDecision(
-                normalized_query=str(user_message or "").strip(),
-                intent="property_clarification",
-                confidence=0.99,
-                action="respond_only",
-                response_text=clarification_text,
-                pending_data_updates={},
-                answered_current_query=False,
-                followup_question=clarification_text,
-                suggested_actions=[
-                    str(row.get("name") or "").strip()
-                    for row in property_scope_payload["detected_properties"][:4]
-                    if str(row.get("name") or "").strip()
-                ],
-                metadata={
-                    "source": "property_scope_guard",
-                    "orchestration_trace_id": orchestration_trace_id,
-                    "property_scope": property_scope_payload,
-                },
-            )
-            clarification_result = await self._ensure_suggested_actions(
-                user_message=user_message,
-                context=context,
-                decision=clarification_decision,
-                selected_phase_id=selected_phase_id,
-                selected_phase_name=selected_phase_name,
-                target_service=None,
-            )
-            _log_decision({
-                "ts": datetime.now(UTC).isoformat(),
-                "trace_id": orchestration_trace_id,
-                "session_id": str(getattr(context, "session_id", "")),
-                "phase": {"id": selected_phase_id, "name": selected_phase_name},
-                "user_message": user_message,
-                "routing": {
-                    "orchestrator_action": "respond_only",
-                    "orchestrator_service_id": "",
-                    "clarification_protected": True,
-                    "final_action": str((clarification_result.action or "") if clarification_result else ""),
-                    "final_service_id": "",
-                    "prompt_source": "property_scope_guard",
-                    "service_resolution_source": "none",
-                    "early_return_reason": "property_scope_clarification_required",
-                },
-                "response_text": str((clarification_result.response_text or "")[:500]) if clarification_result else clarification_text,
-                "intent": str((clarification_result.intent or "")) if clarification_result else "property_clarification",
-                "missing_fields": [],
-                "context_switched": False,
-                "answer_first_guard_skipped": True,
-                "pending_action_at_start": str(context.pending_action or ""),
-            })
-            return clarification_result
+        # Property clarification is now fully LLM-driven.
+        # The orchestrator system prompt contains property resolution rules and
+        # receives property_scope in the payload — it decides when to ask for
+        # clarification vs answer from the full KB. No hardcoded guard needed.
         _now = datetime.now(UTC)
         payload = {
             "trace_id": orchestration_trace_id,
@@ -3120,6 +3143,8 @@ class LLMOrchestrationService:
                 "resume_pending": "bool",
                 "cancel_pending": "bool",
                 "requires_human_handoff": "bool",
+                "selected_property_name": "name of the property the guest is currently discussing, or empty if general/unknown",
+                "selected_property_ids": ["property id(s) the guest is interested in — from detected_properties list"],
                 "ticket": {
                     "required": "bool",
                     "ready_to_create": "bool",
@@ -3174,15 +3199,43 @@ class LLMOrchestrationService:
             "If the answer exists anywhere in full_knowledge_base, use those specific facts directly.\n"
             "Do not give a generic fallback if full_knowledge_base already contains the needed detail.\n"
             "Prefer complete factual answers over generic summaries. If the KB lists options or specific offerings, name them explicitly.\n"
+            "COMPLETENESS: When listing rooms, packages, amenities, or any offerings — list ALL of them from the KB. "
+            "Never show a partial list. If the KB has 5 room types, list all 5 with their details. "
+            "Do NOT say 'and more' or summarize — be exhaustive.\n"
             "\n"
-            "=== PROPERTY RESOLUTION ===\n"
-            "The payload includes property_scope whenever the tenant KB contains multiple real properties/locations.\n"
-            "Read property_scope BEFORE answering.\n"
-            "If property_scope.requires_clarification is true, ask ONLY the clarification_question from property_scope and do not provide property-specific facts yet.\n"
-            "If property_scope.active_property_name is set, treat that as the selected property and answer only from that property's scoped KB plus shared/common knowledge.\n"
-            "If property_scope.mode is compare, compare only the listed properties in property_scope and never mix facts across them.\n"
-            "If property_scope.mode is listing, answer from the property manifest and shared/common knowledge.\n"
-            "Never silently pick one property when multiple properties exist and the guest has not made the target property clear.\n"
+            "=== PROPERTY RESOLUTION (YOU decide — no hardcoded rules) ===\n"
+            "The payload includes property_scope with detected_properties (the list of all properties in the KB).\n"
+            "Read property_scope AND conversation history BEFORE deciding.\n"
+            "\n"
+            "CRITICAL — ALWAYS OUTPUT PROPERTY TRACKING:\n"
+            "  In EVERY response, set these two fields in your JSON output:\n"
+            "  - selected_property_name: the property name the guest is currently interested in (empty string if general/unknown)\n"
+            "  - selected_property_ids: array of property IDs the guest is interested in (from detected_properties list, empty array if general/unknown)\n"
+            "  This is how the system remembers which property the guest is discussing across turns.\n"
+            "  If the guest switches property ('actually I want Shimla'), update these fields immediately.\n"
+            "  If the guest is comparing properties ('compare Manali and Shimla'), include ALL relevant property IDs.\n"
+            "\n"
+            "WHEN TO ASK which property:\n"
+            "  - ONLY when the guest asks a property-specific question (check-in time, room types, amenities, pricing, booking) "
+            "AND you genuinely cannot determine which property from conversation history or the current message.\n"
+            "  - If the guest already mentioned or selected a property earlier in the conversation, use that — do NOT re-ask.\n"
+            "  - If property_scope.active_property_name is set, that is the selected property — use it.\n"
+            "\n"
+            "WHEN TO ANSWER WITHOUT ASKING which property:\n"
+            "  - General/comparative questions: 'which is best for couples', 'recommend a location', 'top 5 for adventure', "
+            "'how many properties', 'list all', 'compare', 'suggest', 'plan a trip', 'budget options' → answer from ALL properties.\n"
+            "  - Exploratory/planning questions: 'I want to travel', 'where should I go', 'family trip' → recommend from full KB.\n"
+            "  - Greetings, chit-chat, general hotel questions → answer directly.\n"
+            "  - ANY question where the KB gives a clear answer across properties → answer it.\n"
+            "\n"
+            "PROPERTY SWITCHING:\n"
+            "  - If the guest says 'actually I want Shimla' or 'let me try Mumbai instead', treat this as a property switch.\n"
+            "  - Acknowledge the switch naturally and start answering from the new property's KB.\n"
+            "  - Update selected_property_name and selected_property_ids to the new property.\n"
+            "\n"
+            "NEVER ask for property clarification twice in a row. If the last assistant message already asked, "
+            "try to answer from whatever context you have or ask a different clarifying question.\n"
+            "NEVER ask 'Which property would you like details for?' as a robotic default — phrase it naturally based on what the guest asked.\n"
             "\n"
             "=== STEP 1: READ HISTORY ===\n"
             "Always read history_last_10 first, then full_history_context before deciding anything. "
@@ -3267,6 +3320,13 @@ class LLMOrchestrationService:
             "Use only provided policy + knowledge data. Never invent prices, timings, availability, or capabilities.\n"
             "If the guest asks for weather details, provide the weather of the area the hotel is located in.\n"
             "\n"
+            "=== TONE & LANGUAGE ===\n"
+            "You are speaking to a hotel guest. Use warm, natural, human language.\n"
+            "NEVER use: 'escalate', 'ticket', 'reference number', 'ticket ID', 'logged', 'automated ticketing', 'system issue'.\n"
+            "INSTEAD use: 'I have noted this', 'our team will look into this', 'let me connect you with our team'.\n"
+            "For complaints: empathize first, then offer help. Never jump to data collection after a complaint.\n"
+            "For requests to speak with staff: offer contact info or say someone will reach out — do not use internal process language.\n"
+            "\n"
             "=== OUTPUT ===\n"
             "Return strict JSON only."
         )
@@ -3307,6 +3367,22 @@ class LLMOrchestrationService:
         decision.metadata.setdefault("source", "orchestrator")
         decision.metadata.setdefault("orchestration_trace_id", orchestration_trace_id)
         decision = self._apply_answer_priority_fields(decision)
+
+        # ── Persist LLM-determined property scope into conversation state ──
+        # The orchestrator now returns selected_property_name / selected_property_ids
+        # in its JSON response. Store these in pending_data so the service agent
+        # can use them for KB scoping on this turn AND subsequent turns.
+        _llm_prop_name = str(decision.selected_property_name or "").strip()
+        _llm_prop_ids = [pid for pid in (decision.selected_property_ids or []) if str(pid).strip()]
+        if not isinstance(context.pending_data, dict):
+            context.pending_data = {}
+        if _llm_prop_name:
+            context.pending_data["_selected_property_scope_name"] = _llm_prop_name
+        if _llm_prop_ids:
+            context.pending_data["_selected_property_scope_ids"] = _llm_prop_ids
+            # For backward compat with single-property flows
+            if len(_llm_prop_ids) == 1:
+                context.pending_data["_selected_property_scope_id"] = _llm_prop_ids[0]
 
         if decision.action in {"resume_pending", "cancel_pending"}:
             return await self._ensure_suggested_actions(

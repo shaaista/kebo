@@ -520,9 +520,11 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     orchestration = meta.get("orchestration_decision") or meta.get("decision") or {}
     if isinstance(orchestration, dict):
         action = str(orchestration.get("action") or "").strip().lower()
-        if action == "respond_only":
-            print(f"[form_trigger] SKIP: action=respond_only", file=_sys.stderr, flush=True)
+        if action == "respond_only" and not message_collection_hint:
+            print(f"[form_trigger] SKIP: action=respond_only (no form hint in message)", file=_sys.stderr, flush=True)
             return
+        if action == "respond_only" and message_collection_hint:
+            print(f"[form_trigger] OVERRIDE: action=respond_only but message says fill form, proceeding", file=_sys.stderr, flush=True)
         target_service_id = str(orchestration.get("target_service_id") or "").strip()
 
     if not target_service_id:

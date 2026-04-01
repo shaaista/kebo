@@ -67,6 +67,8 @@ class OrchestrationDecision(BaseModel):
     resume_pending: bool = False
     cancel_pending: bool = False
     requires_human_handoff: bool = False
+    selected_property_name: str = ""
+    selected_property_ids: list[str] = Field(default_factory=list)
     ticket: TicketDecision = Field(default_factory=TicketDecision)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -135,6 +137,20 @@ class OrchestrationDecision(BaseModel):
             if len(result) >= 6:
                 break
         return result
+
+    @field_validator("selected_property_name", mode="before")
+    @classmethod
+    def _normalize_selected_property_name(cls, value: Any) -> str:
+        return str(value or "").strip()
+
+    @field_validator("selected_property_ids", mode="before")
+    @classmethod
+    def _normalize_selected_property_ids(cls, value: Any) -> list[str]:
+        if isinstance(value, str) and value.strip():
+            return [value.strip()]
+        if not isinstance(value, list):
+            return []
+        return [str(v).strip() for v in value if str(v).strip()][:12]
 
     @field_validator("action", mode="before")
     @classmethod

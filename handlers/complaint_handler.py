@@ -129,6 +129,14 @@ class ComplaintHandler(BaseHandler):
                 db_session,
             )
 
+        # ── Smart routing: direct contact-info requests ──────────────────────
+        if self._is_human_contact_request(msg_lower):
+            return self._handle_human_contact_request()
+
+        # ── Empathy-first: emotional complaints ──────────────────────────────
+        if self._is_emotional_complaint(msg_lower):
+            return self._handle_emotional_complaint(msg, context)
+
         return await self._start_ticket_creation_flow(
             msg,
             intent_result,
@@ -154,8 +162,8 @@ class ComplaintHandler(BaseHandler):
         if len(issue) < 5:
             return HandlerResult(
                 response_text=(
-                    "I can help raise this with our team. Could you share a little more detail "
-                    "about the issue so I can create an accurate ticket?"
+                    "I'd like to help with this. Could you share a little more detail "
+                    "about what happened so I can make sure the right team assists you?"
                 ),
                 next_state=ConversationState.AWAITING_INFO,
                 pending_action="collect_ticket_issue_details",
@@ -355,24 +363,24 @@ class ComplaintHandler(BaseHandler):
         if self._is_no(intent_result, message):
             return HandlerResult(
                 response_text=(
-                    "Understood, I won't create a ticket now. "
-                    "If you want, I can still connect you to a team member."
+                    "No problem at all. "
+                    "If you'd like, I can still connect you with someone from our team."
                 ),
                 next_state=ConversationState.IDLE,
                 pending_action=None,
                 pending_data={},
-                suggested_actions=["Talk to human", "Need help", "Ask another question"],
+                suggested_actions=["Speak with someone", "Need help", "Ask another question"],
             )
 
         is_yes = self._is_yes(intent_result, message)
         if is_yes and self._should_stale_reconfirm(context):
             pending = context.pending_data if isinstance(context.pending_data, dict) else {}
             return HandlerResult(
-                response_text=self._build_stale_reconfirm_prompt(pending, flow_label="ticket"),
+                response_text=self._build_stale_reconfirm_prompt(pending, flow_label="request"),
                 next_state=ConversationState.AWAITING_CONFIRMATION,
                 pending_action="confirm_ticket_creation",
                 pending_data=pending,
-                suggested_actions=["Yes, create ticket", "No, cancel"],
+                suggested_actions=["Yes, go ahead", "No, cancel"],
                 metadata={"ticket_stale_reconfirm": True},
             )
 
@@ -388,11 +396,11 @@ class ComplaintHandler(BaseHandler):
                     db_session,
                 )
             return HandlerResult(
-                response_text="Please reply 'Yes' to create the ticket, or 'No' to cancel.",
+                response_text="Would you like me to go ahead and raise this with our team? Just say Yes or No.",
                 next_state=ConversationState.AWAITING_CONFIRMATION,
                 pending_action="confirm_ticket_creation",
                 pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
-                suggested_actions=["Yes, create ticket", "No, cancel"],
+                suggested_actions=["Yes, go ahead", "No, cancel"],
             )
 
         if not ticketing_service.is_ticketing_enabled(capabilities):
@@ -417,13 +425,13 @@ class ComplaintHandler(BaseHandler):
         if self._is_no(intent_result, message):
             return HandlerResult(
                 response_text=(
-                    "Understood. Your ticket is logged and our team will act on it shortly. "
-                    "You can ask me anything else meanwhile."
+                    "Understood. Our team has been notified and will follow up shortly. "
+                    "You can ask me anything else in the meantime."
                 ),
                 next_state=ConversationState.IDLE,
                 pending_action=None,
                 pending_data={},
-                suggested_actions=["Ask another question", "Ticket status", "Need help"],
+                suggested_actions=["Ask another question", "Check status", "Need help"],
             )
 
         is_yes = self._is_yes(intent_result, message)
@@ -457,8 +465,8 @@ class ComplaintHandler(BaseHandler):
         if not ticketing_service.is_handoff_enabled(capabilities):
             return HandlerResult(
                 response_text=(
-                    "I have marked this for urgent human follow-up. "
-                    "A team member will reach out shortly."
+                    "I've made sure this is flagged as urgent. "
+                    "Someone from our team will reach out to you shortly."
                 ),
                 next_state=ConversationState.ESCALATED,
                 pending_action=None,
@@ -505,8 +513,8 @@ class ComplaintHandler(BaseHandler):
         if handoff_result.success:
             return HandlerResult(
                 response_text=(
-                    "Done. I have connected your case to a human agent now. "
-                    "Someone from our team will join shortly."
+                    "You're now connected with our team. "
+                    "Someone will be with you shortly."
                 ),
                 next_state=ConversationState.ESCALATED,
                 pending_action=None,
@@ -523,8 +531,8 @@ class ComplaintHandler(BaseHandler):
 
         return HandlerResult(
             response_text=(
-                "I couldn't complete live handoff right now, but your ticket is marked for priority follow-up. "
-                "Our team will contact you shortly."
+                "I wasn't able to connect you right now, but I've made sure this is marked as a priority. "
+                "Our team will get back to you shortly."
             ),
             next_state=ConversationState.ESCALATED,
             pending_action=None,
@@ -569,13 +577,13 @@ class ComplaintHandler(BaseHandler):
         if not ticket_id:
             return HandlerResult(
                 response_text=(
-                    "I couldn't find an active ticket in this chat yet. "
-                    "Would you like me to create a new complaint ticket first?"
+                    "I don't see any open requests from this conversation yet. "
+                    "Would you like me to raise a new one for you?"
                 ),
                 next_state=ConversationState.IDLE,
                 pending_action=None,
                 pending_data={},
-                suggested_actions=["Create ticket", "Talk to human", "Cancel"],
+                suggested_actions=["Yes, raise it", "Speak with someone", "Cancel"],
             )
 
         window_check = self._check_ticket_update_window(
@@ -1411,14 +1419,14 @@ class ComplaintHandler(BaseHandler):
 
         return HandlerResult(
             response_text=(
-                "I can create a support ticket with these details:\n\n"
+                "I have the following details to share with our team:\n\n"
                 f"{details_text}\n\n"
-                "Should I create this ticket now?"
+                "Shall I go ahead and raise this?"
             ),
             next_state=ConversationState.AWAITING_CONFIRMATION,
             pending_action="confirm_ticket_creation",
             pending_data=pending_data,
-            suggested_actions=["Yes, create ticket", "No, cancel"],
+            suggested_actions=["Yes, go ahead", "No, cancel"],
             metadata={"room_number": room_number} if room_number else {},
         )
 
@@ -1448,7 +1456,7 @@ class ComplaintHandler(BaseHandler):
                 "Certainly. Please share your room number so I can route this to the right team immediately."
             )
         return (
-            "I'm sorry this happened. Please share your room number so I can escalate this to the right team immediately."
+            "I'm sorry this happened. Could you share your room number so I can get this to the right team right away?"
         )
 
     @staticmethod
@@ -1609,8 +1617,7 @@ class ComplaintHandler(BaseHandler):
             logger.warning("Ticket create failed: %s", create_result.error)
             return HandlerResult(
                 response_text=(
-                    "I couldn't create the support ticket right now due to a system issue. "
-                    "I can still connect you with our team immediately."
+                    "I wasn't able to process this right now, but I can connect you with our team directly."
                 ),
                 next_state=ConversationState.ESCALATED,
                 pending_action=None,
@@ -1636,7 +1643,7 @@ class ComplaintHandler(BaseHandler):
             next_state=ConversationState.IDLE,
             pending_action=None,
             pending_data={},
-            suggested_actions=["Need help", "Ticket status", "Ask another question"],
+            suggested_actions=["Need help", "Check status", "Ask another question"],
             metadata={
                 "ticket_created": True,
                 "ticket_id": ticket_id,
@@ -1979,7 +1986,7 @@ class ComplaintHandler(BaseHandler):
         )
         return HandlerResult(
             response_text=(
-                "I've captured your complaint, but automated ticketing is currently unavailable. "
+                "I've noted your concern. "
                 f"{escalation_message}"
             ),
             next_state=ConversationState.ESCALATED,
@@ -2012,6 +2019,90 @@ class ComplaintHandler(BaseHandler):
             pending_action=None,
             pending_data={},
             suggested_actions=["Need help", "Ask another question"],
+        )
+
+    # ── Smart routing helpers ────────────────────────────────────────────────
+
+    @staticmethod
+    def _is_human_contact_request(msg_lower: str) -> bool:
+        """Detect when the user just wants to talk to a human / get contact info."""
+        patterns = (
+            "talk to staff", "speak to staff", "talk to someone", "speak to someone",
+            "speak with someone", "talk to a person", "speak to a person",
+            "talk to a human", "speak to a human", "connect me with",
+            "want to talk to", "want to speak to", "can i call",
+            "give me the number", "phone number please", "contact number",
+            "website is down", "website not working", "site is down",
+            "call the hotel", "call your hotel", "call reception",
+            "i want to call", "how can i reach", "how do i contact",
+        )
+        return any(p in msg_lower for p in patterns)
+
+    def _handle_human_contact_request(self) -> HandlerResult:
+        """Provide hotel contact details directly instead of creating a ticket."""
+        contact = config_service.get_escalation_config()
+        phone = str(contact.get("phone") or contact.get("escalation_phone") or "").strip()
+        email = str(contact.get("email") or contact.get("escalation_email") or "").strip()
+
+        contact_lines = []
+        if phone:
+            contact_lines.append(f"- Phone: {phone}")
+        if email:
+            contact_lines.append(f"- Email: {email}")
+
+        if contact_lines:
+            contact_text = "\n".join(contact_lines)
+            response = (
+                "Of course! You can reach our team directly:\n"
+                f"{contact_text}\n\n"
+                "They'll be happy to help you. Is there anything else I can assist with?"
+            )
+        else:
+            response = (
+                "I'd be happy to connect you with our team. "
+                "Let me have someone reach out to you shortly. "
+                "Is there anything else I can help with in the meantime?"
+            )
+        return HandlerResult(
+            response_text=response,
+            next_state=ConversationState.IDLE,
+            pending_action=None,
+            pending_data={},
+            suggested_actions=["Ask another question", "Need help"],
+        )
+
+    @staticmethod
+    def _is_emotional_complaint(msg_lower: str) -> bool:
+        """Detect emotionally charged complaints that need empathy before action."""
+        patterns = (
+            "rude", "disrespectful", "unprofessional", "yelled", "shouted",
+            "insulted", "worst experience", "terrible experience", "horrible experience",
+            "disgusting", "never coming back", "never visit again",
+            "worst hotel", "worst staff", "so rude", "very rude",
+            "treated badly", "treated poorly", "mistreated",
+            "discriminat", "harass", "threatened",
+        )
+        return any(p in msg_lower for p in patterns)
+
+    def _handle_emotional_complaint(self, message: str, context: ConversationContext) -> HandlerResult:
+        """Lead with empathy for emotional complaints, then offer follow-up."""
+        return HandlerResult(
+            response_text=(
+                "I'm truly sorry to hear about your experience. "
+                "That is absolutely not the standard we hold ourselves to, and I understand how frustrating this must be.\n\n"
+                "Would you like me to have our manager follow up with you personally about this?"
+            ),
+            next_state=ConversationState.AWAITING_CONFIRMATION,
+            pending_action="confirm_ticket_creation",
+            pending_data={
+                "issue": message,
+                "message": message,
+                "category": "complaint",
+                "sub_category": "",
+                "priority": "high",
+                "room_number": context.room_number or "",
+            },
+            suggested_actions=["Yes, please", "No, that's okay"],
         )
 
     @staticmethod

@@ -108,8 +108,8 @@ class Settings(BaseSettings):
     full_kb_llm_passthrough_mode: bool = False
     full_kb_llm_chunk_scan_enabled: bool = True
     full_kb_llm_chunk_chars: int = 18000
-    full_kb_llm_chunk_max_chunks: int = 24
-    full_kb_llm_chunk_result_chars: int = 32000
+    full_kb_llm_chunk_max_chunks: int = 100
+    full_kb_llm_chunk_result_chars: int = 64000
     full_kb_llm_pre_shortcuts_enabled: bool = False
     chat_llm_preprocess_enabled: bool = True
     chat_llm_preprocess_model: str = ""

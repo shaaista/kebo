@@ -813,6 +813,30 @@ async def reindex_rag(data: RAGReindexRequest, request: Request):
         except Exception:
             pass
 
+        # ── Enrich service KB + regenerate prompts after reindex ──
+        try:
+            await config_service.enrich_service_kb_records(published_by="system")
+            report["kb_enrichment"] = "ok"
+        except Exception as _enrich_err:
+            report["kb_enrichment_warning"] = str(_enrich_err)
+        try:
+            services = config_service.get_services()
+            _regen_count = 0
+            for svc in (services or []):
+                svc_id = str(svc.get("id") or "").strip()
+                if not svc_id:
+                    continue
+                kb_record = config_service.get_service_kb_record(service_id=svc_id)
+                if isinstance(kb_record, dict):
+                    svc["extracted_knowledge"] = str(kb_record.get("extracted_knowledge") or "").strip()
+                prompt = await generate_service_system_prompt(svc)
+                if prompt:
+                    await db_config_service.save_generated_prompt(svc_id, prompt)
+                    _regen_count += 1
+            report["prompts_regenerated"] = _regen_count
+        except Exception as _prompt_err:
+            report["prompt_regen_warning"] = str(_prompt_err)
+
         return report
     finally:
         db_config_service.reset_hotel_context(scope_token)
@@ -947,10 +971,34 @@ async def upload_rag_files(
         except Exception:
             pass
 
-        # Trigger service knowledge refresh after KB upload (non-blocking).
+        # Trigger service knowledge refresh + prompt regeneration after KB upload.
         # This must never fail the upload response path.
+        async def _refresh_kb_and_prompts():
+            try:
+                await config_service.enrich_service_kb_records(published_by="system")
+            except Exception as _enrich_err:
+                _safe_print(f"[KB] Service-KB refresh failed (non-fatal): {_enrich_err}")
+            # Regenerate system prompts for all services so they use updated KB
+            try:
+                services = config_service.get_services()
+                for svc in services:
+                    if not isinstance(svc, dict) or not bool(svc.get("is_active", True)):
+                        continue
+                    svc_id = str(svc.get("id") or "").strip()
+                    if not svc_id:
+                        continue
+                    # Get the latest extracted_knowledge for the service
+                    kb_record = config_service.get_service_kb_record(service_id=svc_id)
+                    if isinstance(kb_record, dict):
+                        svc["extracted_knowledge"] = str(kb_record.get("extracted_knowledge") or "").strip()
+                    prompt = await generate_service_system_prompt(svc)
+                    if prompt:
+                        await db_config_service.save_generated_prompt(svc_id, prompt)
+                        _safe_print(f"[KB] Regenerated system prompt for service '{svc_id}'")
+            except Exception as _prompt_err:
+                _safe_print(f"[KB] Prompt regeneration failed (non-fatal): {_prompt_err}")
         try:
-            asyncio.create_task(config_service.enrich_service_kb_records(published_by="system"))
+            asyncio.create_task(_refresh_kb_and_prompts())
         except Exception as enrich_schedule_error:
             _safe_print(f"[KB] Service-KB refresh scheduling failed (non-fatal): {enrich_schedule_error}")
 
@@ -1977,6 +2025,7 @@ def _load_kb_text_for_extraction(max_sources: int = 500) -> str:
     """
     Load full KB text from configured source files for extraction.
     Preserves all files and avoids dropping previous raw blocks.
+    Falls back to DB when disk files are unavailable (e.g. Docker).
     """
     source_paths = config_service._resolve_knowledge_source_paths(max_sources=max_sources)
     blocks: list[str] = []
@@ -2006,6 +2055,38 @@ def _load_kb_text_for_extraction(max_sources: int = 500) -> str:
             continue
 
         blocks.append(f"=== SOURCE: {path.name} ===\n{raw.strip()}")
+
+    # DB fallback: if no disk files found, load from database
+    if not blocks:
+        try:
+            hotel_code = db_config_service.get_current_hotel_code()
+            db_docs = config_service._load_kb_documents_from_db_sync(hotel_code)
+            if db_docs:
+                _pull_kb_log(f"[DB-FALLBACK] Disk empty, loaded {len(db_docs)} KB doc(s) from DB for {hotel_code}")
+                for doc in db_docs[:max_sources]:
+                    raw = str(doc.get("content") or "").strip()
+                    source_name = str(doc.get("source_name") or "kb_source").strip()
+                    if not raw:
+                        continue
+
+                    editable = _extract_editable_sections(raw)
+                    if editable:
+                        section_lines = [f"=== SOURCE: {source_name} (db) ==="]
+                        for key, value in editable.items():
+                            value_text = _stringify_kb_value(value)
+                            if not value_text:
+                                continue
+                            section_name = str(key or "").strip() or "section"
+                            section_lines.append(f"=== {section_name} ===")
+                            section_lines.append(value_text)
+                        block = "\n".join(section_lines).strip()
+                        if block:
+                            blocks.append(block)
+                        continue
+
+                    blocks.append(f"=== SOURCE: {source_name} (db) ===\n{raw.strip()}")
+        except Exception as e:
+            _pull_kb_log(f"[DB-FALLBACK] _load_kb_text_for_extraction DB fallback failed: {e}")
 
     return "\n\n".join(blocks).strip()
 
@@ -2366,8 +2447,8 @@ async def _preview_extract_service_kb_impl(payload: dict, request: Request):
             service_description=service_description,
             existing_menu_facts=existing_menu_facts,
             max_sources=50,
-            max_scope_chars=max(32000, min(len(kb_text) or 90000, 120000)),
-            max_properties=8,
+            max_scope_chars=max(32000, min(len(kb_text) or 90000, 200000)),
+            max_properties=50,
         )
         scoped_extracted = str((scoped_result or {}).get("extracted_knowledge") or "").strip()
         _pull_kb_log(
@@ -2454,7 +2535,7 @@ async def _preview_extract_service_kb_impl(payload: dict, request: Request):
                     {"role": "user", "content": user_prompt},
                 ],
                 temperature=0.0,
-                max_tokens=4000,
+                max_tokens=8192,
                 trace_context={"actor": "pull_from_kb", "service_name": service_name, "chunk": idx},
             )
             extracted_chunk = str(result or "").strip()

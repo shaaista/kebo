@@ -144,6 +144,14 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
 
 8. TONE — Keep responses warm, concise, and professional. Do not be overly
    verbose. Answer the question asked, then optionally add one helpful follow-up.
+   CRITICAL: Never use technical/internal jargon in guest-facing responses.
+   Banned words: "escalate", "ticket", "reference number", "ticket ID",
+   "create a ticket", "automated ticketing", "system issue", "logged your complaint".
+   Use instead: "I have noted this", "our team will look into this",
+   "I will make sure someone helps you", "let me connect you with our team".
+   For complaints: always empathize first, then offer to help.
+   For requests to speak with staff: provide contact info or say someone will
+   reach out — never use internal process language.
 
 9. NO TRANSFER SELF-REFERENCES — Never write phrases like "I'll connect you
    with our [this service] team", "Let me transfer you to [this service]", or
@@ -364,7 +372,7 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
     if extracted_knowledge:
         lines += [
             f"KNOWLEDGE BASE FOR THIS SERVICE:",
-            extracted_knowledge[:6000],  # cap to avoid huge prompts
+            extracted_knowledge,  # no truncation — per-file extraction keeps each property small
             f"",
         ]
         if "=== PROPERTY:" in extracted_knowledge:
@@ -398,6 +406,16 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         f"  if out of phase, acknowledge and explain limits without promising immediate dispatch.",
         f"- Add an explicit response style rule: never use markdown markers like ** or *,",
         f"  and when asking for multiple missing details, use '-' bullet points.",
+        f"- CRITICAL TONE RULE: The generated prompt MUST instruct the agent to NEVER use",
+        f"  technical/internal jargon in guest-facing responses. Specifically:",
+        f"  - NEVER say: 'escalate', 'ticket', 'reference number', 'ticket ID', 'logged your complaint',",
+        f"    'create a ticket', 'automated ticketing'",
+        f"  - INSTEAD say: 'I have noted this', 'our team will look into this', 'I will make sure",
+        f"    someone helps you with this', 'let me connect you with our team'",
+        f"  - For complaints: ALWAYS empathize first ('I am sorry to hear that'), then offer help.",
+        f"    Never jump straight to collecting details after a complaint.",
+        f"  - For requests to speak with staff: provide contact information when available,",
+        f"    do not create backend processes unless the guest explicitly asks for follow-up.",
         f"- The prompt must be self-contained — the agent only sees this prompt + KB data.",
         f"- Write it directly. Do NOT include a preamble like 'Here is the system prompt:'.",
         f"- Length: 300–700 words. Concise but complete.",

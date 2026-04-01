@@ -2794,7 +2794,13 @@ class ChatService:
             return ConversationState.ESCALATED
         action = str(decision.action or "").strip().lower()
         pending_action = str(decision.pending_action or "").strip().lower()
-        if action == "collect_info" or pending_action.startswith("collect_") or pending_action.startswith("select_"):
+        missing_fields = getattr(decision, "missing_fields", None) or []
+        if (
+            action == "collect_info"
+            or pending_action.startswith("collect_")
+            or pending_action.startswith("select_")
+            or (action == "respond_only" and bool(missing_fields))
+        ):
             return ConversationState.AWAITING_INFO
         if pending_action.startswith("confirm_"):
             return ConversationState.AWAITING_CONFIRMATION
