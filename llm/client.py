@@ -536,6 +536,7 @@ class LLMClient:
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         trace_context: Optional[dict[str, Any]] = None,
+        max_tokens: Optional[int] = None,
     ) -> dict:
         """
         Send chat request expecting JSON response.
@@ -552,13 +553,14 @@ class LLMClient:
         input_snapshot = self._extract_message_inputs(request_messages)
         request_model = model or self.model
         request_temperature = temperature if temperature is not None else self.temperature
+        request_max_tokens = max_tokens or self.max_tokens
         user_query = self._extract_user_query(request_messages)
         try:
             response = await self.client.chat.completions.create(
                 model=request_model,
                 messages=request_messages,
                 temperature=request_temperature,
-                max_tokens=self.max_tokens,
+                max_tokens=request_max_tokens,
                 response_format={"type": "json_object"},
             )
             content = response.choices[0].message.content or "{}"

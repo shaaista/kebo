@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     openai_embedding_model: str = "text-embedding-3-small"
 
     # LLM Settings
-    llm_max_tokens: int = 2000
+    llm_max_tokens: int = 4096
     llm_temperature: float = 0.7
     llm_timeout: int = 30
     llm_history_max_messages: int = 0

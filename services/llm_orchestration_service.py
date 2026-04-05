@@ -423,23 +423,23 @@ class LLMOrchestrationService:
         return ""
 
     def _sanitize_json(self, value: Any, depth: int = 0) -> Any:
-        if depth > 5:
-            return str(value)[:400]
+        if depth > 8:
+            return str(value)[:8000]
         if value is None:
             return None
         if isinstance(value, (bool, int, float)):
             return value
         if isinstance(value, str):
-            return value[:1200]
+            return value[:16000]
         if isinstance(value, list):
-            return [self._sanitize_json(item, depth + 1) for item in value[:60]]
+            return [self._sanitize_json(item, depth + 1) for item in value[:120]]
         if isinstance(value, dict):
             normalized: dict[str, Any] = {}
-            for raw_key, raw_value in list(value.items())[:80]:
-                key = str(raw_key)[:80]
+            for raw_key, raw_value in list(value.items())[:120]:
+                key = str(raw_key)[:200]
                 normalized[key] = self._sanitize_json(raw_value, depth + 1)
             return normalized
-        return str(value)[:1200]
+        return str(value)[:16000]
 
     @staticmethod
     def _coerce_public_pending(pending_data: Any) -> dict[str, Any]:
@@ -458,6 +458,7 @@ class LLMOrchestrationService:
         model: str | None,
         temperature: float | None,
         trace_context: dict[str, Any] | None,
+        max_tokens: int | None = None,
     ) -> dict[str, Any]:
         try:
             return await llm_client.chat_with_json(
@@ -465,11 +466,12 @@ class LLMOrchestrationService:
                 model=model,
                 temperature=temperature,
                 trace_context=trace_context,
+                max_tokens=max_tokens,
             )
         except TypeError as exc:
             # Backward compatibility for tests/mocks that still expose the older
             # chat_with_json(messages, model=None, temperature=None) signature.
-            if "trace_context" not in str(exc):
+            if "trace_context" not in str(exc) and "max_tokens" not in str(exc):
                 raise
             return await llm_client.chat_with_json(
                 messages=messages,
@@ -516,7 +518,7 @@ class LLMOrchestrationService:
             "full_history_context": {
                 "message_count_total": len(context.messages) if isinstance(context.messages, list) else 0,
                 "tail_messages": full_tail,
-                "older_context_summary": str((memory_snapshot or {}).get("summary") or "").strip()[:2400],
+                "older_context_summary": str((memory_snapshot or {}).get("summary") or "").strip()[:6000],
             },
             "last_user_message": self._last_message_by_role(context, "user"),
             "last_assistant_message": self._last_message_by_role(context, "assistant"),
@@ -754,10 +756,9 @@ class LLMOrchestrationService:
         """Filter extracted_knowledge to only the active property/properties.
 
         Priority order:
-        1. LLM-determined ``_selected_property_scope_ids`` (set by orchestrator)
-        2. Single property hint ``_selected_property_scope_name`` / ``_selected_property_scope_id``
-        3. Heuristic text-matching against conversation history
-        4. No match → return full KB (general/comparative question)
+        1. LLM-determined ``_active_property_ids`` (set by orchestrator)
+        2. Legacy ``_selected_property_scope_ids`` / ``_selected_property_scope_name``
+        3. No active properties → return full KB (all properties, no truncation)
         """
         parsed = self._parse_property_scoped_knowledge_sections(service_knowledge)
         properties = parsed.get("properties", [])
@@ -767,88 +768,46 @@ class LLMOrchestrationService:
         common = str(parsed.get("common") or "").strip()
         pending_raw = context.pending_data if isinstance(context.pending_data, dict) else {}
 
-        # ── Strategy 1: LLM-determined property IDs (supports multi-property) ──
-        llm_prop_ids = pending_raw.get("_selected_property_scope_ids") or []
-        if isinstance(llm_prop_ids, str):
-            llm_prop_ids = [llm_prop_ids]
-        llm_prop_ids = [str(pid).strip().lower() for pid in llm_prop_ids if str(pid).strip()]
+        # ── Get active property IDs from LLM state ──
+        active_ids = list(pending_raw.get("_active_property_ids") or [])
+        # Legacy fallback
+        if not active_ids:
+            legacy_ids = pending_raw.get("_selected_property_scope_ids") or []
+            if isinstance(legacy_ids, str):
+                legacy_ids = [legacy_ids]
+            active_ids = [str(pid).strip() for pid in legacy_ids if str(pid).strip()]
+        if not active_ids:
+            legacy_name = str(pending_raw.get("_selected_property_scope_name") or "").strip()
+            if legacy_name:
+                active_ids = [legacy_name]
 
-        llm_prop_name = str(pending_raw.get("_selected_property_scope_name") or "").strip().lower()
-
-        if llm_prop_ids or llm_prop_name:
-            matched: list[dict[str, Any]] = []
-            for row in properties:
-                if not isinstance(row, dict):
-                    continue
-                prop_name = str(row.get("property_name") or "").strip()
-                aliases = [str(a).strip() for a in (row.get("aliases") or []) if str(a).strip()]
-                all_labels = [prop_name.lower()] + [a.lower() for a in aliases]
-                # Match by ID
-                if any(pid in " ".join(all_labels) for pid in llm_prop_ids):
-                    matched.append(row)
-                    continue
-                # Match by name
-                if llm_prop_name and any(llm_prop_name in label or label in llm_prop_name for label in all_labels if len(label) >= 3):
-                    matched.append(row)
-                    continue
-            if matched:
-                return self._build_scoped_kb_text(common=common, property_rows=matched)
-
-        # ── Strategy 2: Heuristic text-matching (fallback) ──
-        explicit_property_hints = [
-            str(pending_raw.get("_selected_property_scope_name") or "").strip(),
-            str(pending_raw.get("_selected_property_scope_id") or "").strip(),
-            str(pending_raw.get("selected_property_name") or "").strip(),
-            str(pending_raw.get("selected_property_id") or "").strip(),
-        ]
-        history_parts = [hint for hint in explicit_property_hints if hint]
-        history_parts.append(str(user_message or "").strip())
-        messages = getattr(context, "messages", []) or []
-        for item in messages[-8:] if isinstance(messages, list) else []:
-            if isinstance(item, dict):
-                content = str(item.get("content") or "").strip()
-            else:
-                content = str(getattr(item, "content", "") or "").strip()
-            if content:
-                history_parts.append(content)
-        blob = re.sub(r"\s+", " ", " ".join(history_parts).strip().lower())
-        if not blob:
+        if not active_ids:
+            # No active properties — return full KB with all properties
             return str(service_knowledge or "").strip()
 
-        scored: list[tuple[float, dict[str, Any]]] = []
+        # Match active IDs against parsed property sections
+        _active_lowers = [str(aid).strip().lower() for aid in active_ids if str(aid).strip()]
+        matched: list[dict[str, Any]] = []
         for row in properties:
             if not isinstance(row, dict):
                 continue
-            candidates = [str(row.get("property_name") or "").strip(), *list(row.get("aliases") or [])]
-            score = 0.0
-            for candidate in candidates:
-                cleaned = re.sub(r"\s+", " ", str(candidate or "").strip())
-                if not cleaned:
-                    continue
-                lowered = cleaned.lower()
-                if len(lowered) >= 4 and lowered in blob:
-                    score = max(score, 6.0 + min(len(lowered) / 24.0, 2.0))
-                    continue
-                tokens = [token for token in re.findall(r"[a-z0-9]+", lowered) if len(token) > 2]
-                if not tokens:
-                    continue
-                hits = sum(1 for token in tokens if token in blob)
-                if hits:
-                    score = max(score, float(hits) + min(len(tokens) * 0.35, 1.25))
-            if score > 0:
-                scored.append((score, row))
+            prop_name = str(row.get("property_name") or "").strip()
+            aliases = [str(a).strip() for a in (row.get("aliases") or []) if str(a).strip()]
+            all_labels = [prop_name.lower()] + [a.lower() for a in aliases]
+            _is_match = any(
+                _aid in lbl or lbl in _aid
+                for _aid in _active_lowers
+                for lbl in all_labels
+                if len(lbl) >= 3 and len(_aid) >= 3
+            )
+            if _is_match:
+                matched.append(row)
 
-        if not scored:
-            # No property match at all → return full KB (general question)
-            return str(service_knowledge or "").strip()
+        if matched:
+            return self._build_scoped_kb_text(common=common, property_rows=matched)
 
-        scored.sort(key=lambda item: -item[0])
-        # Take top-scoring property; also include any others within 80% of the
-        # best score (handles comparisons like "Manali vs Shimla")
-        best_score = scored[0][0]
-        threshold = best_score * 0.8
-        top_matches = [row for sc, row in scored if sc >= threshold]
-        return self._build_scoped_kb_text(common=common, property_rows=top_matches)
+        # No matches found — return full KB rather than losing data
+        return str(service_knowledge or "").strip()
 
     @staticmethod
     def _build_scoped_kb_text(*, common: str, property_rows: list[dict[str, Any]]) -> str:
@@ -1238,7 +1197,7 @@ class LLMOrchestrationService:
                     _pack = {}
                 _kb_hint = str(
                     s.get("extracted_knowledge") or _pack.get("extracted_knowledge") or ""
-                ).strip()[:300]
+                ).strip()[:6000]
                 allowed_services.append({
                     "name": svc_name,
                     "can_do": str(s.get("description") or s.get("profile") or "").strip()[:120],
@@ -1405,7 +1364,7 @@ class LLMOrchestrationService:
             room_left = max_chars - total
             if room_left <= 0:
                 break
-            clipped = content[: min(room_left, 700)]
+            clipped = content[: min(room_left, 2500)]
             result.append({"role": msg.role.value, "content": clipped})
             total += len(clipped)
         return result
@@ -2845,6 +2804,7 @@ class LLMOrchestrationService:
             messages=messages,
             model=model,
             temperature=0.0,
+            max_tokens=4096,
             trace_context={
                 "responder_type": "service",
                 "agent": "service_agent",
@@ -3263,49 +3223,53 @@ class LLMOrchestrationService:
             for row in out_of_phase_services
             if isinstance(row, dict)
         ][:160]
-        full_kb_text = config_service.get_full_kb_text_with_sources(
-            max_chars=None,
-            max_sources=200,
-        )
-        # Augment full_kb_text with extracted_knowledge from ALL service KB records.
-        # This ensures admin-entered KB content (stored in service_kb_records, not in flat files)
-        # is always visible to the orchestrator when it needs to answer directly.
-        service_kb_records = capabilities_summary.get("service_kb_records", [])
-        if isinstance(service_kb_records, list):
-            extracted_parts: list[str] = []
-            for rec in service_kb_records[:30]:
-                if not isinstance(rec, dict):
-                    continue
-                ek = str(rec.get("extracted_knowledge") or "").strip()
-                sid = str(rec.get("service_id") or "").strip()
-                if ek and sid:
-                    extracted_parts.append(f"[Service: {sid}]\n{ek}")
-            if extracted_parts:
-                combined_service_kb = "\n\n---\n\n".join(extracted_parts)
-                full_kb_text = (
-                    (full_kb_text + "\n\n" if full_kb_text else "")
-                    + "=== SERVICE KNOWLEDGE BASE ===\n\n"
-                    + combined_service_kb
-                )
-        # ── Fast path: skip heavy property scope pipeline on subsequent turns ──
-        # If we already identified the property on a prior turn and KB hasn't changed,
-        # reuse the cached scope info. The full pipeline runs DB queries, file I/O, and
-        # text matching that add several seconds per turn for no benefit.
+        # ── Property-scoped KB loading ──────────────────────────────────
+        # Instead of loading ALL KB files into one blob and trying to scope
+        # after the fact, we use the property index to load ONLY the KB pages
+        # for properties the guest is currently discussing.
+        #
+        # Three scenarios:
+        #   1) Single property (1 KB file)  → load full KB as before
+        #   2) Multi-property, active IDs known (turn 2+) → load only those
+        #   3) Multi-property, no active IDs (turn 1) → manifest + full pipeline
         _pending = context.pending_data if isinstance(context.pending_data, dict) else {}
         _cached_property_count = int(_pending.get("_known_property_scope_count") or 0)
-        _cached_property_name = str(_pending.get("_selected_property_scope_name") or "").strip()
-        _cached_property_id = str(_pending.get("_selected_property_scope_id") or "").strip()
+        _cached_active_ids = list(_pending.get("_active_property_ids") or [])
+        _cached_active_names = list(_pending.get("_active_property_names") or [])
+        _runtime_past_ctx = dict(_pending.get("_past_property_context") or {})
+        # Legacy fallback — if old-style single fields exist but new array doesn't
+        if not _cached_active_ids:
+            _legacy_id = str(_pending.get("_selected_property_scope_id") or "").strip()
+            _legacy_name = str(_pending.get("_selected_property_scope_name") or "").strip()
+            if _legacy_id:
+                _cached_active_ids = [_legacy_id]
+                _cached_active_names = [_legacy_name] if _legacy_name else [_legacy_id]
 
-        if _cached_property_count > 1 and _cached_property_name and full_kb_text:
-            # Property already known — skip _prepare_full_kb_context_for_message entirely.
-            # Build a minimal property_scope from cached data.
+        if _cached_property_count > 1 and _cached_active_ids:
+            # ── Fast path: multi-property, active IDs known ──
+            # Load ONLY the active properties' KB pages via property index.
+            # No full KB load, no text-matching, no LLM scanning.
+            try:
+                _scoped_result = await config_service.get_kb_text_for_properties(
+                    property_ids=list(_cached_active_ids),
+                    include_manifest=True,
+                    include_common=True,
+                    past_property_context=_runtime_past_ctx if _runtime_past_ctx else None,
+                    max_sources=200,
+                )
+                full_kb_text = str(_scoped_result.get("scoped_kb_text") or "").strip()
+            except Exception as _scoped_err:
+                print(f"[ORCH] get_kb_text_for_properties failed, falling back to full KB: {_scoped_err}")
+                full_kb_text = config_service.get_full_kb_text_with_sources(max_chars=None, max_sources=200)
+
+            _mode = "single" if len(_cached_active_ids) == 1 else "multi"
             property_scope = {
-                "mode": "single",
-                "active_property_id": _cached_property_id,
-                "active_property_name": _cached_property_name,
-                "matched_property_ids": [_cached_property_id] if _cached_property_id else [],
+                "mode": _mode,
+                "active_property_id": _cached_active_ids[0] if len(_cached_active_ids) == 1 else "",
+                "active_property_name": _cached_active_names[0] if len(_cached_active_names) == 1 else "",
+                "matched_property_ids": list(_cached_active_ids),
                 "history_property_ids": [],
-                "selected_property_ids": [_cached_property_id] if _cached_property_id else [],
+                "selected_property_ids": list(_cached_active_ids),
                 "property_manifest": [],
                 "expected_property_count": _cached_property_count,
                 "detected_property_count": _cached_property_count,
@@ -3313,14 +3277,18 @@ class LLMOrchestrationService:
                 "requires_clarification": False,
                 "clarification_question": "",
             }
-            active_property_id = _cached_property_id
-            active_property_name = _cached_property_name
+            active_property_id = _cached_active_ids[0] if len(_cached_active_ids) == 1 else ""
+            active_property_name = _cached_active_names[0] if len(_cached_active_names) == 1 else ""
             known_property_count = _cached_property_count
-            # property_manifest is empty in fast path — the scoping block below
-            # will still build the manifest header from parsed KB sections.
             property_manifest = []
         else:
-            # Full pipeline — first turn or single-property setup
+            # ── Full pipeline: first turn or single-property setup ──
+            # For single-property setups, load the full KB directly.
+            # For multi-property turn 1, the pipeline builds manifest + scoped text.
+            full_kb_text = config_service.get_full_kb_text_with_sources(
+                max_chars=None,
+                max_sources=200,
+            )
             kb_context = await self._prepare_full_kb_context_for_message(
                 user_message=user_message,
                 context=context,
@@ -3344,59 +3312,26 @@ class LLMOrchestrationService:
                 context.pending_data["_known_property_scope_count"] = known_property_count
             property_manifest = property_scope.get("property_manifest", []) if isinstance(property_scope, dict) else []
 
-        # ── Runtime KB scoping for multi-property setups ──────────────────
-        # When multiple properties exist AND we already know which property
-        # the user is discussing, trim full_kb_text to only that property.
-        # This reduces the orchestrator + guard payloads from ~83K to ~5K,
-        # cutting response time dramatically without losing quality.
-        # Single-property setups skip this entirely — no scoping needed.
-        if known_property_count > 1 and active_property_name and full_kb_text:
-            _parsed_kb = self._parse_property_scoped_knowledge_sections(full_kb_text)
-            _kb_properties = _parsed_kb.get("properties", [])
-            if _kb_properties:
-                # Match active property against parsed sections
-                _active_lower = active_property_name.lower()
-                _matched_props = []
-                for _row in _kb_properties:
-                    if not isinstance(_row, dict):
-                        continue
-                    _pname = str(_row.get("property_name") or "").strip().lower()
-                    _aliases = [str(a).strip().lower() for a in (_row.get("aliases") or []) if str(a).strip()]
-                    _all_labels = [_pname] + _aliases
-                    if any(_active_lower in lbl or lbl in _active_lower for lbl in _all_labels if len(lbl) >= 3):
-                        _matched_props.append(_row)
-                # Also check _selected_property_scope_ids for multi-property comparisons
-                _scope_ids = context.pending_data.get("_selected_property_scope_ids") or []
-                if isinstance(_scope_ids, list) and _scope_ids:
-                    for _row in _kb_properties:
-                        if _row in _matched_props:
-                            continue
-                        _pname = str(_row.get("property_name") or "").strip().lower()
-                        _aliases = [str(a).strip().lower() for a in (_row.get("aliases") or []) if str(a).strip()]
-                        _all_labels = [_pname] + _aliases
-                        if any(pid.lower() in " ".join(_all_labels) for pid in _scope_ids):
-                            _matched_props.append(_row)
-                if _matched_props:
-                    _scoped = self._build_scoped_kb_text(
-                        common=str(_parsed_kb.get("common") or "").strip(),
-                        property_rows=_matched_props,
-                    )
-                    # Prepend a compact manifest so the LLM still knows all
-                    # properties exist and can handle property-switch requests.
-                    # Use property_manifest if available, otherwise derive from parsed KB sections.
-                    _manifest_lines = [f"  - {str(r.get('name') or r.get('id') or '').strip()}" for r in property_manifest[:30] if isinstance(r, dict)]
-                    if not _manifest_lines:
-                        _manifest_lines = [f"  - {str(r.get('property_name') or '').strip()}" for r in _kb_properties if isinstance(r, dict) and str(r.get('property_name') or '').strip()]
-                    if _manifest_lines:
-                        _manifest_header = (
-                            f"=== ALL PROPERTIES ({known_property_count} total) ===\n"
-                            + "\n".join(_manifest_lines)
-                            + "\n\n(Full details below are for the currently active property only. "
-                            "If the guest switches property, you will receive that property's details on the next turn.)\n"
-                        )
-                        full_kb_text = _manifest_header + "\n" + _scoped
-                    else:
-                        full_kb_text = _scoped
+        # Augment full_kb_text with extracted_knowledge from ALL service KB records.
+        # This ensures admin-entered KB content (stored in service_kb_records, not in flat files)
+        # is always visible to the orchestrator when it needs to answer directly.
+        service_kb_records = capabilities_summary.get("service_kb_records", [])
+        if isinstance(service_kb_records, list):
+            extracted_parts: list[str] = []
+            for rec in service_kb_records[:30]:
+                if not isinstance(rec, dict):
+                    continue
+                ek = str(rec.get("extracted_knowledge") or "").strip()
+                sid = str(rec.get("service_id") or "").strip()
+                if ek and sid:
+                    extracted_parts.append(f"[Service: {sid}]\n{ek}")
+            if extracted_parts:
+                combined_service_kb = "\n\n---\n\n".join(extracted_parts)
+                full_kb_text = (
+                    (full_kb_text + "\n\n" if full_kb_text else "")
+                    + "=== SERVICE KNOWLEDGE BASE ===\n\n"
+                    + combined_service_kb
+                )
 
         history_bundle = self._build_history_bundle(
             context=context,
@@ -3457,13 +3392,15 @@ class LLMOrchestrationService:
                 "id": selected_phase_id,
                 "name": selected_phase_name,
             },
-            "memory_summary": str(memory_snapshot.get("summary") or "")[:1400],
+            "memory_summary": str(memory_snapshot.get("summary") or "")[:6000],
             "memory_facts": self._sanitize_json(memory_snapshot.get("facts", {})),
             "suspended_services": [
                 {"service_id": s.get("service_id"), "service_name": s.get("service_name"), "collected_so_far": list((s.get("pending_data") or {}).keys())}
                 for s in (context.suspended_services or [])
             ],
             "property_scope": self._sanitize_json(property_scope_payload),
+            "active_property_ids": list(_cached_active_ids) if _cached_active_ids else [],
+            "past_property_context": _runtime_past_ctx if _runtime_past_ctx else {},
             "full_knowledge_base": full_kb_text or None,
             "history": history_bundle.get("history_last_10", []),
             "history_last_10": history_bundle.get("history_last_10", []),
@@ -3591,34 +3528,45 @@ class LLMOrchestrationService:
             "Do NOT say 'and more' or summarize — be exhaustive.\n"
             "\n"
             "=== PROPERTY RESOLUTION (YOU decide — no hardcoded rules) ===\n"
-            "The payload includes property_scope with detected_properties (the list of all properties in the KB).\n"
-            "Read property_scope AND conversation history BEFORE deciding.\n"
+            "The payload includes:\n"
+            "  - property_scope.detected_properties: ALL properties in the KB\n"
+            "  - active_property_ids: properties the guest is currently interested in (may be empty, 1, or multiple)\n"
+            "  - past_property_context: brief summaries of properties the guest discussed earlier but moved on from\n"
+            "  - full_knowledge_base: FULL KB for active properties (or ALL properties if none active yet)\n"
+            "Read these AND conversation history BEFORE deciding.\n"
             "\n"
             "CRITICAL — ALWAYS OUTPUT PROPERTY TRACKING:\n"
             "  In EVERY response, set these two fields in your JSON output:\n"
             "  - selected_property_name: the property name the guest is currently interested in (empty string if general/unknown)\n"
-            "  - selected_property_ids: array of property IDs the guest is interested in (from detected_properties list, empty array if general/unknown)\n"
-            "  This is how the system remembers which property the guest is discussing across turns.\n"
-            "  If the guest switches property ('actually I want Shimla'), update these fields immediately.\n"
-            "  If the guest is comparing properties ('compare Manali and Shimla'), include ALL relevant property IDs.\n"
+            "  - selected_property_ids: array of ALL property IDs the guest is currently interested in (from detected_properties list, empty array if general/unknown)\n"
+            "  HOW THIS WORKS:\n"
+            "  - These fields control which property KBs the system loads on the NEXT turn.\n"
+            "  - If you set selected_property_ids to ['mumbai_orchid', 'ira_orchid_mumbai'], BOTH properties' full KB will be available next turn.\n"
+            "  - If you set it to just ['mumbai_orchid'], only that property's KB will be loaded next turn.\n"
+            "  - If you leave it empty, ALL properties' KB will be available next turn.\n"
+            "  - IMPORTANT: When the guest is discussing MULTIPLE properties (e.g. 'which Mumbai hotel has offers?', or you just listed rooms from 2 hotels), "
+            "include ALL relevant property IDs — do NOT pick just one.\n"
+            "  - If the guest switches property ('actually I want Shimla'), update to the new property's ID. The old one moves to past_property_context automatically.\n"
+            "  - If the guest asks about a property in past_property_context, add it back to selected_property_ids to get full details.\n"
             "\n"
             "WHEN TO ASK which property:\n"
             "  - ONLY when the guest asks a property-specific question (check-in time, room types, amenities, pricing, booking) "
             "AND you genuinely cannot determine which property from conversation history or the current message.\n"
             "  - If the guest already mentioned or selected a property earlier in the conversation, use that — do NOT re-ask.\n"
-            "  - If property_scope.active_property_name is set, that is the selected property — use it.\n"
+            "  - If active_property_ids already has entries, the guest is discussing those — use them.\n"
             "\n"
             "WHEN TO ANSWER WITHOUT ASKING which property:\n"
             "  - General/comparative questions: 'which is best for couples', 'recommend a location', 'top 5 for adventure', "
             "'how many properties', 'list all', 'compare', 'suggest', 'plan a trip', 'budget options' → answer from ALL properties.\n"
             "  - Exploratory/planning questions: 'I want to travel', 'where should I go', 'family trip' → recommend from full KB.\n"
+            "  - When the guest mentions a CITY (e.g. 'Mumbai') and multiple properties are in that city → include ALL of them in selected_property_ids and answer about all.\n"
             "  - Greetings, chit-chat, general hotel questions → answer directly.\n"
             "  - ANY question where the KB gives a clear answer across properties → answer it.\n"
             "\n"
             "PROPERTY SWITCHING:\n"
             "  - If the guest says 'actually I want Shimla' or 'let me try Mumbai instead', treat this as a property switch.\n"
             "  - Acknowledge the switch naturally and start answering from the new property's KB.\n"
-            "  - Update selected_property_name and selected_property_ids to the new property.\n"
+            "  - Update selected_property_ids to the new property (the system moves old ones to past context automatically).\n"
             "\n"
             "NEVER ask for property clarification twice in a row. If the last assistant message already asked, "
             "try to answer from whatever context you have or ask a different clarifying question.\n"
@@ -3742,6 +3690,7 @@ class LLMOrchestrationService:
             messages=messages,
             model=model,
             temperature=0.0,
+            max_tokens=4096,
             trace_context={
                 "responder_type": "main",
                 "agent": "orchestrator",
@@ -3765,20 +3714,46 @@ class LLMOrchestrationService:
         decision = self._apply_answer_priority_fields(decision)
 
         # ── Persist LLM-determined property scope into conversation state ──
-        # The orchestrator now returns selected_property_name / selected_property_ids
-        # in its JSON response. Store these in pending_data so the service agent
-        # can use them for KB scoping on this turn AND subsequent turns.
+        # The orchestrator returns selected_property_name / selected_property_ids.
+        # We track active properties (full KB sent) and past properties (brief
+        # summary retained) so the LLM always has the right context.
         _llm_prop_name = str(decision.selected_property_name or "").strip()
-        _llm_prop_ids = [pid for pid in (decision.selected_property_ids or []) if str(pid).strip()]
+        _llm_prop_ids = [str(pid).strip() for pid in (decision.selected_property_ids or []) if str(pid).strip()]
         if not isinstance(context.pending_data, dict):
             context.pending_data = {}
-        if _llm_prop_name:
-            context.pending_data["_selected_property_scope_name"] = _llm_prop_name
+
+        _prev_active_ids = list(context.pending_data.get("_active_property_ids") or [])
+        _prev_active_names = list(context.pending_data.get("_active_property_names") or [])
+        _past_ctx = dict(context.pending_data.get("_past_property_context") or {})
+
         if _llm_prop_ids:
+            # Move previously-active properties that are no longer active to past context
+            for _old_id in _prev_active_ids:
+                if _old_id and _old_id not in _llm_prop_ids and _old_id not in _past_ctx:
+                    # Build a brief summary from the old property name
+                    _old_idx = _prev_active_ids.index(_old_id) if _old_id in _prev_active_ids else -1
+                    _old_name = _prev_active_names[_old_idx] if 0 <= _old_idx < len(_prev_active_names) else _old_id
+                    _past_ctx[_old_id] = f"Previously discussed: {_old_name}"
+            # Cap past context to 10 entries max
+            if len(_past_ctx) > 10:
+                _past_ctx = dict(list(_past_ctx.items())[-10:])
+
+            context.pending_data["_active_property_ids"] = _llm_prop_ids
+            context.pending_data["_active_property_names"] = (
+                [_llm_prop_name] if _llm_prop_name and len(_llm_prop_ids) == 1
+                else _llm_prop_ids  # will be refined by KB section names at scoping time
+            )
+            context.pending_data["_past_property_context"] = _past_ctx
+
+            # Keep legacy fields in sync for backward compat
             context.pending_data["_selected_property_scope_ids"] = _llm_prop_ids
-            # For backward compat with single-property flows
+            if _llm_prop_name:
+                context.pending_data["_selected_property_scope_name"] = _llm_prop_name
             if len(_llm_prop_ids) == 1:
                 context.pending_data["_selected_property_scope_id"] = _llm_prop_ids[0]
+        elif _llm_prop_name and not _llm_prop_ids:
+            # LLM gave a name but no IDs — keep legacy behavior
+            context.pending_data["_selected_property_scope_name"] = _llm_prop_name
 
         if decision.action in {"resume_pending", "cancel_pending"}:
             return await self._ensure_suggested_actions(

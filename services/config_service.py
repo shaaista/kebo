@@ -6202,6 +6202,128 @@ class ConfigService:
             lines.append("No properties detected from KB indexing.")
         return "\n".join(lines).strip()
 
+    async def get_kb_text_for_properties(
+        self,
+        *,
+        property_ids: list[str],
+        include_manifest: bool = True,
+        include_common: bool = True,
+        past_property_context: dict[str, str] | None = None,
+        max_sources: int = 50,
+        max_scope_chars: int = 200000,
+    ) -> dict[str, Any]:
+        """Load FULL KB text for specific properties only (by property ID).
+
+        Uses the property index to map property IDs → page_ids, then loads
+        only those pages via _compose_page_scope_context.  No text-matching,
+        no LLM calls — just a direct lookup.
+
+        Returns:
+            {
+                "scoped_kb_text": str,      # ready-to-use KB text for the LLM
+                "property_index": dict,      # the full property index (for manifest)
+                "loaded_property_ids": list,  # which property IDs were actually loaded
+            }
+        """
+        library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
+        property_index = await self.ensure_property_scope_index(max_sources=max_sources)
+        properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        if not isinstance(properties, list):
+            properties = []
+
+        # Build a lookup: property_id → row
+        property_rows_map: dict[str, dict[str, Any]] = {
+            self._normalize_slug(row.get("id")): row
+            for row in properties
+            if isinstance(row, dict) and self._normalize_slug(row.get("id"))
+        }
+
+        # Normalize requested IDs
+        requested_ids = [
+            self._normalize_slug(pid)
+            for pid in (property_ids or [])
+            if self._normalize_slug(pid)
+        ]
+
+        sections: list[str] = []
+        loaded_property_ids: list[str] = []
+
+        # 1) Property manifest (lightweight list of ALL properties)
+        if include_manifest:
+            manifest_text = self._build_property_scope_manifest_text(property_index=property_index)
+            if manifest_text:
+                sections.append(manifest_text)
+
+        # 2) Common KB pages
+        if include_common:
+            common_page_ids = property_index.get("common_page_ids", []) if isinstance(property_index, dict) else []
+            if common_page_ids:
+                common_ctx = self._compose_page_scope_context(
+                    library=library,
+                    page_ids=common_page_ids,
+                    scope_label="COMMON",
+                    max_chars=max_scope_chars,
+                )
+                common_text = str(common_ctx.get("context_text") or "").strip()
+                if common_text:
+                    sections.append("=== COMMON KNOWLEDGE ===\n" + common_text)
+
+        # 3) Full KB for each requested property
+        for pid in requested_ids:
+            row = property_rows_map.get(pid)
+            if not isinstance(row, dict):
+                continue
+            page_ids = row.get("page_ids", []) if isinstance(row.get("page_ids"), list) else []
+            if not page_ids:
+                continue
+            scope_ctx = self._compose_page_scope_context(
+                library=library,
+                page_ids=page_ids,
+                scope_label=str(row.get("name") or pid).strip() or pid,
+                max_chars=max_scope_chars,
+            )
+            scope_text = str(scope_ctx.get("context_text") or "").strip()
+            if not scope_text:
+                continue
+            property_name = str(row.get("name") or pid.replace("_", " ").title()).strip()
+            aliases = [
+                str(alias).strip()
+                for alias in row.get("aliases", [])
+                if str(alias).strip()
+            ] if isinstance(row.get("aliases"), list) else []
+            alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
+            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{scope_text}")
+            loaded_property_ids.append(pid)
+
+        # 4) Past property context (brief summaries of previously discussed properties)
+        if past_property_context and isinstance(past_property_context, dict):
+            past_lines = [f"  - {pid}: {summary}" for pid, summary in past_property_context.items() if summary]
+            if past_lines:
+                sections.append(
+                    "=== PREVIOUSLY DISCUSSED PROPERTIES ===\n"
+                    + "\n".join(past_lines)
+                    + "\n(Brief context only. If the guest asks about these again, add them to selected_property_ids to get full details.)"
+                )
+
+        # 5) Active property note for the LLM
+        if loaded_property_ids:
+            active_names = [
+                str((property_rows_map.get(pid) or {}).get("name") or pid).strip()
+                for pid in loaded_property_ids
+            ]
+            sections.insert(
+                1 if include_manifest and sections else 0,
+                f"=== ACTIVE PROPERTY ===\n{', '.join(active_names)}\n"
+                "(Full details below. If the guest asks about a different property, update selected_property_ids in your response.)"
+            )
+
+        scoped_kb_text = "\n\n".join(s for s in sections if s.strip()).strip()
+        return {
+            "scoped_kb_text": scoped_kb_text,
+            "property_index": property_index,
+            "loaded_property_ids": loaded_property_ids,
+        }
+
     async def build_property_scoped_kb_context(
         self,
         *,
