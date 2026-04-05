@@ -117,7 +117,9 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
    or phrases like "current phase", "not available in this phase", or "during
    the X phase" in any guest-facing response.
 
-6. CONFIRMATION STEP — This rule is ABSOLUTE and has NO exceptions.
+6. CONFIRMATION STEP — This rule depends on the ticketing mode.
+
+   TEXT-BASED TICKETING (ticketing_mode=text):
    CRITICAL: NEVER ask for confirmation while any required field is still
    missing. Collect all missing fields first. Only move to the confirmation
    step when every single required field has a value.
@@ -132,6 +134,24 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
    Even if the guest says "go ahead" or "book it" before the summary is shown,
    still display the full summary and ask for explicit confirmation first.
    Never skip or abbreviate the summary. Never create a ticket speculatively.
+
+   FORM-BASED TICKETING (ticketing_mode=form):
+   This service uses an inline form UI. The flow is DIFFERENT from text mode:
+   Step 1 — Present options from the KB, let the guest browse and choose.
+   Step 2 — Once the guest picks an option, give a warm 1-2 sentence
+            confirmation highlighting key features, then say something like
+            "Please fill in the booking details below."
+   Step 3 — The system shows the form automatically. The form collects the
+            remaining details (name, dates, phone, etc.). The form submission
+            itself IS the confirmation — the ticket is created from form data.
+
+   CRITICAL FOR FORM MODE:
+   - NEVER ask the guest to say "yes confirm" or any confirmation phrase.
+   - NEVER ask for form fields (name, phone, dates, time, etc.) in
+     conversation — the form handles them.
+   - NEVER create the ticket yourself — the form submission does it.
+   - After confirming the guest's choice, immediately signal readiness for
+     the form. Do NOT add an extra "Shall I proceed?" step.
 
 7. UNKNOWN IN-SCOPE QUESTIONS — If the user asks something that belongs to
    this service but the KB has no answer, do NOT simply say "I don't know."
@@ -319,22 +339,43 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         lines += [
             f"FORM-BASED TICKETING FLOW:",
             f"  This service uses an inline form to collect guest details.",
-            f"  The form UI will appear automatically — do NOT ask for form fields via conversation.",
-            f"  Instead, your job is to CONFIRM the trigger value before the form appears.",
+            f"  The form UI will appear automatically once the agent signals readiness.",
+            f"  The agent must NEVER ask for form fields via conversation.",
+            f"  The agent must NEVER ask the guest to say 'yes confirm' or any confirmation phrase.",
+            f"  The form submission itself IS the confirmation — no text-based confirmation step needed.",
             f"",
         ]
         if trigger_id:
             lines += [
                 f"  TRIGGER FIELD: {trigger_label} (id: {trigger_id})",
                 f"  Trigger description: {trigger_desc}" if trigger_desc else "",
-                f"  You MUST first present the available options from the knowledge base,",
-                f"  let the guest choose, and then CONFIRM their choice.",
-                f"  Example: 'Great, so you would like to go with [chosen option]. Shall I proceed with the booking?'",
-                f"  Only after the guest confirms (e.g., 'yes', 'confirm', 'go ahead'),",
-                f"  set the state to awaiting_info so the form appears.",
+                f"  The agent MUST first present the available options from the knowledge base,",
+                f"  let the guest choose a SPECIFIC option, and then confirm + trigger the form.",
+                f"  There is NO 'Shall I proceed?' step — once the guest picks a specific option, confirm and show the form.",
+                f"",
+                f"  HOW TO TRIGGER THE FORM (the generated prompt must teach the agent this):",
+                f"  When the guest selects a SPECIFIC option (names it, points to it like 'the first one',",
+                f"  'Terminal 1', 'candlelight therapy', or clearly indicates which one):",
+                f"    1. Give a warm 1-2 sentence confirmation highlighting key features of their choice.",
+                f"    2. End with 'Please fill in the booking details below.' (or similar).",
+                f"    3. Set action='collect_info', pending_action='collect_form_details',",
+                f"       pending_data_updates must include '{trigger_id}' with the guest's chosen value,",
+                f"       and missing_fields must be empty.",
+                f"  If the guest provides the trigger value upfront (e.g. 'book candlelight therapy'),",
+                f"  skip browsing and confirm + trigger the form immediately.",
+                f"",
+                f"  CRITICAL — INTENT vs SELECTION (use conversation context):",
+                f"  The trigger field '{trigger_id}' must have a SPECIFIC value before triggering the form.",
+                f"  Use the conversation history to understand what a short reply like 'yes' refers to:",
+                f"  - If you asked 'Would you like to book?' → 'yes' = intent only, ask which {trigger_id}.",
+                f"  - If you asked 'Shall I proceed with Terminal 1?' → 'yes' = selection of Terminal 1.",
+                f"  - If user names the option directly → that is the selection.",
+                f"  The trigger value must ALWAYS be the actual option name (e.g. 'Terminal 1',",
+                f"  'Prestige Suite'), NEVER a confirmation word like 'yes' or 'ok'.",
+                f"  Derive the real value from what was discussed in the conversation.",
                 f"",
                 f"  RULE FOR CONFIRMATION MESSAGES:",
-                f"  When the guest selects or confirms an option, give a brief warm confirmation that mentions",
+                f"  When the guest selects an option, give a brief warm confirmation that mentions",
                 f"  1-2 key highlights of their choice naturally woven into a complete sentence, then let them",
                 f"  know the booking form will appear.",
                 f"  GOOD: 'Great choice! The Prestige Suite at 485 sq. ft. with a lavish king-size bed and",
@@ -343,6 +384,8 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
                 f"    - 'The Prestige Suite, which includes:' (trailing colon with nothing after)",
                 f"    - 'which features:. Please fill in...' (colon then period)",
                 f"    - Listing ALL features as bullet points — just mention 1-2 highlights naturally",
+                f"    - 'Reply yes confirm to proceed' — NEVER ask for a confirmation phrase",
+                f"    - 'Shall I proceed with the booking?' — NO extra confirmation step for form mode",
                 f"  Keep it to 2-3 sentences max. Always end with a complete sentence.",
                 f"",
             ]
@@ -394,8 +437,13 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         f"- Write a COMPLETE system prompt in plain English (no JSON, no markdown headers).",
         f"- Include: who the agent is, what it does, what it knows, what is out of scope,",
         f"  how to handle dietary/allergen questions (if food service), when to collect slots,",
-        f"  the confirmation step (if ticketing), phase-aware complaint escalation behavior,",
-        f"  and when to hand off (context_switched).",
+        f"  the confirmation/ticketing step (matching the ticketing mode: form or text),",
+        f"  phase-aware complaint escalation behavior, and when to hand off (context_switched).",
+        f"- TICKETING MODE RULE: The ticketing mode for this service is '{ticketing_mode}'.",
+        f"  If form-based: the generated prompt MUST tell the agent to NEVER ask for 'yes confirm'",
+        f"  or any confirmation phrase, NEVER collect form fields in conversation, and to immediately",
+        f"  trigger the form after confirming the guest's trigger choice. The form submission is the",
+        f"  confirmation. If text-based: include the standard confirmation step with summary + explicit confirm.",
         f"- IMPORTANT: Include rule 13 (GUEST FACTS & KNOWN CONTEXT) explicitly — tell the agent",
         f"  to always check known_context before asking for anything, and enforce the phase-specific",
         f"  rules: during_stay/post_checkout never ask for name/room/phone/email; pre_checkin never",
@@ -419,6 +467,28 @@ def _build_writer_prompt(service: Dict[str, Any]) -> str:
         f"- The prompt must be self-contained — the agent only sees this prompt + KB data.",
         f"- Write it directly. Do NOT include a preamble like 'Here is the system prompt:'.",
         f"- Length: 300–700 words. Concise but complete.",
+        f"",
+        f"- FOOD & DINING MULTI-ITEM ORDERING — Apply this ONLY if the service involves food",
+        f"  ordering, in-room dining, restaurant ordering, or any menu-based ordering. You can",
+        f"  determine this from the service type, cuisine field, description, or KB content",
+        f"  containing menus/dishes/food items. If this is NOT a food service, skip this entirely.",
+        f"  When it IS a food/dining service, the generated prompt MUST include these rules:",
+        f"    1. When the guest mentions a dish or item, first verify it exists in the KB menu.",
+        f"       If it does not exist, politely inform the guest and suggest similar items from the menu.",
+        f"    2. After acknowledging each item, ALWAYS ask 'Would you like anything else?' or",
+        f"       'Is there anything else you would like to add?' — do NOT rush to the form or",
+        f"       confirmation after just one item. Guests often order multiple items.",
+        f"    3. Keep a running tally of what has been ordered so far and mention it naturally",
+        f"       (e.g. 'So far I have 1x Margherita Pizza. Anything else?').",
+        f"    4. Only proceed to the form/confirmation step when the guest explicitly signals",
+        f"       they are done ordering (e.g. 'that is all', 'nothing else', 'no thanks',",
+        f"       'just that', 'I am done', or similar). A single item mention is NOT a signal",
+        f"       to finalize — always ask if there is more.",
+        f"    5. For form-mode: the trigger value should be the full order summary",
+        f"       (e.g. '2x Margherita Pizza, 1x Caesar Salad, 1x Mango Smoothie').",
+        f"       For text-mode: collect remaining details only after the order is finalized.",
+        f"    6. If the guest asks about ingredients, allergens, or dietary suitability of a",
+        f"       specific dish, answer from the KB data before adding it to the order.",
     ]
     return "\n".join(lines)
 

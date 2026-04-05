@@ -106,7 +106,7 @@ class Settings(BaseSettings):
     full_kb_llm_step_logs_enabled: bool = True
     full_kb_llm_temperature: float = 0.1
     full_kb_llm_passthrough_mode: bool = False
-    full_kb_llm_chunk_scan_enabled: bool = True
+    full_kb_llm_chunk_scan_enabled: bool = False
     full_kb_llm_chunk_chars: int = 18000
     full_kb_llm_chunk_max_chunks: int = 100
     full_kb_llm_chunk_result_chars: int = 64000

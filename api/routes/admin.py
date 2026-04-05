@@ -814,6 +814,7 @@ async def reindex_rag(data: RAGReindexRequest, request: Request):
             pass
 
         # ── Enrich service KB + regenerate prompts after reindex ──
+        config_service.invalidate_kb_docs_cache()
         try:
             await config_service.enrich_service_kb_records(published_by="system")
             report["kb_enrichment"] = "ok"

@@ -608,7 +608,13 @@ class DBConfigService:
     # ==================== SERVICES (new_bot_services - DB primary) ====================
 
     def _service_to_dict(self, row: "BotService") -> Dict[str, Any]:
-        """Convert a BotService ORM row to the dict format used everywhere."""
+        """Convert a BotService ORM row to the dict format used everywhere.
+
+        The result is passed through ConfigService._normalize_service_entry()
+        so that DB-loaded services have the same normalized structure (ticketing_mode,
+        form_config, trigger_field, etc.) as JSON-loaded services.  This is critical
+        for production where the DB is the sole source of truth.
+        """
         result: Dict[str, Any] = {
             "id": row.service_id,
             "name": row.name,
@@ -641,6 +647,20 @@ class DBConfigService:
                 )
         if row.generated_system_prompt:
             result["generated_system_prompt"] = row.generated_system_prompt
+
+        # Normalize using the same logic that JSON-loaded services go through.
+        # This ensures form_config, ticketing_mode, trigger_field, etc. are
+        # validated and structured identically regardless of the data source.
+        try:
+            from services.config_service import ConfigService
+            normalized = ConfigService._normalize_service_entry(
+                result,
+                preserve_manual_prompt_pack=True,
+            )
+            if isinstance(normalized, dict):
+                return normalized
+        except Exception:
+            pass  # fall back to raw result if normalization fails
         return result
 
     def _read_service_delete_tombstones(

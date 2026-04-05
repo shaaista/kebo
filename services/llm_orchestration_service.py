@@ -14,6 +14,12 @@ from schemas.chat import ConversationContext
 from schemas.orchestration import OrchestrationDecision, TicketDecision
 from services.config_service import config_service
 from services.everything_trace_service import everything_trace_service
+from services.form_mode_service import (
+    canonicalize_trigger_pending_data,
+    normalize_trigger_missing_fields,
+    resolve_trigger_field_value,
+    strip_form_confirmation_instructions,
+)
 
 # ── LLM Input Logger ─────────────────────────────────────────────────────────
 _log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
@@ -259,6 +265,7 @@ class LLMOrchestrationService:
                 seed_property_id=seed_property_id,
                 max_sources=200,
                 max_scope_chars=max(inline_budget, 90000),
+                preloaded_full_kb_text=raw_text,
             )
         except Exception:
             property_scope = dict(property_scope)
@@ -953,6 +960,12 @@ class LLMOrchestrationService:
                             "required": bool(item.get("required", True)),
                         }
                     )
+            # Preserve form_config from the original service row so the service
+            # agent gets ticketing_mode, trigger_field, and form fields at runtime.
+            _row_form_config = row.get("form_config")
+            if not isinstance(_row_form_config, dict):
+                _row_form_config = None
+
             result.append(
                 {
                     "id": sid,
@@ -965,6 +978,8 @@ class LLMOrchestrationService:
                     "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                     "ticketing_policy": str(row.get("ticketing_policy") or "").strip(),
                     "ticketing_conditions": ticketing_conditions,
+                    "ticketing_mode": str(row.get("ticketing_mode") or "").strip().lower(),
+                    "form_config": _row_form_config,
                     "required_slots": normalized_slots,
                     "profile": str(prompt_pack.get("profile") or "").strip().lower(),
                     "service_prompt_role": str(prompt_pack.get("role") or "").strip()[:300],
@@ -972,6 +987,7 @@ class LLMOrchestrationService:
                     "execution_guard": self._sanitize_json(execution_guard),
                     "confirmation_format": self._sanitize_json(confirmation_format),
                     "service_prompt_pack": self._sanitize_json(prompt_pack),
+                    "service_prompt_pack_custom": bool(row.get("service_prompt_pack_custom", False)),
                     "knowledge_facts": [],
                     # Merge extracted_knowledge: prefer prompt_pack (admin-entered),
                     # fall back to service_kb_records (auto-compiled from KB files).
@@ -980,6 +996,9 @@ class LLMOrchestrationService:
                         or kb_by_service.get(sid, "")
                     ),
                     "generated_system_prompt": str(row.get("generated_system_prompt") or "").strip(),
+                    "cuisine": str(row.get("cuisine") or "").strip(),
+                    "hours": row.get("hours") if isinstance(row.get("hours"), dict) else {},
+                    "delivery_zones": row.get("delivery_zones") if isinstance(row.get("delivery_zones"), list) else [],
                     "confirmation_pending_action": "confirm_booking",
                     "routing_keywords": self._service_routing_keywords(service_row=row, prompt_pack=prompt_pack),
                 }
@@ -1768,6 +1787,12 @@ class LLMOrchestrationService:
             merged.response_text = overlay.response_text
         if overlay.pending_action is not None:
             merged.pending_action = overlay.pending_action
+        elif str(overlay.action or "").strip().lower() == "create_ticket":
+            # Service agent explicitly set action=create_ticket (e.g. confirmation
+            # override) and cleared pending_action to None.  The merge must honour
+            # the clear; otherwise the orchestrator's stale pending_action survives
+            # and the ticket-creation gate blocks with "ticket_waiting_for_user_input".
+            merged.pending_action = None
         if overlay.pending_data_updates:
             merged.pending_data_updates.update(overlay.pending_data_updates)
         if overlay.missing_fields:
@@ -2003,7 +2028,14 @@ class LLMOrchestrationService:
                     "Do not invent or enforce fixed field names."
                 )
             ticket_lines.append(_already_collected_note)
-            ticket_lines.append("Save each collected value in pending_data_updates using the exact field id as the key.")
+            ticket_lines.append(
+                "Save each collected value in pending_data_updates using the exact field id as the key.\n"
+                "CRITICAL — pending_data_updates MUST always reflect EVERY field value you currently know, "
+                "not just newly-collected ones this turn. If the guest confirmed a room type earlier and you "
+                "are now collecting dates, pending_data_updates must still include the room type. "
+                "Omitting a known value causes the system to lose track of it. "
+                "Only omit a field if it is genuinely unknown or still in missing_fields."
+            )
 
             # Confirmation step
             if requires_confirmation_step:
@@ -2262,12 +2294,35 @@ class LLMOrchestrationService:
             "appear and the guest will be confused."
         )
 
+        # ── PENDING DATA COMPLETENESS RULE ───────────────────────────────────
+        lines.append(
+            "\n=== PENDING DATA COMPLETENESS RULE ===\n"
+            "pending_data_updates MUST always include EVERY field value you currently know — "
+            "not just values collected this turn. If the guest chose a room type earlier and you "
+            "are now asking for dates, pending_data_updates must still contain the room type. "
+            "Omitting a known value causes the system to lose track of it. "
+            "Only omit a field if it is genuinely unknown or listed in missing_fields."
+        )
+
         return "\n".join(lines)
 
     @staticmethod
-    def _build_service_runtime_json_contract(*, confirmation_pending_action: str, current_phase_id: str = "") -> str:
+    def _build_service_runtime_json_contract(
+        *,
+        confirmation_pending_action: str,
+        current_phase_id: str = "",
+        ticketing_mode: str = "",
+        trigger_field_id: str = "",
+        trigger_field_label: str = "",
+        form_field_names: list[str] | None = None,
+        service_type: str = "",
+        service_cuisine: str = "",
+        service_description: str = "",
+    ) -> str:
         confirm_action = str(confirmation_pending_action or "confirm_booking").strip() or "confirm_booking"
         _phase = str(current_phase_id or "").strip()
+        _tm = str(ticketing_mode or "").strip().lower()
+        _is_form_mode = _tm == "form"
         if _phase in ("during_stay", "post_checkout"):
             _guest_facts_rule = (
                 "=== GUEST FACTS RULE (MANDATORY) ===\n"
@@ -2291,9 +2346,9 @@ class LLMOrchestrationService:
                 "If guest_name, room_number, phone, or email are in known_context — use them directly, NEVER ask again.\n"
                 "Only collect contact info (name, phone, email) when genuinely required and NOT already known.\n\n"
             )
-        return (
-            _guest_facts_rule
-            + "=== DATE & INPUT VALIDATION (MANDATORY) ===\n"
+
+        _validation_rules = (
+            "=== DATE & INPUT VALIDATION (MANDATORY) ===\n"
             "The payload includes `current_date` (today's date) and `current_day` (day of week). "
             "Use these to validate any dates the guest provides:\n"
             "  - If a check-in or check-out date is in the past (before current_date), do NOT store it in "
@@ -2314,7 +2369,10 @@ class LLMOrchestrationService:
             "  - If the guest provides an invalid or garbage phone number, do NOT store it in pending_data_updates. "
             "Keep the phone field in missing_fields and politely ask the guest to provide a real, valid 10-digit phone number.\n"
             "  - If pending_data_raw already contains an invalid phone number, treat that slot as still-empty.\n\n"
-            + "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
+        )
+
+        _json_shape = (
+            "=== RUNTIME OUTPUT CONTRACT (MANDATORY) ===\n"
             "Return STRICT JSON only.\n"
             "Use exactly this JSON object shape:\n"
             "{\n"
@@ -2343,17 +2401,94 @@ class LLMOrchestrationService:
             "this service's domain AND you cannot make meaningful progress. When false, also set "
             "metadata.context_switched=true so the main orchestrator re-routes the query. "
             "Default is true — most messages, even adjacent questions, should be handled here.\n"
-            f"When waiting for guest confirmation before ticket creation, set pending_action to \"{confirm_action}\".\n"
-            "CONFIRMATION RULES (mandatory):\n"
-            f"- NEVER ask for confirmation (pending_action=\"{confirm_action}\") while ANY required field is still missing.\n"
-            "  Collect all missing fields first. Only transition to the confirmation step when every required field has a value.\n"
-            f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list EVERY collected "
-            "detail from pending_data_raw and known_context explicitly — guest name, phone number, email, "
-            "room/service type, bed preference, number of guests, check-in date, check-out date, and any other "
-            "collected field. Never say 'the above details' — always spell each one out.\n"
-            "- When action=\"create_ticket\" (guest confirmed), response_text MUST again include ALL collected "
-            "details: name, phone number, email, room/service type, bed type, dates, guest count — every field "
-            "present in pending_data_raw and known_context. Do not omit contact details.\n"
+        )
+
+        # ── Ticketing flow rules: FORM-based vs TEXT-based ──
+        if _is_form_mode:
+            _trigger_id = str(trigger_field_id or "").strip()
+            _trigger_label = str(trigger_field_label or _trigger_id).strip()
+            _form_fields_hint = ""
+            if form_field_names:
+                _form_fields_hint = (
+                    f"The form will collect these fields automatically: {', '.join(form_field_names)}. "
+                    "Do NOT ask for any of these in conversation — the form handles them.\n"
+                )
+            _ticketing_rules = (
+                "=== FORM-BASED TICKETING RULES (MANDATORY — THIS SERVICE USES A FORM) ===\n"
+                "The payload also includes `service_form_trigger_field`, `service_form_fields`, and "
+                "`service_form_instructions`. Use those exact definitions as the source of truth for the form.\n"
+                "This service uses an INLINE FORM for collecting guest details. The form appears automatically "
+                "in the UI once you signal readiness. Your job is to guide the guest to choose their option, "
+                "confirm the choice, and then let the form take over. NEVER ask the guest to type 'yes confirm' "
+                "or any confirmation phrase — the form submission IS the confirmation.\n\n"
+                "HOW THE FORM TRIGGER WORKS (understand this to set the right state):\n"
+                "The system shows the form when ALL of these are true:\n"
+                "  1. action = 'collect_info'\n"
+                f"  2. pending_data_updates contains the trigger field '{_trigger_id}' with the guest's chosen value\n"
+                "  3. missing_fields does NOT contain the trigger field\n"
+                "If any condition is missing, the form will NOT appear and the guest sees a dead end.\n\n"
+                "STEP-BY-STEP FLOW:\n"
+                f"  Step 1 — PRESENT OPTIONS: When the guest asks about this service, show all available "
+                f"options from the KB. Let them browse and choose.\n"
+                f"  Step 2 — CONFIRM CHOICE: Once the guest picks an option (e.g. a room type, treatment, "
+                f"terminal), give a warm 1-2 sentence confirmation highlighting key features of their choice. "
+                f"End with a line like 'Please fill in the booking details below.' to signal the form.\n"
+                f"  Step 3 — TRIGGER THE FORM: In the same response where you confirm the choice, set:\n"
+                f"    - action = 'collect_info'\n"
+                f"    - pending_action = 'collect_form_details'\n"
+                f"    - pending_data_updates must include '{_trigger_id}' with the guest's chosen value\n"
+                f"    - missing_fields = [] (empty — the form handles remaining fields)\n"
+                f"  Step 4 — AFTER FORM SUBMISSION: The system creates the ticket automatically from the form "
+                f"data. You do not need to create the ticket yourself.\n\n"
+                f"{_form_fields_hint}"
+                "CRITICAL DO-NOTs FOR FORM MODE:\n"
+                "  - NEVER set pending_action to 'confirm_booking' or any confirm_* value\n"
+                "  - NEVER ask the guest to say 'yes confirm', 'confirm', or any confirmation phrase\n"
+                "  - NEVER ask for form field values (dates, name, phone, etc.) in conversation\n"
+                "  - NEVER set action to 'create_ticket' — the form submission handles ticket creation\n"
+                "  - NEVER hold back the form waiting for more conversational input after the trigger choice is made\n\n"
+                "SMART STATE HANDLING:\n"
+                "  - Guest is browsing / asking questions about options → action='respond_only', answer from KB\n"
+                "  - Guest selects a SPECIFIC option (names it, points to it like 'the first one', "
+                "'Terminal 1', 'the prestige suite', 'candlelight therapy') → confirm + trigger form (Step 3)\n"
+                "  - Guest changes mind about their choice → acknowledge, present options again, "
+                "do NOT trigger the form yet\n"
+                "  - Guest asks an unrelated question mid-flow → answer if within your domain, "
+                "or set context_switched=true\n"
+                "  - Guest provides the trigger value upfront (e.g. 'book candlelight therapy') → "
+                "skip browsing, confirm + trigger form immediately\n"
+                "  CRITICAL — INTENT vs SELECTION (use conversation context to decide):\n"
+                f"  The trigger field is '{_trigger_id}'. You can ONLY trigger the form when you know the "
+                "SPECIFIC value for this field. Look at the conversation history to decide:\n"
+                "    - If your last message asked 'Would you like to book?' or offered to help, and the "
+                "guest says 'yes' → that is booking INTENT only. You still need to ask which specific "
+                f"'{_trigger_id}' they want. Set the trigger value to the ACTUAL option, not 'yes'.\n"
+                "    - If your last message asked the guest to choose between specific options (e.g. "
+                f"'Which {_trigger_id}?') or confirmed a specific option (e.g. 'Shall I go ahead with "
+                "Terminal 1?'), and the guest says 'yes' → that IS a selection. Set the trigger value "
+                "to the specific option from your last message (e.g. 'Terminal 1'), NOT 'yes'.\n"
+                "  KEY RULE: The trigger field value must ALWAYS be the actual option name/identifier "
+                "(e.g. 'Terminal 1', 'Prestige Suite', 'Swedish Massage'), NEVER a confirmation word "
+                "like 'yes', 'ok', 'sure'. Derive the real value from conversation context.\n"
+                "  When there is only ONE option in the KB, 'yes' after presenting it means that option "
+                "— set the trigger to the option's actual name.\n"
+            )
+        else:
+            _ticketing_rules = (
+                f"When waiting for guest confirmation before ticket creation, set pending_action to \"{confirm_action}\".\n"
+                "CONFIRMATION RULES (mandatory):\n"
+                f"- NEVER ask for confirmation (pending_action=\"{confirm_action}\") while ANY required field is still missing.\n"
+                "  Collect all missing fields first. Only transition to the confirmation step when every required field has a value.\n"
+                f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list EVERY collected "
+                "detail from pending_data_raw and known_context explicitly — guest name, phone number, email, "
+                "room/service type, bed preference, number of guests, check-in date, check-out date, and any other "
+                "collected field. Never say 'the above details' — always spell each one out.\n"
+                "- When action=\"create_ticket\" (guest confirmed), response_text MUST again include ALL collected "
+                "details: name, phone number, email, room/service type, bed type, dates, guest count — every field "
+                "present in pending_data_raw and known_context. Do not omit contact details.\n"
+            )
+
+        _common_rules = (
             "PRESENT BEFORE ASK RULE (mandatory):\n"
             "Before asking the guest to choose a menu item, treatment, room type, package, or any option from a list —\n"
             "FIRST share the full list of available options from the KB. Never ask 'which one?' before showing the options.\n"
@@ -2361,7 +2496,59 @@ class LLMOrchestrationService:
             "The payload includes available_departments — a list of {department_id, department_name} objects.\n"
             "When setting ticket.ready_to_create=true, set ticket.department_id to the numeric id of the department\n"
             "that best matches this service (e.g. spa → Wellness, dining → F&B, room issue → Housekeeping).\n"
-            "If available_departments is empty or no match, leave department_id empty."
+            "If available_departments is empty or no match, leave department_id empty.\n"
+            "PENDING DATA COMPLETENESS (mandatory):\n"
+            "pending_data_updates MUST always include EVERY field value you currently know — "
+            "not just values collected this turn. If the guest chose a room type on a previous turn "
+            "and you are now asking for dates, pending_data_updates must still contain the room type. "
+            "Omitting a known value causes the system to lose track of it. "
+            "Only omit a field if it is genuinely unknown or listed in missing_fields."
+        )
+
+        # Food / dining multi-item ordering rules — the LLM decides if they apply
+        # based on the service context it already has (type, cuisine, description, KB).
+        _svc_type = str(service_type or "").strip()
+        _svc_cuisine = str(service_cuisine or "").strip()
+        _svc_desc = str(service_description or "").strip()
+        _food_context_hint = ""
+        if _svc_type:
+            _food_context_hint += f"Service type: {_svc_type}. "
+        if _svc_cuisine:
+            _food_context_hint += f"Cuisine: {_svc_cuisine}. "
+        if _svc_desc:
+            _food_context_hint += f"Description: {_svc_desc}. "
+
+        _food_ordering_rules = (
+            "\n=== FOOD & DINING MULTI-ITEM ORDERING (apply ONLY if this is a food/dining service) ===\n"
+            f"{_food_context_hint}\n"
+            "If this service involves food ordering, in-room dining, restaurant ordering, or any "
+            "menu-based ordering (you can tell from the service name, type, cuisine, description, "
+            "or KB content containing menus/dishes/food items), apply these rules:\n"
+            "  1. When the guest mentions a dish, verify it exists in the KB menu. If not found, "
+            "politely inform and suggest similar items from the menu.\n"
+            "  2. After acknowledging each item, ALWAYS ask 'Would you like anything else?' or "
+            "'Is there anything else you would like to add?'. Do NOT rush to the form or "
+            "confirmation after just one item — guests often order multiple items.\n"
+            "  3. Keep a running tally of ordered items and mention it naturally "
+            "(e.g. 'So far I have 1x Margherita Pizza. Anything else?').\n"
+            "  4. Only proceed to the form/confirmation step when the guest explicitly signals "
+            "they are done (e.g. 'that is all', 'nothing else', 'no thanks', 'just that', "
+            "'I am done'). A single item mention is NOT a signal to finalize.\n"
+            "  5. For form-mode: set the trigger value to the FULL ORDER SUMMARY "
+            "(e.g. '2x Margherita Pizza, 1x Caesar Salad, 1x Mango Smoothie'). "
+            "For text-mode: collect remaining details only after the order is finalized.\n"
+            "  6. If the guest asks about ingredients, allergens, or dietary suitability, "
+            "answer from KB data before adding the item to the order.\n"
+            "If this is NOT a food/dining service, IGNORE this entire section.\n"
+        )
+
+        return (
+            _guest_facts_rule
+            + _validation_rules
+            + _json_shape
+            + _ticketing_rules
+            + _common_rules
+            + _food_ordering_rules
         )
 
     async def _run_service_agent(
@@ -2447,8 +2634,40 @@ class LLMOrchestrationService:
         if not confirmation_phrase:
             confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
         confirmation_pending_action = "confirm_booking"
-        # Confirmation is required whenever ticketing is enabled — the guest must confirm before a ticket is raised.
-        requires_confirmation_step = ticketing_enabled
+        # Confirmation is required for text-mode ticketing — the guest must confirm
+        # before a ticket is raised.  For form-mode services, the form submission
+        # itself acts as confirmation, so we skip the "yes confirm" step entirely.
+        _svc_ticketing_mode = str(service.get("ticketing_mode") or "").strip().lower()
+        requires_confirmation_step = ticketing_enabled and _svc_ticketing_mode != "form"
+
+        # Extract form_config details for form-mode services (used by runtime contract)
+        _svc_form_config = service.get("form_config") if isinstance(service.get("form_config"), dict) else {}
+        _svc_trigger_field = _svc_form_config.get("trigger_field") if isinstance(_svc_form_config.get("trigger_field"), dict) else {}
+        _svc_trigger_field_id = str(_svc_trigger_field.get("id") or "").strip()
+        _svc_trigger_field_label = str(_svc_trigger_field.get("label") or _svc_trigger_field_id).strip()
+        _svc_form_field_names: list[str] = []
+        _svc_form_fields_payload: list[dict[str, Any]] = []
+        for _ff in (_svc_form_config.get("fields") or []):
+            if not isinstance(_ff, dict):
+                continue
+            _field_id = str(_ff.get("id") or "").strip()
+            _field_label = str(_ff.get("label") or _field_id).strip()
+            if _field_label:
+                _svc_form_field_names.append(_field_label)
+            if _field_id:
+                _svc_form_fields_payload.append({
+                    "id": _field_id,
+                    "label": _field_label,
+                    "type": str(_ff.get("type") or "text").strip(),
+                    "required": bool(_ff.get("required", True)),
+                    "validation_prompt": str(_ff.get("validation_prompt") or "").strip(),
+                })
+        _svc_form_field_names = [n for n in _svc_form_field_names if n]
+
+        # For form-mode services, suppress confirmation phrase — form submission is the confirmation
+        if _svc_ticketing_mode == "form":
+            confirmation_phrase = ""
+
         history_bundle = self._build_history_bundle(
             context=context,
             memory_snapshot=memory_snapshot,
@@ -2503,7 +2722,8 @@ class LLMOrchestrationService:
                 "- List ALL items from the knowledge base — never summarize, skip, or show only a partial list.\n"
                 "- Include ALL details for each item (price, description, features, capacity, etc.) as given in the KB.\n"
                 "- Do NOT say 'and more' or 'among others' — be exhaustive.\n\n"
-                f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action, current_phase_id=selected_phase_id)}"
+                "=== RUNTIME RULES (OVERRIDE — these take precedence over any earlier instructions) ===\n"
+                f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action, current_phase_id=selected_phase_id, ticketing_mode=_svc_ticketing_mode, trigger_field_id=_svc_trigger_field_id, trigger_field_label=_svc_trigger_field_label, form_field_names=_svc_form_field_names, service_type=str(service.get('type') or '').strip(), service_cuisine=service_cuisine, service_description=description)}"
             )
         else:
             system_prompt = self._build_service_system_prompt(
@@ -2600,6 +2820,14 @@ class LLMOrchestrationService:
             "memory_facts": self._sanitize_json(_mem_facts),
             "confirmation_phrase": confirmation_phrase,
             "available_departments": _available_departments,
+            "service_ticketing_mode": _svc_ticketing_mode,
+            "service_form_trigger_field": self._sanitize_json({
+                "id": _svc_trigger_field_id,
+                "label": _svc_trigger_field_label,
+                "description": str(_svc_trigger_field.get("description") or "").strip(),
+            }),
+            "service_form_fields": self._sanitize_json(_svc_form_fields_payload),
+            "service_form_instructions": str(_svc_form_config.get("pre_form_instructions") or "").strip(),
         }
         messages = [
             {"role": "system", "content": system_prompt},
@@ -2643,6 +2871,57 @@ class LLMOrchestrationService:
         decision.metadata["source"] = "service_agent"
         decision.metadata["service_agent_id"] = service_id
         decision.metadata["is_first_service_turn"] = is_first_service_turn
+
+        if _svc_ticketing_mode == "form":
+            decision.response_text = strip_form_confirmation_instructions(decision.response_text)
+            decision.pending_data_updates, _trigger_alias_key, _ = canonicalize_trigger_pending_data(
+                decision.pending_data_updates,
+                _svc_trigger_field_id,
+                _svc_trigger_field_label,
+            )
+            _, _trigger_value = resolve_trigger_field_value(
+                decision.pending_data_updates,
+                _svc_trigger_field_id,
+                _svc_trigger_field_label,
+            )
+            decision.missing_fields = normalize_trigger_missing_fields(
+                decision.missing_fields,
+                _svc_trigger_field_id,
+                _svc_trigger_field_label,
+                trigger_value_present=bool(str(_trigger_value or "").strip()),
+            )
+
+            # ── FORM-MODE ENFORCEMENT ──
+            # The LLM is instructed to never set confirm_* or create_ticket for
+            # form-mode services, but it sometimes ignores instructions.  Enforce
+            # the contract at runtime so the frontend always gets the right state.
+            # The LLM has full conversation history and decides what the trigger
+            # value is — we trust its judgment on whether "yes" means a specific
+            # option or generic intent.
+
+            _form_trigger_present = bool(str(_trigger_value or "").strip())
+            _pa_lower = str(decision.pending_action or "").strip().lower()
+
+            # Strip confirm_* pending_action — form submission IS the confirmation
+            if _pa_lower.startswith("confirm_"):
+                decision.pending_action = "collect_form_details" if _form_trigger_present else None
+                decision.metadata["form_mode_stripped_confirm_pending_action"] = _pa_lower
+
+            # Strip create_ticket action — form submission handles ticket creation
+            if str(decision.action or "").strip().lower() == "create_ticket":
+                decision.action = "collect_info" if _form_trigger_present else "respond_only"
+                if hasattr(decision, "ticket") and hasattr(decision.ticket, "ready_to_create"):
+                    decision.ticket.ready_to_create = False
+                decision.metadata["form_mode_stripped_create_ticket"] = True
+
+            # When trigger value is present and no missing fields → ensure action
+            # and pending_action are set correctly so the frontend shows the form.
+            if _form_trigger_present and not decision.missing_fields:
+                if str(decision.action or "").strip().lower() not in ("collect_info",):
+                    decision.action = "collect_info"
+                    decision.metadata["form_mode_forced_collect_info"] = True
+                if not str(decision.pending_action or "").strip():
+                    decision.pending_action = "collect_form_details"
 
         # Context-switch marker for immediate same-turn main-orchestrator re-route.
         if bool((decision.metadata or {}).get("context_switched")):
@@ -2798,21 +3077,36 @@ class LLMOrchestrationService:
             and not awaiting_confirmation
             and user_compact != confirmation_compact
             and not bool(decision.requires_human_handoff)
-            and str(decision.action or "").strip().lower() in {"respond_only", "collect_info"}
             and not bool(decision.missing_fields)
             and not bool(getattr(decision.ticket, "ready_to_create", False))
             and not str(decision.pending_action or "").strip()
+            and not bool(decision.metadata.get("confirmation_override"))
         ):
-            decision.pending_action = confirmation_pending_action
-            response_lower = str(decision.response_text or "").strip().lower()
-            if confirmation_phrase.lower() not in response_lower:
-                confirmation_line = f"Please reply '{confirmation_phrase}' to confirm."
-                if str(decision.response_text or "").strip():
-                    decision.response_text = f"{str(decision.response_text).strip()} {confirmation_line}".strip()
-                else:
-                    decision.response_text = confirmation_line
-            decision.metadata.setdefault("confirmation_flow_forced", True)
-            decision.metadata.setdefault("confirmation_pending_action", confirmation_pending_action)
+            _action_lower = str(decision.action or "").strip().lower()
+            # collect_info with no missing fields → LLM finished collecting → confirm
+            # respond_only → only confirm if the LLM actually collected new field
+            #   data this turn (otherwise it's just answering a side question)
+            _should_force_confirm = False
+            if _action_lower == "collect_info":
+                _should_force_confirm = True
+            elif _action_lower == "respond_only":
+                _new_updates = decision.pending_data_updates if isinstance(decision.pending_data_updates, dict) else {}
+                _meaningful = {
+                    k: v for k, v in _new_updates.items()
+                    if str(v or "").strip() and k not in {"service_id", "service_name"}
+                }
+                _should_force_confirm = bool(_meaningful)
+            if _should_force_confirm:
+                decision.pending_action = confirmation_pending_action
+                response_lower = str(decision.response_text or "").strip().lower()
+                if confirmation_phrase.lower() not in response_lower:
+                    confirmation_line = f"Please reply '{confirmation_phrase}' to confirm."
+                    if str(decision.response_text or "").strip():
+                        decision.response_text = f"{str(decision.response_text).strip()} {confirmation_line}".strip()
+                    else:
+                        decision.response_text = confirmation_line
+                decision.metadata.setdefault("confirmation_flow_forced", True)
+                decision.metadata.setdefault("confirmation_pending_action", confirmation_pending_action)
         # Always stamp service_id into pending_data_updates so sticky routing works.
         # This ensures context.pending_data["service_id"] is always set while a
         # service is active, regardless of what the LLM put in pending_data_updates.
@@ -2930,7 +3224,6 @@ class LLMOrchestrationService:
                     "phase_name": str(row.get("phase_name") or self._phase_label(phase_id, capabilities_summary)).strip(),
                     "description": str(row.get("description") or "").strip(),
                     "profile": str(row.get("profile") or "").strip(),
-                    "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                     "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                     "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 }
@@ -2946,7 +3239,6 @@ class LLMOrchestrationService:
                 "phase_id": self._normalize_identifier(row.get("phase_id")),
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "knowledge_facts": row.get("knowledge_facts") or [],
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                 "profile": str(row.get("profile") or "").strip(),
                 "required_slots": row.get("required_slots") or [],
             }
@@ -2961,7 +3253,6 @@ class LLMOrchestrationService:
                 "phase_name": str(row.get("phase_name") or "").strip(),
                 "description": str(row.get("description") or "").strip(),
                 "profile": str(row.get("profile") or "").strip(),
-                "extracted_knowledge": str(row.get("extracted_knowledge") or "").strip(),
                 "ticketing_enabled": bool(row.get("ticketing_enabled", True)),
                 "ticketing_conditions": str(row.get("ticketing_conditions") or "").strip(),
                 "availability_hint": self._phase_transition_timing_hint(
@@ -2996,27 +3287,116 @@ class LLMOrchestrationService:
                     + "=== SERVICE KNOWLEDGE BASE ===\n\n"
                     + combined_service_kb
                 )
-        kb_context = await self._prepare_full_kb_context_for_message(
-            user_message=user_message,
-            context=context,
-            full_kb_text=full_kb_text,
-        )
-        full_kb_text = str((kb_context or {}).get("full_kb_text") or "").strip()
-        property_scope = (kb_context or {}).get("property_scope") if isinstance(kb_context, dict) else {}
-        if not isinstance(property_scope, dict):
-            property_scope = {}
+        # ── Fast path: skip heavy property scope pipeline on subsequent turns ──
+        # If we already identified the property on a prior turn and KB hasn't changed,
+        # reuse the cached scope info. The full pipeline runs DB queries, file I/O, and
+        # text matching that add several seconds per turn for no benefit.
+        _pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        _cached_property_count = int(_pending.get("_known_property_scope_count") or 0)
+        _cached_property_name = str(_pending.get("_selected_property_scope_name") or "").strip()
+        _cached_property_id = str(_pending.get("_selected_property_scope_id") or "").strip()
 
-        active_property_id = str(property_scope.get("active_property_id") or "").strip()
-        active_property_name = str(property_scope.get("active_property_name") or "").strip()
-        if not isinstance(context.pending_data, dict):
-            context.pending_data = {}
-        if active_property_id:
-            context.pending_data["_selected_property_scope_id"] = active_property_id
-            if active_property_name:
-                context.pending_data["_selected_property_scope_name"] = active_property_name
-        known_property_count = int(property_scope.get("detected_property_count") or 0)
-        if known_property_count > 0:
-            context.pending_data["_known_property_scope_count"] = known_property_count
+        if _cached_property_count > 1 and _cached_property_name and full_kb_text:
+            # Property already known — skip _prepare_full_kb_context_for_message entirely.
+            # Build a minimal property_scope from cached data.
+            property_scope = {
+                "mode": "single",
+                "active_property_id": _cached_property_id,
+                "active_property_name": _cached_property_name,
+                "matched_property_ids": [_cached_property_id] if _cached_property_id else [],
+                "history_property_ids": [],
+                "selected_property_ids": [_cached_property_id] if _cached_property_id else [],
+                "property_manifest": [],
+                "expected_property_count": _cached_property_count,
+                "detected_property_count": _cached_property_count,
+                "count_mismatch": False,
+                "requires_clarification": False,
+                "clarification_question": "",
+            }
+            active_property_id = _cached_property_id
+            active_property_name = _cached_property_name
+            known_property_count = _cached_property_count
+            # property_manifest is empty in fast path — the scoping block below
+            # will still build the manifest header from parsed KB sections.
+            property_manifest = []
+        else:
+            # Full pipeline — first turn or single-property setup
+            kb_context = await self._prepare_full_kb_context_for_message(
+                user_message=user_message,
+                context=context,
+                full_kb_text=full_kb_text,
+            )
+            full_kb_text = str((kb_context or {}).get("full_kb_text") or "").strip()
+            property_scope = (kb_context or {}).get("property_scope") if isinstance(kb_context, dict) else {}
+            if not isinstance(property_scope, dict):
+                property_scope = {}
+
+            active_property_id = str(property_scope.get("active_property_id") or "").strip()
+            active_property_name = str(property_scope.get("active_property_name") or "").strip()
+            if not isinstance(context.pending_data, dict):
+                context.pending_data = {}
+            if active_property_id:
+                context.pending_data["_selected_property_scope_id"] = active_property_id
+                if active_property_name:
+                    context.pending_data["_selected_property_scope_name"] = active_property_name
+            known_property_count = int(property_scope.get("detected_property_count") or 0)
+            if known_property_count > 0:
+                context.pending_data["_known_property_scope_count"] = known_property_count
+            property_manifest = property_scope.get("property_manifest", []) if isinstance(property_scope, dict) else []
+
+        # ── Runtime KB scoping for multi-property setups ──────────────────
+        # When multiple properties exist AND we already know which property
+        # the user is discussing, trim full_kb_text to only that property.
+        # This reduces the orchestrator + guard payloads from ~83K to ~5K,
+        # cutting response time dramatically without losing quality.
+        # Single-property setups skip this entirely — no scoping needed.
+        if known_property_count > 1 and active_property_name and full_kb_text:
+            _parsed_kb = self._parse_property_scoped_knowledge_sections(full_kb_text)
+            _kb_properties = _parsed_kb.get("properties", [])
+            if _kb_properties:
+                # Match active property against parsed sections
+                _active_lower = active_property_name.lower()
+                _matched_props = []
+                for _row in _kb_properties:
+                    if not isinstance(_row, dict):
+                        continue
+                    _pname = str(_row.get("property_name") or "").strip().lower()
+                    _aliases = [str(a).strip().lower() for a in (_row.get("aliases") or []) if str(a).strip()]
+                    _all_labels = [_pname] + _aliases
+                    if any(_active_lower in lbl or lbl in _active_lower for lbl in _all_labels if len(lbl) >= 3):
+                        _matched_props.append(_row)
+                # Also check _selected_property_scope_ids for multi-property comparisons
+                _scope_ids = context.pending_data.get("_selected_property_scope_ids") or []
+                if isinstance(_scope_ids, list) and _scope_ids:
+                    for _row in _kb_properties:
+                        if _row in _matched_props:
+                            continue
+                        _pname = str(_row.get("property_name") or "").strip().lower()
+                        _aliases = [str(a).strip().lower() for a in (_row.get("aliases") or []) if str(a).strip()]
+                        _all_labels = [_pname] + _aliases
+                        if any(pid.lower() in " ".join(_all_labels) for pid in _scope_ids):
+                            _matched_props.append(_row)
+                if _matched_props:
+                    _scoped = self._build_scoped_kb_text(
+                        common=str(_parsed_kb.get("common") or "").strip(),
+                        property_rows=_matched_props,
+                    )
+                    # Prepend a compact manifest so the LLM still knows all
+                    # properties exist and can handle property-switch requests.
+                    # Use property_manifest if available, otherwise derive from parsed KB sections.
+                    _manifest_lines = [f"  - {str(r.get('name') or r.get('id') or '').strip()}" for r in property_manifest[:30] if isinstance(r, dict)]
+                    if not _manifest_lines:
+                        _manifest_lines = [f"  - {str(r.get('property_name') or '').strip()}" for r in _kb_properties if isinstance(r, dict) and str(r.get('property_name') or '').strip()]
+                    if _manifest_lines:
+                        _manifest_header = (
+                            f"=== ALL PROPERTIES ({known_property_count} total) ===\n"
+                            + "\n".join(_manifest_lines)
+                            + "\n\n(Full details below are for the currently active property only. "
+                            "If the guest switches property, you will receive that property's details on the next turn.)\n"
+                        )
+                        full_kb_text = _manifest_header + "\n" + _scoped
+                    else:
+                        full_kb_text = _scoped
 
         history_bundle = self._build_history_bundle(
             context=context,
@@ -3032,7 +3412,6 @@ class LLMOrchestrationService:
                 int(getattr(settings, "llm_orchestration_full_history_chars", 12000) or 12000),
             ),
         )
-        property_manifest = property_scope.get("property_manifest", []) if isinstance(property_scope, dict) else []
         property_scope_payload = {
             "mode": str(property_scope.get("mode") or "").strip(),
             "active_property_id": active_property_id,
@@ -3091,7 +3470,11 @@ class LLMOrchestrationService:
             "full_history_context": history_bundle.get("full_history_context", {}),
             "last_user_message": str(history_bundle.get("last_user_message") or ""),
             "last_assistant_message": str(history_bundle.get("last_assistant_message") or ""),
-            "services": self._sanitize_json(services_snapshot),
+            "services": self._sanitize_json([
+                {k: v for k, v in svc.items() if k not in ("extracted_knowledge", "generated_system_prompt", "service_prompt_pack")}
+                for svc in services_snapshot
+                if isinstance(svc, dict)
+            ]),
             "policy_snapshot": {
                 "selected_phase_id": selected_phase_id,
                 "selected_phase_name": selected_phase_name,
@@ -3192,7 +3575,11 @@ class LLMOrchestrationService:
             "The current guest journey phase is in selected_phase.id. "
             "The ONLY services you may dispatch or offer are those listed in allowed_service_ids_in_current_phase. "
             "Services listed in blocked_out_of_phase_services are NOT available now — do NOT dispatch to them, do NOT offer them as options, do NOT ask clarification questions about them. "
-            "If the guest asks for something that only maps to blocked_out_of_phase_services: respond with factual info and phrase unavailability naturally (never mention phase names).\n"
+            "If the guest asks for something that only maps to blocked_out_of_phase_services: "
+            "1) share factual info from the KB about what the service offers, "
+            "2) explicitly state that booking/ordering/requesting it is not possible right now, "
+            "3) use the 'availability_hint' field from that service entry to tell the guest when it will be available. "
+            "Phrase this naturally — NEVER mention phase names.\n"
             "\n"
             "=== KNOWLEDGE PRIORITY ===\n"
             "For every factual or informational ask, inspect full_knowledge_base carefully before answering.\n"
@@ -3297,7 +3684,16 @@ class LLMOrchestrationService:
             "   -> From the very first message requesting a service — even just 'I need a room', 'book a table', 'get me a cab' — IMMEDIATELY set action=dispatch_handler. Do not answer first, do not ask for details yourself.\n"
             "   -> The service agent handles ALL slot collection and responses. Your job is only to dispatch to the right service.\n"
             "   -> target_service_id MUST be an exact ID from allowed_service_ids_in_current_phase (e.g. 'room_booking_support'). NEVER use 'complaint', 'complaint_service', 'complain', or any complaint-flavored ID for a service request.\n"
-            "   -> If the service is only in blocked_out_of_phase_services: set action=respond_only. Provide factual information about the service (what it offers, hours, pricing if known). Do NOT promise, invite, offer, or imply the guest can use it now. Phrase unavailability naturally — e.g. 'That will be available once you check in', 'We can arrange this during your stay', 'This can be set up when you arrive'. NEVER mention phase names.\n"
+            "   -> If the service is only in blocked_out_of_phase_services: set action=respond_only. "
+            "Provide factual information about the service (what it offers, hours, pricing if known). "
+            "Then EXPLICITLY tell the guest that booking/ordering/requesting this service is not possible at this moment. "
+            "Use the 'availability_hint' field from that service's entry in blocked_out_of_phase_services to tell the guest WHEN it will become available. "
+            "Examples: 'We do offer spa treatments from 9 AM to 11 PM — however, spa bookings can only be made once you check in. "
+            "I will be happy to help you book a session then!', "
+            "'Airport transfers are available — I can help you arrange one after your booking is confirmed.', "
+            "'In-room dining has a wonderful menu! You will be able to place orders once you check in.' "
+            "The key: share the info, clearly state you cannot book/order it now, and warmly tell them when they can. "
+            "Do NOT promise, invite, offer, or imply the guest can use it now. NEVER mention phase names (pre_checkin, during_stay, etc.).\n"
             "   -> Wanting to book a room, order food, or request any service is NEVER a complaint.\n"
             "\n"
             "C) COMPLAINT / ISSUE — guest explicitly reports a problem, malfunction, or dissatisfaction WITH NO active pending service flow.\n"

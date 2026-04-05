@@ -3715,13 +3715,35 @@ class ConfigService:
         cleaned = re.sub(r"^[0-9a-f]{8}_", "", name, flags=re.IGNORECASE)
         return cleaned or name
 
+    # In-memory cache for KB documents — avoids opening a fresh DB connection per turn.
+    # Keyed by hotel_code, value is (timestamp, documents). TTL = 300 seconds (5 min).
+    _kb_docs_cache: dict[str, tuple[float, list[dict[str, str]]]] = {}
+    _KB_DOCS_CACHE_TTL = 300.0
+
+    @classmethod
+    def invalidate_kb_docs_cache(cls, hotel_code: str | None = None) -> None:
+        """Clear the in-memory KB docs cache. Called after KB file upload/reindex."""
+        if hotel_code:
+            cls._kb_docs_cache.pop(str(hotel_code).strip().upper(), None)
+        else:
+            cls._kb_docs_cache.clear()
+
     @staticmethod
     def _load_kb_documents_from_db_sync(hotel_code: str) -> list[dict[str, str]]:
-        """Sync DB query to load KB file content. Works with MySQL and SQLite."""
+        """Sync DB query to load KB file content. Works with MySQL and SQLite.
+        Results are cached in memory for 5 minutes to avoid redundant DB round-trips."""
+        import time as _time
         from models.database import ACTIVE_DATABASE_URL
         from sqlalchemy.engine import make_url
 
         normalized_code = str(hotel_code or "DEFAULT").strip().upper()
+
+        # Check cache first
+        cached = ConfigService._kb_docs_cache.get(normalized_code)
+        if cached:
+            cache_ts, cache_docs = cached
+            if (_time.monotonic() - cache_ts) < ConfigService._KB_DOCS_CACHE_TTL:
+                return cache_docs
 
         # Try pymysql first (MySQL), then fall back to sqlite3
         parsed = make_url(ACTIVE_DATABASE_URL)
@@ -3771,6 +3793,8 @@ class ConfigService:
                     "source_path": f"db://kb_files/{row[0]}",
                     "content": content,
                 })
+            if documents:
+                ConfigService._kb_docs_cache[normalized_code] = (_time.monotonic(), documents)
             return documents
         except Exception as e:
             print(f"[KB] _load_kb_documents_from_db_sync (MySQL) failed: {e}")
@@ -6187,6 +6211,7 @@ class ConfigService:
         max_sources: int = 50,
         max_scope_chars: int = 90000,
         max_properties: int = 4,
+        preloaded_full_kb_text: str | None = None,
     ) -> dict[str, Any]:
         library = await self.ensure_structured_kb_llm_books(max_sources=max_sources)
         property_index = await self.ensure_property_scope_index(max_sources=max_sources)
@@ -6201,7 +6226,8 @@ class ConfigService:
             if isinstance(property_index, dict)
             else 0
         )
-        full_kb_text = self.get_full_kb_text_with_sources(max_sources=max_sources, max_chars=None)
+        # Use pre-loaded KB text if provided — avoids duplicate DB + file reads
+        full_kb_text = preloaded_full_kb_text if preloaded_full_kb_text is not None else self.get_full_kb_text_with_sources(max_sources=max_sources, max_chars=None)
         if not isinstance(properties, list) or not properties:
             return {
                 "mode": "unscoped",
@@ -7653,6 +7679,8 @@ class ConfigService:
                 "phase_id": self._normalize_phase_identifier(svc.get("phase_id")),
                 "ticketing_enabled": svc.get("ticketing_enabled", True),
                 "ticketing_policy": str(svc.get("ticketing_policy") or "").strip(),
+                "ticketing_mode": str(svc.get("ticketing_mode") or "").strip().lower(),
+                "form_config": copy.deepcopy(svc.get("form_config")) if isinstance(svc.get("form_config"), dict) else None,
                 "service_prompt_pack": copy.deepcopy(svc.get("service_prompt_pack", {})),
                 "service_prompt_pack_custom": bool(svc.get("service_prompt_pack_custom", False)),
                 "generated_system_prompt": str(svc.get("generated_system_prompt") or "").strip(),

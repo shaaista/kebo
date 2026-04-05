@@ -2909,7 +2909,28 @@ class ChatService:
             or pending_public.get("resolved_service_id")
             or ""
         )
-        if pending_action_active.startswith("confirm_"):
+        # Check if the pending service uses form-based ticketing — if so, skip
+        # the entire confirmation detection path because form submission IS the
+        # confirmation.  This prevents the bot from asking for "yes confirm" on
+        # services that use an inline form.
+        _pending_service_is_form_mode = False
+        if pending_action_active.startswith("confirm_") and pending_service_id_hint:
+            try:
+                _pending_svc = config_service.get_service(pending_service_id_hint)
+                if _pending_svc and str(_pending_svc.get("ticketing_mode") or "").strip().lower() == "form":
+                    _pending_service_is_form_mode = True
+            except Exception:
+                pass
+
+        if _pending_service_is_form_mode and pending_action_active.startswith("confirm_"):
+            # Form-mode service somehow ended up in a confirm_* state (LLM
+            # ignored instructions).  Clear the stale state so the orchestrator
+            # re-routes to the service agent cleanly on this turn.
+            context.pending_action = "collect_form_details"
+            decision.metadata["form_mode_cleared_stale_confirm"] = pending_action_active
+            pending_action_active = "collect_form_details"
+
+        if pending_action_active.startswith("confirm_") and not _pending_service_is_form_mode:
             confirmation_intent = self._detect_confirmation_intent(
                 re.sub(r"\s+", " ", str(effective_user_message or "").strip().lower())
             )
@@ -2935,33 +2956,6 @@ class ChatService:
                 if pending_service_id_hint:
                     decision.pending_data_updates.setdefault("service_id", pending_service_id_hint)
                 decision.metadata.setdefault("confirmation_continuity_forced", True)
-            elif (
-                self._is_room_booking_pending_action(pending_action_active)
-                and confirmation_intent is None
-                and (
-                    self._looks_like_room_booking_detail_followup(effective_user_message)
-                    or self._looks_like_room_options_information_query(effective_user_message)
-                    or self._looks_like_room_type_preference_reply(
-                        str(effective_user_message or "").strip().lower()
-                    )
-                    or self._looks_like_room_stay_booking_request(effective_user_message)
-                )
-            ):
-                decision.interrupt_pending = False
-                decision.resume_pending = False
-                decision.cancel_pending = False
-                if str(decision.action or "").strip().lower() not in {"respond_only", "collect_info", "dispatch_handler"}:
-                    decision.action = "respond_only"
-                if not str(decision.pending_action or "").strip():
-                    decision.pending_action = "collect_room_booking_details"
-                decision.pending_data_updates = (
-                    dict(decision.pending_data_updates)
-                    if isinstance(decision.pending_data_updates, dict)
-                    else {}
-                )
-                if pending_service_id_hint:
-                    decision.pending_data_updates.setdefault("service_id", pending_service_id_hint)
-                decision.metadata.setdefault("confirmation_continuity_reopened_collection", True)
 
         pending_interrupted = False
         if context.pending_action and bool(decision.interrupt_pending):
@@ -3227,10 +3221,7 @@ class ChatService:
             handler_text = str(handler_result.response_text or "").strip()
             handler_metadata = handler_result.metadata if isinstance(handler_result.metadata, dict) else {}
             handler_pending_action = str(handler_result.pending_action or "").strip().lower()
-            force_handler_response = bool(handler_metadata.get("room_booking_flow"))
-            if not force_handler_response and self._is_room_booking_pending_action(handler_pending_action):
-                force_handler_response = True
-            if force_handler_response or not prefer_llm_response or not response_text:
+            if not prefer_llm_response or not response_text:
                 response_text = handler_text or response_text
             next_state = handler_result.next_state
             if handler_result.pending_action is not None:
@@ -3710,6 +3701,10 @@ class ChatService:
                 "target_service_id": str(decision.target_service_id or ""),
                 "missing_fields": list(decision.missing_fields),
                 "pending_action": context.pending_action,
+                "pending_data": {
+                    k: v for k, v in (context.pending_data or {}).items()
+                    if isinstance(k, str) and not k.startswith("_")
+                } if isinstance(context.pending_data, dict) else {},
             },
             "classified_intent": assistant_intent_value,
             "classified_confidence": assistant_confidence_value,

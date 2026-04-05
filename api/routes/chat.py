@@ -453,6 +453,13 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     import sys as _sys
     from services.form_fields_service import extract_form_fields
     from services.config_service import config_service
+    from services.form_mode_service import (
+        canonicalize_trigger_pending_data,
+        normalize_form_field_key,
+        normalize_trigger_missing_fields,
+        resolve_trigger_field_value,
+        strip_form_confirmation_instructions,
+    )
 
     state_val = str(getattr(response.state, "value", response.state) or "").strip().lower()
     meta = response.metadata if isinstance(response.metadata, dict) else {}
@@ -515,29 +522,32 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
         print(f"[form_trigger] SKIP: already has form_trigger or ticket_created", file=_sys.stderr, flush=True)
         return
 
+    # ── Action gate: skip form if the orchestrator said respond_only ──
+    if orchestration_action == "respond_only" and not message_collection_hint:
+        print(f"[form_trigger] SKIP: orchestration_action=respond_only (no form hint)", file=_sys.stderr, flush=True)
+        return
+
+    # ── Resolve target_service_id from ALL available sources ──
+    _norm_svc = lambda s: str(s or "").strip().lower().replace(" ", "_").replace("-", "_")
     target_service_id = ""
-
-    orchestration = meta.get("orchestration_decision") or meta.get("decision") or {}
-    if isinstance(orchestration, dict):
-        action = str(orchestration.get("action") or "").strip().lower()
-        if action == "respond_only" and not message_collection_hint:
-            print(f"[form_trigger] SKIP: action=respond_only (no form hint in message)", file=_sys.stderr, flush=True)
-            return
-        if action == "respond_only" and message_collection_hint:
-            print(f"[form_trigger] OVERRIDE: action=respond_only but message says fill form, proceeding", file=_sys.stderr, flush=True)
-        target_service_id = str(orchestration.get("target_service_id") or "").strip()
-
+    # Source 1: entities.target_service_id (always populated by chat_service)
     if not target_service_id:
-        target_service_id = str(meta.get("pending_service_id") or "").strip()
-
+        target_service_id = str(entities_meta.get("target_service_id") or "").strip()
+    # Source 2: top-level metadata
+    if not target_service_id:
+        target_service_id = str(
+            meta.get("orchestration_target_service_id")
+            or meta.get("pending_service_id")
+            or ""
+        ).strip()
+    # Source 3: service_llm_label (display name fallback)
     if not target_service_id:
         label = str(
             meta.get("service_llm_label")
             or getattr(response, "service_llm_label", "")
             or ""
-        ).strip().lower()
-        print(f"[form_trigger] service_llm_label={label!r}", file=_sys.stderr, flush=True)
-        if label and label != "main":
+        ).strip()
+        if label and label.lower() != "main":
             target_service_id = label
 
     print(f"[form_trigger] target_service_id={target_service_id!r}", file=_sys.stderr, flush=True)
@@ -546,7 +556,25 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
         print(f"[form_trigger] SKIP: no target_service_id found", file=_sys.stderr, flush=True)
         return
 
+    # ── Load service definition (JSON first, then DB fallback) ──
     service = config_service.get_service(target_service_id)
+    if not service:
+        # Try normalized version (spaces → underscores)
+        service = config_service.get_service(_norm_svc(target_service_id))
+    # DB fallback: service may exist only in the database (admin-created)
+    if not service:
+        try:
+            from services.db_config_service import db_config_service as _dcs
+            _db_svcs = await _dcs.get_services()
+            _target_norm = _norm_svc(target_service_id)
+            for _candidate in (_db_svcs or []):
+                if not isinstance(_candidate, dict):
+                    continue
+                if _norm_svc(_candidate.get("id")) == _target_norm or _norm_svc(_candidate.get("name")) == _target_norm:
+                    service = dict(_candidate)
+                    break
+        except Exception as _db_exc:
+            print(f"[form_trigger] DB fallback error: {_db_exc!r}", file=_sys.stderr, flush=True)
     ticketing_enabled = bool(service.get("ticketing_enabled", False)) if service else False
     print(f"[form_trigger] service={service.get('id') if service else None}, ticketing_enabled={ticketing_enabled}", file=_sys.stderr, flush=True)
 
@@ -565,6 +593,68 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     if ticketing_mode and ticketing_mode not in ("form", "text", "none"):
         ticketing_mode = "form"
 
+    # ── Trigger-field gate: do not show form until the trigger field is collected ──
+    # The service's form_config.trigger_field specifies which field (e.g. room_type,
+    # terminal) must be known before the form is shown.
+    # We check TWO signals:
+    #   1. trigger field is explicitly listed in missing_fields → definitely not collected
+    #   2. trigger field value is absent from pending_data → not collected yet
+    # The form only shows when the trigger field is NOT in missing_fields AND its
+    # value IS present in pending_data.
+    svc_form_config = service.get("form_config") if isinstance(service.get("form_config"), dict) else {}
+    trigger_field_cfg = svc_form_config.get("trigger_field") if isinstance(svc_form_config.get("trigger_field"), dict) else {}
+    trigger_field_id = normalize_form_field_key(trigger_field_cfg.get("id"))
+    if trigger_field_id:
+        trigger_field_label = str(trigger_field_cfg.get("label") or trigger_field_id).strip()
+        collected_data = (
+            entities_meta.get("pending_data")
+            or meta.get("pending_data")
+            or {}
+        )
+        collected_data, _trigger_alias_key, _ = canonicalize_trigger_pending_data(
+            collected_data,
+            trigger_field_id,
+            trigger_field_label,
+        )
+        if isinstance(entities_meta.get("pending_data"), dict):
+            entities_meta["pending_data"] = dict(collected_data)
+        if isinstance(meta.get("pending_data"), dict):
+            meta["pending_data"] = dict(collected_data)
+        _, trigger_value_raw = resolve_trigger_field_value(
+            collected_data,
+            trigger_field_id,
+            trigger_field_label,
+        )
+        trigger_value = str(trigger_value_raw or "").strip()
+        missing_fields = normalize_trigger_missing_fields(
+            missing_fields,
+            trigger_field_id,
+            trigger_field_label,
+            trigger_value_present=bool(trigger_value),
+        )
+        if isinstance(entities_meta.get("missing_fields"), list):
+            entities_meta["missing_fields"] = list(missing_fields)
+        if isinstance(meta.get("missing_fields"), list):
+            meta["missing_fields"] = list(missing_fields)
+        missing_lower = [normalize_form_field_key(f) for f in missing_fields]
+        if trigger_field_id in missing_lower:
+            print(
+                f"[form_trigger] SKIP: trigger_field '{trigger_field_id}' still in missing_fields",
+                file=_sys.stderr, flush=True,
+            )
+            return
+        if not trigger_value:
+            print(
+                f"[form_trigger] SKIP: trigger_field '{trigger_field_id}' not yet in pending_data "
+                f"(available keys: {list(collected_data.keys())})",
+                file=_sys.stderr, flush=True,
+            )
+            return
+        print(
+            f"[form_trigger] trigger_field '{trigger_field_id}' collected: {trigger_value!r}",
+            file=_sys.stderr, flush=True,
+        )
+
     fields = await extract_form_fields(service)
     print(f"[form_trigger] extracted {len(fields)} field(s): {[f['id'] for f in fields]}", file=_sys.stderr, flush=True)
 
@@ -576,30 +666,48 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     response.metadata["form_fields"] = fields
     response.metadata["form_service_id"] = target_service_id
 
-    # Strip explicit field listings from the bot message since the form handles collection.
+    # Strip only form-field listings from the bot message (the form UI handles those).
+    # Keep room/service descriptions, features, and other informational content intact.
     import re as _re
+
+    # Build a set of field-like keywords so we only strip lines that name form fields,
+    # not lines that describe room features or amenities.
+    _field_keywords: set[str] = set()
+    for _f in fields:
+        _field_keywords.add(str(_f.get("id") or "").strip().lower().replace("_", " "))
+        _field_keywords.add(str(_f.get("label") or "").strip().lower())
+    _field_keywords.discard("")
+
+    def _line_is_field_listing(line_text: str) -> bool:
+        """Return True if a bullet/numbered line looks like a form field label."""
+        # Extract the text after the bullet/number marker
+        inner = _re.sub(r"^[-*\u2022]\s+|^\d+[.)]\s+", "", line_text.strip())
+        inner = _re.sub(r"\*{1,2}", "", inner).strip().rstrip(":").strip().lower()
+        if not inner:
+            return True  # empty bullet → safe to remove
+        # Check if this line matches a known form field label/id
+        for kw in _field_keywords:
+            if kw in inner or inner in kw:
+                return True
+        # Generic "provide your X" patterns are field prompts
+        if _re.match(r"^(your\s+|the\s+|guest.?s?\s+)?(full\s+)?name", inner):
+            return True
+        if _re.match(r"^(phone|contact|email|check.?in|check.?out|date|time|guests?|special)", inner):
+            return True
+        return False
 
     def _strip_field_list(msg: str) -> str:
         if not msg:
             return "Please fill in the details below."
-        # Remove lines that are bullet points or numbered lists
+        # Remove only bullet/numbered lines that look like form field labels
         cleaned_lines = []
         for line in msg.split("\n"):
             stripped = line.strip()
-            if _re.match(r"^[-*\u2022]\s+", stripped):
-                continue
-            if _re.match(r"^\d+[.)]\s+", stripped):
+            is_bullet = bool(_re.match(r"^[-*\u2022]\s+", stripped) or _re.match(r"^\d+[.)]\s+", stripped))
+            if is_bullet and _line_is_field_listing(stripped):
                 continue
             cleaned_lines.append(line)
         cleaned = "\n".join(cleaned_lines).strip()
-        # Remove inline bullet lists like "- Flight number - Arrival date - Contact info"
-        # that appear after a colon or question mark on the same line
-        cleaned = _re.sub(
-            r"([?:])\s*[-\u2022*]\s*\*{0,2}\w[\w\s,/&()]*(?:\*{0,2}\s*[-\u2022*]\s*\*{0,2}\w[\w\s,/&()]*)+\s*$",
-            r"\1",
-            cleaned,
-            flags=_re.IGNORECASE,
-        ).strip()
         # Remove trailing prompts like "could you please provide the following details:"
         cleaned = _re.sub(
             r"[,.]?\s*(?:could you |can you |please |kindly )*(?:provide|share|give|send)\s+(?:us\s+|me\s+)?(?:the\s+)?(?:following\s+)?(?:details|information|info)\s*(?:to proceed[^?:.]*)?[?:.]?\s*$",
@@ -607,18 +715,11 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
             cleaned,
             flags=_re.IGNORECASE,
         ).strip()
-        # Remove trailing "Could you please provide the following details to proceed with the booking?"
+        # Remove dangling clauses that truly end with a colon and nothing after
+        # (e.g. "and includes:" at end of text). Do NOT strip mid-sentence "offers:" etc.
         cleaned = _re.sub(
-            r"[,.]?\s*(?:could you |can you |please |kindly )*(?:provide|share|give)\b.*?(?:details|information|info)\b.*?[?:.]?\s*$",
+            r"(?:\s*(?:,\s*)?(?:and|which|that|,)\s+)?(?:offers|includes|featuring|features|comes with|has|provides)\s*:\s*$",
             ".",
-            cleaned,
-            flags=_re.IGNORECASE,
-        ).strip()
-        # Remove dangling clauses ending with colon (e.g. "and includes:" or "which offers:")
-        # Captures the preceding connector (and/which/,) plus the dangling verb+colon
-        cleaned = _re.sub(
-            r"(?:\s*(?:,\s*)?(?:and|which|that|,)\s+)?(?:offers|includes|featuring|features|comes with|has|provides)\s*:\s*",
-            ". ",
             cleaned,
             flags=_re.IGNORECASE,
         ).strip()
@@ -638,13 +739,15 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
             cleaned = cleaned.rstrip(".") + ". Please fill in the details below."
         return cleaned or "Please fill in the details below."
 
-    response.message = _strip_field_list(response.message)
+    response.message = _strip_field_list(strip_form_confirmation_instructions(response.message))
     if response.display_message:
-        response.display_message = _strip_field_list(response.display_message)
+        response.display_message = _strip_field_list(
+            strip_form_confirmation_instructions(response.display_message)
+        )
     # Also clean metadata.display_message since frontend reads it first
     if isinstance(response.metadata, dict) and response.metadata.get("display_message"):
         response.metadata["display_message"] = _strip_field_list(
-            str(response.metadata["display_message"])
+            strip_form_confirmation_instructions(str(response.metadata["display_message"]))
         )
 
     print(f"[form_trigger] SUCCESS: form_trigger set for service={target_service_id!r}", file=_sys.stderr, flush=True)
@@ -857,7 +960,8 @@ async def submit_form(
     try:
         requested_service_id = _normalize_service_identifier(request.service_id)
         service = config_service.get_service(requested_service_id)
-        if not service and bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
+        # DB fallback: service may exist only in the database (production mode)
+        if not service:
             try:
                 db_services = await db_config_service.get_services()
             except Exception:
@@ -974,6 +1078,29 @@ async def submit_form(
             pass
 
         if result.success:
+            # Clear booking flow state so the bot doesn't offer to "resume"
+            # a booking that was already completed via form submission.
+            from schemas.chat import ConversationState
+            context.pending_action = None
+            internal_keys = {
+                k: v for k, v in (context.pending_data or {}).items()
+                if isinstance(k, str) and k.startswith("_")
+            }
+            context.pending_data = internal_keys
+            context.state = ConversationState.IDLE
+            # Remove this service from suspended list if present
+            if isinstance(context.suspended_services, list):
+                context.suspended_services = [
+                    s for s in context.suspended_services
+                    if _normalize_service_identifier((s or {}).get("service_id")) != _normalize_service_identifier(resolved_service_id)
+                ]
+                if not context.suspended_services:
+                    context.resume_prompt_sent = False
+            try:
+                await context_manager.save_context(context, db_session=db)
+            except Exception:
+                await context_manager.save_context(context, db_session=None)
+
             return {
                 "success": True,
                 "ticket_id": result.ticket_id or "",
@@ -1045,13 +1172,12 @@ async def send_message(
         summary = str(meta.get("conversation_summary") or meta.get("summary") or "").strip()
         from services.config_service import config_service as _cs
         _all_svcs = _cs.get_services()
-        if bool(getattr(settings, "chat_db_overlay_runtime_config", False)):
-            try:
-                db_services = await db_config_service.get_services()
-                if isinstance(db_services, list) and db_services:
-                    _all_svcs = db_services
-            except Exception:
-                pass
+        try:
+            db_services = await db_config_service.get_services()
+            if isinstance(db_services, list) and db_services:
+                _all_svcs = db_services
+        except Exception:
+            pass
         available_services = [str(s.get("id") or "") for s in (_all_svcs or []) if s.get("is_active", True)]
         log_chat_turn(
             session_id=str(request.session_id or ""),
