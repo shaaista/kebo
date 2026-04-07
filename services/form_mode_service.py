@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from difflib import SequenceMatcher
 import re
 from typing import Any
 
@@ -39,6 +40,29 @@ _CONFIRMATION_INSTRUCTION_PATTERNS = (
         flags=re.IGNORECASE,
     ),
 )
+_TRIGGER_CANDIDATE_KEY_SUFFIXES = ("candidates", "options", "choices", "values", "list")
+_TRIGGER_CANDIDATE_KEY_PREFIXES = ("available", "supported", "allowed")
+_TRIGGER_MATCH_STOPWORDS = {
+    "a",
+    "an",
+    "and",
+    "for",
+    "in",
+    "of",
+    "or",
+    "the",
+    "to",
+    "with",
+    "please",
+    "book",
+    "booking",
+    "select",
+    "selected",
+    "choose",
+    "chosen",
+    "option",
+    "options",
+}
 
 
 def normalize_form_field_key(value: Any) -> str:
@@ -164,6 +188,141 @@ def normalize_trigger_missing_fields(
             seen.add(key)
             normalized_fields.append(key)
     return normalized_fields
+
+
+def _iter_trigger_candidate_values(value: Any) -> list[str]:
+    candidates: list[str] = []
+
+    def _append(raw: Any) -> None:
+        text = str(raw or "").strip()
+        if not text:
+            return
+        if text not in candidates:
+            candidates.append(text)
+
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            if "," in text:
+                for token in text.split(","):
+                    _append(token)
+            else:
+                _append(text)
+        return candidates
+
+    if isinstance(value, dict):
+        for item in value.values():
+            for flattened in _iter_trigger_candidate_values(item):
+                _append(flattened)
+        return candidates
+
+    if isinstance(value, (list, tuple, set)):
+        for item in value:
+            if isinstance(item, dict):
+                for key in ("label", "name", "title", "value", "id", "text"):
+                    if str(item.get(key) or "").strip():
+                        _append(item.get(key))
+                        break
+                continue
+            _append(item)
+        return candidates
+
+    _append(value)
+    return candidates
+
+
+def _extract_trigger_candidates_from_data(
+    data: dict[str, Any],
+    aliases: set[str],
+) -> list[str]:
+    if not aliases:
+        return []
+
+    values: list[str] = []
+    for raw_key, raw_value in data.items():
+        key = normalize_form_field_key(raw_key)
+        if not key:
+            continue
+        if key in aliases:
+            continue
+        collection_value = isinstance(raw_value, (list, tuple, set, dict))
+        alias_match = any(alias and alias in key for alias in aliases)
+        suffix_match = any(key.endswith(f"_{suffix}") for suffix in _TRIGGER_CANDIDATE_KEY_SUFFIXES)
+        prefix_match = any(key.startswith(f"{prefix}_") for prefix in _TRIGGER_CANDIDATE_KEY_PREFIXES)
+        if not suffix_match and not prefix_match and not (alias_match and collection_value):
+            continue
+        for candidate in _iter_trigger_candidate_values(raw_value):
+            normalized = normalize_form_field_key(candidate)
+            if not normalized:
+                continue
+            if candidate not in values:
+                values.append(candidate)
+    return values
+
+
+def _candidate_match_score(message_key: str, candidate_key: str) -> float:
+    if not message_key or not candidate_key:
+        return 0.0
+    if candidate_key in message_key:
+        return 1.0
+
+    msg_tokens = [token for token in message_key.split("_") if token]
+    cand_tokens = [token for token in candidate_key.split("_") if token and token not in _TRIGGER_MATCH_STOPWORDS]
+    if cand_tokens and all(token in msg_tokens for token in cand_tokens):
+        return 0.94
+
+    # Fuzzy window match handles minor typos inside a longer message string.
+    best = 0.0
+    window_size = max(1, len(cand_tokens) if cand_tokens else len(candidate_key.split("_")))
+    window_size += 2
+    for idx in range(len(msg_tokens)):
+        chunk = "_".join(msg_tokens[idx : idx + window_size])
+        if not chunk:
+            continue
+        ratio = SequenceMatcher(a=candidate_key, b=chunk).ratio()
+        if ratio > best:
+            best = ratio
+    return best
+
+
+def infer_trigger_value_from_message(
+    data: Any,
+    field_id: Any,
+    field_label: Any = "",
+    message: Any = "",
+) -> tuple[str, Any]:
+    """
+    Best-effort fallback when LLM did not emit trigger value in pending_data_updates.
+    Matches the user's message against candidate lists carried in pending data.
+    """
+    if not isinstance(data, dict):
+        return "", None
+    message_key = normalize_form_field_key(message)
+    if not message_key:
+        return "", None
+
+    aliases = set(build_trigger_field_aliases(field_id, field_label))
+    if not aliases:
+        return "", None
+
+    candidates = _extract_trigger_candidates_from_data(data, aliases)
+    if not candidates:
+        return "", None
+
+    best_value: str = ""
+    best_score = 0.0
+    for candidate in candidates:
+        candidate_key = normalize_form_field_key(candidate)
+        if not candidate_key:
+            continue
+        score = _candidate_match_score(message_key, candidate_key)
+        if score > best_score:
+            best_score = score
+            best_value = candidate
+
+    if best_score >= 0.82 and best_value:
+        return normalize_form_field_key(field_id), best_value
+    return "", None
 
 
 def _should_strip_confirmation_phrase(phrase: str) -> bool:

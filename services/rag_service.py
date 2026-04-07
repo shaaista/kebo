@@ -1266,6 +1266,7 @@ class RAGService:
         tenant_id: str = "default",
         top_k: Optional[int] = None,
         trace: Optional[dict[str, Any]] = None,
+        property_filter: Optional[str] = None,
     ) -> list[RetrievedChunk]:
         limit = max(1, int(top_k or self.top_k))
         candidate_limit = self._candidate_pool_size(limit)
@@ -1363,6 +1364,34 @@ class RAGService:
         if not chunks:
             return []
 
+        # Property-scoped filtering: when a booking is active for a specific property,
+        # prefer chunks whose source file or content mentions that property.
+        if property_filter:
+            _pf_lower = str(property_filter).strip().lower()
+            _pf_tokens = [t for t in _pf_lower.replace("-", " ").replace("_", " ").split() if len(t) > 2]
+            if _pf_tokens:
+                def _property_match(chunk: RetrievedChunk) -> bool:
+                    haystack = (str(chunk.source or "") + " " + str(chunk.content or "")).lower()
+                    return any(token in haystack for token in _pf_tokens)
+                matched = [c for c in chunks if _property_match(c)]
+                if matched:
+                    chunks = matched
+                    self._trace_step(
+                        trace,
+                        step="property_filter",
+                        status="success",
+                        input_data={"property_filter": property_filter, "tokens": _pf_tokens},
+                        output_data={"filtered_count": len(chunks)},
+                    )
+                else:
+                    self._trace_step(
+                        trace,
+                        step="property_filter",
+                        status="no_match",
+                        input_data={"property_filter": property_filter},
+                        output_data={"reason": "no chunks matched filter, using all chunks"},
+                    )
+
         if self.enable_mmr:
             chunks = self._select_chunks_mmr(
                 question=question,
@@ -1422,6 +1451,7 @@ class RAGService:
         city: str,
         tenant_id: str = "default",
         business_type: str = "generic",
+        property_filter: Optional[str] = None,
     ) -> Optional[RAGAnswer]:
         original_question = re.sub(r"\s+", " ", str(question or "").strip())
         trace = self._new_trace(
@@ -1510,6 +1540,7 @@ class RAGService:
                 tenant_id=tenant_id,
                 top_k=dynamic_top_k,
                 trace=trace,
+                property_filter=property_filter,
             )
             if not chunks:
                 final_status = "no_chunks"

@@ -5,7 +5,9 @@ Endpoints for chat functionality and testing.
 """
 
 import json
+import logging
 import traceback as _traceback
+from datetime import date, timedelta
 from time import perf_counter as _perf_counter
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, Request
@@ -34,6 +36,7 @@ from sqlalchemy.exc import OperationalError
 
 
 router = APIRouter(prefix="/api/chat", tags=["Chat"])
+logger = logging.getLogger(__name__)
 
 _DEFAULT_CHAT_TEST_PHASE_PROFILES: dict[str, dict[str, str]] = {
     "pre_booking": {
@@ -444,7 +447,7 @@ async def _attach_display_message(response: ChatResponse) -> None:
         response.metadata.update(beautifier_meta)
 
 
-async def _inject_form_trigger(response: ChatResponse) -> None:
+async def _inject_form_trigger(response: ChatResponse, *, user_message: str = "") -> None:
     """
     When the bot is actively collecting info for a ticketing-enabled service,
     extract that service's form fields and attach them to the response metadata
@@ -455,15 +458,20 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     from services.config_service import config_service
     from services.form_mode_service import (
         canonicalize_trigger_pending_data,
+        infer_trigger_value_from_message,
         normalize_form_field_key,
         normalize_trigger_missing_fields,
         resolve_trigger_field_value,
         strip_form_confirmation_instructions,
     )
 
+    if not isinstance(response.metadata, dict):
+        response.metadata = {}
+    meta = response.metadata
+    if not isinstance(meta.get("entities"), dict):
+        meta["entities"] = {}
+    entities_meta = meta["entities"]
     state_val = str(getattr(response.state, "value", response.state) or "").strip().lower()
-    meta = response.metadata if isinstance(response.metadata, dict) else {}
-    entities_meta = meta.get("entities") if isinstance(meta.get("entities"), dict) else {}
     orchestration_action = str(
         entities_meta.get("orchestration_action")
         or meta.get("orchestration_action")
@@ -486,12 +494,18 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
         or ""
     ).strip().lower()
     response_text = str(response.message or "").strip().lower()
+    display_text = str(
+        getattr(response, "display_message", "")
+        or meta.get("display_message")
+        or ""
+    ).strip().lower()
     message_collection_hint = any(
-        phrase in response_text
+        phrase in response_text or phrase in display_text
         for phrase in (
             "please fill in the details below",
             "please fill in the booking details below",
             "please fill in the form below",
+            "please proceed with the booking details",
         )
     )
     collecting_signal = (
@@ -514,17 +528,8 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
         flush=True,
     )
 
-    if not collecting_signal:
-        print(f"[form_trigger] SKIP: no collection signal", file=_sys.stderr, flush=True)
-        return
-
     if meta.get("form_trigger") or meta.get("ticket_created"):
         print(f"[form_trigger] SKIP: already has form_trigger or ticket_created", file=_sys.stderr, flush=True)
-        return
-
-    # ── Action gate: skip form if the orchestrator said respond_only ──
-    if orchestration_action == "respond_only" and not message_collection_hint:
-        print(f"[form_trigger] SKIP: orchestration_action=respond_only (no form hint)", file=_sys.stderr, flush=True)
         return
 
     # ── Resolve target_service_id from ALL available sources ──
@@ -589,6 +594,9 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     if ticketing_mode == "text":
         print(f"[form_trigger] SKIP: ticketing_mode=text, using conversational collection", file=_sys.stderr, flush=True)
         return
+    if ticketing_mode == "none":
+        print(f"[form_trigger] SKIP: ticketing_mode=none", file=_sys.stderr, flush=True)
+        return
     # If ticketing_mode is empty/unset, default to form injection for backward compat
     if ticketing_mode and ticketing_mode not in ("form", "text", "none"):
         ticketing_mode = "form"
@@ -604,6 +612,7 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
     svc_form_config = service.get("form_config") if isinstance(service.get("form_config"), dict) else {}
     trigger_field_cfg = svc_form_config.get("trigger_field") if isinstance(svc_form_config.get("trigger_field"), dict) else {}
     trigger_field_id = normalize_form_field_key(trigger_field_cfg.get("id"))
+    trigger_collected = False
     if trigger_field_id:
         trigger_field_label = str(trigger_field_cfg.get("label") or trigger_field_id).strip()
         collected_data = (
@@ -616,44 +625,97 @@ async def _inject_form_trigger(response: ChatResponse) -> None:
             trigger_field_id,
             trigger_field_label,
         )
-        if isinstance(entities_meta.get("pending_data"), dict):
-            entities_meta["pending_data"] = dict(collected_data)
-        if isinstance(meta.get("pending_data"), dict):
-            meta["pending_data"] = dict(collected_data)
+        entities_meta["pending_data"] = dict(collected_data)
+        meta["pending_data"] = dict(collected_data)
         _, trigger_value_raw = resolve_trigger_field_value(
             collected_data,
             trigger_field_id,
             trigger_field_label,
         )
         trigger_value = str(trigger_value_raw or "").strip()
+        if not trigger_value:
+            inferred_key, inferred_value = infer_trigger_value_from_message(
+                collected_data,
+                trigger_field_id,
+                trigger_field_label,
+                user_message,
+            )
+            if not inferred_value:
+                inferred_key, inferred_value = infer_trigger_value_from_message(
+                    collected_data,
+                    trigger_field_id,
+                    trigger_field_label,
+                    response.message,
+                )
+            if inferred_value:
+                infer_field = normalize_form_field_key(inferred_key) or trigger_field_id
+                collected_data[infer_field] = inferred_value
+                entities_meta["pending_data"] = dict(collected_data)
+                meta["pending_data"] = dict(collected_data)
+                trigger_value = str(inferred_value).strip()
+                meta["form_trigger_inferred_trigger_value"] = True
+                print(
+                    f"[form_trigger] inferred trigger_field '{trigger_field_id}' from message: {trigger_value!r}",
+                    file=_sys.stderr,
+                    flush=True,
+                )
         missing_fields = normalize_trigger_missing_fields(
             missing_fields,
             trigger_field_id,
             trigger_field_label,
             trigger_value_present=bool(trigger_value),
         )
-        if isinstance(entities_meta.get("missing_fields"), list):
-            entities_meta["missing_fields"] = list(missing_fields)
-        if isinstance(meta.get("missing_fields"), list):
-            meta["missing_fields"] = list(missing_fields)
+        entities_meta["missing_fields"] = list(missing_fields)
+        meta["missing_fields"] = list(missing_fields)
         missing_lower = [normalize_form_field_key(f) for f in missing_fields]
-        if trigger_field_id in missing_lower:
+        trigger_missing = trigger_field_id in missing_lower
+        trigger_collected = bool(trigger_value) and not trigger_missing
+        if trigger_collected:
+            if orchestration_action == "respond_only":
+                orchestration_action = "collect_info"
+                entities_meta["orchestration_action"] = orchestration_action
+                meta["orchestration_action"] = orchestration_action
+                meta["form_mode_forced_collect_info"] = True
+            if not str(entities_meta.get("pending_action") or "").strip():
+                entities_meta["pending_action"] = "collect_form_details"
+            if not str(meta.get("pending_action") or "").strip():
+                meta["pending_action"] = "collect_form_details"
+            print(
+                f"[form_trigger] trigger_field '{trigger_field_id}' collected: {trigger_value!r}",
+                file=_sys.stderr,
+                flush=True,
+            )
+        elif trigger_missing:
             print(
                 f"[form_trigger] SKIP: trigger_field '{trigger_field_id}' still in missing_fields",
                 file=_sys.stderr, flush=True,
             )
             return
-        if not trigger_value:
+        else:
+            if not collecting_signal:
+                print(
+                    f"[form_trigger] SKIP: no collection signal and trigger_field '{trigger_field_id}' missing",
+                    file=_sys.stderr,
+                    flush=True,
+                )
+                return
             print(
                 f"[form_trigger] SKIP: trigger_field '{trigger_field_id}' not yet in pending_data "
                 f"(available keys: {list(collected_data.keys())})",
                 file=_sys.stderr, flush=True,
             )
             return
-        print(
-            f"[form_trigger] trigger_field '{trigger_field_id}' collected: {trigger_value!r}",
-            file=_sys.stderr, flush=True,
-        )
+    else:
+        if not collecting_signal:
+            print(f"[form_trigger] SKIP: no collection signal", file=_sys.stderr, flush=True)
+            return
+        if orchestration_action == "respond_only" and not message_collection_hint:
+            print(
+                f"[form_trigger] SKIP: orchestration_action=respond_only (no form hint, no trigger field)",
+                file=_sys.stderr,
+                flush=True,
+            )
+            return
 
     fields = await extract_form_fields(service)
     print(f"[form_trigger] extracted {len(fields)} field(s): {[f['id'] for f in fields]}", file=_sys.stderr, flush=True)
@@ -939,6 +1001,222 @@ async def _generate_confirmation_message(
     )
 
 
+def _first_non_empty_text(*values: Any) -> str:
+    for value in values:
+        text = str(value or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def _normalize_phone_text(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    digits = "".join(ch for ch in raw if ch.isdigit())
+    if not digits:
+        return ""
+    if raw.startswith("+"):
+        return f"+{digits}"
+    return digits
+
+
+def _parse_iso_date(value: Any) -> date | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None
+
+
+def _coerce_positive_int(value: Any, *, default: int = 1, maximum: int = 20) -> int:
+    try:
+        parsed = int(str(value or "").strip())
+    except (TypeError, ValueError):
+        return default
+    if parsed <= 0:
+        return default
+    return min(parsed, maximum)
+
+
+def _extract_prebooking_booking_payload(
+    *,
+    service_name: str,
+    form_data: dict[str, Any],
+    req_meta: dict[str, Any],
+    context: Any,
+) -> dict[str, Any]:
+    form = form_data if isinstance(form_data, dict) else {}
+    meta = req_meta if isinstance(req_meta, dict) else {}
+
+    phase_hint = _normalize_phase_identifier(
+        _first_non_empty_text(
+            meta.get("phase"),
+            meta.get("phase_id"),
+            meta.get("booking_phase"),
+        )
+    )
+    flow_hint = str(meta.get("flow") or "").strip().lower()
+    if phase_hint and phase_hint != "pre_booking":
+        return {}
+    if not phase_hint and flow_hint not in {"booking", "booking_bot", "engage"}:
+        return {}
+
+    def _pick(*keys: str) -> str:
+        for key in keys:
+            if key in form and str(form.get(key) or "").strip():
+                return str(form.get(key) or "").strip()
+        for key in keys:
+            if key in meta and str(meta.get(key) or "").strip():
+                return str(meta.get(key) or "").strip()
+        return ""
+
+    guest_phone = _normalize_phone_text(
+        _first_non_empty_text(
+            _pick(
+                "guest_phone",
+                "phone",
+                "phone_number",
+                "contact_number",
+                "mobile",
+                "booking_guest_phone",
+                "wa_number",
+                "waNumber",
+            ),
+            getattr(context, "guest_phone", None),
+        )
+    )
+    if not guest_phone:
+        user_id_as_phone = _normalize_phone_text(meta.get("user_id"))
+        if len("".join(ch for ch in user_id_as_phone if ch.isdigit())) >= 10:
+            guest_phone = user_id_as_phone
+    if not guest_phone:
+        return {}
+
+    check_in = _parse_iso_date(
+        _pick(
+            "check_in",
+            "checkin",
+            "check_in_date",
+            "checkin_date",
+            "arrival_date",
+            "booking_check_in_date",
+            "stay_checkin_date",
+        )
+    )
+    check_out = _parse_iso_date(
+        _pick(
+            "check_out",
+            "checkout",
+            "check_out_date",
+            "checkout_date",
+            "departure_date",
+            "booking_check_out_date",
+            "stay_checkout_date",
+        )
+    )
+    if check_in and not check_out:
+        check_out = check_in + timedelta(days=1)
+    elif check_out and not check_in:
+        check_in = check_out - timedelta(days=1)
+    elif check_in and check_out and check_out <= check_in:
+        check_out = check_in + timedelta(days=1)
+    if check_in is None or check_out is None:
+        return {}
+
+    guest_name = _first_non_empty_text(
+        _pick("guest_name", "full_name", "name", "user_name", "booking_guest_name"),
+        getattr(context, "guest_name", None),
+    )
+    property_name = _first_non_empty_text(
+        _pick(
+            "property_name",
+            "property",
+            "hotel_name",
+            "hotel",
+            "destination",
+            "booking_property_name",
+        ),
+        getattr(context, "booking_property_name", None),
+    )
+    room_number = _pick("room_number", "room_no", "booking_room_number")
+    room_type = _pick("room_type", "room_category", "booking_room_type")
+    guests_count = _coerce_positive_int(
+        _pick("num_guests", "guests", "guest_count", "party_size", "adults"),
+        default=1,
+        maximum=20,
+    )
+    status = str(_pick("status", "booking_status") or "reserved").strip().lower()
+    if status not in {"reserved", "confirmed", "checked_in", "checked_out", "cancelled"}:
+        status = "reserved"
+    special_requests = _pick("special_requests", "notes", "requirements", "request_notes")
+    source_channel = _first_non_empty_text(meta.get("channel"), getattr(context, "channel", None), "web")
+
+    return {
+        "guest_phone": guest_phone,
+        "guest_name": guest_name or None,
+        "property_name": property_name or None,
+        "room_number": room_number or None,
+        "room_type": room_type or None,
+        "check_in_date": check_in,
+        "check_out_date": check_out,
+        "num_guests": guests_count,
+        "status": status,
+        "source_channel": source_channel,
+        "special_requests": special_requests or None,
+        "derived_phase_hint": phase_hint or "pre_booking",
+        "service_name": str(service_name or "").strip(),
+    }
+
+
+async def _persist_prebooking_booking_if_possible(
+    *,
+    hotel_code: str,
+    service_name: str,
+    form_data: dict[str, Any],
+    req_meta: dict[str, Any],
+    context: Any,
+    db_session: AsyncSession,
+) -> dict[str, Any]:
+    payload = _extract_prebooking_booking_payload(
+        service_name=service_name,
+        form_data=form_data,
+        req_meta=req_meta,
+        context=context,
+    )
+    if not payload:
+        return {}
+
+    try:
+        from services.booking_service import create_booking
+
+        created = await create_booking(
+            hotel_code=hotel_code,
+            guest_phone=str(payload.get("guest_phone") or "").strip(),
+            guest_name=str(payload.get("guest_name") or "").strip() or None,
+            property_name=str(payload.get("property_name") or "").strip() or None,
+            room_number=str(payload.get("room_number") or "").strip() or None,
+            room_type=str(payload.get("room_type") or "").strip() or None,
+            check_in_date=payload.get("check_in_date"),
+            check_out_date=payload.get("check_out_date"),
+            num_guests=int(payload.get("num_guests") or 1),
+            status=str(payload.get("status") or "reserved").strip() or "reserved",
+            source_channel=str(payload.get("source_channel") or "web").strip() or "web",
+            special_requests=str(payload.get("special_requests") or "").strip() or None,
+            db_session=db_session,
+        )
+        return created if isinstance(created, dict) else {}
+    except Exception as exc:
+        logger.warning(
+            "pre-booking auto-persist skipped due to error (session_id=%s): %s",
+            str(getattr(context, "session_id", "") or "").strip(),
+            str(exc),
+        )
+        return {}
+
+
 @router.post("/form-submit")
 @router.post("/submit-form")
 @router.post("/form_submit")
@@ -1046,7 +1324,12 @@ async def submit_form(
         ticket_payload["service_id"] = resolved_service_id
         ticket_payload["service_name"] = service_name
 
-        for k, v in form_data.items():
+        # Merge pending_data (which includes trigger field values collected
+        # before the form was shown) so they appear on the ticket as well.
+        merged_form_data = dict(context.pending_data) if isinstance(context.pending_data, dict) else {}
+        merged_form_data.update({k: str(v) for k, v in form_data.items() if str(v).strip()})
+
+        for k, v in merged_form_data.items():
             ticket_payload.setdefault(k, str(v))
 
         try:
@@ -1077,7 +1360,75 @@ async def submit_form(
         except Exception:
             pass
 
+        booking_info: dict[str, Any] = {}
         if result.success:
+            booking_info = await _persist_prebooking_booking_if_possible(
+                hotel_code=resolved_hotel_code,
+                service_name=service_name,
+                form_data=merged_form_data,
+                req_meta=req_meta,
+                context=context,
+                db_session=db,
+            )
+            if booking_info:
+                try:
+                    context.booking_id = int(booking_info.get("booking_id"))
+                except (TypeError, ValueError):
+                    pass
+                context.booking_confirmation_code = str(
+                    booking_info.get("confirmation_code") or context.booking_confirmation_code or ""
+                ).strip() or None
+                context.booking_property_name = str(
+                    booking_info.get("property_name") or context.booking_property_name or ""
+                ).strip() or None
+                context.booking_room_type = str(
+                    booking_info.get("room_type") or context.booking_room_type or ""
+                ).strip() or None
+                context.booking_check_in_date = str(
+                    booking_info.get("check_in_date") or context.booking_check_in_date or ""
+                ).strip() or None
+                context.booking_check_out_date = str(
+                    booking_info.get("check_out_date") or context.booking_check_out_date or ""
+                ).strip() or None
+                context.booking_guest_name = str(
+                    booking_info.get("guest_name") or context.booking_guest_name or ""
+                ).strip() or None
+                context.booking_phase = str(
+                    booking_info.get("phase") or context.booking_phase or "pre_checkin"
+                ).strip() or "pre_checkin"
+
+                if not context.guest_name:
+                    context.guest_name = str(booking_info.get("guest_name") or "").strip() or None
+                if not context.guest_phone:
+                    context.guest_phone = str(booking_info.get("guest_phone") or "").strip() or None
+                if not context.room_number:
+                    context.room_number = str(booking_info.get("room_number") or "").strip() or None
+
+                if not isinstance(context.pending_data, dict):
+                    context.pending_data = {}
+                context.pending_data["_latest_booking_id"] = booking_info.get("booking_id")
+                context.pending_data["_latest_booking_confirmation_code"] = str(
+                    booking_info.get("confirmation_code") or ""
+                ).strip()
+                context.pending_data["_latest_booking_phase"] = str(
+                    booking_info.get("phase") or "pre_checkin"
+                ).strip()
+                if str(booking_info.get("property_name") or "").strip():
+                    context.pending_data["_stay_property_name"] = str(
+                        booking_info.get("property_name") or ""
+                    ).strip()
+                integration_snapshot = context.pending_data.get("_integration", {})
+                integration_update = dict(integration_snapshot) if isinstance(integration_snapshot, dict) else {}
+                guest_id_text = str(booking_info.get("guest_id") or "").strip()
+                guest_phone_text = str(booking_info.get("guest_phone") or "").strip()
+                if guest_id_text:
+                    integration_update.setdefault("guest_id", guest_id_text)
+                    context.pending_data.setdefault("guest_id", guest_id_text)
+                if guest_phone_text:
+                    integration_update.setdefault("guest_phone", guest_phone_text)
+                integration_update.setdefault("phase", "pre_booking")
+                context.pending_data["_integration"] = integration_update
+
             # Clear booking flow state so the bot doesn't offer to "resume"
             # a booking that was already completed via form submission.
             from schemas.chat import ConversationState
@@ -1105,6 +1456,10 @@ async def submit_form(
                 "success": True,
                 "ticket_id": result.ticket_id or "",
                 "message": confirm_msg,
+                "booking_created": bool(booking_info),
+                "booking_id": booking_info.get("booking_id") if booking_info else None,
+                "booking_confirmation_code": booking_info.get("confirmation_code") if booking_info else "",
+                "booking_phase": booking_info.get("phase") if booking_info else "",
             }
 
         raw_error = str(result.error or "").strip()
@@ -1215,7 +1570,7 @@ async def send_message(
             response.metadata = {}
         _enrich_service_llm_display_fields(response)
         try:
-            await _inject_form_trigger(response)
+            await _inject_form_trigger(response, user_message=request.message)
         except Exception as _form_exc:
             import sys as _sys
             print(f"[form_trigger] EXCEPTION: {_form_exc!r}", file=_sys.stderr, flush=True)
@@ -1373,7 +1728,7 @@ async def send_message(
                 response.metadata = {}
             _enrich_service_llm_display_fields(response)
             try:
-                await _inject_form_trigger(response)
+                await _inject_form_trigger(response, user_message=request.message)
             except Exception:
                 pass
             response.metadata["db_fallback"] = True

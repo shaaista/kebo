@@ -141,6 +141,11 @@ class Hotel(Base, TimestampMixin):
         back_populates="hotel",
         cascade="all, delete-orphan",
     )
+    bookings = relationship(
+        "Booking",
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
 
 
 class Restaurant(Base, TimestampMixin):
@@ -217,12 +222,56 @@ class Guest(Base, TimestampMixin):
     check_out_date = Column(Date, nullable=True)
 
     hotel = relationship("Hotel", back_populates="guests")
+    bookings = relationship(
+        "Booking",
+        back_populates="guest",
+        cascade="all, delete-orphan",
+    )
     orders = relationship(
         "Order",
         back_populates="guest",
         cascade="all, delete-orphan",
     )
     conversations = relationship("Conversation", back_populates="guest")
+
+
+class Booking(Base, TimestampMixin):
+    """Stores individual guest bookings/stays. Separate from Guest to support
+    repeat visits and multi-property stays."""
+    __tablename__ = "new_bot_bookings"
+    __table_args__ = (
+        UniqueConstraint("confirmation_code", name="uq_booking_code"),
+        Index("idx_bookings_hotel_id", "hotel_id"),
+        Index("idx_bookings_guest_id", "guest_id"),
+        Index("idx_bookings_hotel_status", "hotel_id", "status"),
+        Index("idx_bookings_dates", "hotel_id", "check_in_date", "check_out_date"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hotel_id = Column(
+        Integer,
+        ForeignKey("new_bot_hotels.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    guest_id = Column(
+        Integer,
+        ForeignKey("new_bot_guests.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    confirmation_code = Column(String(30), nullable=False)
+    property_name = Column(String(255), nullable=True)
+    room_number = Column(String(20), nullable=True)
+    room_type = Column(String(100), nullable=True)
+    check_in_date = Column(Date, nullable=False)
+    check_out_date = Column(Date, nullable=False)
+    num_guests = Column(Integer, nullable=True, server_default=text("1"))
+    status = Column(String(20), nullable=False, server_default=text("'reserved'"))
+    source_channel = Column(String(20), nullable=True)
+    special_requests = Column(Text, nullable=True)
+
+    hotel = relationship("Hotel", back_populates="bookings")
+    guest = relationship("Guest", back_populates="bookings")
+    conversations = relationship("Conversation", back_populates="booking")
 
 
 class Order(Base, TimestampMixin):
@@ -301,6 +350,11 @@ class Conversation(Base, TimestampMixin):
         ForeignKey("new_bot_guests.id", ondelete="SET NULL"),
         nullable=True,
     )
+    booking_id = Column(
+        Integer,
+        ForeignKey("new_bot_bookings.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     state = Column(String(50), nullable=False, server_default=text("'idle'"))
     pending_action = Column(String(100), nullable=True)
     pending_data = Column(JSON, nullable=True)
@@ -308,6 +362,7 @@ class Conversation(Base, TimestampMixin):
 
     hotel = relationship("Hotel", back_populates="conversations")
     guest = relationship("Guest", back_populates="conversations")
+    booking = relationship("Booking", back_populates="conversations")
     messages = relationship(
         "Message",
         back_populates="conversation",
@@ -526,6 +581,7 @@ async def init_db() -> None:
             "updated_at",
             "DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
         ),
+        ("new_bot_conversations", "booking_id", "INT NULL"),
     ]
     async with engine.begin() as conn:
         for table, col, col_type in _new_columns:

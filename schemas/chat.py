@@ -92,6 +92,16 @@ class ConversationContext(BaseModel):
     room_number: str | None = None
     channel: str = "web"
 
+    # Booking context (populated from metadata when a booking is selected)
+    booking_id: int | None = None
+    booking_confirmation_code: str | None = None
+    booking_property_name: str | None = None
+    booking_room_type: str | None = None
+    booking_check_in_date: str | None = None
+    booking_check_out_date: str | None = None
+    booking_guest_name: str | None = None
+    booking_phase: str | None = None
+
     state: ConversationState = ConversationState.IDLE
     pending_action: str | None = None
     pending_data: dict[str, Any] = Field(default_factory=dict)

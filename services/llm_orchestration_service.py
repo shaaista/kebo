@@ -43,6 +43,8 @@ if not _decision_logger.handlers:
     _decision_logger.setLevel(logging.DEBUG)
     _decision_logger.propagate = False
 
+logger = logging.getLogger(__name__)
+
 
 def _log_decision(record: dict) -> None:
     """Append a structured decision record as one JSON line."""
@@ -105,8 +107,154 @@ class LLMOrchestrationService:
     Both stages must emit strict JSON contracts.
     """
 
+    @staticmethod
+    def _build_booking_context_prompt_block(context: Any) -> str:
+        """Build a reusable prompt block with booking context + phase behavioral rules.
+        Appended to orchestrator, service router, service agent, and suggestion prompts."""
+        lines: list[str] = []
+
+        # --- Booking context ---
+        if getattr(context, "booking_id", None):
+            lines.append("\n=== ACTIVE BOOKING CONTEXT ===")
+            if getattr(context, "booking_guest_name", None):
+                lines.append(f"Guest Name: {context.booking_guest_name}")
+            if getattr(context, "room_number", None):
+                lines.append(f"Room Number: {context.room_number}")
+            if getattr(context, "booking_room_type", None):
+                lines.append(f"Room Type: {context.booking_room_type}")
+            if getattr(context, "booking_property_name", None):
+                lines.append(f"Property: {context.booking_property_name}")
+            if getattr(context, "booking_confirmation_code", None):
+                lines.append(f"Confirmation Code: {context.booking_confirmation_code}")
+            _bk_ci = getattr(context, "booking_check_in_date", None) or ""
+            _bk_co = getattr(context, "booking_check_out_date", None) or ""
+            if _bk_ci and _bk_co:
+                lines.append(f"Stay: {_bk_ci} to {_bk_co}")
+                lines.append(
+                    "IMPORTANT: Any date the guest selects for services (spa, dining, transport, etc.) "
+                    f"MUST fall within their stay dates ({_bk_ci} to {_bk_co}). "
+                    "If they request a date outside this window, politely inform them and ask for a valid date."
+                )
+            lines.append(
+                "Use this guest information naturally. Address the guest by name when appropriate. "
+                "Reference their room number and property when relevant."
+            )
+
+        # --- Phase behavioral rules ---
+        phase = str(getattr(context, "booking_phase", None) or "").strip()
+        if phase:
+            lines.append(f"\n=== PHASE RULES ({phase}) ===")
+            if phase == "pre_checkin":
+                lines.append(
+                    "The guest has a confirmed booking but has NOT checked in yet.\n"
+                    "Only services assigned to the pre_checkin phase in the admin config are available.\n"
+                    "Do NOT offer or dispatch any service that belongs to a different phase.\n"
+                    "If the guest asks for something only available during their stay, phrase it naturally: "
+                    "'We can arrange that once you arrive' or 'This will be available during your stay'."
+                )
+            elif phase == "during_stay":
+                lines.append(
+                    "The guest is currently checked in and staying at the property.\n"
+                    "Only services assigned to the during_stay phase in the admin config are available.\n"
+                    "Do NOT offer or dispatch any service that belongs to a different phase.\n"
+                    "Any service scheduling must fall within their stay dates.\n"
+                    "Be proactive: offer relevant available services based on their room and property."
+                )
+            elif phase == "post_checkout":
+                lines.append(
+                    "The guest has already checked out.\n"
+                    "Only services assigned to the post_checkout phase in the admin config are available.\n"
+                    "Do NOT offer or dispatch any service that belongs to a different phase.\n"
+                    "If the guest asks for in-stay services, phrase naturally: "
+                    "'Since you have already checked out, I can help with [available services] "
+                    "or planning your next visit'."
+                )
+            elif phase == "pre_booking":
+                lines.append(
+                    "The guest is exploring options and has no confirmed booking yet.\n"
+                    "Only services assigned to the pre_booking phase in the admin config are available.\n"
+                    "Do NOT offer or dispatch any service that belongs to a different phase.\n"
+                    "Goal: help the guest find the right option and complete a booking."
+                )
+
+        return "\n".join(lines)
+
     def _normalize_identifier(self, value: Any) -> str:
         return str(value or "").strip().lower().replace(" ", "_")
+
+    @classmethod
+    def _normalize_phase_identifier(cls, value: Any) -> str:
+        normalized = str(value or "").strip().lower().replace(" ", "_")
+        aliases = {
+            "prebooking": "pre_booking",
+            "booking": "pre_checkin",
+            "precheckin": "pre_checkin",
+            "duringstay": "during_stay",
+            "instay": "during_stay",
+            "in_stay": "during_stay",
+            "postcheckout": "post_checkout",
+        }
+        return aliases.get(normalized, normalized)
+
+    @classmethod
+    def _is_stay_property_pin_phase(cls, phase_id: Any) -> bool:
+        return cls._normalize_phase_identifier(phase_id) in {
+            "pre_checkin",
+            "during_stay",
+            "post_checkout",
+        }
+
+    @staticmethod
+    def _normalize_property_id_list(values: Any) -> list[str]:
+        if not isinstance(values, list):
+            return []
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            text = str(value or "").strip()
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            normalized.append(text)
+        return normalized
+
+    def _apply_stay_property_pin(
+        self,
+        *,
+        context: ConversationContext,
+        selected_phase_id: str,
+        property_ids: list[str],
+        source: str,
+    ) -> tuple[list[str], bool]:
+        normalized_ids = self._normalize_property_id_list(property_ids)
+        if not self._is_stay_property_pin_phase(selected_phase_id):
+            return normalized_ids, False
+
+        pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        stay_property_id = str(pending.get("_stay_property_id") or "").strip()
+        stay_property_name = str(
+            pending.get("_stay_property_name")
+            or getattr(context, "booking_property_name", "")
+            or ""
+        ).strip()
+        if not stay_property_id:
+            return normalized_ids, False
+        if stay_property_id in normalized_ids:
+            return normalized_ids, False
+
+        pinned_ids = [stay_property_id, *normalized_ids]
+        logger.info(
+            "Stay property pin applied (session_id=%s phase=%s source=%s stay_property_id=%s incoming_ids=%s)",
+            str(getattr(context, "session_id", "") or "").strip(),
+            self._normalize_phase_identifier(selected_phase_id),
+            str(source or "").strip(),
+            stay_property_id,
+            normalized_ids,
+        )
+        if isinstance(context.pending_data, dict):
+            context.pending_data["_stay_property_name"] = stay_property_name or stay_property_id
+            context.pending_data["_stay_property_pin_last_source"] = str(source or "").strip()
+        return pinned_ids, True
 
     @staticmethod
     def _coerce_bool(value: Any, *, default: bool = False) -> bool:
@@ -1282,6 +1430,9 @@ class LLMOrchestrationService:
             "Suggestions must only be questions the guest wants to ask, or service actions they want to request — never data submissions.\n\n"
             "Keep each suggestion 2-8 words."
         )
+        _sugg_bk = self._build_booking_context_prompt_block(context)
+        if _sugg_bk:
+            system_prompt = system_prompt + "\n" + _sugg_bk
         model = (
             str(getattr(settings, "chat_llm_next_suggestions_model", "") or "").strip()
             or str(getattr(settings, "llm_service_agent_model", "") or "").strip()
@@ -1493,6 +1644,9 @@ class LLMOrchestrationService:
             "10) If full_knowledge_base contains explicit facts answering the ask, can_answer_from_context must be true and revised_response_text must use those facts.\n"
             "11) Do not say details are unavailable when full_knowledge_base or service facts contain them.\n"
         )
+        _guard_bk = self._build_booking_context_prompt_block(context)
+        if _guard_bk:
+            system_prompt = system_prompt + "\n" + _guard_bk
         model = (
             str(getattr(settings, "chat_llm_answer_first_guard_model", "") or "").strip()
             or str(getattr(settings, "llm_service_agent_model", "") or "").strip()
@@ -1619,6 +1773,7 @@ class LLMOrchestrationService:
         selected_phase_id: str,
         selected_phase_name: str,
         services_snapshot: list[dict[str, Any]],
+        context: Any = None,
     ) -> tuple[str, str]:
         if not str(settings.openai_api_key or "").strip():
             return "", ""
@@ -1681,6 +1836,10 @@ class LLMOrchestrationService:
             "5. Never force a guess when the message is ambiguous or vague.\n"
             "6. Route by service name and description first; routing_keywords are supporting hints only.\n"
         )
+        if context:
+            _router_bk = self._build_booking_context_prompt_block(context)
+            if _router_bk:
+                system_prompt = system_prompt + "\n" + _router_bk
         model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
         try:
             raw = await self._chat_with_json(
@@ -2735,6 +2894,19 @@ class LLMOrchestrationService:
             if _v is not None and str(_v).strip() and not str(_k).startswith("_"):
                 _known_ctx[str(_k)] = _v
 
+        # Merge booking context fields into known_context
+        for _bk_attr in (
+            "booking_guest_name", "booking_property_name", "booking_room_type",
+            "booking_check_in_date", "booking_check_out_date", "booking_confirmation_code",
+        ):
+            _bk_val = getattr(context, _bk_attr, None)
+            if _bk_val:
+                _known_ctx[_bk_attr] = str(_bk_val)
+        if getattr(context, "room_number", None):
+            _known_ctx["room_number"] = context.room_number
+        if getattr(context, "guest_name", None):
+            _known_ctx["guest_name"] = context.guest_name
+
         # Fetch available departments (best-effort) so LLM can assign the right one to the ticket.
         _available_departments: list[dict[str, Any]] = []
         if ticketing_enabled:
@@ -2788,6 +2960,11 @@ class LLMOrchestrationService:
             "service_form_fields": self._sanitize_json(_svc_form_fields_payload),
             "service_form_instructions": str(_svc_form_config.get("pre_form_instructions") or "").strip(),
         }
+        # Inject booking context + phase rules into system prompt
+        _booking_block = self._build_booking_context_prompt_block(context)
+        if _booking_block:
+            system_prompt = system_prompt + "\n" + _booking_block
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
@@ -3232,10 +3409,16 @@ class LLMOrchestrationService:
         #   1) Single property (1 KB file)  → load full KB as before
         #   2) Multi-property, active IDs known (turn 2+) → load only those
         #   3) Multi-property, no active IDs (turn 1) → manifest + full pipeline
-        _pending = context.pending_data if isinstance(context.pending_data, dict) else {}
+        if not isinstance(context.pending_data, dict):
+            context.pending_data = {}
+        _pending = context.pending_data
         _cached_property_count = int(_pending.get("_known_property_scope_count") or 0)
-        _cached_active_ids = list(_pending.get("_active_property_ids") or [])
-        _cached_active_names = list(_pending.get("_active_property_names") or [])
+        _cached_active_ids = self._normalize_property_id_list(list(_pending.get("_active_property_ids") or []))
+        _cached_active_names = [
+            str(name).strip()
+            for name in list(_pending.get("_active_property_names") or [])
+            if str(name).strip()
+        ]
         _runtime_past_ctx = dict(_pending.get("_past_property_context") or {})
         # Legacy fallback — if old-style single fields exist but new array doesn't
         if not _cached_active_ids:
@@ -3244,6 +3427,19 @@ class LLMOrchestrationService:
             if _legacy_id:
                 _cached_active_ids = [_legacy_id]
                 _cached_active_names = [_legacy_name] if _legacy_name else [_legacy_id]
+        _cached_active_ids, _prefetch_pin_applied = self._apply_stay_property_pin(
+            context=context,
+            selected_phase_id=selected_phase_id,
+            property_ids=_cached_active_ids,
+            source="pre_kb_scope",
+        )
+        if _prefetch_pin_applied:
+            _stay_property_name = str(_pending.get("_stay_property_name") or "").strip()
+            if _stay_property_name and _stay_property_name not in _cached_active_names:
+                _cached_active_names = [_stay_property_name, *_cached_active_names]
+            context.pending_data["_active_property_ids"] = list(_cached_active_ids)
+            if _cached_active_names:
+                context.pending_data["_active_property_names"] = list(_cached_active_names)
 
         if _cached_property_count > 1 and _cached_active_ids:
             # ── Fast path: multi-property, active IDs known ──
@@ -3347,6 +3543,8 @@ class LLMOrchestrationService:
                 int(getattr(settings, "llm_orchestration_full_history_chars", 12000) or 12000),
             ),
         )
+        stay_property_pin_id = str(_pending.get("_stay_property_id") or "").strip()
+        stay_property_pin_name = str(_pending.get("_stay_property_name") or "").strip()
         property_scope_payload = {
             "mode": str(property_scope.get("mode") or "").strip(),
             "active_property_id": active_property_id,
@@ -3368,6 +3566,14 @@ class LLMOrchestrationService:
             "count_mismatch": bool(property_scope.get("count_mismatch")),
             "requires_clarification": bool(property_scope.get("requires_clarification")),
             "clarification_question": str(property_scope.get("clarification_question") or "").strip(),
+            "stay_property_pin": {
+                "enabled": bool(
+                    stay_property_pin_id
+                    and self._is_stay_property_pin_phase(selected_phase_id)
+                ),
+                "property_id": stay_property_pin_id,
+                "property_name": stay_property_pin_name,
+            },
         }
         # Property clarification is now fully LLM-driven.
         # The orchestrator system prompt contains property resolution rules and
@@ -3674,6 +3880,11 @@ class LLMOrchestrationService:
             "=== OUTPUT ===\n"
             "Return strict JSON only."
         )
+        # Inject booking context + phase rules into orchestrator prompt
+        _orch_booking_block = self._build_booking_context_prompt_block(context)
+        if _orch_booking_block:
+            system_prompt = system_prompt + "\n" + _orch_booking_block
+
         model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
         messages = [
             {"role": "system", "content": system_prompt},
@@ -3718,11 +3929,25 @@ class LLMOrchestrationService:
         # We track active properties (full KB sent) and past properties (brief
         # summary retained) so the LLM always has the right context.
         _llm_prop_name = str(decision.selected_property_name or "").strip()
-        _llm_prop_ids = [str(pid).strip() for pid in (decision.selected_property_ids or []) if str(pid).strip()]
+        _llm_prop_ids = self._normalize_property_id_list(
+            [str(pid).strip() for pid in (decision.selected_property_ids or []) if str(pid).strip()]
+        )
         if not isinstance(context.pending_data, dict):
             context.pending_data = {}
 
-        _prev_active_ids = list(context.pending_data.get("_active_property_ids") or [])
+        if _llm_prop_ids:
+            _llm_prop_ids, _post_llm_pin_applied = self._apply_stay_property_pin(
+                context=context,
+                selected_phase_id=selected_phase_id,
+                property_ids=_llm_prop_ids,
+                source="post_orchestrator_decision",
+            )
+            if _post_llm_pin_applied:
+                decision.metadata["stay_property_pin_reapplied"] = True
+
+        _prev_active_ids = self._normalize_property_id_list(
+            list(context.pending_data.get("_active_property_ids") or [])
+        )
         _prev_active_names = list(context.pending_data.get("_active_property_names") or [])
         _past_ctx = dict(context.pending_data.get("_past_property_context") or {})
 
@@ -3789,6 +4014,7 @@ class LLMOrchestrationService:
                 selected_phase_id=selected_phase_id,
                 selected_phase_name=selected_phase_name,
                 services_snapshot=services_snapshot,
+                context=context,
             )
             _log_llm_call(
                 label="SERVICE ROUTER",

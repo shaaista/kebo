@@ -5986,6 +5986,117 @@ class ConfigService:
                 break
         return selected
 
+    async def resolve_property_scope_ids(
+        self,
+        *,
+        property_hints: list[str],
+        max_sources: int = 50,
+        limit: int = 4,
+    ) -> dict[str, Any]:
+        """Resolve free-form property hints to canonical property IDs."""
+        normalized_hints: list[str] = []
+        for raw_hint in property_hints or []:
+            hint = re.sub(r"\s+", " ", str(raw_hint or "").strip())
+            if not hint or hint in normalized_hints:
+                continue
+            normalized_hints.append(hint)
+
+        property_index = await self.ensure_property_scope_index(max_sources=max_sources)
+        properties = property_index.get("properties", []) if isinstance(property_index, dict) else []
+        if not isinstance(properties, list):
+            properties = []
+
+        property_rows_map: dict[str, dict[str, Any]] = {
+            self._normalize_slug(row.get("id")): row
+            for row in properties
+            if isinstance(row, dict) and self._normalize_slug(row.get("id"))
+        }
+
+        # Build exact label map (name/aliases/id) and keep only unambiguous labels.
+        label_candidates: dict[str, set[str]] = {}
+        for property_id, row in property_rows_map.items():
+            labels = [property_id, str(row.get("name") or "").strip()]
+            aliases = row.get("aliases", []) if isinstance(row.get("aliases"), list) else []
+            labels.extend(str(alias).strip() for alias in aliases if str(alias).strip())
+            for label in labels:
+                key = re.sub(r"\s+", " ", str(label or "").strip().lower())
+                if not key:
+                    continue
+                ids = label_candidates.setdefault(key, set())
+                ids.add(property_id)
+
+        exact_label_to_id: dict[str, str] = {
+            label: next(iter(ids))
+            for label, ids in label_candidates.items()
+            if len(ids) == 1
+        }
+
+        resolved_rows: list[dict[str, Any]] = []
+        unresolved_hints: list[str] = []
+        seen_ids: set[str] = set()
+
+        for hint in normalized_hints:
+            hint_lower = hint.lower()
+            hint_slug = self._normalize_slug(hint)
+            match_type = ""
+
+            resolved_property_id = ""
+            if hint_slug in property_rows_map:
+                resolved_property_id = hint_slug
+                match_type = "id_match"
+            elif hint_lower in exact_label_to_id:
+                resolved_property_id = exact_label_to_id[hint_lower]
+                match_type = "label_match"
+            else:
+                fuzzy_matches = self._match_property_scope_ids_from_text(
+                    hint,
+                    property_index=property_index,
+                    limit=max(1, min(limit, 6)),
+                )
+                if fuzzy_matches:
+                    resolved_property_id = fuzzy_matches[0]
+                    match_type = "fuzzy_match"
+
+            if not resolved_property_id:
+                unresolved_hints.append(hint)
+                continue
+            if resolved_property_id in seen_ids:
+                continue
+
+            row = property_rows_map.get(resolved_property_id, {})
+            resolved_rows.append(
+                {
+                    "id": resolved_property_id,
+                    "name": str(row.get("name") or resolved_property_id).strip(),
+                    "input": hint,
+                    "match_type": match_type,
+                }
+            )
+            seen_ids.add(resolved_property_id)
+
+        # Conservative fallback: single-property KB with unresolved hint.
+        if not resolved_rows and normalized_hints and len(property_rows_map) == 1:
+            property_id = next(iter(property_rows_map.keys()))
+            row = property_rows_map.get(property_id, {})
+            resolved_rows.append(
+                {
+                    "id": property_id,
+                    "name": str(row.get("name") or property_id).strip(),
+                    "input": normalized_hints[0],
+                    "match_type": "single_property_fallback",
+                }
+            )
+            unresolved_hints = []
+
+        return {
+            "resolved": resolved_rows,
+            "unresolved_hints": unresolved_hints,
+            "property_manifest": self._build_property_scope_manifest(
+                property_index=property_index,
+                max_properties=50,
+            ),
+        }
+
     @staticmethod
     def _is_property_compare_request(text: str) -> bool:
         blob = re.sub(r"\s+", " ", str(text or "").strip().lower())

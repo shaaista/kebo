@@ -86,6 +86,8 @@ class TicketingService:
         "cost",
         "sub_category",
         "guest_name",
+        "property_name",
+        "room_type",
         "compensation_type",
         "compensation_currency",
         "compensation_amount",
@@ -642,16 +644,36 @@ class TicketingService:
             integration.get("guest_id"),
             pending.get("guest_id"),
             latest_ticket.get("guest_id"),
-            integration.get("user_id"),
-            integration.get("wa_number"),
-            context.guest_phone,
         )
+        channel_user_id = self._first_non_empty(
+            integration.get("user_id"),
+            pending.get("user_id"),
+            integration.get("wa_number"),
+            pending.get("wa_number"),
+        )
+        if guest_id and channel_user_id and guest_id != channel_user_id:
+            logger.warning(
+                "Ticket identity mismatch: guest_id and user_id differ (session_id=%s guest_id=%s user_id=%s)",
+                str(context.session_id or "").strip(),
+                guest_id,
+                self._mask_identifier(channel_user_id),
+            )
         if not guest_id:
+            logger.warning(
+                "Missing real guest_id; attempting synthetic fallback (session_id=%s entity_id=%s user_id=%s phone=%s)",
+                str(context.session_id or "").strip(),
+                str(integration.get("entity_id") or integration.get("organisation_id") or "").strip(),
+                self._mask_identifier(channel_user_id),
+                self._mask_identifier(
+                    pending.get("guest_phone")
+                    or integration.get("guest_phone")
+                    or context.guest_phone
+                ),
+            )
             guest_id = self._derive_generated_guest_id(
                 context=context,
                 integration=integration,
                 pending=pending,
-                phase_value=phase_value,
             )
             if guest_id and isinstance(context.pending_data, dict):
                 integration_snapshot = context.pending_data.get("_integration", {})
@@ -662,6 +684,11 @@ class TicketingService:
                 context.pending_data["_integration"] = integration_update
                 context.pending_data.setdefault("guest_id", guest_id)
                 integration = integration_update
+                logger.warning(
+                    "Using synthetic guest_id fallback (session_id=%s guest_id=%s)",
+                    str(context.session_id or "").strip(),
+                    guest_id,
+                )
         organisation_id = self._first_non_empty(
             integration.get("organisation_id"),
             integration.get("organization_id"),
@@ -738,6 +765,21 @@ class TicketingService:
             context.guest_name,
         )
 
+        # Resolve property name and room type from pending data / context
+        property_name = self._first_non_empty(
+            pending.get("property_name"),
+            pending.get("property"),
+            pending.get("hotel_name"),
+            integration.get("property_name"),
+            getattr(context, "booking_property_name", None),
+        )
+        room_type = self._first_non_empty(
+            pending.get("room_type"),
+            pending.get("room_category"),
+            integration.get("room_type"),
+            getattr(context, "booking_room_type", None),
+        )
+
         payload = {
             "guest_id": str(guest_id or "").strip(),
             "room_number": str(room_number or "").strip(),
@@ -761,14 +803,18 @@ class TicketingService:
             "outlet_id": str(outlet_id or "").strip(),
             "source": source_value,
             "guest_name": str(guest_name or "").strip(),
+            "property_name": str(property_name or "").strip(),
+            "room_type": str(room_type or "").strip(),
         }
 
         # Backward-compatible aliases some APIs accept.
         payload["department_id"] = payload["department_allocated"]
         payload["category"] = payload["categorization"]
         payload["sub_category"] = payload["sub_categorization"]
-        # Kepsla API expects camelCase guestName
+        # Kepsla API expects camelCase variants
         payload["guestName"] = payload["guest_name"]
+        payload["propertyName"] = payload["property_name"]
+        payload["roomType"] = payload["room_type"]
 
         resolved_group_id = group_id if group_id is not None else integration.get("group_id")
         resolved_message_id = message_id if message_id is not None else integration.get("message_id")
@@ -803,24 +849,23 @@ class TicketingService:
         context: ConversationContext,
         integration: dict[str, Any],
         pending: dict[str, Any],
-        phase_value: str,
     ) -> str:
         seed_parts = [
             cls._safe_str(getattr(context, "session_id", "")),
             cls._safe_str(getattr(context, "hotel_code", "")),
-            cls._safe_str(phase_value),
             cls._safe_str(integration.get("conversation_id")),
             cls._safe_str(integration.get("group_id")),
+            cls._safe_str(
+                integration.get("user_id")
+                or pending.get("user_id")
+                or integration.get("wa_number")
+                or pending.get("wa_number")
+            ),
             cls._safe_str(
                 pending.get("guest_phone")
                 or integration.get("guest_phone")
                 or integration.get("wa_number")
                 or getattr(context, "guest_phone", "")
-            ),
-            cls._safe_str(
-                pending.get("room_number")
-                or integration.get("room_number")
-                or getattr(context, "room_number", "")
             ),
         ]
         seed = "|".join(part for part in seed_parts if part)
@@ -1816,6 +1861,15 @@ class TicketingService:
             return ""
         return str(value).strip()
 
+    @staticmethod
+    def _mask_identifier(value: Any, keep: int = 4) -> str:
+        text = str(value or "").strip()
+        if not text:
+            return ""
+        if len(text) <= keep:
+            return "*" * len(text)
+        return ("*" * (len(text) - keep)) + text[-keep:]
+
     def _extract_local_numeric_id(self, value: Any, fallback: int) -> int:
         raw = self._safe_str(value)
         if raw.isdigit():
@@ -1903,6 +1957,8 @@ class TicketingService:
             "cost": self._safe_str(payload_safe.get("cost") or 0),
             "sub_category": sub_category,
             "guest_name": self._safe_str(payload_safe.get("guest_name")),
+            "property_name": self._safe_str(payload_safe.get("property_name")),
+            "room_type": self._safe_str(payload_safe.get("room_type")),
             "compensation_type": self._safe_str(payload_safe.get("compensation_type")),
             "compensation_currency": self._safe_str(payload_safe.get("compensation_currency")),
             "compensation_amount": self._safe_str(payload_safe.get("compensation_amount") or 0),

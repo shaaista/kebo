@@ -12,6 +12,7 @@ from api.routes.chat import _inject_form_trigger
 from schemas.chat import ChatResponse, ConversationState
 from services.form_mode_service import (
     canonicalize_trigger_pending_data,
+    infer_trigger_value_from_message,
     strip_form_confirmation_instructions,
 )
 
@@ -40,6 +41,23 @@ def test_strip_form_confirmation_instructions_keeps_real_clarification_prompt() 
 
     assert "please confirm which terminal" in cleaned.lower()
     assert "yes confirm" not in cleaned.lower()
+
+
+def test_infer_trigger_value_from_message_uses_candidates() -> None:
+    key, value = infer_trigger_value_from_message(
+        {
+            "room_type_candidates": [
+                "Premier King Room",
+                "Ultimate Suite",
+            ]
+        },
+        "room_type",
+        "Room Type",
+        "Can I book the ultimate suite?",
+    )
+
+    assert key == "room_type"
+    assert value == "Ultimate Suite"
 
 
 @pytest.mark.asyncio
@@ -104,6 +122,58 @@ async def test_inject_form_trigger_accepts_alias_trigger_key_and_strips_confirma
     assert response.metadata["entities"]["pending_data"]["terminal"] == "Terminal 2"
     assert "terminal_choice" not in response.metadata["entities"]["pending_data"]
     assert response.metadata["entities"]["missing_fields"] == []
+
+
+@pytest.mark.asyncio
+async def test_inject_form_trigger_forces_form_when_trigger_resolved_even_if_respond_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config_service_module = importlib.import_module("services.config_service")
+    form_fields_service_module = importlib.import_module("services.form_fields_service")
+
+    service = {
+        "id": "room_booking_request",
+        "ticketing_enabled": True,
+        "ticketing_mode": "form",
+        "form_config": {
+            "trigger_field": {"id": "room_type", "label": "Room Type"},
+            "fields": [
+                {"id": "full_name", "label": "Full Name", "type": "text", "required": True},
+                {"id": "phone", "label": "Phone", "type": "tel", "required": True},
+            ],
+        },
+    }
+
+    async def fake_extract_form_fields(_service: dict) -> list[dict]:
+        return list(service["form_config"]["fields"])
+
+    monkeypatch.setattr(config_service_module.config_service, "get_service", lambda _service_id: service)
+    monkeypatch.setattr(form_fields_service_module, "extract_form_fields", fake_extract_form_fields)
+
+    response = ChatResponse(
+        session_id="session-respond-only",
+        message="Yes, you can book the Ultimate Suite.",
+        state=ConversationState.IDLE,
+        metadata={
+            "entities": {
+                "target_service_id": "room_booking_request",
+                "orchestration_action": "respond_only",
+                "pending_action": "",
+                "pending_data": {
+                    "room_type_candidates": ["Premier King Room", "Ultimate Suite"],
+                },
+                "missing_fields": [],
+            },
+        },
+    )
+
+    await _inject_form_trigger(response, user_message="Can I book the Ultimate Suite?")
+
+    assert response.metadata["form_trigger"] is True
+    assert response.metadata["form_service_id"] == "room_booking_request"
+    assert response.metadata["entities"]["pending_data"]["room_type"] == "Ultimate Suite"
+    assert response.metadata["entities"]["orchestration_action"] == "collect_info"
+    assert response.metadata["entities"]["pending_action"] == "collect_form_details"
 
 
 @pytest.mark.asyncio

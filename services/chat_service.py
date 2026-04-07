@@ -43,6 +43,7 @@ from services.orchestration_policy_service import orchestration_policy_service
 from services.turn_diagnostics_service import turn_diagnostics_service
 from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
+from integrations.lumira_ticketing_repository import lumira_ticketing_repository
 from handlers import handler_registry
 from handlers.base_handler import HandlerResult
 
@@ -310,7 +311,7 @@ class ChatService:
             context.hotel_code = resolved_hotel_code
         if request_channel:
             context.channel = request_channel
-        self._ingest_request_metadata(context, request)
+        await self._ingest_request_metadata(context, request, db_session=db_session)
         selected_phase_context = self._get_selected_phase_context(
             context=context,
             pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
@@ -325,6 +326,7 @@ class ChatService:
             raw_user_message,
             selected_phase_id=selected_phase_context.get("selected_phase_id", ""),
             selected_phase_name=selected_phase_context.get("selected_phase_name", ""),
+            context=context,
         )
         effective_user_message = preprocessed_user_message or raw_user_message
         request_for_processing = (
@@ -5400,7 +5402,6 @@ class ChatService:
         resolved_guest_id = str(
             pending.get("guest_id")
             or integration.get("guest_id")
-            or integration.get("user_id")
             or entities.get("guest_id")
             or ""
         ).strip()
@@ -9599,9 +9600,39 @@ class ChatService:
         self,
         conversation_context: ConversationContext | None,
     ) -> list[str]:
-        # Room type candidates are now managed by the LLM via service_knowledge
-        # (extracted from KB at upload time). No regex extraction from history needed.
-        return []
+        if conversation_context is None:
+            return []
+        messages = getattr(conversation_context, "messages", None)
+        if not isinstance(messages, list) or not messages:
+            return []
+
+        extracted: list[str] = []
+        seen: set[str] = set()
+        # Use recent assistant turns only. We only need a compact candidate set.
+        for msg in reversed(messages[-12:]):
+            if getattr(msg, "role", None) != MessageRole.ASSISTANT:
+                continue
+            content = str(getattr(msg, "content", "") or "").strip()
+            if not content:
+                continue
+            entries = self._extract_structured_room_option_entries(content)
+            if not entries:
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                label = str(entry.get("label") or "").strip()
+                if not label or self._is_generic_room_reference(label):
+                    continue
+                key = self._normalize_room_type_label(label)
+                if not key or key in seen:
+                    continue
+                seen.add(key)
+                extracted.append(label)
+            if extracted:
+                # Most recent structured room list is usually the best context.
+                break
+        return extracted
 
     @staticmethod
     def _is_bot_instruction_style_action(action_text: str) -> bool:
@@ -12620,6 +12651,12 @@ class ChatService:
         pending_data: dict[str, Any] | None = None,
         entities: dict[str, Any] | None = None,
     ) -> str:
+        # If booking context has a resolved phase from dates, use it as primary source
+        if getattr(context, "booking_phase", None):
+            normalized_bk = self._normalize_phase_identifier(context.booking_phase)
+            if normalized_bk:
+                return normalized_bk
+
         pending = pending_data if isinstance(pending_data, dict) else {}
         entity_map = entities if isinstance(entities, dict) else {}
         integration = ticketing_service.get_integration_context(context)
@@ -14796,6 +14833,7 @@ class ChatService:
         *,
         selected_phase_id: str = "",
         selected_phase_name: str = "",
+        context: ConversationContext | None = None,
     ) -> str:
         """
         LLM-first user-message preprocessing layer.
@@ -14814,9 +14852,24 @@ class ChatService:
         )
         phase_id = str(selected_phase_id or "").strip() or "unknown"
 
+        # Include the last assistant message so the LLM can use conversation
+        # context to resolve ambiguous typos (e.g. "terminl1" → "terminal 1"
+        # when the bot just asked "which terminal?").
+        last_assistant_msg = ""
+        if context and hasattr(context, "messages") and context.messages:
+            for msg in reversed(context.messages):
+                if msg.role == MessageRole.ASSISTANT:
+                    last_assistant_msg = str(msg.content or "").strip()[:300]
+                    break
+
+        context_line = ""
+        if last_assistant_msg:
+            context_line = f"Last bot message: \"{last_assistant_msg}\"\n"
+
         prompt = (
             "You normalize chat user input before intent routing.\n"
             f"Selected user journey phase: {phase_label} ({phase_id}).\n"
+            f"{context_line}"
             "Task: fix spelling/typos and minor grammar only.\n"
             "Do not add/remove intent, entities, requests, dates, times, quantities, room numbers, names, or polarity.\n"
             "Keep language and tone as-is.\n"
@@ -16268,7 +16321,13 @@ class ChatService:
 
         pending["_integration"] = integration
 
-    def _ingest_request_metadata(self, context: ConversationContext, request: ChatRequest) -> None:
+    async def _ingest_request_metadata(
+        self,
+        context: ConversationContext,
+        request: ChatRequest,
+        *,
+        db_session: Any = None,
+    ) -> None:
         """
         Persist integration identifiers from ChatRequest metadata into context.
         Stored under pending_data['_integration'] so handlers can build external payloads.
@@ -16281,7 +16340,16 @@ class ChatService:
         metadata = request.metadata if isinstance(request.metadata, dict) else {}
 
         canonical_map: dict[str, tuple[str, ...]] = {
-            "guest_id": ("guest_id", "user_id"),
+            "guest_id": ("guest_id", "guestId"),
+            "user_id": ("user_id", "userId"),
+            "wa_number": ("wa_number", "waNumber"),
+            "guest_phone": (
+                "guest_phone",
+                "guestPhone",
+                "phone",
+                "phone_number",
+                "contact_number",
+            ),
             "guest_name": ("guest_name", "name", "user_name"),
             "room_number": ("room_number", "room"),
             "organisation_id": ("organisation_id", "organization_id", "org_id", "entity_id"),
@@ -16307,10 +16375,22 @@ class ChatService:
 
         if request.guest_phone:
             integration["guest_phone"] = request.guest_phone
+        if not str(integration.get("guest_phone") or "").strip() and context.guest_phone:
+            integration["guest_phone"] = context.guest_phone
         if context.channel:
             integration["channel"] = context.channel
         if context.hotel_code:
             integration.setdefault("organisation_id", context.hotel_code)
+
+        guest_id_text = str(integration.get("guest_id") or "").strip()
+        user_id_text = str(integration.get("user_id") or "").strip()
+        if guest_id_text and user_id_text and guest_id_text != user_id_text:
+            logger.warning(
+                "Identity mismatch detected: guest_id and user_id differ (session_id=%s guest_id=%s user_id=%s)",
+                str(context.session_id or "").strip(),
+                guest_id_text,
+                user_id_text,
+            )
 
         if not context.guest_name:
             guest_name = str(integration.get("guest_name") or "").strip()
@@ -16321,28 +16401,63 @@ class ChatService:
             if room_number:
                 context.room_number = room_number
 
-        phase_hint = self._normalize_phase_identifier(
-            integration.get("phase")
-            or metadata.get("phase")
-            or metadata.get("phase_id")
-            or context.pending_data.get("phase")
-        )
-        flow_hint = self._normalize_flow_identifier(
-            integration.get("flow")
-            or metadata.get("flow")
-            or metadata.get("bot_mode")
-        )
-        if not str(integration.get("guest_id") or "").strip() and self._should_auto_generate_guest_id(
-            phase_hint=phase_hint,
-            flow_hint=flow_hint,
-        ):
-            generated_guest_id = self._derive_context_guest_id(
-                context=context,
-                integration=integration,
+        if not guest_id_text and db_session is not None:
+            entity_id = (
+                integration.get("entity_id")
+                or integration.get("organisation_id")
+                or metadata.get("entity_id")
+                or metadata.get("organisation_id")
+                or metadata.get("organization_id")
+                or metadata.get("org_id")
             )
-            if generated_guest_id:
-                integration["guest_id"] = generated_guest_id
-                context.pending_data.setdefault("guest_id", generated_guest_id)
+            guest_phone = (
+                integration.get("guest_phone")
+                or integration.get("wa_number")
+                or context.guest_phone
+                or metadata.get("guest_phone")
+                or metadata.get("wa_number")
+            )
+            if entity_id not in (None, "") and str(guest_phone or "").strip():
+                try:
+                    profile = await lumira_ticketing_repository.fetch_guest_profile(
+                        db_session,
+                        entity_id=entity_id,
+                        guest_phone=str(guest_phone or "").strip(),
+                    )
+                except Exception:
+                    logger.exception(
+                        "Identity enrichment failed (session_id=%s entity_id=%s)",
+                        str(context.session_id or "").strip(),
+                        str(entity_id or "").strip(),
+                    )
+                    profile = {}
+                if profile:
+                    resolved_guest_id = str(profile.get("guest_id") or "").strip()
+                    resolved_guest_name = str(profile.get("guest_name") or "").strip()
+                    resolved_room_number = str(profile.get("room_number") or "").strip()
+                    resolved_entity_id = str(profile.get("entity_id") or "").strip()
+                    if resolved_guest_id:
+                        integration["guest_id"] = resolved_guest_id
+                        context.pending_data.setdefault("guest_id", resolved_guest_id)
+                        logger.info(
+                            "Identity enriched via guest profile lookup (session_id=%s entity_id=%s guest_id=%s)",
+                            str(context.session_id or "").strip(),
+                            str(entity_id or "").strip(),
+                            resolved_guest_id,
+                        )
+                    if resolved_guest_name and not context.guest_name:
+                        context.guest_name = resolved_guest_name
+                    if resolved_guest_name and not str(integration.get("guest_name") or "").strip():
+                        integration["guest_name"] = resolved_guest_name
+                    if resolved_room_number and not context.room_number:
+                        context.room_number = resolved_room_number
+                    if resolved_room_number and not str(integration.get("room_number") or "").strip():
+                        integration["room_number"] = resolved_room_number
+                    if resolved_entity_id and not str(integration.get("entity_id") or "").strip():
+                        integration["entity_id"] = resolved_entity_id
+
+        if str(integration.get("guest_id") or "").strip():
+            context.pending_data.setdefault("guest_id", str(integration.get("guest_id") or "").strip())
 
         check_in_text = str(integration.get("check_in") or "").strip()
         check_out_text = str(integration.get("check_out") or "").strip()
@@ -16374,6 +16489,117 @@ class ChatService:
             integration["stay_checkin_date"] = normalized_check_in
             integration["stay_checkout_date"] = normalized_check_out
             context.pending_data["_integration"] = integration
+
+        # Ingest booking context from metadata (sent by Chat UI booking picker)
+        _booking_id_raw = metadata.get("booking_id")
+        if _booking_id_raw:
+            try:
+                context.booking_id = int(_booking_id_raw)
+            except (TypeError, ValueError):
+                pass
+        _bk_code = str(metadata.get("booking_confirmation_code") or "").strip()
+        if _bk_code:
+            context.booking_confirmation_code = _bk_code
+        _bk_phase = str(metadata.get("booking_phase") or "").strip()
+        if _bk_phase:
+            context.booking_phase = _bk_phase
+        _bk_prop = str(metadata.get("booking_property_name") or "").strip()
+        if _bk_prop:
+            context.booking_property_name = _bk_prop
+            context.pending_data["_selected_property_scope_name"] = _bk_prop
+
+            resolved_property_id = ""
+            resolved_property_name = _bk_prop
+            unresolved_hints: list[str] = []
+            try:
+                property_resolution = await config_service.resolve_property_scope_ids(
+                    property_hints=[_bk_prop],
+                    max_sources=200,
+                    limit=1,
+                )
+            except Exception:
+                logger.exception(
+                    "Booking property resolution failed (session_id=%s property=%s)",
+                    str(context.session_id or "").strip(),
+                    _bk_prop,
+                )
+                property_resolution = {}
+
+            resolved_rows = property_resolution.get("resolved", []) if isinstance(property_resolution, dict) else []
+            if isinstance(resolved_rows, list) and resolved_rows:
+                resolved_first = resolved_rows[0] if isinstance(resolved_rows[0], dict) else {}
+                resolved_property_id = str(resolved_first.get("id") or "").strip()
+                resolved_name_raw = str(resolved_first.get("name") or "").strip()
+                if resolved_name_raw:
+                    resolved_property_name = resolved_name_raw
+            unresolved_hints = (
+                property_resolution.get("unresolved_hints", [])
+                if isinstance(property_resolution, dict)
+                and isinstance(property_resolution.get("unresolved_hints"), list)
+                else []
+            )
+            if unresolved_hints:
+                logger.warning(
+                    "Booking property could not be resolved to canonical ID (session_id=%s property=%s unresolved=%s)",
+                    str(context.session_id or "").strip(),
+                    _bk_prop,
+                    unresolved_hints,
+                )
+
+            existing_stay_property_id = str(context.pending_data.get("_stay_property_id") or "").strip()
+            existing_stay_property_name = str(context.pending_data.get("_stay_property_name") or "").strip()
+            stay_property_id = resolved_property_id or existing_stay_property_id
+            stay_property_name = resolved_property_name or existing_stay_property_name or _bk_prop
+            if stay_property_id:
+                context.pending_data["_stay_property_id"] = stay_property_id
+            context.pending_data["_stay_property_name"] = stay_property_name
+
+            phase_for_scope = self._resolve_current_ticketing_phase(
+                context=context,
+                pending_data=context.pending_data,
+                entities={},
+            )
+            stay_pin_phases = {"pre_checkin", "during_stay", "post_checkout"}
+            if phase_for_scope in stay_pin_phases:
+                scoped_property_id = stay_property_id or _bk_prop
+                context.pending_data["_active_property_ids"] = [scoped_property_id]
+                context.pending_data["_active_property_names"] = [stay_property_name]
+                context.pending_data["_selected_property_scope_id"] = scoped_property_id
+                context.pending_data["_selected_property_scope_name"] = stay_property_name
+                context.pending_data["_stay_property_pin_enabled"] = True
+            else:
+                # Preserve pre-booking behavior exactly as-is.
+                context.pending_data["_active_property_ids"] = [_bk_prop]
+                context.pending_data["_selected_property_scope_name"] = _bk_prop
+                context.pending_data["_stay_property_pin_enabled"] = False
+        _bk_room = str(metadata.get("booking_room_number") or "").strip()
+        if _bk_room and not context.room_number:
+            context.room_number = _bk_room
+        _bk_rt = str(metadata.get("booking_room_type") or "").strip()
+        if _bk_rt:
+            context.booking_room_type = _bk_rt
+        _bk_ci = str(metadata.get("booking_check_in_date") or "").strip()
+        if _bk_ci:
+            context.booking_check_in_date = _bk_ci
+            if not check_in_text:
+                context.pending_data["check_in"] = _bk_ci
+                context.pending_data["stay_checkin_date"] = _bk_ci
+                integration["check_in"] = _bk_ci
+                integration["stay_checkin_date"] = _bk_ci
+        _bk_co = str(metadata.get("booking_check_out_date") or "").strip()
+        if _bk_co:
+            context.booking_check_out_date = _bk_co
+            if not check_out_text:
+                context.pending_data["check_out"] = _bk_co
+                context.pending_data["stay_checkout_date"] = _bk_co
+                integration["check_out"] = _bk_co
+                integration["stay_checkout_date"] = _bk_co
+        _bk_gname = str(metadata.get("booking_guest_name") or "").strip()
+        if _bk_gname:
+            context.booking_guest_name = _bk_gname
+            if not context.guest_name:
+                context.guest_name = _bk_gname
+        context.pending_data["_integration"] = integration
 
     @staticmethod
     def _normalize_runtime_service_id(value: Any) -> str:

@@ -13,10 +13,14 @@ from datetime import date
 from difflib import SequenceMatcher
 from typing import Any
 
+import logging
+
 from handlers.base_handler import BaseHandler, HandlerResult
 from schemas.chat import ConversationContext, ConversationState, IntentResult, MessageRole, IntentType
 from services.ticketing_agent_service import ticketing_agent_service
 from services.ticketing_service import ticketing_service
+
+_logger = logging.getLogger(__name__)
 
 
 class BookingHandler(BaseHandler):
@@ -98,6 +102,10 @@ class BookingHandler(BaseHandler):
         hours_violation = self._validate_booking_window(booking_data, capabilities)
         if hours_violation is not None:
             return hours_violation
+
+        stay_date_violation = self._validate_stay_date_boundary(booking_data, context)
+        if stay_date_violation is not None:
+            return stay_date_violation
 
         return self._build_booking_confirmation(booking_data)
 
@@ -209,6 +217,10 @@ class BookingHandler(BaseHandler):
         hours_violation = self._validate_booking_window(booking_data, capabilities)
         if hours_violation is not None:
             return hours_violation
+
+        stay_date_violation = self._validate_stay_date_boundary(booking_data, context)
+        if stay_date_violation is not None:
+            return stay_date_violation
 
         return self._build_booking_confirmation(booking_data)
 
@@ -330,6 +342,31 @@ class BookingHandler(BaseHandler):
                 f"Ticket Reference: #{created_ticket_id}\n" if created_ticket_id else ""
             )
 
+            # Persist booking to DB if we have check-in/check-out dates and guest phone
+            db_booking_info = {}
+            _ci = detail_meta.get("check_in", "")
+            _co = detail_meta.get("check_out", "")
+            _guest_phone = detail_meta.get("guest_phone", "")
+            if _ci and _co and _guest_phone:
+                try:
+                    from services.booking_service import create_booking as _create_db_booking
+                    db_booking_info = await _create_db_booking(
+                        hotel_code=context.hotel_code,
+                        guest_phone=_guest_phone,
+                        guest_name=detail_meta.get("guest_name"),
+                        property_name=detail_meta.get("property_name", ""),
+                        room_number=detail_meta.get("room_number", ""),
+                        room_type=detail_meta.get("room_type", ""),
+                        check_in_date=date.fromisoformat(_ci) if isinstance(_ci, str) else _ci,
+                        check_out_date=date.fromisoformat(_co) if isinstance(_co, str) else _co,
+                        num_guests=int(party) if str(party).isdigit() else 1,
+                        source_channel=context.channel or "web",
+                    )
+                    if db_booking_info.get("confirmation_code"):
+                        booking_ref = db_booking_info["confirmation_code"]
+                except Exception as _exc:
+                    _logger.warning("Failed to persist booking to DB: %s", _exc)
+
             return HandlerResult(
                 response_text=(
                     f"Your booking request has been received successfully.\n\n"
@@ -356,6 +393,7 @@ class BookingHandler(BaseHandler):
                     "booking_room_type": detail_meta.get("room_type", ""),
                     "booking_check_in": detail_meta.get("check_in", ""),
                     "booking_check_out": detail_meta.get("check_out", ""),
+                    **db_booking_info,
                     **ticket_meta,
                 },
             )
@@ -524,11 +562,15 @@ class BookingHandler(BaseHandler):
             fallback = service_name or "Booking request"
             details.append(f"Service: {fallback}")
 
+        # If this is a room booking and room_type wasn't explicitly set,
+        # the service_name IS the room type (e.g. "Prestige Suite").
+        resolved_room_type = room_type or (service_name if sub_category == "room_booking" else "")
+
         return details, {
             "guest_name": guest_name,
             "guest_phone": guest_phone,
             "guest_email": guest_email,
-            "room_type": room_type,
+            "room_type": resolved_room_type,
             "check_in": check_in,
             "check_out": check_out,
         }
@@ -896,6 +938,61 @@ class BookingHandler(BaseHandler):
         if date_value and date_value.lower() not in {"today", "tonight"}:
             issue_parts.append(f"on {date_value}")
         return " ".join(issue_parts).strip()
+
+    def _validate_stay_date_boundary(
+        self,
+        booking_data: dict[str, Any],
+        context: ConversationContext,
+    ) -> HandlerResult | None:
+        """
+        If booking context has check-in/check-out dates, ensure the requested
+        service date falls within the guest's stay window.
+        """
+        ci_str = getattr(context, "booking_check_in_date", None) or ""
+        co_str = getattr(context, "booking_check_out_date", None) or ""
+        if not ci_str or not co_str:
+            return None
+
+        requested_date_str = str(booking_data.get("date") or "").strip().lower()
+        if not requested_date_str or requested_date_str == "today":
+            return None
+
+        try:
+            ci = date.fromisoformat(ci_str) if isinstance(ci_str, str) else ci_str
+            co = date.fromisoformat(co_str) if isinstance(co_str, str) else co_str
+        except (ValueError, TypeError):
+            return None
+
+        # Try parsing the requested date
+        requested_date = None
+        try:
+            requested_date = date.fromisoformat(requested_date_str)
+        except ValueError:
+            # Try common formats
+            import calendar
+            for fmt in ("%d %B %Y", "%B %d %Y", "%d %b %Y", "%b %d %Y", "%d/%m/%Y", "%m/%d/%Y"):
+                try:
+                    requested_date = date(*__import__("time").strptime(requested_date_str, fmt)[:3])
+                    break
+                except ValueError:
+                    continue
+
+        if requested_date is None:
+            return None
+
+        if ci <= requested_date <= co:
+            return None
+
+        return HandlerResult(
+            response_text=(
+                f"The requested date ({requested_date_str}) falls outside your stay "
+                f"({ci_str} to {co_str}). Please choose a date within your stay period."
+            ),
+            next_state=ConversationState.AWAITING_INFO,
+            pending_action="collect_booking_time",
+            pending_data=booking_data,
+            suggested_actions=[ci_str, co_str],
+        )
 
     def _validate_booking_window(
         self,

@@ -10,6 +10,9 @@ const state = {
     testProfileAutoApply: true,
     testProfilesByPhase: {},
     activeTestProfile: null,
+    // Booking context
+    bookings: [],
+    selectedBooking: null,
 };
 
 // DOM Elements
@@ -43,6 +46,13 @@ const elements = {
     debugPanel: document.getElementById('debug-panel'),
     debugContent: document.getElementById('debug-content'),
     toggleDebug: document.getElementById('toggle-debug'),
+    // Booking elements
+    bookingSelect: document.getElementById('booking-select'),
+    bookingDetails: document.getElementById('booking-details'),
+    createBookingBtn: document.getElementById('create-booking-btn'),
+    createBookingModal: document.getElementById('create-booking-modal'),
+    closeBookingModal: document.getElementById('close-booking-modal'),
+    createBookingForm: document.getElementById('create-booking-form'),
 };
 
 // Initialize
@@ -108,6 +118,7 @@ async function loadProperties() {
         elements.hotelCode.value = 'DEFAULT';
     } finally {
         loadTestProfiles();
+        loadBookings();
     }
 }
 
@@ -262,7 +273,118 @@ function buildRequestMetadata(interactionMeta = null) {
     }
 
     metadata.chat_test_profile_applied = true;
+
+    // Inject booking context if a booking is selected
+    const booking = state.selectedBooking;
+    if (booking) {
+        metadata.booking_id = booking.booking_id;
+        metadata.booking_guest_id = booking.guest_id;
+        metadata.booking_confirmation_code = booking.confirmation_code;
+        metadata.booking_property_name = booking.property_name || '';
+        metadata.booking_room_number = booking.room_number || '';
+        metadata.booking_room_type = booking.room_type || '';
+        metadata.booking_check_in_date = booking.check_in_date || '';
+        metadata.booking_check_out_date = booking.check_out_date || '';
+        metadata.booking_guest_name = booking.guest_name || '';
+        metadata.booking_guest_phone = booking.guest_phone || '';
+        metadata.booking_status = booking.status || '';
+        metadata.booking_phase = booking.phase || '';
+    }
+
     return metadata;
+}
+
+// ============ Booking Management ============
+
+async function loadBookings() {
+    if (!elements.bookingSelect) return;
+    const phase = normalizePhaseId(state.phase);
+    if (phase === 'pre_booking') {
+        elements.bookingSelect.innerHTML = '<option value="">N/A (pre-booking)</option>';
+        state.bookings = [];
+        state.selectedBooking = null;
+        syncBookingDetailsUi();
+        return;
+    }
+    try {
+        const url = `/admin/api/bookings?hotel_code=${encodeURIComponent(state.hotelCode || 'DEFAULT')}&phase=${encodeURIComponent(phase)}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const bookings = Array.isArray(data?.bookings) ? data.bookings : [];
+        state.bookings = bookings;
+        if (!bookings.length) {
+            elements.bookingSelect.innerHTML = '<option value="">No bookings for this phase</option>';
+            state.selectedBooking = null;
+            syncBookingDetailsUi();
+            return;
+        }
+        const opts = bookings.map((b) => {
+            const label = `${b.guest_name || 'Guest'} - ${b.room_number || 'No room'} - ${b.property_name || ''} (${b.check_in_date} to ${b.check_out_date})`;
+            return `<option value="${b.booking_id}">${label}</option>`;
+        });
+        opts.unshift('<option value="">-- Select a booking --</option>');
+        elements.bookingSelect.innerHTML = opts.join('');
+        // Auto-select first booking
+        if (bookings.length === 1) {
+            elements.bookingSelect.value = String(bookings[0].booking_id);
+            state.selectedBooking = bookings[0];
+        } else {
+            state.selectedBooking = null;
+        }
+        syncBookingDetailsUi();
+    } catch (err) {
+        console.error('Failed to load bookings:', err);
+        elements.bookingSelect.innerHTML = '<option value="">Error loading bookings</option>';
+        state.bookings = [];
+        state.selectedBooking = null;
+        syncBookingDetailsUi();
+    }
+}
+
+function syncBookingDetailsUi() {
+    if (!elements.bookingDetails) return;
+    const b = state.selectedBooking;
+    if (!b) {
+        elements.bookingDetails.textContent = 'No booking selected.';
+        return;
+    }
+    elements.bookingDetails.textContent =
+        `Code: ${b.confirmation_code}\n` +
+        `Guest: ${b.guest_name || '-'} (${b.guest_phone || '-'})\n` +
+        `Property: ${b.property_name || '-'}\n` +
+        `Room: ${b.room_number || '-'} (${b.room_type || '-'})\n` +
+        `Dates: ${b.check_in_date} to ${b.check_out_date}\n` +
+        `Status: ${b.status} | Phase: ${b.phase}`;
+}
+
+async function handleCreateBooking(e) {
+    e.preventDefault();
+    const form = e.target;
+    const fd = new FormData(form);
+    const body = {};
+    for (const [k, v] of fd.entries()) {
+        if (v) body[k] = k === 'num_guests' ? parseInt(v, 10) : v;
+    }
+    try {
+        const resp = await fetch(`/admin/api/bookings?hotel_code=${encodeURIComponent(state.hotelCode || 'DEFAULT')}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            alert(`Failed: ${err.detail || resp.statusText}`);
+            return;
+        }
+        const created = await resp.json();
+        alert(`Booking created! Code: ${created.confirmation_code}`);
+        form.reset();
+        if (elements.createBookingModal) elements.createBookingModal.classList.remove('visible');
+        await loadBookings();
+    } catch (err) {
+        alert(`Error: ${err.message}`);
+    }
 }
 
 // Setup event listeners
@@ -276,11 +398,39 @@ function setupEventListeners() {
     elements.hotelCode.addEventListener('change', (e) => {
         state.hotelCode = e.target.value;
         loadTestProfiles();
+        loadBookings();
     });
     elements.journeyPhase.addEventListener('change', (e) => {
         state.phase = e.target.value || 'pre_booking';
         syncPhaseProfileUi();
+        loadBookings();
     });
+    // Booking selection
+    if (elements.bookingSelect) {
+        elements.bookingSelect.addEventListener('change', (e) => {
+            const id = parseInt(e.target.value, 10);
+            state.selectedBooking = state.bookings.find((b) => b.booking_id === id) || null;
+            syncBookingDetailsUi();
+        });
+    }
+    if (elements.createBookingBtn) {
+        elements.createBookingBtn.addEventListener('click', () => {
+            if (elements.createBookingModal) elements.createBookingModal.classList.add('visible');
+        });
+    }
+    if (elements.closeBookingModal) {
+        elements.closeBookingModal.addEventListener('click', () => {
+            if (elements.createBookingModal) elements.createBookingModal.classList.remove('visible');
+        });
+    }
+    if (elements.createBookingModal) {
+        elements.createBookingModal.addEventListener('click', (e) => {
+            if (e.target === elements.createBookingModal) elements.createBookingModal.classList.remove('visible');
+        });
+    }
+    if (elements.createBookingForm) {
+        elements.createBookingForm.addEventListener('submit', handleCreateBooking);
+    }
     if (elements.autoPhaseProfile) {
         elements.autoPhaseProfile.addEventListener('change', (e) => {
             state.testProfileAutoApply = !!e.target.checked;

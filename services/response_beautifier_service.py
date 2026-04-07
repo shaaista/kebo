@@ -276,7 +276,12 @@ class ResponseBeautifierService:
             or None
         )
         temperature = float(getattr(settings, "chat_display_beautifier_temperature", 0.2) or 0.2)
-        max_tokens = max(80, int(getattr(settings, "chat_display_beautifier_max_tokens", 420) or 420))
+        _configured_max = max(80, int(getattr(settings, "chat_display_beautifier_max_tokens", 420) or 420))
+        # Scale max_tokens based on input length so long responses (room lists,
+        # comparisons) aren't truncated by the beautifier LLM.  Roughly 1 token
+        # ≈ 4 chars; we allow ~1.3x headroom for formatting additions.
+        _input_estimated_tokens = max(80, len(base_text) // 3)
+        max_tokens = max(_configured_max, min(_input_estimated_tokens, 2048))
         confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
         confirmation_present = bool(
             confirmation_phrase

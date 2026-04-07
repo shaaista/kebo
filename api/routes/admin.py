@@ -34,7 +34,7 @@ from services.prompt_writer_service import generate_service_system_prompt
 from services.everything_trace_service import everything_trace_service
 from config.settings import settings
 from llm.client import llm_client
-from models.database import AsyncSessionLocal, Hotel, KBFile
+from models.database import AsyncSessionLocal, Hotel, Guest, Booking, KBFile
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 templates = Jinja2Templates(directory="templates")
@@ -2981,6 +2981,286 @@ async def list_local_tickets():
         return {"tickets": tickets, "total": len(tickets)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load tickets: {e}")
+
+
+# ============ Bookings / Guest Management ============
+
+
+class CreateGuestInput(BaseModel):
+    phone_number: str
+    name: Optional[str] = None
+
+
+class CreateBookingInput(BaseModel):
+    guest_phone: str
+    guest_name: Optional[str] = None
+    property_name: Optional[str] = None
+    room_number: Optional[str] = None
+    room_type: Optional[str] = None
+    check_in_date: str  # YYYY-MM-DD
+    check_out_date: str  # YYYY-MM-DD
+    num_guests: Optional[int] = 1
+    status: Optional[str] = "reserved"
+    source_channel: Optional[str] = "web"
+    special_requests: Optional[str] = None
+
+
+class UpdateBookingInput(BaseModel):
+    property_name: Optional[str] = None
+    room_number: Optional[str] = None
+    room_type: Optional[str] = None
+    check_in_date: Optional[str] = None
+    check_out_date: Optional[str] = None
+    num_guests: Optional[int] = None
+    status: Optional[str] = None
+    special_requests: Optional[str] = None
+
+
+def _generate_confirmation_code(hotel_code: str, booking_id: int) -> str:
+    """Generate a human-readable confirmation code like KHIL-260406-003."""
+    from datetime import date as _date
+    today = _date.today()
+    prefix = (hotel_code or "HTL").upper()[:6]
+    date_part = today.strftime("%y%m%d")
+    seq = str(booking_id).zfill(3)
+    return f"{prefix}-{date_part}-{seq}"
+
+
+def _resolve_phase_from_dates(check_in_date, check_out_date) -> str:
+    """Derive guest journey phase from booking dates vs today."""
+    from datetime import date as _date
+    today = _date.today()
+    if today < check_in_date:
+        return "pre_checkin"
+    if check_in_date <= today <= check_out_date:
+        return "during_stay"
+    return "post_checkout"
+
+
+def _booking_to_dict(booking: Booking, guest: Guest = None) -> dict:
+    """Serialize a Booking ORM object to a JSON-safe dict."""
+    phase = _resolve_phase_from_dates(booking.check_in_date, booking.check_out_date)
+    result = {
+        "booking_id": booking.id,
+        "hotel_id": booking.hotel_id,
+        "guest_id": booking.guest_id,
+        "confirmation_code": booking.confirmation_code,
+        "property_name": booking.property_name,
+        "room_number": booking.room_number,
+        "room_type": booking.room_type,
+        "check_in_date": str(booking.check_in_date),
+        "check_out_date": str(booking.check_out_date),
+        "num_guests": booking.num_guests,
+        "status": booking.status,
+        "source_channel": booking.source_channel,
+        "special_requests": booking.special_requests,
+        "phase": phase,
+        "created_at": str(booking.created_at) if booking.created_at else None,
+    }
+    if guest:
+        result["guest_name"] = guest.name
+        result["guest_phone"] = guest.phone_number
+    return result
+
+
+@router.get("/api/guests")
+async def list_guests(hotel_code: str = "DEFAULT"):
+    """List all guests for a hotel."""
+    async with AsyncSessionLocal() as session:
+        hotel_row = (await session.execute(
+            select(Hotel).where(Hotel.code == hotel_code)
+        )).scalar_one_or_none()
+        if not hotel_row:
+            raise HTTPException(status_code=404, detail=f"Hotel '{hotel_code}' not found")
+        rows = (await session.execute(
+            select(Guest).where(Guest.hotel_id == hotel_row.id).order_by(Guest.id.desc())
+        )).scalars().all()
+        guests = []
+        for g in rows:
+            guests.append({
+                "id": g.id,
+                "phone_number": g.phone_number,
+                "name": g.name,
+                "hotel_id": g.hotel_id,
+            })
+        return {"guests": guests, "total": len(guests)}
+
+
+@router.post("/api/guests")
+async def create_guest(hotel_code: str, body: CreateGuestInput):
+    """Create a guest for a hotel."""
+    async with AsyncSessionLocal() as session:
+        hotel_row = (await session.execute(
+            select(Hotel).where(Hotel.code == hotel_code)
+        )).scalar_one_or_none()
+        if not hotel_row:
+            raise HTTPException(status_code=404, detail=f"Hotel '{hotel_code}' not found")
+        # Check if guest already exists
+        existing = (await session.execute(
+            select(Guest).where(Guest.hotel_id == hotel_row.id, Guest.phone_number == body.phone_number)
+        )).scalar_one_or_none()
+        if existing:
+            if body.name and not existing.name:
+                existing.name = body.name
+                await session.commit()
+            return {"guest_id": existing.id, "phone_number": existing.phone_number, "name": existing.name, "created": False}
+        guest = Guest(hotel_id=hotel_row.id, phone_number=body.phone_number, name=body.name)
+        session.add(guest)
+        await session.commit()
+        await session.refresh(guest)
+        return {"guest_id": guest.id, "phone_number": guest.phone_number, "name": guest.name, "created": True}
+
+
+@router.get("/api/bookings")
+async def list_bookings(hotel_code: str = "DEFAULT", phase: Optional[str] = None, guest_id: Optional[int] = None):
+    """List bookings for a hotel, optionally filtered by phase and/or guest."""
+    from datetime import date as _date
+    async with AsyncSessionLocal() as session:
+        hotel_row = (await session.execute(
+            select(Hotel).where(Hotel.code == hotel_code)
+        )).scalar_one_or_none()
+        if not hotel_row:
+            raise HTTPException(status_code=404, detail=f"Hotel '{hotel_code}' not found")
+
+        query = select(Booking, Guest).join(Guest, Booking.guest_id == Guest.id).where(
+            Booking.hotel_id == hotel_row.id
+        )
+
+        if guest_id:
+            query = query.where(Booking.guest_id == guest_id)
+
+        # Phase-based date filtering
+        today = _date.today()
+        if phase == "pre_checkin":
+            query = query.where(Booking.check_in_date > today, Booking.status.in_(["reserved"]))
+        elif phase == "during_stay":
+            query = query.where(Booking.check_in_date <= today, Booking.check_out_date >= today)
+        elif phase == "post_checkout":
+            query = query.where(Booking.check_out_date < today)
+
+        query = query.order_by(Booking.id.desc())
+        rows = (await session.execute(query)).all()
+        bookings = [_booking_to_dict(b, g) for b, g in rows]
+        return {"bookings": bookings, "total": len(bookings)}
+
+
+@router.get("/api/bookings/{booking_id}")
+async def get_booking(booking_id: int):
+    """Get a single booking by ID."""
+    async with AsyncSessionLocal() as session:
+        row = (await session.execute(
+            select(Booking, Guest).join(Guest, Booking.guest_id == Guest.id).where(Booking.id == booking_id)
+        )).one_or_none()
+        if not row:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        booking, guest = row
+        return _booking_to_dict(booking, guest)
+
+
+@router.post("/api/bookings")
+async def create_booking(hotel_code: str, body: CreateBookingInput):
+    """Create a new booking. Auto-creates guest if needed."""
+    from datetime import date as _date, datetime as _datetime
+    try:
+        ci = _date.fromisoformat(body.check_in_date)
+        co = _date.fromisoformat(body.check_out_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Dates must be YYYY-MM-DD format")
+    if co <= ci:
+        raise HTTPException(status_code=400, detail="check_out_date must be after check_in_date")
+
+    async with AsyncSessionLocal() as session:
+        hotel_row = (await session.execute(
+            select(Hotel).where(Hotel.code == hotel_code)
+        )).scalar_one_or_none()
+        if not hotel_row:
+            raise HTTPException(status_code=404, detail=f"Hotel '{hotel_code}' not found")
+
+        # Find or create guest
+        guest = (await session.execute(
+            select(Guest).where(Guest.hotel_id == hotel_row.id, Guest.phone_number == body.guest_phone)
+        )).scalar_one_or_none()
+        if not guest:
+            guest = Guest(hotel_id=hotel_row.id, phone_number=body.guest_phone, name=body.guest_name)
+            session.add(guest)
+            await session.flush()
+        elif body.guest_name and not guest.name:
+            guest.name = body.guest_name
+
+        # Create booking with temporary confirmation code
+        booking = Booking(
+            hotel_id=hotel_row.id,
+            guest_id=guest.id,
+            confirmation_code="TEMP",
+            property_name=body.property_name,
+            room_number=body.room_number,
+            room_type=body.room_type,
+            check_in_date=ci,
+            check_out_date=co,
+            num_guests=body.num_guests or 1,
+            status=body.status or "reserved",
+            source_channel=body.source_channel,
+            special_requests=body.special_requests,
+        )
+        session.add(booking)
+        await session.flush()
+
+        # Generate real confirmation code using booking ID
+        booking.confirmation_code = _generate_confirmation_code(hotel_code, booking.id)
+        await session.commit()
+        await session.refresh(booking)
+
+        return _booking_to_dict(booking, guest)
+
+
+@router.put("/api/bookings/{booking_id}")
+async def update_booking(booking_id: int, body: UpdateBookingInput):
+    """Update an existing booking."""
+    from datetime import date as _date
+    async with AsyncSessionLocal() as session:
+        booking = (await session.execute(
+            select(Booking).where(Booking.id == booking_id)
+        )).scalar_one_or_none()
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+
+        if body.property_name is not None:
+            booking.property_name = body.property_name
+        if body.room_number is not None:
+            booking.room_number = body.room_number
+        if body.room_type is not None:
+            booking.room_type = body.room_type
+        if body.check_in_date is not None:
+            booking.check_in_date = _date.fromisoformat(body.check_in_date)
+        if body.check_out_date is not None:
+            booking.check_out_date = _date.fromisoformat(body.check_out_date)
+        if body.num_guests is not None:
+            booking.num_guests = body.num_guests
+        if body.status is not None:
+            booking.status = body.status
+        if body.special_requests is not None:
+            booking.special_requests = body.special_requests
+
+        await session.commit()
+        await session.refresh(booking)
+        guest = (await session.execute(
+            select(Guest).where(Guest.id == booking.guest_id)
+        )).scalar_one_or_none()
+        return _booking_to_dict(booking, guest)
+
+
+@router.delete("/api/bookings/{booking_id}")
+async def delete_booking(booking_id: int):
+    """Delete a booking."""
+    async with AsyncSessionLocal() as session:
+        booking = (await session.execute(
+            select(Booking).where(Booking.id == booking_id)
+        )).scalar_one_or_none()
+        if not booking:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        await session.delete(booking)
+        await session.commit()
+        return {"deleted": True, "booking_id": booking_id}
 
 
 # ============ Admin UI ============
