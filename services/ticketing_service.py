@@ -1023,7 +1023,11 @@ class TicketingService:
 
     async def _apply_department_mapping(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
-        Resolve a department for the payload when caller/LLM did not set one.
+        Resolve a department for the payload using live entity departments.
+        Preference order:
+        1) LLM mapping (when available)
+        2) Existing explicit department_id from payload (current behavior fallback)
+        3) Deterministic keyword/name heuristic fallback
         Also remaps 'categorization' to a valid Kepsla dashboard category
         using the resolved department name as the canonical source.
         """
@@ -1058,31 +1062,39 @@ class TicketingService:
             )
             return payload_next
 
-        # If department already set, skip department resolution but still
-        # remap categorization if it's not a known-good value.
+        existing_dept: dict[str, Any] | None = None
         if existing_department_id and existing_department_id not in {"0", "null", "none"}:
-            existing_dept = None
             for dept in (departments or []):
                 if isinstance(dept, dict) and self._safe_str(dept.get("department_id")) == existing_department_id:
                     existing_dept = dept
                     break
-            if existing_dept:
-                payload_next = self._remap_categorization_to_accepted_value(
-                    payload_next, existing_dept
+            if existing_dept is None:
+                self._write_ticket_debug_event(
+                    "ticket_department_mapping_invalid_existing_department_id",
+                    entity_id=entity_id,
+                    existing_department_id=existing_department_id,
                 )
-            return payload_next
 
-        matched_department = await self._llm_resolve_department_for_ticket_payload(
+        llm_department = await self._llm_resolve_department_for_ticket_payload(
             payload=payload_next,
             departments=departments,
         )
-        mapping_source = "llm"
-        if not isinstance(matched_department, dict):
+        matched_department: dict[str, Any] | None = None
+        mapping_source = ""
+
+        if isinstance(llm_department, dict):
+            matched_department = llm_department
+            mapping_source = "llm"
+        elif isinstance(existing_dept, dict):
+            matched_department = existing_dept
+            mapping_source = "existing_department_fallback"
+        else:
             matched_department = self._resolve_department_for_ticket_payload(
                 payload=payload_next,
                 departments=departments,
             )
             mapping_source = "heuristic_fallback"
+
         if not isinstance(matched_department, dict):
             self._write_ticket_debug_event(
                 "ticket_department_mapping_unresolved",
@@ -1102,13 +1114,12 @@ class TicketingService:
         if mapped_department_id:
             payload_next["department_allocated"] = mapped_department_id
             payload_next["department_id"] = mapped_department_id
-        if not self._safe_str(payload_next.get("department_manager")):
-            mapped_department_manager = self._safe_str(
-                matched_department.get("department_head")
-                or matched_department.get("department_name")
-            )
-            if mapped_department_manager:
-                payload_next["department_manager"] = mapped_department_manager
+        mapped_department_manager = self._safe_str(
+            matched_department.get("department_head")
+            or matched_department.get("department_name")
+        )
+        if mapped_department_manager:
+            payload_next["department_manager"] = mapped_department_manager
 
         # ── Remap categorization to a valid Kepsla dashboard category ──
         payload_next = self._remap_categorization_to_accepted_value(

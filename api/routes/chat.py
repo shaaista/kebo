@@ -945,6 +945,169 @@ async def _generate_confirmation_message(
     )
 
 
+def _sanitize_form_ticket_fields(form_data: dict[str, Any]) -> list[tuple[str, str]]:
+    if not isinstance(form_data, dict):
+        return []
+    pairs: list[tuple[str, str]] = []
+    for raw_key, raw_value in form_data.items():
+        key = str(raw_key or "").strip()
+        if not key or key.startswith("_"):
+            continue
+        value = str(raw_value or "").strip()
+        if not value:
+            continue
+        label = key.replace("_", " ").strip().title()
+        pairs.append((label, value))
+    return pairs
+
+
+def _build_form_ticket_description_fallback(
+    *,
+    service_name: str,
+    service_purpose: str,
+    property_name: str,
+    trigger_label: str,
+    trigger_value: str,
+    merged_form_data: dict[str, Any],
+) -> tuple[str, str]:
+    detail_pairs = _sanitize_form_ticket_fields(merged_form_data)
+    detail_text = "; ".join(f"{k}: {v}" for k, v in detail_pairs)
+
+    issue = f"{service_name} request"
+    if trigger_value:
+        issue = f"{issue} ({trigger_value})"
+    if property_name:
+        issue = f"{issue} at {property_name}"
+    issue = issue[:180].strip()
+
+    message_parts: list[str] = [f"Guest submitted a {service_name} request."]
+    if property_name:
+        message_parts.append(f"Property: {property_name}.")
+    if service_purpose:
+        message_parts.append(f"Purpose: {service_purpose[:220].strip()}.")
+    if trigger_label and trigger_value:
+        message_parts.append(f"Selected {trigger_label}: {trigger_value}.")
+    if detail_text:
+        message_parts.append(f"Provided details: {detail_text[:850].strip()}.")
+    message_parts.append("Please review and action this request.")
+    message = " ".join(part for part in message_parts if part).strip()[:1200]
+    return issue, message
+
+
+async def _generate_form_ticket_description(
+    *,
+    service: dict[str, Any],
+    service_name: str,
+    service_id: str,
+    merged_form_data: dict[str, Any],
+    req_meta: dict[str, Any],
+    context: Any,
+) -> tuple[str, str]:
+    form_config = service.get("form_config") if isinstance(service, dict) else {}
+    form_config = form_config if isinstance(form_config, dict) else {}
+    trigger_field = form_config.get("trigger_field") if isinstance(form_config, dict) else {}
+    trigger_field = trigger_field if isinstance(trigger_field, dict) else {}
+
+    trigger_id = str(trigger_field.get("id") or "").strip()
+    trigger_label = str(trigger_field.get("label") or "").strip()
+    if not trigger_label and trigger_id:
+        trigger_label = trigger_id.replace("_", " ").title()
+
+    trigger_value = ""
+    if trigger_id:
+        try:
+            from services.form_mode_service import resolve_trigger_field_value
+
+            _matched_key, matched_value = resolve_trigger_field_value(
+                merged_form_data,
+                trigger_id,
+                trigger_label,
+            )
+            trigger_value = str(matched_value or "").strip()
+        except Exception:
+            trigger_value = str(merged_form_data.get(trigger_id) or "").strip()
+
+    context_pending = context.pending_data if isinstance(getattr(context, "pending_data", None), dict) else {}
+    property_name = _first_non_empty_text(
+        req_meta.get("booking_property_name"),
+        req_meta.get("property_name"),
+        req_meta.get("hotel_name"),
+        merged_form_data.get("property_name"),
+        merged_form_data.get("property"),
+        getattr(context, "booking_property_name", None),
+        context_pending.get("_selected_property_scope_name"),
+        context_pending.get("_stay_property_name"),
+    )
+
+    service_purpose = _first_non_empty_text(
+        service.get("description"),
+        service.get("ticketing_conditions"),
+        service.get("ticketing_policy"),
+    )
+
+    fallback_issue, fallback_message = _build_form_ticket_description_fallback(
+        service_name=service_name,
+        service_purpose=service_purpose,
+        property_name=property_name,
+        trigger_label=trigger_label,
+        trigger_value=trigger_value,
+        merged_form_data=merged_form_data,
+    )
+
+    if not str(getattr(settings, "openai_api_key", "") or "").strip():
+        return fallback_issue, fallback_message
+
+    llm_payload = {
+        "service": {
+            "id": str(service_id or "").strip(),
+            "name": str(service_name or "").strip(),
+            "purpose": str(service_purpose or "").strip(),
+        },
+        "property_name": str(property_name or "").strip(),
+        "trigger": {
+            "field_id": str(trigger_id or "").strip(),
+            "field_label": str(trigger_label or "").strip(),
+            "value": str(trigger_value or "").strip(),
+        },
+        "form_values": [{k: v} for k, v in _sanitize_form_ticket_fields(merged_form_data)],
+        "instructions": {
+            "issue_max_chars": 180,
+            "message_max_chars": 1200,
+            "style": "internal staff note, concise, operationally actionable",
+        },
+    }
+    system_prompt = (
+        "You write internal ticket text for hotel operations staff.\n"
+        "Return STRICT JSON only in this exact shape:\n"
+        "{\"issue\":\"...\",\"message\":\"...\"}\n"
+        "Rules:\n"
+        "1) issue: single-line summary under 180 chars.\n"
+        "2) message: concise actionable description under 1200 chars.\n"
+        "3) Include what the request is for, property context when present, selected trigger option when present,\n"
+        "   and only the relevant collected values.\n"
+        "4) Do not use markdown, bullet points, or placeholders.\n"
+        "5) Do not invent details.\n"
+    )
+
+    try:
+        result = await llm_client.chat_with_json(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(llm_payload, ensure_ascii=False)},
+            ],
+            temperature=0.1,
+        )
+        if isinstance(result, dict):
+            issue = str(result.get("issue") or "").strip()
+            message = str(result.get("message") or "").strip()
+            if issue and message:
+                return issue[:180], message[:1200]
+    except Exception as exc:
+        logger.warning("form-ticket-description: LLM generation failed: %s", exc)
+
+    return fallback_issue, fallback_message
+
+
 def _first_non_empty_text(*values: Any) -> str:
     for value in values:
         text = str(value or "").strip()
@@ -1538,13 +1701,6 @@ async def submit_form(
         req_meta = request.metadata or {}
         service_name = str(service.get("name") or resolved_service_id)
 
-        issue_parts = [
-            f"{k.replace('_', ' ').title()}: {v}"
-            for k, v in form_data.items()
-            if str(v).strip()
-        ]
-        issue_summary = "; ".join(issue_parts) or f"{service_name} booking request"
-
         phase = str(
             service.get("phase_id")
             or req_meta.get("phase") or req_meta.get("phase_id")
@@ -1580,10 +1736,24 @@ async def submit_form(
         if room_number:
             context.room_number = room_number
 
+        # Merge pending_data (which includes trigger field values collected
+        # before the form was shown) so ticket descriptions include full context.
+        merged_form_data = dict(context.pending_data) if isinstance(context.pending_data, dict) else {}
+        merged_form_data.update({k: str(v) for k, v in form_data.items() if str(v).strip()})
+
+        issue_summary, detailed_message = await _generate_form_ticket_description(
+            service=service,
+            service_name=service_name,
+            service_id=resolved_service_id,
+            merged_form_data=merged_form_data,
+            req_meta=req_meta,
+            context=context,
+        )
+
         ticket_payload = ticketing_service.build_lumira_ticket_payload(
             context=context,
             issue=issue_summary,
-            message=issue_summary,
+            message=detailed_message,
             category=service_name,
             priority=str(req_meta.get("priority") or "medium"),
             department_id=department_id,
@@ -1594,11 +1764,6 @@ async def submit_form(
 
         ticket_payload["service_id"] = resolved_service_id
         ticket_payload["service_name"] = service_name
-
-        # Merge pending_data (which includes trigger field values collected
-        # before the form was shown) so they appear on the ticket as well.
-        merged_form_data = dict(context.pending_data) if isinstance(context.pending_data, dict) else {}
-        merged_form_data.update({k: str(v) for k, v in form_data.items() if str(v).strip()})
 
         for k, v in merged_form_data.items():
             ticket_payload.setdefault(k, str(v))

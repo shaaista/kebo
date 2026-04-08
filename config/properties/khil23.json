@@ -18919,7 +18919,7 @@
     "property_index": {
       "version": "v1",
       "generator": "llm_v1",
-      "generated_at": "2026-04-08T16:22:24.807883+00:00",
+      "generated_at": "2026-04-08T19:46:23.405111+00:00",
       "source_signature": "cae3ee1b548100a2f511c5fee2c4d2c3d7532e8c",
       "expected_property_count": 23,
       "detected_property_count": 23,

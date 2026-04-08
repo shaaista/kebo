@@ -137,7 +137,10 @@ class LLMOrchestrationService:
                 )
             lines.append(
                 "Use this guest information naturally. Address the guest by name when appropriate. "
-                "Reference their room number and property when relevant."
+                "Reference their room number and property when relevant. "
+                "However, NEVER include booking metadata (guest ID, stay dates, check-in/check-out dates, "
+                "confirmation codes) in confirmation summaries or response text shown to the guest — "
+                "this data is for your internal reference only (e.g. date validation)."
             )
 
         # --- Phase behavioral rules ---
@@ -2046,6 +2049,124 @@ class LLMOrchestrationService:
             return "", str(raw.get("action_hint") or "").strip().lower()
         return candidate, str(raw.get("action_hint") or "").strip().lower()
 
+    async def _resolve_last_service_continuation_with_llm(
+        self,
+        *,
+        user_message: str,
+        last_assistant_message: str,
+        last_service_id: str,
+        selected_phase_id: str,
+        selected_phase_name: str,
+        services_snapshot: list[dict[str, Any]],
+        context: Any = None,
+    ) -> tuple[bool, str]:
+        if not str(settings.openai_api_key or "").strip():
+            return False, ""
+
+        normalized_last_service_id = self._normalize_identifier(last_service_id)
+        if not normalized_last_service_id:
+            return False, ""
+
+        in_phase_services = [
+            item
+            for item in services_snapshot
+            if isinstance(item, dict)
+            and bool(item.get("is_active", True))
+            and self._normalize_identifier(item.get("phase_id")) == selected_phase_id
+        ]
+        if not in_phase_services:
+            return False, ""
+
+        last_service = next(
+            (
+                svc
+                for svc in in_phase_services
+                if self._normalize_identifier(svc.get("id")) == normalized_last_service_id
+            ),
+            None,
+        )
+        if not isinstance(last_service, dict):
+            return False, ""
+
+        prompt_payload = {
+            "user_message": str(user_message or "").strip(),
+            "last_assistant_message": str(last_assistant_message or "").strip(),
+            "selected_phase": {"id": selected_phase_id, "name": selected_phase_name},
+            "last_active_service": {
+                "id": self._normalize_identifier(last_service.get("id")),
+                "name": str(last_service.get("name") or "").strip(),
+                "description": str(last_service.get("description") or "").strip(),
+                "type": str(last_service.get("type") or "").strip(),
+                "cuisine": str(last_service.get("cuisine") or "").strip(),
+            },
+            "response_contract": {
+                "continue_with_last_service": "bool",
+                "reason": "short string",
+                "confidence": "number 0..1",
+            },
+        }
+
+        system_prompt = (
+            "You are a continuity router for a hotel concierge assistant.\n"
+            "Return STRICT JSON only.\n"
+            "\n"
+            "Task: decide whether the latest user message should continue the same service flow\n"
+            "as the immediately previous assistant message.\n"
+            "\n"
+            "Rules:\n"
+            "1. Use both `last_assistant_message` and `user_message`.\n"
+            "2. If the user message is an answer/reply/follow-up to the last assistant turn,\n"
+            "   set continue_with_last_service=true.\n"
+            "3. If the user clearly starts a different topic/service, set false.\n"
+            "4. For short replies, favor continuity when they plausibly answer the last assistant prompt.\n"
+            "5. Do not infer a different service unless explicitly requested.\n"
+        )
+        if context:
+            _continuity_bk = self._build_booking_context_prompt_block(context)
+            if _continuity_bk:
+                system_prompt = system_prompt + "\n" + _continuity_bk
+
+        model = str(getattr(settings, "llm_orchestration_model", "") or "").strip() or None
+        try:
+            raw = await self._chat_with_json(
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": json.dumps(prompt_payload, ensure_ascii=False)},
+                ],
+                model=model,
+                temperature=0.0,
+                trace_context={
+                    "responder_type": "main",
+                    "agent": "continuity_router",
+                    "selected_phase_id": selected_phase_id,
+                    "selected_phase_name": selected_phase_name,
+                    "last_service_id": normalized_last_service_id,
+                },
+            )
+        except Exception:
+            return False, ""
+
+        _log_llm_call(
+            label="CONTINUITY ROUTER RESPONSE",
+            session_id=str(getattr(context, "session_id", "")) if context is not None else "",
+            user_message=user_message,
+            system_prompt=system_prompt,
+            payload=prompt_payload,
+            response=raw if isinstance(raw, dict) else {},
+        )
+        if not isinstance(raw, dict):
+            return False, ""
+
+        continue_raw = raw.get("continue_with_last_service")
+        continue_with_last_service = False
+        if isinstance(continue_raw, bool):
+            continue_with_last_service = continue_raw
+        elif str(continue_raw or "").strip().lower() in {"true", "1", "yes", "y"}:
+            continue_with_last_service = True
+
+        reason = str(raw.get("reason") or "").strip()
+        return continue_with_last_service, reason
+
     def _merge_decisions(
         self,
         base: OrchestrationDecision,
@@ -2328,8 +2449,10 @@ class LLMOrchestrationService:
                     f"  - For food/dining orders: ordered items with quantities, total price, delivery preferences, etc.\n"
                     f"  - For restaurant reservations: restaurant name, date, time, party size, etc.\n"
                     f"  - For event bookings: venue, event date, event type, special requests, etc.\n"
-                    f"Show ONLY the fields that are actually collected and relevant — do NOT include booking fields "
-                    f"(like check-in/check-out dates) if this is a food order, and vice versa.\n"
+                    f"Show ONLY the fields that are actually collected and relevant — do NOT include booking/stay "
+                    f"metadata (guest_id, check-in/check-out dates, stay date range, confirmation codes) "
+                    f"unless this service is specifically about modifying a room booking.\n"
+                    f"NEVER display any field from _internal_booking_reference to the guest.\n"
                     f"Never say 'the above details' — always spell them out.\n"
                     f"Confirmation phrase the guest must say: '{confirmation_phrase}'\n"
                     f"Set pending_action='{confirmation_pending_action}' while waiting for confirmation.\n"
@@ -2476,7 +2599,12 @@ class LLMOrchestrationService:
             "If the question is about a completely different part of the hotel → delegate (relevant_to_service=false, context_switched=true).\n"
             "\n=== KNOWN CONTEXT & GUEST FACTS (read this before asking for ANYTHING) ===\n"
             "The payload includes known_context with guest data the hotel already has on file "
-            "(e.g. guest_name, room_number, reservation_number, check_in_date, phone, email).\n"
+            "(e.g. guest_name, room_number, phone, email).\n"
+            "\n"
+            "The payload also includes _internal_booking_reference with booking/stay metadata "
+            "(guest_id, check-in/check-out dates, stay date range, confirmation codes). "
+            "This is for YOUR internal reference only — use it for date-based logic if needed, "
+            "but NEVER display these fields to the guest in any response or confirmation summary.\n"
             "\n"
             "ABSOLUTE RULE: NEVER ask for any information that is already present in known_context or pending_data_collected. "
             "Use the value directly — do not ask the guest to repeat or re-confirm it.\n"
@@ -2781,14 +2909,20 @@ class LLMOrchestrationService:
                 f"When waiting for guest confirmation before ticket creation, set pending_action to \"{confirm_action}\".\n"
                 "CONFIRMATION RULES (mandatory):\n"
                 f"- NEVER ask for confirmation (pending_action=\"{confirm_action}\") while ANY required field is still missing.\n"
-                "  Collect all missing fields first. Only transition to the confirmation step when every required field has a value.\n"
-                f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list EVERY collected "
-                "detail from pending_data_raw and known_context explicitly — guest name, phone number, email, "
-                "room/service type, bed preference, number of guests, check-in date, check-out date, and any other "
-                "collected field. Never say 'the above details' — always spell each one out.\n"
+                "  'Required fields' includes BOTH structured required_slots AND any details mentioned in the admin\n"
+                "  ticketing condition text (the 'What to collect before raising a ticket' section above).\n"
+                "  Collect ALL missing fields first. Only transition to the confirmation step when every required field has a value.\n"
+                f"- When asking for confirmation (pending_action=\"{confirm_action}\"), response_text MUST list the collected "
+                "details that are RELEVANT TO THIS SERVICE from pending_data_raw.\n"
+                "  Show ONLY the fields that the guest provided or that are specific to this service.\n"
+                "  For food/dining orders: ordered items with quantities, delivery time, total price, special instructions.\n"
+                "  For room bookings: guest name, room type, check-in/check-out dates, guest count, etc.\n"
+                "  For spa/restaurant: treatment/restaurant name, date, time, party size, etc.\n"
+                "  Do NOT include internal booking metadata (guest ID, stay dates, confirmation codes) unless\n"
+                "  the guest explicitly provided them during THIS conversation for THIS service.\n"
+                "  Never say 'the above details' — always spell each one out.\n"
                 "- When action=\"create_ticket\" (guest confirmed), response_text MUST again include ALL collected "
-                "details: name, phone number, email, room/service type, bed type, dates, guest count — every field "
-                "present in pending_data_raw and known_context. Do not omit contact details.\n"
+                "details relevant to this service from pending_data_raw. Do not include unrelated known_context fields.\n"
             )
 
         _common_rules = (
@@ -3071,22 +3205,37 @@ class LLMOrchestrationService:
         # Build known_context: merge memory facts + public pending_data as pre-filled guest slots
         _mem_facts = memory_snapshot.get("facts", {})
         _known_ctx: dict[str, Any] = {}
+        _internal_booking_ref: dict[str, Any] = {}
+        # Keys that are internal booking/stay metadata — useful for date-based logic
+        # but should NEVER be displayed to the guest in confirmation messages.
+        _booking_metadata_keys = {
+            "guest_id", "booking_id", "reservation_id", "confirmation_code",
+            "booking_confirmation_code", "booking_check_in_date", "booking_check_out_date",
+            "booking_guest_name", "booking_property_name", "booking_room_type",
+            "stay_check_in_date", "stay_check_out_date", "stay_date_range",
+            "check_in_date", "check_out_date", "checkin_date", "checkout_date",
+            "check_in", "check_out",
+        }
         if isinstance(_mem_facts, dict):
             for _k, _v in _mem_facts.items():
                 if _v is not None and str(_v).strip():
-                    _known_ctx[str(_k)] = _v
+                    _key_lower = str(_k).strip().lower()
+                    if _key_lower in _booking_metadata_keys:
+                        _internal_booking_ref[str(_k)] = _v
+                    else:
+                        _known_ctx[str(_k)] = _v
         for _k, _v in pending_pub.items():
             if _v is not None and str(_v).strip() and not str(_k).startswith("_"):
                 _known_ctx[str(_k)] = _v
 
-        # Merge booking context fields into known_context
+        # Merge booking context fields into internal booking reference (not known_context)
         for _bk_attr in (
             "booking_guest_name", "booking_property_name", "booking_room_type",
             "booking_check_in_date", "booking_check_out_date", "booking_confirmation_code",
         ):
             _bk_val = getattr(context, _bk_attr, None)
             if _bk_val:
-                _known_ctx[_bk_attr] = str(_bk_val)
+                _internal_booking_ref[_bk_attr] = str(_bk_val)
         if getattr(context, "room_number", None):
             _known_ctx["room_number"] = context.room_number
         if getattr(context, "guest_name", None):
@@ -3127,6 +3276,7 @@ class LLMOrchestrationService:
             "pending_data_collected": collected_labels,
             "pending_data_raw": self._sanitize_json(pending_pub),
             "known_context": self._sanitize_json(_known_ctx),
+            "_internal_booking_reference": self._sanitize_json(_internal_booking_ref),
             "history": history_bundle.get("history_last_10", []),
             "history_last_10": history_bundle.get("history_last_10", []),
             "full_history_context": history_bundle.get("full_history_context", {}),
@@ -4227,6 +4377,39 @@ class LLMOrchestrationService:
             or (decision.metadata or {}).get("service_id")
             or ""
         )
+
+        # Continuity router: use LLM to decide whether this short/ambiguous turn
+        # should continue the last active service flow.
+        _last_assistant_message = str(history_bundle.get("last_assistant_message") or "")
+        _last_service_id = self._normalize_identifier(
+            (context.pending_data or {}).get("_last_service_id")
+            if isinstance(context.pending_data, dict)
+            else ""
+        )
+        if (
+            str(decision.action or "").strip().lower() == "respond_only"
+            and not decision.target_service_id
+            and _last_service_id
+            and str(user_message or "").strip()
+            and str(_last_assistant_message or "").strip()
+        ):
+            continue_last_service, continuation_reason = await self._resolve_last_service_continuation_with_llm(
+                user_message=user_message,
+                last_assistant_message=_last_assistant_message,
+                last_service_id=_last_service_id,
+                selected_phase_id=selected_phase_id,
+                selected_phase_name=selected_phase_name,
+                services_snapshot=services_snapshot,
+                context=context,
+            )
+            if continue_last_service:
+                decision.action = "dispatch_handler"
+                decision.target_service_id = _last_service_id
+                if not isinstance(decision.metadata, dict):
+                    decision.metadata = {}
+                decision.metadata["service_resolution_source"] = "continuation_router_llm"
+                if continuation_reason:
+                    decision.metadata["continuation_router_reason"] = continuation_reason
 
         # Only call the fallback service router when the orchestrator did NOT return
         # a clarification question. If action=respond_only with non-empty response_text
