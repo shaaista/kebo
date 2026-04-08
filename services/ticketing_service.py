@@ -411,6 +411,20 @@ class TicketingService:
                 f"HTTP {result.status_code}" if result.status_code is not None
                 else "request_failed"
             )
+            if not self._allow_api_failure_local_fallback():
+                logger.warning(
+                    "External ticketing API failed (%s) — returning explicit failure (local fallback disabled)",
+                    fallback_reason,
+                )
+                self._write_ticket_debug_event(
+                    "ticket_create_api_fallback_skipped",
+                    api_status_code=result.status_code,
+                    fallback_reason=fallback_reason,
+                    payload=payload_effective,
+                    context=debug_context,
+                )
+                self._remember_recent_create_result(payload_effective, result)
+                return result
             logger.warning(
                 "External ticketing API failed (%s) — falling back to local mode",
                 fallback_reason,
@@ -772,7 +786,12 @@ class TicketingService:
             pending.get("hotel_name"),
             integration.get("property_name"),
             getattr(context, "booking_property_name", None),
+            pending.get("_selected_property_scope_name"),
         )
+        if not property_name:
+            _active_names = pending.get("_active_property_names")
+            if isinstance(_active_names, list) and len(_active_names) == 1:
+                property_name = str(_active_names[0]).strip() or None
         room_type = self._first_non_empty(
             pending.get("room_type"),
             pending.get("room_category"),
@@ -1005,13 +1024,13 @@ class TicketingService:
     async def _apply_department_mapping(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Resolve a department for the payload when caller/LLM did not set one.
+        Also remaps 'categorization' to a valid Kepsla dashboard category
+        using the resolved department name as the canonical source.
         """
         payload_next = dict(payload or {})
         existing_department_id = self._safe_str(
             payload_next.get("department_allocated") or payload_next.get("department_id")
         )
-        if existing_department_id and existing_department_id not in {"0", "null", "none"}:
-            return payload_next
 
         entity_id = self._first_non_empty(
             payload_next.get("entity_id"),
@@ -1037,6 +1056,20 @@ class TicketingService:
                 entity_id=entity_id,
                 error=str(exc),
             )
+            return payload_next
+
+        # If department already set, skip department resolution but still
+        # remap categorization if it's not a known-good value.
+        if existing_department_id and existing_department_id not in {"0", "null", "none"}:
+            existing_dept = None
+            for dept in (departments or []):
+                if isinstance(dept, dict) and self._safe_str(dept.get("department_id")) == existing_department_id:
+                    existing_dept = dept
+                    break
+            if existing_dept:
+                payload_next = self._remap_categorization_to_accepted_value(
+                    payload_next, existing_dept
+                )
             return payload_next
 
         matched_department = await self._llm_resolve_department_for_ticket_payload(
@@ -1076,7 +1109,62 @@ class TicketingService:
             )
             if mapped_department_manager:
                 payload_next["department_manager"] = mapped_department_manager
+
+        # ── Remap categorization to a valid Kepsla dashboard category ──
+        payload_next = self._remap_categorization_to_accepted_value(
+            payload_next, matched_department
+        )
         return payload_next
+
+    @classmethod
+    def _remap_categorization_to_accepted_value(
+        cls,
+        payload: dict[str, Any],
+        matched_department: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Remap categorization to a value the external ticketing API accepts.
+
+        The Kepsla dashboard API rejects unknown categorization strings (returns
+        ticket_id=0).  Known-good values include service-style names like
+        'room booking request', 'spa booking', 'in room dining', etc.
+
+        This method uses the resolved department name to derive a sensible
+        categorization when the current one is not in the known-good set.
+        """
+        current_cat = cls._safe_str(payload.get("categorization"))
+        current_lower = current_cat.lower().strip()
+
+        # Known-good categorization values that the API has historically accepted.
+        # If the current value already works, keep it as-is.
+        _known_good: set[str] = {
+            "room booking request", "room booking", "room_booking",
+            "airport transfer", "airport pick up",
+            "spa booking", "complaint", "technical_support",
+            "in room dining", "in-room dining", "in-room_dining",
+        }
+        if current_lower in _known_good:
+            return payload
+
+        # For unknown categorizations, use the resolved department name directly.
+        # The Kepsla dashboard lists department names as the category filter
+        # (RESTAURANT, SPA, IN-ROOM DINING, GUEST RELATIONS, etc.) so the
+        # department name is the most reliable source for a valid category.
+        dept_name = cls._safe_str(
+            matched_department.get("department_name")
+            or matched_department.get("department_head")
+        ).strip()
+        if dept_name:
+            original_cat = current_cat
+            payload["categorization"] = dept_name
+            # Preserve original service name as sub-categorization
+            if not cls._safe_str(payload.get("sub_categorization")) and original_cat:
+                payload["sub_categorization"] = original_cat
+            logger.info(
+                "Remapped categorization '%s' -> '%s' (from department '%s')",
+                original_cat, dept_name, dept_name,
+            )
+
+        return payload
 
     async def _llm_resolve_department_for_ticket_payload(
         self,
@@ -1278,6 +1366,15 @@ class TicketingService:
         raw = self._safe_json(response)
         success = 200 <= response.status_code < 300
         ticket_id = self._extract_first_value(raw, ("ticket_id", "ticketId", "id", "ticketNo", "ticket_number"))
+        # Treat ticket_id=0 or "0" as a failed creation — the API didn't actually create a ticket
+        if str(ticket_id or "").strip() in ("0", ""):
+            ticket_id = ""
+            if success:
+                success = False
+                logger.warning(
+                    "Ticket API returned HTTP 200 but ticket_id is 0/empty — treating as failure (url=%s)",
+                    url,
+                )
         assigned_id = self._extract_first_value(raw, ("assignedId", "assigned_id", "agent_id", "to_agent_id"))
         error = ""
         if not success:
@@ -1661,6 +1758,14 @@ class TicketingService:
     @staticmethod
     def _use_local_mode() -> bool:
         return bool(getattr(settings, "ticketing_local_mode", False))
+
+    @staticmethod
+    def _allow_api_failure_local_fallback() -> bool:
+        """
+        Allow local fallback only when explicitly enabled.
+        This prevents exposing LOCAL-* ticket IDs as successful external tickets.
+        """
+        return bool(getattr(settings, "ticketing_api_failure_local_fallback_enabled", False))
 
     @staticmethod
     def _local_store_path() -> Path:

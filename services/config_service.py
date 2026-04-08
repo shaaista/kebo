@@ -4186,7 +4186,8 @@ class ConfigService:
             ]
 
             extracted = ""
-            for attempt in range(1, 3):
+            max_attempts = 4
+            for attempt in range(1, max_attempts + 1):
                 try:
                     result = await llm_client.chat(
                         messages,
@@ -4197,12 +4198,20 @@ class ConfigService:
                     if candidate and not self._is_llm_error_response(candidate):
                         extracted = candidate
                         break
-                except Exception:
-                    pass
-                if attempt < 2:
-                    await _asyncio.sleep(1.0)
+                    if candidate and self._is_llm_error_response(candidate):
+                        print(f"[KB] Per-file extraction attempt {attempt}/{max_attempts} returned LLM error response for '{property_label}' (file: {source_name})")
+                    elif not candidate:
+                        print(f"[KB] Per-file extraction attempt {attempt}/{max_attempts} returned empty for '{property_label}' (file: {source_name})")
+                except Exception as _exc:
+                    print(f"[KB] Per-file extraction attempt {attempt}/{max_attempts} failed for '{property_label}' (file: {source_name}): {_exc}")
+                if attempt < max_attempts:
+                    await _asyncio.sleep(1.5 * attempt)
 
-            if not extracted or extracted.upper().startswith("NO_RELEVANT_INFO"):
+            if not extracted:
+                print(f"[KB] SKIPPED property '{property_label}' (file: {source_name}) — all {max_attempts} extraction attempts failed for service '{service_name}'")
+                continue
+            if extracted.upper().startswith("NO_RELEVANT_INFO"):
+                print(f"[KB] Property '{property_label}' (file: {source_name}) returned NO_RELEVANT_INFO for service '{service_name}' — skipping")
                 continue
 
             # Wrap extraction with property header for downstream scoping

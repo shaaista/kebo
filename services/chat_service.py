@@ -16638,6 +16638,8 @@ class ChatService:
             "phase_id",
             "ticketing_enabled",
             "ticketing_policy",
+            "ticketing_mode",
+            "form_config",
             "service_prompt_pack",
             "service_prompt_pack_custom",
             "generated_system_prompt",

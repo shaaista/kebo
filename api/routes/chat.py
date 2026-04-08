@@ -7,6 +7,7 @@ Endpoints for chat functionality and testing.
 import json
 import logging
 import traceback as _traceback
+import re
 from datetime import date, timedelta
 from time import perf_counter as _perf_counter
 from pathlib import Path
@@ -532,7 +533,7 @@ async def _inject_form_trigger(response: ChatResponse, *, user_message: str = ""
         print(f"[form_trigger] SKIP: already has form_trigger or ticket_created", file=_sys.stderr, flush=True)
         return
 
-    # ── Resolve target_service_id from ALL available sources ──
+    # â”€â”€ Resolve target_service_id from ALL available sources â”€â”€
     _norm_svc = lambda s: str(s or "").strip().lower().replace(" ", "_").replace("-", "_")
     target_service_id = ""
     # Source 1: entities.target_service_id (always populated by chat_service)
@@ -561,10 +562,10 @@ async def _inject_form_trigger(response: ChatResponse, *, user_message: str = ""
         print(f"[form_trigger] SKIP: no target_service_id found", file=_sys.stderr, flush=True)
         return
 
-    # ── Load service definition (JSON first, then DB fallback) ──
+    # â”€â”€ Load service definition (JSON first, then DB fallback) â”€â”€
     service = config_service.get_service(target_service_id)
     if not service:
-        # Try normalized version (spaces → underscores)
+        # Try normalized version (spaces â†’ underscores)
         service = config_service.get_service(_norm_svc(target_service_id))
     # DB fallback: service may exist only in the database (admin-created)
     if not service:
@@ -601,12 +602,12 @@ async def _inject_form_trigger(response: ChatResponse, *, user_message: str = ""
     if ticketing_mode and ticketing_mode not in ("form", "text", "none"):
         ticketing_mode = "form"
 
-    # ── Trigger-field gate: do not show form until the trigger field is collected ──
+    # â”€â”€ Trigger-field gate: do not show form until the trigger field is collected â”€â”€
     # The service's form_config.trigger_field specifies which field (e.g. room_type,
     # terminal) must be known before the form is shown.
     # We check TWO signals:
-    #   1. trigger field is explicitly listed in missing_fields → definitely not collected
-    #   2. trigger field value is absent from pending_data → not collected yet
+    #   1. trigger field is explicitly listed in missing_fields â†’ definitely not collected
+    #   2. trigger field value is absent from pending_data â†’ not collected yet
     # The form only shows when the trigger field is NOT in missing_fields AND its
     # value IS present in pending_data.
     svc_form_config = service.get("form_config") if isinstance(service.get("form_config"), dict) else {}
@@ -746,7 +747,7 @@ async def _inject_form_trigger(response: ChatResponse, *, user_message: str = ""
         inner = _re.sub(r"^[-*\u2022]\s+|^\d+[.)]\s+", "", line_text.strip())
         inner = _re.sub(r"\*{1,2}", "", inner).strip().rstrip(":").strip().lower()
         if not inner:
-            return True  # empty bullet → safe to remove
+            return True  # empty bullet â†’ safe to remove
         # Check if this line matches a known form field label/id
         for kw in _field_keywords:
             if kw in inner or inner in kw:
@@ -829,34 +830,38 @@ class FormValidateRequest(BaseModel):
     service_id: str
     form_fields: list[dict[str, Any]] = Field(default_factory=list)
     form_data: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 _FORM_VALIDATE_SYSTEM_PROMPT = """\
 You are a smart form-field validator for a hotel service request.
 You will receive a list of form fields (with id, label, type) and the values the guest entered.
 
-Your job: validate each field using your knowledge of real-world formats. Be helpful — catch genuinely wrong data but accept anything plausible.
+Your job: validate each field using your knowledge of real-world formats. Be helpful â€” catch genuinely wrong data but accept anything plausible.
+
+CRITICAL: Match the validation rule to each field based ONLY on its "type" attribute (date, time, text, tel, textarea, etc.). Do NOT infer validation from the field's label or id. For example, a field with type="text" must be validated as text even if its label contains the word "date" or "time".
 
 Rules per field type:
 
 - **Name fields** (full name, guest name): Accept any text that could be a name, including single names (e.g., "Sana", "Raj"), hyphenated names, names with apostrophes (e.g., "O'Brien"), or names with accents. Reject ONLY if it contains numbers, is a single character, or is obviously not a name (e.g., "asdf", "xxx").
 
-- **Phone / tel fields**: The value includes a country code prefix (e.g., +91, +1, +44). You MUST strictly validate phone numbers using your knowledge of each country's telecom rules. This is NOT a lenient field — phone validation must be accurate.
-  * India (+91): EXACTLY 10 digits after +91. First digit MUST be 6, 7, 8, or 9. Numbers starting with 0, 1, 2, 3, 4, or 5 are INVALID in India. Example: +911234567890 → REJECT (starts with 1). +919876543210 → ACCEPT (starts with 9).
+- **Phone / tel fields**: The value includes a country code prefix (e.g., +91, +1, +44). You MUST strictly validate phone numbers using your knowledge of each country's telecom rules. This is NOT a lenient field â€” phone validation must be accurate.
+  * India (+91): EXACTLY 10 digits after +91. First digit MUST be 6, 7, 8, or 9. Numbers starting with 0, 1, 2, 3, 4, or 5 are INVALID in India. Example: +911234567890 â†’ REJECT (starts with 1). +919876543210 â†’ ACCEPT (starts with 9).
   * US/Canada (+1): EXACTLY 10 digits. First digit of area code cannot be 0 or 1.
   * UK (+44): 10-11 digits after +44.
   * UAE (+971): EXACTLY 9 digits after +971.
   * For other countries, use your knowledge of their phone number format.
   * Reject obviously fake/placeholder numbers: all-same digits (9999999999, 1111111111), sequential (1234567890, 9876543210), all-zeros, or any pattern no real person would have. A real phone number should look random/natural.
-  * Think like a human — would a hotel receptionist accept this number? If it looks fake, reject it politely.
+  * Think like a human â€” would a hotel receptionist accept this number? If it looks fake, reject it politely.
 
 - **Email fields**: Must have @ and a dot after @. Accept most formats.
-- **Date fields**: Must be a valid date. Reject past dates. If check-in and check-out both exist, check-out must be after check-in.
+- **Date fields** (type=date): Must be a valid date. Reject past dates. If check-in and check-out both exist, check-out must be after check-in.
+- **Time fields** (type=time): Must be a valid time in HH:MM or HH:MM:SS format (24-hour or 12-hour with AM/PM). Accept any reasonable time value. Do NOT apply date validation rules to time fields.
 - **Number fields**: Must be a positive whole number. Reject only values above 100.
 - **Textarea / description fields**: Must have at least 2 real words. Reject only single characters or random key-mashing.
 - **Other text fields**: Accept any reasonable non-empty text.
 
-For fields OTHER than phone, be lenient — when in doubt, accept. For phone numbers, be STRICT and follow the country rules above exactly.
+For fields OTHER than phone, be lenient â€” when in doubt, accept. For phone numbers, be STRICT and follow the country rules above exactly.
 
 Return ONLY a valid JSON object:
 {"valid": true, "errors": []}
@@ -870,72 +875,11 @@ Error messages must be short and helpful. Do NOT wrap in markdown. Return raw JS
 @router.post("/form-validate")
 async def validate_form(request: FormValidateRequest) -> dict[str, Any]:
     """
-    LLM-based smart validation of form field values.
-    Returns per-field errors if any values are invalid.
+    Validation is intentionally bypassed for form submissions.
+    Always allow submit and accept user-entered values as-is.
     """
-    form_data = request.form_data or {}
-    form_fields = request.form_fields or []
-
-    if not form_fields or not form_data:
-        return {"valid": True, "errors": []}
-
-    # Build the user prompt with field info and values
-    field_lines = []
-    for f in form_fields:
-        fid = f.get("id", "")
-        label = f.get("label", fid)
-        ftype = f.get("type", "text")
-        value = str(form_data.get(fid, "")).strip()
-        required = f.get("required", False)
-        field_lines.append(
-            f'- Field: "{label}" (id={fid}, type={ftype}, required={required}) => value: "{value}"'
-        )
-
-    user_prompt = (
-        f"Service: {request.service_id}\n\n"
-        f"Form fields and values:\n" + "\n".join(field_lines)
-    )
-
-    try:
-        from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
-        model = str(getattr(settings, "openai_model", None) or "gpt-4o-mini")
-
-        completion = await client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": _FORM_VALIDATE_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=0,
-            max_tokens=500,
-        )
-
-        raw = str(completion.choices[0].message.content or "").strip()
-        # Strip markdown fences if present
-        if raw.startswith("```"):
-            parts = raw.split("```")
-            raw = parts[1] if len(parts) > 1 else raw
-            if raw.startswith("json"):
-                raw = raw[4:]
-            raw = raw.strip()
-
-        result = json.loads(raw)
-        errors = result.get("errors", [])
-        # Validate structure
-        clean_errors = []
-        for e in errors:
-            if isinstance(e, dict) and e.get("field_id") and e.get("message"):
-                clean_errors.append({
-                    "field_id": str(e["field_id"]),
-                    "message": str(e["message"]),
-                })
-        return {"valid": len(clean_errors) == 0, "errors": clean_errors}
-
-    except Exception as exc:
-        logger.warning("form-validate: LLM validation failed, allowing submit: %s", exc)
-        # On LLM failure, don't block the user — let them submit
-        return {"valid": True, "errors": []}
+    _ = request
+    return {"valid": True, "errors": []}
 
 
 _FORM_CONFIRM_SYSTEM_PROMPT = """\
@@ -949,7 +893,7 @@ Generate a SHORT, warm confirmation message (2-3 sentences max). Include:
 Rules:
 - Do NOT ask any questions
 - Do NOT use markdown formatting (no bold, no bullets, no headers)
-- Do NOT list the fields back as a structured list — weave them naturally into the message
+- Do NOT list the fields back as a structured list â€” weave them naturally into the message
 - Keep it conversational and warm
 - Do NOT say "thank you for providing" or similar filler\
 """
@@ -1029,6 +973,323 @@ def _parse_iso_date(value: Any) -> date | None:
         return date.fromisoformat(text)
     except ValueError:
         return None
+
+
+_STAY_CHECKIN_KEYS: tuple[str, ...] = (
+    "stay_checkin_date",
+    "check_in",
+    "checkin",
+    "check_in_date",
+    "checkin_date",
+    "booking_check_in_date",
+)
+_STAY_CHECKOUT_KEYS: tuple[str, ...] = (
+    "stay_checkout_date",
+    "check_out",
+    "checkout",
+    "check_out_date",
+    "checkout_date",
+    "booking_check_out_date",
+)
+_SERVICE_DATE_FIELD_HINT = re.compile(
+    r"(date|check[ _-]?in|check[ _-]?out|arrival|departure|event|appointment|pickup|dropoff|drop)",
+    re.IGNORECASE,
+)
+_SERVICE_DATE_EXCLUDED_KEYS: set[str] = {
+    *_STAY_CHECKIN_KEYS,
+    *_STAY_CHECKOUT_KEYS,
+    "created_at",
+    "updated_at",
+    "booking_id",
+}
+_VALIDATION_CRITICAL_FIELD_HINT = re.compile(
+    r"(phone|mobile|contact|email|date|check[ _-]?in|check[ _-]?out|arrival|departure|event)",
+    re.IGNORECASE,
+)
+
+
+def _parse_flexible_date(value: Any) -> date | None:
+    """Parse YYYY-MM-DD dates, including datetime-like strings containing a date token."""
+    direct = _parse_iso_date(value)
+    if direct is not None:
+        return direct
+
+    text = str(value or "").strip()
+    if not text:
+        return None
+
+    # Accept common human-entered formats like DD-MM-YYYY / DD/MM/YYYY.
+    dmy_match = re.search(r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b", text)
+    if dmy_match:
+        try:
+            day = int(dmy_match.group(1))
+            month = int(dmy_match.group(2))
+            year = int(dmy_match.group(3))
+            return date(year, month, day)
+        except ValueError:
+            return None
+
+    token_match = re.search(r"\b\d{4}-\d{2}-\d{2}\b", text)
+    if not token_match:
+        return None
+    return _parse_iso_date(token_match.group(0))
+
+
+def _pick_first_parsed_date(*sources: Any, keys: tuple[str, ...]) -> date | None:
+    for source in sources:
+        if not isinstance(source, dict):
+            continue
+        for key in keys:
+            parsed = _parse_flexible_date(source.get(key))
+            if parsed is not None:
+                return parsed
+    return None
+
+
+def _looks_like_service_date_field(field_id: str, label: str = "", field_type: str = "") -> bool:
+    ftype = str(field_type or "").strip().lower()
+    if ftype in {"date", "datetime", "datetime-local"}:
+        return True
+    # If the field has an explicit non-date type, trust it â€” do NOT override
+    # with keyword heuristics. This prevents time, text, and other fields from
+    # being misclassified as date fields just because their id/label contains
+    # keywords like "arrival", "departure", "event", etc.
+    if ftype and ftype not in {"date", "datetime", "datetime-local"}:
+        return False
+    joined = f"{field_id} {label}".strip()
+    if not joined:
+        return False
+    return bool(_SERVICE_DATE_FIELD_HINT.search(joined))
+
+
+def _collect_service_date_field_ids(
+    *,
+    form_fields: list[dict[str, Any]],
+    merged_form_data: dict[str, Any],
+) -> list[str]:
+    ids: list[str] = []
+    seen: set[str] = set()
+
+    def _add(field_id: str) -> None:
+        normalized = str(field_id or "").strip()
+        if not normalized:
+            return
+        if normalized.startswith("_"):
+            return
+        if normalized.lower() in _SERVICE_DATE_EXCLUDED_KEYS:
+            return
+        if normalized in seen:
+            return
+        seen.add(normalized)
+        ids.append(normalized)
+
+    for field in form_fields or []:
+        if not isinstance(field, dict):
+            continue
+        field_id = str(field.get("id") or "").strip()
+        if not field_id:
+            continue
+        if _looks_like_service_date_field(
+            field_id=field_id,
+            label=str(field.get("label") or ""),
+            field_type=str(field.get("type") or ""),
+        ):
+            _add(field_id)
+
+    # Build a lookup of field_id -> field_type from form_fields so the
+    # keyword heuristic below can respect explicit non-date types.
+    _field_type_by_id: dict[str, str] = {}
+    _declared_field_ids: set[str] = set()
+    for field in form_fields or []:
+        if isinstance(field, dict):
+            _fid = str(field.get("id") or "").strip()
+            _ftype = str(field.get("type") or "").strip()
+            if _fid:
+                _declared_field_ids.add(_fid)
+            if _fid and _ftype:
+                _field_type_by_id[_fid] = _ftype
+
+    for key, value in (merged_form_data or {}).items():
+        field_id = str(key or "").strip()
+        if not field_id:
+            continue
+        if field_id.startswith("_"):
+            continue
+        if field_id.lower() in _SERVICE_DATE_EXCLUDED_KEYS:
+            continue
+        if not str(value or "").strip():
+            continue
+        # When a form schema exists, validate only declared field IDs.
+        # This avoids false positives from alias/mismatch keys in pending data
+        # (for example "arrival_time" when the configured field is "arrival"
+        # with type=time).
+        if _declared_field_ids and field_id not in _declared_field_ids:
+            continue
+        if not _looks_like_service_date_field(
+            field_id=field_id,
+            field_type=_field_type_by_id.get(field_id, ""),
+        ):
+            continue
+        _add(field_id)
+
+    return ids
+
+def _validate_service_date_boundaries(
+    *,
+    phase_id: str,
+    form_fields: list[dict[str, Any]],
+    merged_form_data: dict[str, Any],
+    req_meta: dict[str, Any],
+    context: Any = None,
+) -> list[dict[str, str]]:
+    phase = _normalize_phase_identifier(phase_id)
+    if phase not in {"pre_checkin", "during_stay", "post_checkout"}:
+        return []
+
+    safe_form_data = merged_form_data if isinstance(merged_form_data, dict) else {}
+    safe_meta = req_meta if isinstance(req_meta, dict) else {}
+    pending = getattr(context, "pending_data", None) if context is not None else None
+    safe_pending = pending if isinstance(pending, dict) else {}
+
+    booking_context: dict[str, Any] = {}
+    if context is not None:
+        booking_context = {
+            "booking_check_in_date": getattr(context, "booking_check_in_date", None),
+            "booking_check_out_date": getattr(context, "booking_check_out_date", None),
+        }
+
+    stay_check_in = _pick_first_parsed_date(
+        safe_meta,
+        safe_form_data,
+        safe_pending,
+        booking_context,
+        keys=_STAY_CHECKIN_KEYS,
+    )
+    stay_check_out = _pick_first_parsed_date(
+        safe_meta,
+        safe_form_data,
+        safe_pending,
+        booking_context,
+        keys=_STAY_CHECKOUT_KEYS,
+    )
+
+    date_field_ids = _collect_service_date_field_ids(
+        form_fields=form_fields,
+        merged_form_data=safe_form_data,
+    )
+    if not date_field_ids:
+        return []
+
+    # Fail closed: for in-stay/post-checkout phases we must know booking dates
+    # before accepting any service date.
+    if stay_check_in is None or stay_check_out is None:
+        first_id = date_field_ids[0]
+        return [{
+            "field_id": first_id,
+            "message": "We could not verify your stay dates. Please refresh and try again.",
+        }]
+
+    if stay_check_out < stay_check_in:
+        stay_check_in, stay_check_out = stay_check_out, stay_check_in
+
+    field_label_by_id: dict[str, str] = {}
+    for field in form_fields or []:
+        if not isinstance(field, dict):
+            continue
+        field_id = str(field.get("id") or "").strip()
+        if not field_id:
+            continue
+        label = str(field.get("label") or "").strip()
+        if label:
+            field_label_by_id[field_id] = label
+
+    errors: list[dict[str, str]] = []
+    for field_id in date_field_ids:
+        raw_value = safe_form_data.get(field_id)
+        text_value = str(raw_value or "").strip()
+        if not text_value:
+            continue
+
+        parsed_value = _parse_flexible_date(raw_value)
+        if parsed_value is None:
+            label = field_label_by_id.get(field_id) or field_id.replace("_", " ").title()
+            errors.append({
+                "field_id": field_id,
+                "message": f"Please enter a valid date for {label} (YYYY-MM-DD).",
+            })
+            continue
+
+        if phase in {"pre_checkin", "during_stay"}:
+            if parsed_value < stay_check_in or parsed_value > stay_check_out:
+                errors.append({
+                    "field_id": field_id,
+                    "message": (
+                        f"Please select a date within your stay "
+                        f"({stay_check_in.isoformat()} to {stay_check_out.isoformat()})."
+                    ),
+                })
+        elif phase == "post_checkout" and parsed_value < stay_check_out:
+            errors.append({
+                "field_id": field_id,
+                "message": (
+                    "Please select a date on or after your check-out date "
+                    f"({stay_check_out.isoformat()})."
+                ),
+            })
+
+    return errors
+
+
+def _build_fail_closed_validation_errors(
+    *,
+    form_fields: list[dict[str, Any]],
+    form_data: dict[str, Any],
+) -> list[dict[str, str]]:
+    safe_fields = form_fields if isinstance(form_fields, list) else []
+    safe_data = form_data if isinstance(form_data, dict) else {}
+    critical_ids: list[str] = []
+    seen: set[str] = set()
+
+    for field in safe_fields:
+        if not isinstance(field, dict):
+            continue
+        field_id = str(field.get("id") or "").strip()
+        if not field_id:
+            continue
+        if field_id in seen:
+            continue
+        field_type = str(field.get("type") or "").strip().lower()
+        label = str(field.get("label") or "").strip()
+        required = bool(field.get("required"))
+        has_value = bool(str(safe_data.get(field_id) or "").strip())
+        looks_critical = (
+            field_type in {"date", "datetime", "datetime-local", "tel", "phone", "email", "number"}
+            or bool(_VALIDATION_CRITICAL_FIELD_HINT.search(f"{field_id} {label}".strip()))
+            or required
+        )
+        if looks_critical and has_value:
+            seen.add(field_id)
+            critical_ids.append(field_id)
+
+    if not critical_ids:
+        fallback = ""
+        for field in safe_fields:
+            if not isinstance(field, dict):
+                continue
+            candidate = str(field.get("id") or "").strip()
+            if candidate:
+                fallback = candidate
+                break
+        if fallback:
+            critical_ids.append(fallback)
+
+    return [
+        {
+            "field_id": field_id,
+            "message": "Validation is temporarily unavailable. Please try again.",
+        }
+        for field_id in critical_ids
+    ]
 
 
 def _coerce_positive_int(value: Any, *, default: int = 1, maximum: int = 20) -> int:
@@ -1141,6 +1402,16 @@ def _extract_prebooking_booking_payload(
         ),
         getattr(context, "booking_property_name", None),
     )
+    # Fallback: use property scope set during multi-property selection
+    if not property_name:
+        property_name = _first_non_empty_text(
+            meta.get("_selected_property_scope_name"),
+            form.get("_selected_property_scope_name"),
+        )
+    if not property_name:
+        _active_names = meta.get("_active_property_names") or form.get("_active_property_names")
+        if isinstance(_active_names, list) and len(_active_names) == 1:
+            property_name = str(_active_names[0]).strip()
     room_number = _pick("room_number", "room_no", "booking_room_number")
     room_type = _pick("room_type", "room_category", "booking_room_type")
     guests_count = _coerce_positive_int(
@@ -1227,7 +1498,7 @@ async def submit_form(
 ) -> dict[str, Any]:
     """
     Create a ticket directly from form submission data.
-    Bypasses the LLM conversation flow — validation is already done client-side.
+    Accept submitted form values as-is and create the ticket.
     """
     from services.ticketing_service import ticketing_service
     from services.config_service import config_service
@@ -1698,7 +1969,7 @@ async def send_message(
                 db_fallback=False,
                 error=f"db_required: {str(e)}",
             )
-            # ── new_detailed_logger: failed — db_required ───────────────────────
+            # â”€â”€ new_detailed_logger: failed â€” db_required â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             try:
                 new_detailed_logger.log_chat_turn_out_failed(
                     session_id=str(request.session_id or ""),
@@ -1770,7 +2041,7 @@ async def send_message(
                 db_fallback=True,
                 error=f"primary_db_failed: {str(e)}",
             )
-            # ── new_detailed_logger: SUCCESS via DB-fallback path ─────────────
+            # â”€â”€ new_detailed_logger: SUCCESS via DB-fallback path â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             try:
                 _resp_meta = response.metadata or {}
                 new_detailed_logger.log_chat_turn_out_success(
@@ -1831,7 +2102,7 @@ async def send_message(
                 db_fallback=True,
                 error=str(fallback_error),
             )
-            # ── new_detailed_logger: failed — db_fallback_error ──────────────
+            # â”€â”€ new_detailed_logger: failed â€” db_fallback_error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             try:
                 new_detailed_logger.log_chat_turn_out_failed(
                     session_id=str(request.session_id or ""),
@@ -1888,7 +2159,7 @@ async def send_message(
             db_fallback=False,
             error=str(e),
         )
-        # ── new_detailed_logger: failed — general exception ─────────────────
+        # â”€â”€ new_detailed_logger: failed â€” general exception â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         try:
             new_detailed_logger.log_chat_turn_out_failed(
                 session_id=str(request.session_id or ""),

@@ -190,6 +190,7 @@ class Settings(BaseSettings):
     ticketing_update_path_template: str = "/insert/ticket/{ticket_id}.htm"
     ticketing_timeout_seconds: float = 10.0
     ticketing_local_mode: bool = False
+    ticketing_api_failure_local_fallback_enabled: bool = False
     ticketing_local_store_file: str = Field(
         default_factory=lambda: (
             "/tmp/local_tickets.json"

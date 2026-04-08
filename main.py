@@ -57,7 +57,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 import uvicorn
 
 from config.settings import settings
@@ -563,6 +563,12 @@ async def health_check():
         "app": settings.app_name,
         "environment": settings.app_env,
     }
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    """Silence browser favicon requests when no icon file is configured."""
+    return Response(status_code=204)
 
 
 @app.get("/api/config")

@@ -1317,47 +1317,8 @@ function attachInlineForm(fields, serviceId, responseData) {
             formValues[field.id] = val;
         });
 
-        // Step 1: Quick client-side validation (empty fields, basic format)
-        const fieldErrors = validateFormFieldsDetailed(fields, formValues);
-        if (fieldErrors.length > 0) {
-            showFieldErrors(fieldErrors);
-            return;
-        }
-
-        // Step 2: LLM-based smart validation
+        // Validation is intentionally bypassed: submit exactly what the guest entered.
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Validating\u2026';
-
-        try {
-            const validateRes = await fetch('/api/chat/form-validate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    service_id: serviceId,
-                    form_fields: fields,
-                    form_data: formValues,
-                }),
-            });
-            const validateResult = await validateRes.json();
-
-            if (!validateResult.valid && validateResult.errors && validateResult.errors.length > 0) {
-                // Map LLM errors to field errors format
-                const llmErrors = validateResult.errors.map(e => ({
-                    id: e.field_id,
-                    field_id: e.field_id,
-                    message: e.message,
-                }));
-                showFieldErrors(llmErrors);
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit';
-                return;
-            }
-        } catch (valErr) {
-            // LLM validation unavailable — client-side already passed, so proceed
-            console.warn('LLM validation unavailable, relying on client-side validation:', valErr);
-        }
-
-        // Step 3: Submit the form
         submitBtn.textContent = 'Submitting\u2026';
 
         try {
@@ -1393,8 +1354,17 @@ function attachInlineForm(fields, serviceId, responseData) {
                 updateSessionInfoFromResponse(confirmData);
                 elements.suggestedActions.innerHTML = '';
             } else {
-                errorsDiv.innerHTML = `<strong>${escapeHtml(result.message || 'Submission failed. Please try again.')}</strong>`;
-                errorsDiv.style.display = 'block';
+                if (Array.isArray(result.errors) && result.errors.length > 0) {
+                    const submitErrors = result.errors.map(e => ({
+                        id: e.field_id || e.id,
+                        field_id: e.field_id || e.id,
+                        message: e.message || 'Please correct this field.',
+                    }));
+                    showFieldErrors(submitErrors);
+                } else {
+                    errorsDiv.innerHTML = `<strong>${escapeHtml(result.message || 'Submission failed. Please try again.')}</strong>`;
+                    errorsDiv.style.display = 'block';
+                }
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
             }

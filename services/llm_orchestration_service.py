@@ -929,6 +929,18 @@ class LLMOrchestrationService:
             if legacy_name:
                 active_ids = [legacy_name]
 
+        # Stay-property-pin fallback: if the guest has a confirmed booking at a
+        # specific property, use that as the scope even when no active_ids are set.
+        # This ensures service agents (banquet, dining, etc.) default to the guest's
+        # stay property rather than showing all properties.
+        if not active_ids:
+            stay_property_id = str(pending_raw.get("_stay_property_id") or "").strip()
+            stay_property_name = str(pending_raw.get("_stay_property_name") or "").strip()
+            if stay_property_name:
+                active_ids = [stay_property_name]
+            elif stay_property_id:
+                active_ids = [stay_property_id]
+
         if not active_ids:
             # No active properties — return full KB with all properties
             return str(service_knowledge or "").strip()
@@ -1553,6 +1565,123 @@ class LLMOrchestrationService:
         decision.deferrable_fields = deferrable_fields
         return decision
 
+    @staticmethod
+    def _count_bullet_lines(text: str) -> int:
+        lines = str(text or "").splitlines()
+        count = 0
+        for line in lines:
+            if re.match(r"^\s*[-*]\s+\S+", str(line or "")):
+                count += 1
+        return count
+
+    @staticmethod
+    def _looks_like_food_or_dining_service(service: dict[str, Any] | None) -> bool:
+        if not isinstance(service, dict):
+            return False
+        combined = " ".join(
+            [
+                str(service.get("id") or ""),
+                str(service.get("name") or ""),
+                str(service.get("type") or ""),
+                str(service.get("profile") or ""),
+                str(service.get("description") or ""),
+                str(service.get("cuisine") or ""),
+            ]
+        ).lower().replace("_", " ")
+        if not combined:
+            return False
+        markers = (
+            "dining",
+            "food",
+            "restaurant",
+            "menu",
+            "meal",
+            "beverage",
+            "breakfast",
+            "lunch",
+            "dinner",
+            "room service",
+            "in room dining",
+            "order",
+        )
+        return any(marker in combined for marker in markers)
+
+    @staticmethod
+    def _extract_food_order_values(pending_data: dict[str, Any]) -> list[str]:
+        if not isinstance(pending_data, dict):
+            return []
+        key_markers = (
+            "meal",
+            "breakfast",
+            "lunch",
+            "dinner",
+            "beverage",
+            "drink",
+            "food",
+            "dish",
+            "item",
+            "order",
+            "snack",
+            "kid",
+        )
+        excluded_exact = {
+            "service_id",
+            "service_name",
+            "guest_id",
+            "guest_name",
+            "guest_phone",
+            "room_number",
+            "check_in",
+            "check_out",
+            "stay_checkin_date",
+            "stay_checkout_date",
+            "stay_date_range",
+            "booking_ref",
+        }
+        excluded_values = {"yes", "no", "true", "false", "none", "na", "n/a"}
+        values: list[str] = []
+        seen: set[str] = set()
+        for raw_key, raw_value in pending_data.items():
+            key = str(raw_key or "").strip().lower()
+            if not key or key.startswith("_") or key in excluded_exact:
+                continue
+            if not any(marker in key for marker in key_markers):
+                continue
+            value_text = str(raw_value or "").strip()
+            if not value_text:
+                continue
+            for part in re.split(r"[\n,]+", value_text):
+                candidate = re.sub(r"\s+", " ", str(part or "").strip(" ."))
+                if not candidate:
+                    continue
+                candidate_norm = candidate.lower()
+                if candidate_norm in excluded_values:
+                    continue
+                if re.fullmatch(r"\d+", candidate_norm):
+                    continue
+                if re.fullmatch(r"\d{4}-\d{2}-\d{2}", candidate_norm):
+                    continue
+                if candidate_norm in seen:
+                    continue
+                seen.add(candidate_norm)
+                values.append(candidate)
+                if len(values) >= 10:
+                    return values
+        return values
+
+    @staticmethod
+    def _response_mentions_value(response_text: str, value: str) -> bool:
+        response_norm = re.sub(r"[^a-z0-9]+", " ", str(response_text or "").lower())
+        value_norm = re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
+        if not response_norm or not value_norm:
+            return False
+        if value_norm in response_norm:
+            return True
+        tokens = [tok for tok in value_norm.split() if len(tok) >= 3][:5]
+        if not tokens:
+            return False
+        return all(tok in response_norm for tok in tokens)
+
     async def _run_answer_first_guard(
         self,
         *,
@@ -1702,6 +1831,7 @@ class LLMOrchestrationService:
         full_kb_text: str = "",
     ) -> OrchestrationDecision:
         decision = self._apply_answer_priority_fields(decision)
+        pre_guard_response_text = str(decision.response_text or "").strip()
         guard_raw = await self._run_answer_first_guard(
             user_message=user_message,
             decision=decision,
@@ -1756,6 +1886,36 @@ class LLMOrchestrationService:
             decision.pending_action = recommended_pending_action or None
 
         decision = self._apply_answer_priority_fields(decision)
+        rewrite_reverted_reason = ""
+
+        if pre_guard_response_text and str(decision.response_text or "").strip():
+            before_bullets = self._count_bullet_lines(pre_guard_response_text)
+            after_bullets = self._count_bullet_lines(decision.response_text)
+            if before_bullets >= 2 and after_bullets < before_bullets:
+                decision.response_text = pre_guard_response_text
+                rewrite_reverted_reason = "list_item_loss"
+
+        if self._looks_like_food_or_dining_service(target_service):
+            merged_pending = dict(self._coerce_public_pending(context.pending_data))
+            if isinstance(decision.pending_data_updates, dict):
+                for key, value in decision.pending_data_updates.items():
+                    if str(value or "").strip():
+                        merged_pending[str(key)] = value
+            order_values = self._extract_food_order_values(merged_pending)
+            if len(order_values) >= 2:
+                missing_after = [
+                    item for item in order_values
+                    if not self._response_mentions_value(str(decision.response_text or ""), item)
+                ]
+                if missing_after:
+                    missing_before = [
+                        item for item in order_values
+                        if not self._response_mentions_value(pre_guard_response_text, item)
+                    ]
+                    if len(missing_before) < len(missing_after) and pre_guard_response_text:
+                        decision.response_text = pre_guard_response_text
+                        rewrite_reverted_reason = "food_order_item_loss"
+                        decision.metadata["answer_first_guard_missing_order_items"] = missing_after[:6]
 
         decision.metadata.setdefault("answer_first_guard_applied", True)
         decision.metadata["answer_first_guard_answers_current_query"] = answers_current_query
@@ -1764,6 +1924,8 @@ class LLMOrchestrationService:
         decision.metadata["answer_first_guard_recommended_action"] = recommended_action
         decision.metadata["answer_first_guard_recommended_pending_action"] = recommended_pending_action or ""
         decision.metadata["answer_first_guard_reason"] = str(guard_raw.get("reason") or "").strip()
+        if rewrite_reverted_reason:
+            decision.metadata["answer_first_guard_rewrite_reverted"] = rewrite_reverted_reason
         return decision
 
     async def _resolve_target_service_with_llm(
@@ -2160,16 +2322,21 @@ class LLMOrchestrationService:
                 confirm_template = str(confirmation_format.get("template") or "").strip()
                 ticket_lines.append(
                     f"\nOnce all fields are collected, summarise everything clearly and ask the guest to confirm.\n"
-                    f"The summary MUST explicitly list every collected detail: guest name, phone number, email, "
-                    f"room/service type, bed preference, number of guests, check-in date, check-out date, "
-                    f"and any other field present in pending_data_raw or known_context. "
+                    f"The summary MUST explicitly list every collected detail present in pending_data_raw "
+                    f"or known_context that is relevant to THIS service. For example:\n"
+                    f"  - For room bookings: guest name, phone, email, room type, check-in/check-out dates, guest count, etc.\n"
+                    f"  - For food/dining orders: ordered items with quantities, total price, delivery preferences, etc.\n"
+                    f"  - For restaurant reservations: restaurant name, date, time, party size, etc.\n"
+                    f"  - For event bookings: venue, event date, event type, special requests, etc.\n"
+                    f"Show ONLY the fields that are actually collected and relevant — do NOT include booking fields "
+                    f"(like check-in/check-out dates) if this is a food order, and vice versa.\n"
                     f"Never say 'the above details' — always spell them out.\n"
                     f"Confirmation phrase the guest must say: '{confirmation_phrase}'\n"
                     f"Set pending_action='{confirmation_pending_action}' while waiting for confirmation.\n"
                     f"When the guest confirms: set action=create_ticket, ticket.required=true, "
                     f"ticket.ready_to_create=true, pending_action=null. "
-                    f"The confirmation response_text MUST again list ALL collected details: name, phone, email, "
-                    f"room/service, dates, bed type, guest count — every field from pending_data_raw."
+                    f"The confirmation response_text MUST again list ALL collected details relevant to this service "
+                    f"from pending_data_raw — every field that was actually collected."
                 )
                 if confirm_template:
                     ticket_lines.append(f"Confirmation template: {confirm_template}")
@@ -2365,6 +2532,15 @@ class LLMOrchestrationService:
             "  - If check-out is on the same day or before check-in, flag it and ask for correction.\n"
             "  - If the guest says 'tomorrow', 'next Friday', 'next week', etc., resolve against current_date "
             "and store the resolved YYYY-MM-DD value.\n"
+            "STAY-DATE BOUNDARY VALIDATION (pre_checkin / during_stay / post_checkout):\n"
+            "  The payload includes the guest's booking dates in known_context or memory_facts "
+            "(check_in / check_out or stay_checkin_date / stay_checkout_date).\n"
+            "  - pre_checkin & during_stay: Any service date (event date, spa appointment, restaurant reservation, "
+            "cab pickup, etc.) MUST fall within the guest's check-in and check-out dates (inclusive).\n"
+            "    If the guest provides a date outside their stay, do NOT store it. Politely inform them: "
+            "'Your stay is from [check-in] to [check-out] — could you pick a date within that period?'\n"
+            "  - post_checkout: Service dates (e.g. lost & found pickup) must be on or after the check-out date.\n"
+            "  - If booking dates are not available in the payload, skip this validation.\n"
             "PHONE NUMBER VALIDATION:\n"
             "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
             "  - Reject obvious fake or garbage numbers (e.g., all identical digits like 9999999999, sequential digits like 1234567890, or common test numbers).\n"
@@ -2481,6 +2657,15 @@ class LLMOrchestrationService:
             "  - If check-out is on the same day or before check-in, flag it and ask for correction.\n"
             "  - If the guest says 'tomorrow', 'next Friday', 'next week', etc., resolve against current_date "
             "and store the resolved YYYY-MM-DD value.\n"
+            "STAY-DATE BOUNDARY VALIDATION (pre_checkin / during_stay / post_checkout):\n"
+            "  The payload includes the guest's booking dates in known_context or memory_facts "
+            "(check_in / check_out or stay_checkin_date / stay_checkout_date).\n"
+            "  - pre_checkin & during_stay: Any service date (event date, spa appointment, restaurant reservation, "
+            "cab pickup, etc.) MUST fall within the guest's check-in and check-out dates (inclusive).\n"
+            "    If the guest provides a date outside their stay, do NOT store it. Politely inform them: "
+            "'Your stay is from [check-in] to [check-out] — could you pick a date within that period?'\n"
+            "  - post_checkout: Service dates (e.g. lost & found pickup) must be on or after the check-out date.\n"
+            "  - If booking dates are not available in the payload, skip this validation.\n"
             "PHONE NUMBER VALIDATION:\n"
             "  - A valid phone number must contain exactly 10 digits (digits only, ignoring spaces/dashes/brackets).\n"
             "  - Reject obvious fake or garbage numbers (e.g., all identical digits like 9999999999, sequential digits like 1234567890, or common test numbers).\n"
@@ -3645,8 +3830,10 @@ class LLMOrchestrationService:
                 "IMPORTANT: 'ticketing_enabled=true' on a service means the service CAN raise a support ticket "
                 "if the guest reports a problem with it — it does NOT mean the service is a complaint handler. "
                 "Room bookings, food orders, and all other service requests are handled as normal service requests. "
-                "Only set action=create_ticket when the guest explicitly describes a problem, malfunction, or dissatisfaction. "
-                "Asking about a service, requesting a booking, or asking for information is NEVER a complaint."
+                "Set action=create_ticket in two cases: "
+                "(1) The guest needs staff to physically do something during their stay (missing items, maintenance, housekeeping) — use ticket.category='request'. "
+                "(2) The guest is upset or something went wrong — use ticket.category='complaint'. "
+                "Asking about a service, requesting a booking, or asking for information is NEVER a reason to create a ticket."
             ),
             "response_contract": {
                 "normalized_query": "string",
@@ -3778,6 +3965,14 @@ class LLMOrchestrationService:
             "try to answer from whatever context you have or ask a different clarifying question.\n"
             "NEVER ask 'Which property would you like details for?' as a robotic default — phrase it naturally based on what the guest asked.\n"
             "\n"
+            "POST-BOOKING PROPERTY FOCUS (pre_checkin / during_stay / post_checkout):\n"
+            "When stay_property_pin.enabled is true, the guest has BOOKED at a specific property — that is their hotel.\n"
+            "  - Answer ONLY from that property's knowledge. This is where they are staying.\n"
+            "  - Do NOT volunteer information about other properties unless the guest explicitly asks "
+            "(e.g. 'what about your Mumbai hotel?', 'do you have this at another location?').\n"
+            "  - Treat the pinned property as the default for ALL questions — rooms, amenities, dining, services, policies.\n"
+            "  - If the guest asks something generic like 'what time is checkout?', answer for their booked property only.\n"
+            "\n"
             "=== STEP 1: READ HISTORY ===\n"
             "Always read history_last_10 first, then full_history_context before deciding anything. "
             "Use last_user_message and last_assistant_message as high-priority anchors for continuity. "
@@ -3850,21 +4045,57 @@ class LLMOrchestrationService:
             "Do NOT promise, invite, offer, or imply the guest can use it now. NEVER mention phase names (pre_checkin, during_stay, etc.).\n"
             "   -> Wanting to book a room, order food, or request any service is NEVER a complaint.\n"
             "\n"
-            "C) COMPLAINT / ISSUE — guest explicitly reports a problem, malfunction, or dissatisfaction WITH NO active pending service flow.\n"
-            "   -> ONLY when guest describes something that went wrong. Questions about services are NOT complaints.\n"
+            "C) STAFF-ACTION REQUEST — guest needs something that requires a hotel staff member to physically do something, "
+            "but it is NOT a booking or an order and no specific service is configured for it.\n"
+            "   Think like a real hotel front desk: if a guest walks up and says any of these, you would never just say "
+            "'contact housekeeping' — you would immediately note it down and make sure it gets handled:\n"
+            "   - Missing items: 'no towels', 'need extra pillows', 'no toiletries', 'minibar not stocked'\n"
+            "   - Maintenance: 'AC not working', 'hot water issue', 'lights flickering', 'TV remote broken'\n"
+            "   - Housekeeping: 'room not cleaned', 'need fresh sheets', 'trash not picked up'\n"
+            "   - Disturbances: 'noisy neighbors', 'construction noise', 'someone knocking on my door'\n"
+            "   - Any situation where the guest is stuck and needs staff to act\n"
+            "   HOW TO HANDLE:\n"
+            "   -> during_stay: This is the guest's home right now. Take ownership. "
+            "Empathize naturally ('I'm sorry about that' / 'Let me get that sorted for you right away'), "
+            "then set action=create_ticket with ticket.category='request', ticket.sub_category='in_room_assistance', "
+            "and ticket.priority based on urgency (no hot water or AC = high, extra pillow = medium). "
+            "Tell the guest someone from the team will take care of it shortly. "
+            "Do NOT tell them to 'contact housekeeping' or 'call the front desk' — YOU are the front desk.\n"
+            "   -> pre_booking / pre_checkin: These requests don't apply yet. Reassure them: "
+            "'We will make sure everything is perfect for your arrival.'\n"
+            "   -> post_checkout: Only relevant if they left something behind or have a billing issue. "
+            "Otherwise respond warmly.\n"
+            "   IMPORTANT — do NOT create tickets for:\n"
+            "   - Questions: 'do you have extra pillows?' (just answer yes/no from KB)\n"
+            "   - Future requests: 'can I get extra towels when I check in?' (just note it)\n"
+            "   - Things the guest can do themselves: 'how do I connect to WiFi?' (just answer)\n"
+            "   - General feedback without urgency: 'the breakfast was okay' (just acknowledge)\n"
+            "   The test: would a real front desk person write this down and send someone to the room? "
+            "If yes → create ticket. If they would just answer verbally → respond_only.\n"
+            "\n"
+            "D) COMPLAINT — guest explicitly expresses dissatisfaction, frustration, or reports something that went wrong.\n"
+            "   -> This is different from C: in C the guest just needs something done. "
+            "In D the guest is unhappy — there is negative emotion or something has failed.\n"
+            "   -> Examples: 'this is unacceptable', 'I've been waiting 30 minutes', 'the food was cold', "
+            "'cockroach in my room', 'worst experience', 'I want to speak to a manager'\n"
             "   -> PHASE-AWARE COMPLAINT GATE: Before creating a complaint ticket, ask: does this complaint make sense given where the guest is right now?\n"
             "      - If the guest has NOT yet checked in (pre-booking or pre-checkin phase) and reports an in-room issue (cockroach, broken AC, dirty room, etc.) → the complaint is impossible in context. Respond with empathy but do NOT create a ticket. Offer to note it or suggest they contact the hotel directly if it is a future concern.\n"
             "      - If the guest is during their stay (during_stay) → in-room and on-property complaints ARE valid. Create a ticket.\n"
             "      - If the guest has checked out (post-checkout) → only post-stay complaints (billing, lost items, quality feedback) are valid.\n"
             "      - Apply common sense: a complaint must be physically possible given the guest's current journey stage.\n"
-            "   -> Set action=create_ticket, ticket.category='complaint' only when the complaint is contextually valid.\n"
+            "   -> Set action=create_ticket, ticket.category='complaint', and set priority higher than normal (high or critical if the guest sounds upset).\n"
+            "   -> Empathize FIRST, then tell them you've noted it and the team will address it. Never be defensive.\n"
             "   -> NEVER use complaint routing for: room inquiries, booking requests, food orders, or any request to do something.\n"
             "\n"
-            "D) HUMAN / EMERGENCY — guest is distressed or explicitly asks for a human: set requires_human_handoff=true.\n"
+            "E) HUMAN / EMERGENCY — guest is distressed or explicitly asks for a human: set requires_human_handoff=true.\n"
             "\n"
             "=== ROUTING SANITY CHECK ===\n"
-            "Before writing output, ask: is the guest asking for something or reporting a problem? "
-            "Asking → service request or info. Reporting → complaint. When in doubt → never assume complaint.\n"
+            "Before writing output, ask yourself: if a guest said this to me at the front desk, what would I do?\n"
+            "  - Would I just answer them? → respond_only\n"
+            "  - Would I route them to a specific department to book/order? → dispatch_handler\n"
+            "  - Would I write it down and send someone to help? → create_ticket (category=request)\n"
+            "  - Would I escalate because the guest is upset? → create_ticket (category=complaint)\n"
+            "When in doubt between respond_only and create_ticket, ask: does this need a human to physically do something? If yes, create the ticket.\n"
             "\n"
             "=== GROUNDING RULE ===\n"
             "Use only provided policy + knowledge data. Never invent prices, timings, availability, or capabilities.\n"
