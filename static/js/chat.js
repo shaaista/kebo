@@ -1163,6 +1163,33 @@ function _isPhoneField(field) {
     return /\b(phone|mobile|contact|cell|whatsapp)\b/.test(hint);
 }
 
+/**
+ * Compute min/max date bounds for date inputs based on the current journey
+ * phase and the selected booking. In pre_checkin and during_stay, dates are
+ * clamped to the guest's stay window so the browser's native date picker
+ * greys out anything outside it. Returns YYYY-MM-DD strings; '' = unbounded.
+ */
+function _getStayDateBounds() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const phase    = normalizePhaseId(state.phase);
+    const booking  = state.selectedBooking;
+    const checkIn  = (booking && booking.check_in_date)  || '';
+    const checkOut = (booking && booking.check_out_date) || '';
+
+    if (phase === 'pre_checkin' && checkIn && checkOut) {
+        // Stay hasn't started yet — earliest selectable is later of today
+        // and check-in; latest is check-out.
+        const min = checkIn > todayStr ? checkIn : todayStr;
+        return { min, max: checkOut };
+    }
+    if (phase === 'during_stay' && checkOut) {
+        // Already in stay — earliest is today, latest is check-out.
+        return { min: todayStr, max: checkOut };
+    }
+    // pre_booking and any other phase: keep prior behavior (no past dates).
+    return { min: todayStr, max: '' };
+}
+
 function attachInlineForm(fields, serviceId, responseData) {
     const messages = elements.chatMessages.querySelectorAll('.message.assistant');
     const lastMessage = messages[messages.length - 1];
@@ -1201,8 +1228,10 @@ function attachInlineForm(fields, serviceId, responseData) {
         if (field.type === 'textarea') {
             inputHtml = `<textarea ${nameAttr} rows="3"${requiredAttr} class="inline-form-input"></textarea>`;
         } else if (field.type === 'date') {
-            const todayStr = new Date().toISOString().split('T')[0];
-            inputHtml = `<input type="date" ${nameAttr}${requiredAttr} min="${todayStr}" class="inline-form-input">`;
+            const { min: minDate, max: maxDate } = _getStayDateBounds();
+            const minAttr = minDate ? ` min="${minDate}"` : '';
+            const maxAttr = maxDate ? ` max="${maxDate}"` : '';
+            inputHtml = `<input type="date" ${nameAttr}${requiredAttr}${minAttr}${maxAttr} class="inline-form-input">`;
         } else if (_isPhoneField(field)) {
             const ccOptions = _countryCodes.map(cc =>
                 `<option value="${cc.code}"${cc.code === '+91' ? ' selected' : ''}>${cc.flag} ${cc.code}</option>`
@@ -1237,11 +1266,18 @@ function attachInlineForm(fields, serviceId, responseData) {
     lastMessage.appendChild(container);
     scrollToBottom();
 
-    // Enforce min-date on date inputs: reject any past date selection
+    // Enforce min/max-date on date inputs: reject anything outside the
+    // allowed window (past dates, or — in pre_checkin/during_stay — dates
+    // outside the guest's stay).
     container.querySelectorAll('input[type="date"]').forEach(dateInput => {
         dateInput.addEventListener('change', () => {
             const minVal = dateInput.min;
+            const maxVal = dateInput.max;
             if (minVal && dateInput.value && dateInput.value < minVal) {
+                dateInput.value = '';
+                return;
+            }
+            if (maxVal && dateInput.value && dateInput.value > maxVal) {
                 dateInput.value = '';
             }
         });
@@ -1385,6 +1421,7 @@ function validateFormFields(fields, values) {
     const errors = [];
     let checkinDate  = null;
     let checkoutDate = null;
+    const { min: minDate, max: maxDate } = _getStayDateBounds();
 
     fields.forEach(field => {
         const val = String(values[field.id] || '').trim();
@@ -1401,10 +1438,16 @@ function validateFormFields(fields, values) {
                 errors.push(`${field.label} must be a valid date.`);
                 return;
             }
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (d < today) {
-                errors.push(`${field.label} cannot be in the past.`);
+            if (minDate && val < minDate) {
+                if (maxDate) {
+                    errors.push(`${field.label} must be within your stay (${minDate} to ${maxDate}).`);
+                } else {
+                    errors.push(`${field.label} cannot be in the past.`);
+                }
+                return;
+            }
+            if (maxDate && val > maxDate) {
+                errors.push(`${field.label} must be within your stay (${minDate} to ${maxDate}).`);
                 return;
             }
             const id = field.id.toLowerCase();
@@ -1454,6 +1497,7 @@ function validateFormFieldsDetailed(fields, values) {
     let checkoutDate = null;
     let checkinFieldId = null;
     let checkoutFieldId = null;
+    const { min: minDate, max: maxDate } = _getStayDateBounds();
 
     fields.forEach(field => {
         const val = String(values[field.id] || '').trim();
@@ -1470,10 +1514,16 @@ function validateFormFieldsDetailed(fields, values) {
                 errors.push({ id: field.id, message: 'Enter a valid date.' });
                 return;
             }
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (d < today) {
-                errors.push({ id: field.id, message: 'Date cannot be in the past.' });
+            if (minDate && val < minDate) {
+                if (maxDate) {
+                    errors.push({ id: field.id, message: `Must be within your stay (${minDate} to ${maxDate}).` });
+                } else {
+                    errors.push({ id: field.id, message: 'Date cannot be in the past.' });
+                }
+                return;
+            }
+            if (maxDate && val > maxDate) {
+                errors.push({ id: field.id, message: `Must be within your stay (${minDate} to ${maxDate}).` });
                 return;
             }
             const idLow = field.id.toLowerCase();
