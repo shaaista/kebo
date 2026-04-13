@@ -1804,6 +1804,9 @@
         let currentPhaseId = 'pre_booking';
         let phaseAllServices = [];
         let phaseMenuFacts = [];
+        let phaseMenuDocs = [];
+        let svcMenuFacts = [];
+        let svcMenuDocs = [];
         let phaseServices = [];
         let phasePrebuiltServices = [];
         let propertyAutoLoadBound = false;
@@ -1831,6 +1834,116 @@
             const normalized = normalizePropertyCode(code);
             if (!normalized) return false;
             return knownPropertyCodes.has(normalized);
+        }
+
+        function normalizeMenuDocumentId(value) {
+            return String(value || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+        }
+
+        function appendKnowledgeText(textareaId, text) {
+            const textarea = document.getElementById(textareaId);
+            const block = String(text || '').trim();
+            if (!textarea || !block) return;
+            const existing = String(textarea.value || '').trim();
+            if (!existing) {
+                textarea.value = block;
+                return;
+            }
+            if (existing.includes(block)) return;
+            textarea.value = `${existing}\n\n---\n\n${block}`;
+        }
+
+        function extractMenuDisplayTextFromPayload(payload) {
+            const menuDoc = payload && typeof payload.menu_document === 'object' ? payload.menu_document : null;
+            const formattedText = String((menuDoc && menuDoc.formatted_text) || payload?.formatted_text || '').trim();
+            if (formattedText) return formattedText;
+            const facts = Array.isArray(payload?.fact_lines)
+                ? payload.fact_lines.map((entry) => String(entry || '').trim()).filter(Boolean)
+                : [];
+            return facts.join('\n').trim();
+        }
+
+        function buildMenuDocumentPayloadFromScan(payload, sourceFile) {
+            if (!payload || typeof payload !== 'object') return null;
+            const candidate = payload.menu_document && typeof payload.menu_document === 'object'
+                ? Object.assign({}, payload.menu_document)
+                : {
+                    id: normalizeMenuDocumentId(payload?.trace?.run_id || sourceFile || `menu_${Date.now()}`),
+                    menu_name: String(payload?.summary?.menu_name || payload?.ocr_raw_output?.menu_name || '').trim() || null,
+                    source_file: String(sourceFile || '').trim() || null,
+                    scanned_at: new Date().toISOString(),
+                    summary: payload?.summary && typeof payload.summary === 'object' ? payload.summary : {},
+                    trace: payload?.trace && typeof payload.trace === 'object' ? payload.trace : {},
+                    fact_lines: Array.isArray(payload?.fact_lines) ? payload.fact_lines : [],
+                    ocr_raw_output: payload?.ocr_raw_output && typeof payload.ocr_raw_output === 'object' ? payload.ocr_raw_output : {},
+                    ocr_raw_output_text: String(payload?.ocr_raw_output_text || '').trim(),
+                    formatted_text: String(payload?.formatted_text || '').trim(),
+                    raw_text: String(payload?.raw_text || '').trim(),
+                };
+            if (!candidate || typeof candidate !== 'object') return null;
+            if (!candidate.id) {
+                candidate.id = normalizeMenuDocumentId(candidate?.trace?.run_id || sourceFile || `menu_${Date.now()}`);
+            }
+            if (!candidate.source_file && sourceFile) candidate.source_file = String(sourceFile).trim();
+            if (!candidate.formatted_text) candidate.formatted_text = extractMenuDisplayTextFromPayload(payload);
+            return candidate;
+        }
+
+        function mergeMenuDocuments(existingDocs, incomingDocs) {
+            const merged = Array.isArray(existingDocs) ? existingDocs.slice() : [];
+            const indexByKey = new Map();
+
+            const keyForDoc = (doc, fallbackIndex) => {
+                const runId = normalizeMenuDocumentId(doc?.trace?.run_id);
+                if (runId) return `run:${runId}`;
+                const docId = normalizeMenuDocumentId(doc?.id);
+                if (docId) return `id:${docId}`;
+                const sourceFile = normalizeMenuDocumentId(doc?.source_file);
+                const menuName = normalizeMenuDocumentId(doc?.menu_name || doc?.summary?.menu_name);
+                if (sourceFile || menuName) return `source:${sourceFile}|menu:${menuName}`;
+                return `fallback:${fallbackIndex}`;
+            };
+
+            merged.forEach((doc, index) => {
+                indexByKey.set(keyForDoc(doc, index), index);
+            });
+
+            for (const doc of Array.isArray(incomingDocs) ? incomingDocs : []) {
+                if (!doc || typeof doc !== 'object') continue;
+                const key = keyForDoc(doc, merged.length);
+                if (indexByKey.has(key)) {
+                    merged[indexByKey.get(key)] = doc;
+                } else {
+                    indexByKey.set(key, merged.length);
+                    merged.push(doc);
+                }
+            }
+            return merged;
+        }
+
+        async function saveServiceMenuDocuments(serviceId, documents) {
+            const normalizedServiceId = String(serviceId || '').trim();
+            const rows = Array.isArray(documents) ? documents.filter((doc) => doc && typeof doc === 'object') : [];
+            if (!normalizedServiceId || !rows.length) return null;
+            const res = await fetch(`${API_BASE}/config/service-kb/menu-documents`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    service_id: normalizedServiceId,
+                    documents: rows,
+                    replace: false,
+                    published_by: 'admin_ui',
+                }),
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(payload.detail || `status ${res.status}`);
+            }
+            return payload;
         }
 
         function resetBusinessInfoFormForNewProperty(propertyCode) {
@@ -2407,6 +2520,7 @@
             currentServiceEditIsActive = true;
             serviceTicketingCasesDraft = [];
             svcMenuFacts = [];
+            svcMenuDocs = [];
             document.getElementById('new-svc-id').disabled = false;
             document.getElementById('new-svc-id').value = '';
             document.getElementById('new-svc-name').value = '';
@@ -2614,6 +2728,7 @@
                         service_description: desc,
                         extraction_mode: 'verbatim',
                         chunk_chars: 18000,
+                        existing_menu_facts: svcMenuFacts,
                     }),
                 });
                 const data = await parseJsonResponseSafe(res);
@@ -2621,7 +2736,7 @@
                     throw new Error(data.detail || data.reason || data.error || data._rawText || `status ${res.status}`);
                 }
                 if (data.extracted_knowledge) {
-                    document.getElementById('new-svc-kb-knowledge').value = data.extracted_knowledge;
+                    appendKnowledgeText('new-svc-kb-knowledge', data.extracted_knowledge);
                     const detectedCount = Number(data.detected_property_count || 0) || 0;
                     const expectedCount = Number(data.expected_property_count || 0) || 0;
                     const mode = String(data.property_scope_mode || '').trim();
@@ -2706,7 +2821,6 @@
         }
 
         // ── Upload Menu files for modal ─────────────────────────────────────
-        let svcMenuFacts = [];
 
         async function uploadSvcMenuFiles(fileList) {
             const files = Array.from(fileList || []);
@@ -2727,6 +2841,8 @@
 
             const serviceName = String(document.getElementById('new-svc-name')?.value || '').trim();
             const extractedFacts = [];
+            const extractedMenuTexts = [];
+            const extractedMenuDocs = [];
             const statusRows = [];
 
             for (const file of files) {
@@ -2745,6 +2861,10 @@
                         ? payload.fact_lines.map((entry) => String(entry || '').trim()).filter(Boolean)
                         : [];
                     extractedFacts.push(...facts);
+                    const menuText = extractMenuDisplayTextFromPayload(payload);
+                    if (menuText) extractedMenuTexts.push(menuText);
+                    const menuDoc = buildMenuDocumentPayloadFromScan(payload, file.name);
+                    if (menuDoc) extractedMenuDocs.push(menuDoc);
                     statusRows.push(`<div><strong>${escapeHtml(file.name)}</strong>: ${facts.length} fact(s) extracted.</div>`);
                 } catch (error) {
                     statusRows.push(`<div style="color:#dc2626;"><strong>${escapeHtml(file.name)}</strong>: ${escapeHtml(error.message || String(error))}</div>`);
@@ -2752,12 +2872,16 @@
             }
 
             svcMenuFacts = Array.from(new Set([...(svcMenuFacts || []), ...extractedFacts]));
+            svcMenuDocs = mergeMenuDocuments(svcMenuDocs, extractedMenuDocs);
+            if (extractedMenuTexts.length) {
+                appendKnowledgeText('new-svc-kb-knowledge', extractedMenuTexts.join('\n\n---\n\n'));
+            }
             if (queueEl) { queueEl.style.display = 'block'; queueEl.innerHTML = statusRows.join(''); }
             if (statusEl) {
                 statusEl.style.display = 'block';
-                if (svcMenuFacts.length) {
+                if (svcMenuFacts.length || svcMenuDocs.length || extractedMenuTexts.length) {
                     statusEl.style.color = '#16a34a';
-                    statusEl.textContent = `${svcMenuFacts.length} menu fact(s) ready. Click Pull from KB to merge them with library knowledge.`;
+                    statusEl.textContent = `${svcMenuFacts.length} menu fact(s) ready and menu content added below. Click Pull from KB to append library knowledge.`;
                 } else {
                     statusEl.style.color = '#dc2626';
                     statusEl.textContent = 'No menu facts extracted from uploaded files.';
@@ -4579,7 +4703,7 @@
                 document.getElementById('new-svc-name').value = String(svc.name || '');
                 typeField.value = svcType;
                 document.getElementById('new-svc-desc').value = String(svc.description || svc.cuisine || '');
-                const existingKb = String((svc.service_prompt_pack || {}).extracted_knowledge || '');
+                const existingKb = String((svc.service_prompt_pack || {}).extracted_knowledge || svc.extracted_knowledge || '');
                 document.getElementById('new-svc-kb-knowledge').value = existingKb;
                 const existingTc = String((svc.service_prompt_pack || {}).ticketing_conditions || svc.ticketing_policy || '');
                 document.getElementById('new-svc-ticketing-conditions').value = existingTc;
@@ -4669,19 +4793,34 @@
                 payload.form_config = collectFormConfig('svc');
             }
 
+            let serviceSaved = false;
             try {
-                await fetch(`${API_BASE}/config/services${currentServiceEditId ? `/${id}` : ''}`, {
+                const res = await fetch(`${API_BASE}/config/services${currentServiceEditId ? `/${id}` : ''}`, {
                     method: currentServiceEditId ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    throw new Error(body.detail || `status ${res.status}`);
+                }
+                serviceSaved = true;
+                if (svcMenuDocs.length) {
+                    await saveServiceMenuDocuments(id, svcMenuDocs);
+                }
 
                 showToast(currentServiceEditId ? 'Service updated' : 'Service added');
                 closeModal('add-service-modal');
                 await loadServices();
                 loadTicketingAssociations(phaseAllServices);
             } catch (error) {
-                showToast(currentServiceEditId ? 'Error updating service' : 'Error adding service', 'error');
+                if (serviceSaved) {
+                    showToast(`Service saved, but menu OCR knowledge failed to persist: ${error.message || error}`, 'error');
+                    await loadServices();
+                    loadTicketingAssociations(phaseAllServices);
+                    return;
+                }
+                showToast(`${currentServiceEditId ? 'Error updating service' : 'Error adding service'}: ${error.message || error}`, 'error');
             }
         }
 
@@ -5441,6 +5580,8 @@
 
             const serviceName = String(document.getElementById('phase-new-service-name')?.value || '').trim();
             const extractedFacts = [];
+            const extractedMenuTexts = [];
+            const extractedMenuDocs = [];
             const statusRows = [];
 
             for (const file of files) {
@@ -5461,6 +5602,10 @@
                         ? payload.fact_lines.map((entry) => String(entry || '').trim()).filter(Boolean)
                         : [];
                     extractedFacts.push(...facts);
+                    const menuText = extractMenuDisplayTextFromPayload(payload);
+                    if (menuText) extractedMenuTexts.push(menuText);
+                    const menuDoc = buildMenuDocumentPayloadFromScan(payload, file.name);
+                    if (menuDoc) extractedMenuDocs.push(menuDoc);
                     statusRows.push(`<div><strong>${escapeHtml(file.name)}</strong>: ${facts.length} fact(s) extracted.</div>`);
                 } catch (error) {
                     statusRows.push(`<div style="color:#dc2626;"><strong>${escapeHtml(file.name)}</strong>: ${escapeHtml(error.message || String(error))}</div>`);
@@ -5468,15 +5613,19 @@
             }
 
             phaseMenuFacts = Array.from(new Set([...(phaseMenuFacts || []), ...extractedFacts]));
+            phaseMenuDocs = mergeMenuDocuments(phaseMenuDocs, extractedMenuDocs);
+            if (extractedMenuTexts.length) {
+                appendKnowledgeText('phase-new-service-kb-knowledge', extractedMenuTexts.join('\n\n---\n\n'));
+            }
             if (queueEl) {
                 queueEl.style.display = 'block';
                 queueEl.innerHTML = statusRows.join('');
             }
             if (statusEl) {
                 statusEl.style.display = 'block';
-                if (phaseMenuFacts.length) {
+                if (phaseMenuFacts.length || phaseMenuDocs.length || extractedMenuTexts.length) {
                     statusEl.style.color = '#16a34a';
-                    statusEl.textContent = `${phaseMenuFacts.length} menu fact(s) ready. Click Pull from KB to merge them with library knowledge.`;
+                    statusEl.textContent = `${phaseMenuFacts.length} menu fact(s) ready and menu content added below. Click Pull from KB to append library knowledge.`;
                 } else {
                     statusEl.style.color = '#dc2626';
                     statusEl.textContent = 'No menu facts extracted from uploaded files.';
@@ -5519,10 +5668,8 @@
                 if (!res.ok) {
                     throw new Error(data.detail || data.reason || data.error || data._rawText || `status ${res.status}`);
                 }
-                const kbTextarea = document.getElementById('phase-new-service-kb-knowledge');
                 if (data.extracted_knowledge) {
-                    const existing = (kbTextarea.value || '').trim();
-                    kbTextarea.value = existing ? existing + '\n\n---\n\n' + data.extracted_knowledge : data.extracted_knowledge;
+                    appendKnowledgeText('phase-new-service-kb-knowledge', data.extracted_knowledge);
                     const detectedCount = Number(data.detected_property_count || 0) || 0;
                     const expectedCount = Number(data.expected_property_count || 0) || 0;
                     const mode = String(data.property_scope_mode || '').trim();
@@ -5614,6 +5761,8 @@
                 payload.form_config = collectFormConfig('phase');
             }
 
+            let serviceCreated = false;
+            const phasePromptStatus = document.getElementById('phase-prompt-status');
             try {
                 const res = await fetch(`${API_BASE}/config/services`, {
                     method: 'POST',
@@ -5624,12 +5773,15 @@
                     const body = await res.json().catch(() => ({}));
                     throw new Error(body.detail || `status ${res.status}`);
                 }
+                serviceCreated = true;
+                phaseCreatedServiceId = id;
+                if (phaseMenuDocs.length) {
+                    await saveServiceMenuDocuments(id, phaseMenuDocs);
+                }
                 showToast('Phase service created');
                 // Show prompt management buttons after service creation
-                phaseCreatedServiceId = id;
                 const phaseRegenBtn = document.getElementById('phase-regenerate-btn');
                 const phaseSavePromptBtn = document.getElementById('phase-save-prompt-btn');
-                const phasePromptStatus = document.getElementById('phase-prompt-status');
                 if (phaseRegenBtn) { phaseRegenBtn.style.display = 'inline-flex'; phaseRegenBtn.disabled = false; }
                 if (phaseSavePromptBtn) { phaseSavePromptBtn.style.display = 'inline-flex'; phaseSavePromptBtn.disabled = false; }
                 if (phasePromptStatus) { phasePromptStatus.style.display = 'block'; phasePromptStatus.style.color = '#16a34a'; phasePromptStatus.textContent = `Service "${name}" created! Click Regenerate to generate an AI prompt, or type one manually.`; }
@@ -5644,6 +5796,7 @@
                 const userIntentEl = document.getElementById('phase-new-service-user-intent');
                 if (userIntentEl) userIntentEl.value = '';
                 phaseMenuFacts = [];
+                phaseMenuDocs = [];
                 const menuQueue = document.getElementById('phase-menu-queue');
                 if (menuQueue) { menuQueue.style.display = 'none'; menuQueue.innerHTML = ''; }
                 const menuUploadInput = document.getElementById('phase-menu-upload-input');
@@ -5658,6 +5811,22 @@
                 await loadServices(phaseAllServices);
                 loadConfigBanner();
             } catch (error) {
+                if (serviceCreated) {
+                    const phaseRegenBtn = document.getElementById('phase-regenerate-btn');
+                    const phaseSavePromptBtn = document.getElementById('phase-save-prompt-btn');
+                    if (phaseRegenBtn) { phaseRegenBtn.style.display = 'inline-flex'; phaseRegenBtn.disabled = false; }
+                    if (phaseSavePromptBtn) { phaseSavePromptBtn.style.display = 'inline-flex'; phaseSavePromptBtn.disabled = false; }
+                    if (phasePromptStatus) {
+                        phasePromptStatus.style.display = 'block';
+                        phasePromptStatus.style.color = '#dc2626';
+                        phasePromptStatus.textContent = `Service "${name}" was created, but menu OCR knowledge failed to persist: ${error.message || error}`;
+                    }
+                    showToast(`Service created, but menu OCR knowledge failed to persist: ${error.message || error}`, 'error');
+                    await loadJourneyPhasesWorkspace(phaseId);
+                    await loadServices(phaseAllServices);
+                    loadConfigBanner();
+                    return;
+                }
                 showToast(`Error creating service: ${error.message || error}`, 'error');
             }
         }

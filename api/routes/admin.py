@@ -8,6 +8,7 @@ Now uses database-backed storage (MySQL) with JSON fallback.
 import asyncio
 import json
 import time
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File, Form
 from fastapi.responses import HTMLResponse
@@ -91,7 +92,8 @@ async def _call_db_config_with_fast_fallback(operation: str, coroutine):
         _admin_db_unavailable_until = 0.0
         return True, result
     except Exception as error:
-        _safe_print(f"DB fast-fallback ({operation}) error: {error}")
+        error_text = str(error or "").strip() or type(error).__name__
+        _safe_print(f"DB fast-fallback ({operation}) error: {error_text}")
         _mark_admin_db_unavailable()
         return False, None
 
@@ -322,6 +324,14 @@ class UpdateServiceKBManualFactsRequest(BaseModel):
     plugin_id: Optional[str] = None
     facts: Optional[List[str]] = None
     published_by: Optional[str] = "admin"
+
+
+class UpdateServiceKBMenuDocumentsRequest(BaseModel):
+    service_id: str
+    plugin_id: Optional[str] = None
+    documents: Optional[List[Dict[str, Any]]] = None
+    published_by: Optional[str] = "admin"
+    replace: Optional[bool] = False
 
 
 class RAGReindexRequest(BaseModel):
@@ -2612,6 +2622,204 @@ async def update_service_kb_manual_facts(payload: UpdateServiceKBManualFactsRequ
     return {"message": "Service KB manual facts updated", "record": record}
 
 
+@router.put("/api/config/service-kb/menu-documents")
+async def update_service_kb_menu_documents(payload: UpdateServiceKBMenuDocumentsRequest):
+    """
+    Attach OCR menu documents to one service KB record.
+    These documents are preserved as structured service-scoped menu artifacts.
+    """
+    record = config_service.set_service_kb_menu_documents(
+        service_id=payload.service_id,
+        plugin_id=payload.plugin_id,
+        documents=list(payload.documents or []),
+        published_by=str(payload.published_by or "admin"),
+        replace=bool(payload.replace),
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Failed to update service KB menu documents")
+    try:
+        cfg = config_service.load_config()
+        await db_config_service.save_json_section(
+            "service_kb",
+            cfg.get("service_kb", {}) if isinstance(cfg, dict) else {},
+        )
+    except Exception:
+        pass
+    return {"message": "Service KB menu documents updated", "record": record}
+
+
+def _menu_dietary_labels(item: dict[str, Any]) -> list[str]:
+    labels: list[str] = []
+    veg_value = str(item.get("veg") or "").strip().lower()
+    if veg_value == "v":
+        labels.append("Vegetarian")
+    elif veg_value == "vg":
+        labels.append("Vegan")
+    elif veg_value:
+        labels.append(veg_value.upper())
+
+    non_veg_value = str(item.get("non_veg") or "").strip().lower()
+    if non_veg_value in {"non-veg", "non_veg", "nv"}:
+        labels.append("Non-Vegetarian")
+    elif non_veg_value in {"s", "seafood", "fish"}:
+        labels.append("Seafood")
+    elif non_veg_value:
+        labels.append(non_veg_value.title())
+    return labels
+
+
+def _render_menu_payload_as_text(menu_payload: dict[str, Any]) -> str:
+    if not isinstance(menu_payload, dict):
+        return ""
+
+    lines: list[str] = []
+    menu_name = str(menu_payload.get("menu_name") or "").strip()
+    normalized_menu_name = re.sub(r"\s+", " ", menu_name).strip().lower()
+    if menu_name:
+        lines.append(menu_name)
+
+    other_text: list[str] = []
+    seen_other_text: set[str] = set()
+    for entry in (menu_payload.get("other_text") or []):
+        text = str(entry or "").strip()
+        if not text:
+            continue
+        normalized = re.sub(r"\s+", " ", text).strip().lower()
+        if not normalized:
+            continue
+        if normalized_menu_name and normalized == normalized_menu_name:
+            continue
+        if normalized in seen_other_text:
+            continue
+        seen_other_text.add(normalized)
+        other_text.append(text)
+    if other_text:
+        if lines:
+            lines.append("")
+        lines.extend(other_text)
+
+    items = menu_payload.get("items") or []
+    if not isinstance(items, list):
+        items = []
+
+    page_values = {
+        int(item.get("page"))
+        for item in items
+        if isinstance(item, dict) and str(item.get("page") or "").strip().isdigit()
+    }
+    use_page_sections = len(page_values) > 1
+    grouped_items: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        section_label = str(item.get("dish_type") or "").strip()
+        if not section_label:
+            page_no = str(item.get("page") or "").strip()
+            if use_page_sections and page_no:
+                section_label = f"Page {page_no}"
+            else:
+                section_label = "Menu Items"
+        grouped_items.setdefault(section_label, []).append(item)
+
+    for section_label, section_items in grouped_items.items():
+        if lines:
+            lines.append("")
+        lines.append(section_label)
+        for item in section_items:
+            name = str(item.get("name") or "").strip()
+            if not name:
+                continue
+            price = str(item.get("price") or "").strip()
+            heading = f"{name} - INR {price}" if price else name
+            lines.append(heading)
+
+            meta_bits: list[str] = []
+            dietary_labels = _menu_dietary_labels(item)
+            if dietary_labels:
+                meta_bits.append(f"Dietary: {', '.join(dietary_labels)}")
+            kcal = str(item.get("kcal") or "").strip()
+            if kcal:
+                meta_bits.append(f"Calories: {kcal}")
+            allergens = item.get("allergens") or []
+            if isinstance(allergens, list):
+                allergen_list = [str(entry or "").strip() for entry in allergens if str(entry or "").strip()]
+                if allergen_list:
+                    meta_bits.append(f"Allergens: {', '.join(allergen_list)}")
+            if meta_bits:
+                lines.append(f"  {' | '.join(meta_bits)}")
+
+            description = str(item.get("description") or "").strip()
+            if description:
+                lines.append(f"  {description}")
+
+    notes = [
+        str(entry or "").strip()
+        for entry in (menu_payload.get("notes") or [])
+        if str(entry or "").strip()
+    ]
+    if notes:
+        if lines:
+            lines.append("")
+        lines.append("Notes")
+        for entry in notes:
+            lines.append(f"- {entry}")
+
+    footer_text = [
+        str(entry or "").strip()
+        for entry in (menu_payload.get("footer_text") or [])
+        if str(entry or "").strip()
+    ]
+    if footer_text:
+        if lines:
+            lines.append("")
+        lines.append("Footer")
+        for entry in footer_text:
+            lines.append(f"- {entry}")
+
+    return "\n".join(line.rstrip() for line in lines if line is not None).strip()
+
+
+def _build_menu_document_payload(
+    *,
+    file_name: str,
+    ocr_result: dict[str, Any],
+    formatted_text: str,
+    raw_ocr_json: str,
+) -> dict[str, Any]:
+    summary = ocr_result.get("summary", {})
+    if not isinstance(summary, dict):
+        summary = {}
+    trace = ocr_result.get("trace", {})
+    if not isinstance(trace, dict):
+        trace = {}
+    ocr_payload = ocr_result.get("ocr_raw_output", {})
+    if not isinstance(ocr_payload, dict):
+        ocr_payload = {}
+    fact_lines = ocr_result.get("fact_lines", [])
+    if not isinstance(fact_lines, list):
+        fact_lines = []
+
+    run_id = re.sub(r"[^a-z0-9_]+", "_", str(trace.get("run_id") or "").strip().lower()).strip("_")
+    if not run_id:
+        run_id = re.sub(r"[^a-z0-9_]+", "_", str(file_name or "menu_upload").strip().lower()).strip("_")
+    if not run_id:
+        run_id = f"menu_doc_{uuid4().hex[:8]}"
+
+    return {
+        "id": run_id,
+        "menu_name": str(summary.get("menu_name") or ocr_payload.get("menu_name") or "").strip() or None,
+        "source_file": str(file_name or "").strip() or None,
+        "scanned_at": datetime.now(timezone.utc).isoformat(),
+        "summary": summary,
+        "trace": trace,
+        "fact_lines": [str(entry or "").strip() for entry in fact_lines if str(entry or "").strip()],
+        "ocr_raw_output": ocr_payload,
+        "ocr_raw_output_text": raw_ocr_json,
+        "formatted_text": str(formatted_text or "").strip(),
+        "raw_text": str(ocr_result.get("raw_text") or "").strip(),
+    }
+
+
 @router.get("/api/agent-builder/menu-ocr/status")
 async def get_menu_ocr_status():
     """Get standalone menu OCR plugin status."""
@@ -2652,10 +2860,18 @@ async def scan_menu_ocr_for_agent_builder(
         except RuntimeError as exc:
             raise HTTPException(status_code=500, detail=str(exc))
 
+    menu_payload = ocr_result.get("ocr_raw_output", {})
+    if not isinstance(menu_payload, dict):
+        menu_payload = {}
+
     # Pass OCR structured output through LLM for clean plain-text formatting
     raw_ocr_json = str(ocr_result.get("ocr_raw_output_text") or "").strip()
-    formatted_text = raw_ocr_json  # fallback if LLM fails
+    if not raw_ocr_json and menu_payload:
+        raw_ocr_json = json.dumps(menu_payload, indent=2, ensure_ascii=False)
+    seed_formatted_text = _render_menu_payload_as_text(menu_payload)
+    formatted_text = seed_formatted_text or raw_ocr_json
     if raw_ocr_json and str(settings.openai_api_key or "").strip():
+        menu_name_hint = str(menu_payload.get("menu_name") or service_name or safe_name).strip() or safe_name
         try:
             messages = [
                 {
@@ -2679,12 +2895,48 @@ async def scan_menu_ocr_for_agent_builder(
                     "content": f"Format this OCR menu output into clean plain text:\n\n{raw_ocr_json}",
                 },
             ]
-            formatted_text = await llm_client.chat(messages, temperature=0.1, max_tokens=4000)
-            formatted_text = str(formatted_text or "").strip() or raw_ocr_json
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You format OCR-extracted restaurant menu JSON into clean plain text. "
+                        "The input is a menu_formatted.json-style payload from a hotel or restaurant menu OCR pipeline.\n\n"
+                        "Output rules:\n"
+                        "- Output plain text only.\n"
+                        "- Keep every factual detail present in the input. Do not invent or infer missing details.\n"
+                        "- Organize the menu into clear sections or categories using dish_type when present.\n"
+                        "- For each menu item, include the item name, description, price, dietary markers, allergens, calories, and any seafood or non-vegetarian markers when present.\n"
+                        "- Preserve menu title, service hours, notes, footer text, tax notes, allergy warnings, and legends when present.\n"
+                        "- If a field is missing, omit that field instead of guessing.\n"
+                        "- Make the result read like a clean guest-facing menu, not like JSON, logs, or a fact list."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Format this menu_formatted.json payload for the menu '{menu_name_hint}'.\n\n"
+                        "Return a clean plain-text menu with section headings and neatly grouped item details.\n\n"
+                        f"JSON INPUT:\n{raw_ocr_json}"
+                        + (
+                            f"\n\nREFERENCE RENDERING:\n{seed_formatted_text}"
+                            if seed_formatted_text
+                            else ""
+                        )
+                    ),
+                },
+            ]
+            llm_formatted_text = await llm_client.chat(messages, temperature=0.1, max_tokens=4000)
+            formatted_text = str(llm_formatted_text or "").strip() or formatted_text
         except Exception:
-            formatted_text = raw_ocr_json
+            formatted_text = seed_formatted_text or raw_ocr_json
 
     ocr_result["formatted_text"] = formatted_text
+    ocr_result["menu_document"] = _build_menu_document_payload(
+        file_name=safe_name,
+        ocr_result=ocr_result,
+        formatted_text=formatted_text,
+        raw_ocr_json=raw_ocr_json,
+    )
     return ocr_result
 
 

@@ -1,0 +1,1839 @@
+{
+  "pdf": "D:\\Sana Hp Laptop Data\\D Drive Data\\kepslasw\\new_botv\\new_bot\\ocrbadfinalfr\\ocrbad\\output\\aviator_la_carte_menu_20260413_202535\\input.pdf",
+  "pages": [
+    {
+      "page": 1,
+      "lines": [
+        {
+          "text": "~ 350",
+          "bbox": [
+            1195.1993025,
+            540.71907435,
+            1332.9744369,
+            578.6038849500001
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "lemon,",
+          "bbox": [
+            1219.3099047,
+            830.02099635,
+            1386.36231885,
+            878.23798335
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "LEMON",
+          "bbox": [
+            1208.9767812,
+            1269.1400085,
+            1379.4735795,
+            1308.7468485
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "tra",
+          "bbox": [
+            1200.3658352999998,
+            1637.6556105,
+            1270.975638,
+            1673.8183098
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "socca",
+          "bbox": [
+            1524.1373953500001,
+            1641.09962835,
+            1658.4682035,
+            1670.3743329
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "capers, toasted haelnut crumb ~ 750",
+          "bbox": [
+            291.04995405,
+            3748.8709440000002,
+            1248.5871554999999,
+            3800.531826
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "TOMATO BENEDICT CROSSA",
+          "bbox": [
+            1779.021504,
+            1777.1404833000001,
+            2481.6746547,
+            1816.74728235
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "hed tomatoes,",
+          "bbox": [
+            2125.1815755,
+            1849.4659638,
+            2483.3967165000004,
+            1897.6829507999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "poached",
+          "bbox": [
+            1663.6346205000002,
+            1849.4659638,
+            1873.741851,
+            1901.1270915
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "egg",
+          "bbox": [
+            1890.9636269999999,
+            1849.4659638,
+            1982.2396767000002,
+            1899.4049392499999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": ",",
+          "bbox": [
+            1982.2396767000002,
+            1849.4659638,
+            1997.7394488,
+            1899.4049392499999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "seasona eggie",
+          "bbox": [
+            1555.1367948,
+            2140.4900789999997,
+            1956.4068389999998,
+            2193.8729085
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "AATOR BIG MACWICH (V",
+          "bbox": [
+            1971.90652425,
+            2061.27619425,
+            2595.3390132,
+            2109.49318125
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "ties, mozzarella beet,",
+          "bbox": [
+            2061.4603094999998,
+            2140.4900789999997,
+            2605.6721367,
+            2190.4290134999997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "CH CHEESE BUN (V)",
+          "bbox": [
+            2097.6263865,
+            3519.840051,
+            2603.9500169999997,
+            3568.057038
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "rell",
+          "bbox": [
+            2297.400204,
+            3600.77596515,
+            2378.343246,
+            3640.3827641999997
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "cheddar",
+          "bbox": [
+            1894.4080979999999,
+            3600.77596515,
+            2099.348622,
+            3650.7150224999996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            2099.348622,
+            3600.77596515,
+            2125.1815755,
+            3650.7150224999996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            2414.50917825,
+            3600.77596515,
+            2436.8978055000002,
+            3650.7150224999996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "belper",
+          "bbox": [
+            2445.5085777,
+            3600.77596515,
+            2607.394488,
+            3650.7150224999996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "B",
+          "bbox": [
+            2331.8440455,
+            3864.2471595,
+            2354.23261485,
+            3895.2438525
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "ade V",
+          "bbox": [
+            2113.12607175,
+            3921.0744572999997,
+            2228.5128105,
+            3953.792934
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "Taxe are charg extra",
+          "bbox": [
+            1932.29626575,
+            3976.1796438,
+            2373.17662635,
+            4014.0643725
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2714.2
+          ]
+        },
+        {
+          "text": "can",
+          "bbox": [
+            1921.9631133,
+            3922.79644575,
+            1990.8506805,
+            3960.6811334999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "be",
+          "bbox": [
+            2008.07260125,
+            3922.79644575,
+            2056.2938925,
+            3960.6811334999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "or",
+          "bbox": [
+            2345.62164,
+            3922.79644575,
+            2388.6763695,
+            3960.6811334999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "TOFU & PEANUT LETTUCE CUPS (VG)ginger-chilli, peanut-sesame, lime",
+          "bbox": [
+            289.32777645,
+            458.0613765,
+            1172.81082,
+            590.6581317
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "+",
+          "bbox": [
+            2044.2385335000001,
+            533.8309567499999,
+            2285.34504765,
+            780.0820209
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "BABY SPINACH SALAD WITH DATES &",
+          "bbox": [
+            292.7721606,
+            687.0921056999999,
+            1212.42116535,
+            724.97687535
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "(V)ALMONDS",
+          "bbox": [
+            289.32777645,
+            750.8073573,
+            597.5996223,
+            795.58032645
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "carmelised dates, toasted almonds,",
+          "bbox": [
+            291.04995405,
+            828.2990079,
+            1195.1993025,
+            876.5159948999999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "sumac 350",
+          "bbox": [
+            289.32777645,
+            902.34647685,
+            613.0993364999999,
+            948.8414753999999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "HEIRLOOM TOMATO & STRACCIATELLA(V)",
+          "bbox": [
+            292.7721606,
+            1041.8313906,
+            1296.80844675,
+            1091.770407
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "AVIATOR",
+          "bbox": [
+            1863.4087275,
+            1007.3906388,
+            2560.89537435,
+            1176.1501752
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "basil oil, black olive caramel ~ 350",
+          "bbox": [
+            291.04995405,
+            1122.7671,
+            1176.2551752,
+            1167.5399462999999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "ASPARAGUS FRIES, PECORINO DUST,",
+          "bbox": [
+            287.60558147999996,
+            1270.8620379000001,
+            1184.8661210999999,
+            1313.91289575
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "AIOLI (V)",
+          "bbox": [
+            284.16120312,
+            1325.9672244,
+            480.4907928,
+            1391.4044235000001
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "ultra-crisp spears, pepper, lemon ~ 350",
+          "bbox": [
+            291.04995405,
+            1412.0690220000001,
+            1295.0862691500001,
+            1468.896156
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "(S)RUSSET POTATO, TRUFFLE, CAVIAR",
+          "bbox": [
+            291.04995405,
+            1553.2758423,
+            1195.1993025,
+            1604.93697
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "(V)COURGETTE & CHICKPEA PANCAKES",
+          "bbox": [
+            1663.6346205000002,
+            1551.55385385,
+            2603.9500169999997,
+            1599.77084085
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "crisp potato, hot truffle sauce,",
+          "bbox": [
+            289.32777645,
+            1630.767411,
+            1053.9797549999998,
+            1685.8725975
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "-style, dill yoghurt, herb salad ~ 450",
+          "bbox": [
+            1663.6346205000002,
+            1623.87933435,
+            2602.2277814999998,
+            1684.1504862
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "495",
+          "bbox": [
+            285.8833923,
+            1706.53699125,
+            382.32600375,
+            1746.1437903
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "(V)",
+          "bbox": [
+            2564.3397585000002,
+            1770.2522838,
+            2605.6721367,
+            1796.0828886
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "SMOKED CHICKEN & GREEN TOMATO",
+          "bbox": [
+            289.32777645,
+            1854.6320520000002,
+            1198.64362875,
+            1894.2388919999999
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "chilihollandaise ~ 450",
+          "bbox": [
+            2149.29214875,
+            1847.7438525,
+            2605.6721367,
+            1963.1202317999998
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "chilled slices, dill oil, kombu-chicken dashigel, pickled green tomatoes ~ 450",
+          "bbox": [
+            289.32777645,
+            1925.235585,
+            1367.4182205,
+            2050.943895
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "SEA BASS CRUDO (S)",
+          "bbox": [
+            289.32777645,
+            2135.3238269999997,
+            778.4295441,
+            2188.707066
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "slaw, rocket ~ 350",
+          "bbox": [
+            2144.12550015,
+            2209.371255,
+            2602.2277814999998,
+            2259.3103533000003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "chilled slices, finger-lime pearls, aromaticoil - 750",
+          "bbox": [
+            287.60558147999996,
+            2216.2594544999997,
+            1363.97383635,
+            2331.63595665
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "ICONIQ CLUB",
+          "bbox": [
+            2285.34504765,
+            2362.6325268,
+            2603.9500169999997,
+            2400.5172555
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "TAGLIATELLE & TRUFFLE (V)",
+          "bbox": [
+            289.32777645,
+            2429.792001,
+            943.75966485,
+            2476.2868767
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "grilled chicken, herb mayo, bacon,tomatoes, rocket ~ 450",
+          "bbox": [
+            1742.855427,
+            2433.2358959999997,
+            2605.6721367,
+            2550.3342228
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "rich yolk pasta, beurre mont\u00e9, shavedtruffle ~ 950",
+          "bbox": [
+            287.60558147999996,
+            2505.5613765,
+            1239.97618065,
+            2620.9378377
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            464.99107860000004,
+            2600.273403,
+            483.93514799999997,
+            2607.1614387
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "(S)LOBSTER ROLL",
+          "bbox": [
+            2187.1803165,
+            2646.7681968,
+            2603.9500169999997,
+            2691.541125
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "BUTTERNUT SQUASH \"CARBONARA\" (V)",
+          "bbox": [
+            292.7721606,
+            2720.8158704999996,
+            1239.97618065,
+            2770.754805
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "warm buttered brioche, truffle mayo,butter garlic, chive ~ 650",
+          "bbox": [
+            1663.6346205000002,
+            2724.2597655000004,
+            2603.9500169999997,
+            2846.5243443000004
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "butternut cream, pecorino, black pepper ~",
+          "bbox": [
+            291.04995405,
+            2791.4191578,
+            1353.64071285,
+            2856.85656165
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            291.04995405,
+            2875.798926,
+            382.32600375,
+            2911.961871
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "PRAWN & SCOTCH BONNET BUNS(S)",
+          "bbox": [
+            1722.1891799999999,
+            2937.792312,
+            2602.2277814999998,
+            2986.009299
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "ASPARAGUS & PARMESAN CUSTARD (V)",
+          "bbox": [
+            289.32777645,
+            3013.5616875,
+            1236.5317965000002,
+            3060.056727
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "steamed buns, prawn salad, scotch-bonnet mayo ~ 550",
+          "bbox": [
+            1677.4122149999998,
+            3017.005992,
+            2605.6721367,
+            3137.5482547499996
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "raw-shaved tips, warm parmesan custard,citrus crumb ~ 650",
+          "bbox": [
+            289.32777645,
+            3092.77549035,
+            1370.86260465,
+            3206.4298812
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "SMOKED CHICKEN BUN",
+          "bbox": [
+            2035.6276455,
+            3237.42645135,
+            2600.5056618,
+            3275.311221
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "CHARRED BABY CORN, BLACK GARLIC",
+          "bbox": [
+            287.60558147999996,
+            3313.1961134999997,
+            1221.0321112499998,
+            3354.524901
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "wood smoked chicken, garlic cream,thyme, parmesan ~ 450",
+          "bbox": [
+            1692.912045,
+            3299.4197145000003,
+            2603.9500169999997,
+            3433.73837625
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "BUTTER (V)",
+          "bbox": [
+            291.04995405,
+            3375.18909,
+            537.32302995,
+            3426.85017675
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "brown-butter glaze, manchego snow",
+          "bbox": [
+            292.7721606,
+            3454.40277,
+            1229.64305715,
+            3512.9518515
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            1295.0862691500001,
+            3457.8470745,
+            1388.0844675,
+            3497.4537916500003
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "CAULIFLOWER STEAK, BROWN-BUTTERTRUFFLE EMULSION (V)",
+          "bbox": [
+            289.32777645,
+            3604.219983,
+            1262.36466315,
+            3719.5961985
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 1,
+          "column_bbox": [
+            287.7,
+            1356.7
+          ]
+        },
+        {
+          "text": "green chilli, knolle, scallion, chaat spice ~ 350",
+          "bbox": [
+            1586.1362232,
+            3600.77596515,
+            2605.6721367,
+            3724.7622867
+          ],
+          "icons": [],
+          "layout_role": "body",
+          "column_index": 2,
+          "column_bbox": [
+            1640.4,
+            2605.7
+          ]
+        },
+        {
+          "text": "Please let us know of any allergies you order.Some dishes Gluten Free.",
+          "bbox": [
+            1591.3028718,
+            3862.525212,
+            2714.170194,
+            3960.6811334999998
+          ],
+          "icons": [],
+          "layout_role": "footer",
+          "column_index": 0,
+          "column_bbox": [
+            0.0,
+            2714.2
+          ]
+        }
+      ],
+      "blocks": [
+        {
+          "text": "~ 350",
+          "bbox": [
+            1195.1993025,
+            540.71907435,
+            1332.9744369,
+            578.6038849500001
+          ]
+        },
+        {
+          "text": "lemon,",
+          "bbox": [
+            1219.3099047,
+            830.02099635,
+            1386.36231885,
+            878.23798335
+          ]
+        },
+        {
+          "text": "LEMON",
+          "bbox": [
+            1208.9767812,
+            1269.1400085,
+            1379.4735795,
+            1308.7468485
+          ]
+        },
+        {
+          "text": "tra",
+          "bbox": [
+            1200.3658352999998,
+            1637.6556105,
+            1270.975638,
+            1673.8183098
+          ]
+        },
+        {
+          "text": "socca",
+          "bbox": [
+            1524.1373953500001,
+            1641.09962835,
+            1658.4682035,
+            1670.3743329
+          ]
+        },
+        {
+          "text": "capers, toasted haelnut crumb ~ 750",
+          "bbox": [
+            291.04995405,
+            3748.8709440000002,
+            1248.5871554999999,
+            3800.531826
+          ]
+        },
+        {
+          "text": "TOMATO BENEDICT CROSSA",
+          "bbox": [
+            1779.021504,
+            1777.1404833000001,
+            2481.6746547,
+            1816.74728235
+          ]
+        },
+        {
+          "text": "hed tomatoes,",
+          "bbox": [
+            2125.1815755,
+            1849.4659638,
+            2483.3967165000004,
+            1897.6829507999998
+          ]
+        },
+        {
+          "text": "poached",
+          "bbox": [
+            1663.6346205000002,
+            1849.4659638,
+            1873.741851,
+            1901.1270915
+          ]
+        },
+        {
+          "text": "egg",
+          "bbox": [
+            1890.9636269999999,
+            1849.4659638,
+            1982.2396767000002,
+            1899.4049392499999
+          ]
+        },
+        {
+          "text": ",",
+          "bbox": [
+            1982.2396767000002,
+            1849.4659638,
+            1997.7394488,
+            1899.4049392499999
+          ]
+        },
+        {
+          "text": "seasona eggie",
+          "bbox": [
+            1555.1367948,
+            2140.4900789999997,
+            1956.4068389999998,
+            2193.8729085
+          ]
+        },
+        {
+          "text": "AATOR BIG MACWICH (V",
+          "bbox": [
+            1971.90652425,
+            2061.27619425,
+            2595.3390132,
+            2109.49318125
+          ]
+        },
+        {
+          "text": "ties, mozzarella beet,",
+          "bbox": [
+            2061.4603094999998,
+            2140.4900789999997,
+            2605.6721367,
+            2190.4290134999997
+          ]
+        },
+        {
+          "text": "CH CHEESE BUN (V)",
+          "bbox": [
+            2097.6263865,
+            3519.840051,
+            2603.9500169999997,
+            3568.057038
+          ]
+        },
+        {
+          "text": "rell",
+          "bbox": [
+            2297.400204,
+            3600.77596515,
+            2378.343246,
+            3640.3827641999997
+          ]
+        },
+        {
+          "text": "cheddar",
+          "bbox": [
+            1894.4080979999999,
+            3600.77596515,
+            2099.348622,
+            3650.7150224999996
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            2099.348622,
+            3600.77596515,
+            2125.1815755,
+            3650.7150224999996
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            2414.50917825,
+            3600.77596515,
+            2436.8978055000002,
+            3650.7150224999996
+          ]
+        },
+        {
+          "text": "belper",
+          "bbox": [
+            2445.5085777,
+            3600.77596515,
+            2607.394488,
+            3650.7150224999996
+          ]
+        },
+        {
+          "text": "B",
+          "bbox": [
+            2331.8440455,
+            3864.2471595,
+            2354.23261485,
+            3895.2438525
+          ]
+        },
+        {
+          "text": "ade V",
+          "bbox": [
+            2113.12607175,
+            3921.0744572999997,
+            2228.5128105,
+            3953.792934
+          ]
+        },
+        {
+          "text": "Taxe are charg extra",
+          "bbox": [
+            1932.29626575,
+            3976.1796438,
+            2373.17662635,
+            4014.0643725
+          ]
+        },
+        {
+          "text": "can",
+          "bbox": [
+            1921.9631133,
+            3922.79644575,
+            1990.8506805,
+            3960.6811334999998
+          ]
+        },
+        {
+          "text": "be",
+          "bbox": [
+            2008.07260125,
+            3922.79644575,
+            2056.2938925,
+            3960.6811334999998
+          ]
+        },
+        {
+          "text": "or",
+          "bbox": [
+            2345.62164,
+            3922.79644575,
+            2388.6763695,
+            3960.6811334999998
+          ]
+        },
+        {
+          "text": "TOFU & PEANUT LETTUCE CUPS (VG)ginger-chilli, peanut-sesame, lime",
+          "bbox": [
+            289.32777645,
+            458.0613765,
+            1172.81082,
+            590.6581317
+          ]
+        },
+        {
+          "text": "+",
+          "bbox": [
+            2044.2385335000001,
+            533.8309567499999,
+            2285.34504765,
+            780.0820209
+          ]
+        },
+        {
+          "text": "BABY SPINACH SALAD WITH DATES &",
+          "bbox": [
+            292.7721606,
+            687.0921056999999,
+            1212.42116535,
+            724.97687535
+          ]
+        },
+        {
+          "text": "(V)ALMONDS",
+          "bbox": [
+            289.32777645,
+            750.8073573,
+            597.5996223,
+            795.58032645
+          ]
+        },
+        {
+          "text": "carmelised dates, toasted almonds,",
+          "bbox": [
+            291.04995405,
+            828.2990079,
+            1195.1993025,
+            876.5159948999999
+          ]
+        },
+        {
+          "text": "sumac 350",
+          "bbox": [
+            289.32777645,
+            902.34647685,
+            613.0993364999999,
+            948.8414753999999
+          ]
+        },
+        {
+          "text": "HEIRLOOM TOMATO & STRACCIATELLA(V)",
+          "bbox": [
+            292.7721606,
+            1041.8313906,
+            1296.80844675,
+            1091.770407
+          ]
+        },
+        {
+          "text": "AVIATOR",
+          "bbox": [
+            1863.4087275,
+            1007.3906388,
+            2560.89537435,
+            1176.1501752
+          ]
+        },
+        {
+          "text": "basil oil, black olive caramel ~ 350",
+          "bbox": [
+            291.04995405,
+            1122.7671,
+            1176.2551752,
+            1167.5399462999999
+          ]
+        },
+        {
+          "text": "ASPARAGUS FRIES, PECORINO DUST,",
+          "bbox": [
+            287.60558147999996,
+            1270.8620379000001,
+            1184.8661210999999,
+            1313.91289575
+          ]
+        },
+        {
+          "text": "AIOLI (V)",
+          "bbox": [
+            284.16120312,
+            1325.9672244,
+            480.4907928,
+            1391.4044235000001
+          ]
+        },
+        {
+          "text": "ultra-crisp spears, pepper, lemon ~ 350",
+          "bbox": [
+            291.04995405,
+            1412.0690220000001,
+            1295.0862691500001,
+            1468.896156
+          ]
+        },
+        {
+          "text": "(S)RUSSET POTATO, TRUFFLE, CAVIAR",
+          "bbox": [
+            291.04995405,
+            1553.2758423,
+            1195.1993025,
+            1604.93697
+          ]
+        },
+        {
+          "text": "(V)COURGETTE & CHICKPEA PANCAKES",
+          "bbox": [
+            1663.6346205000002,
+            1551.55385385,
+            2603.9500169999997,
+            1599.77084085
+          ]
+        },
+        {
+          "text": "crisp potato, hot truffle sauce,",
+          "bbox": [
+            289.32777645,
+            1630.767411,
+            1053.9797549999998,
+            1685.8725975
+          ]
+        },
+        {
+          "text": "-style, dill yoghurt, herb salad ~ 450",
+          "bbox": [
+            1663.6346205000002,
+            1623.87933435,
+            2602.2277814999998,
+            1684.1504862
+          ]
+        },
+        {
+          "text": "495",
+          "bbox": [
+            285.8833923,
+            1706.53699125,
+            382.32600375,
+            1746.1437903
+          ]
+        },
+        {
+          "text": "(V)",
+          "bbox": [
+            2564.3397585000002,
+            1770.2522838,
+            2605.6721367,
+            1796.0828886
+          ]
+        },
+        {
+          "text": "SMOKED CHICKEN & GREEN TOMATO",
+          "bbox": [
+            289.32777645,
+            1854.6320520000002,
+            1198.64362875,
+            1894.2388919999999
+          ]
+        },
+        {
+          "text": "chilihollandaise ~ 450",
+          "bbox": [
+            2149.29214875,
+            1847.7438525,
+            2605.6721367,
+            1963.1202317999998
+          ]
+        },
+        {
+          "text": "chilled slices, dill oil, kombu-chicken dashigel, pickled green tomatoes ~ 450",
+          "bbox": [
+            289.32777645,
+            1925.235585,
+            1367.4182205,
+            2050.943895
+          ]
+        },
+        {
+          "text": "SEA BASS CRUDO (S)",
+          "bbox": [
+            289.32777645,
+            2135.3238269999997,
+            778.4295441,
+            2188.707066
+          ]
+        },
+        {
+          "text": "slaw, rocket ~ 350",
+          "bbox": [
+            2144.12550015,
+            2209.371255,
+            2602.2277814999998,
+            2259.3103533000003
+          ]
+        },
+        {
+          "text": "chilled slices, finger-lime pearls, aromaticoil - 750",
+          "bbox": [
+            287.60558147999996,
+            2216.2594544999997,
+            1363.97383635,
+            2331.63595665
+          ]
+        },
+        {
+          "text": "ICONIQ CLUB",
+          "bbox": [
+            2285.34504765,
+            2362.6325268,
+            2603.9500169999997,
+            2400.5172555
+          ]
+        },
+        {
+          "text": "TAGLIATELLE & TRUFFLE (V)",
+          "bbox": [
+            289.32777645,
+            2429.792001,
+            943.75966485,
+            2476.2868767
+          ]
+        },
+        {
+          "text": "grilled chicken, herb mayo, bacon,tomatoes, rocket ~ 450",
+          "bbox": [
+            1742.855427,
+            2433.2358959999997,
+            2605.6721367,
+            2550.3342228
+          ]
+        },
+        {
+          "text": "rich yolk pasta, beurre mont\u00e9, shavedtruffle ~ 950",
+          "bbox": [
+            287.60558147999996,
+            2505.5613765,
+            1239.97618065,
+            2620.9378377
+          ]
+        },
+        {
+          "text": "-",
+          "bbox": [
+            464.99107860000004,
+            2600.273403,
+            483.93514799999997,
+            2607.1614387
+          ]
+        },
+        {
+          "text": "(S)LOBSTER ROLL",
+          "bbox": [
+            2187.1803165,
+            2646.7681968,
+            2603.9500169999997,
+            2691.541125
+          ]
+        },
+        {
+          "text": "BUTTERNUT SQUASH \"CARBONARA\" (V)",
+          "bbox": [
+            292.7721606,
+            2720.8158704999996,
+            1239.97618065,
+            2770.754805
+          ]
+        },
+        {
+          "text": "warm buttered brioche, truffle mayo,butter garlic, chive ~ 650",
+          "bbox": [
+            1663.6346205000002,
+            2724.2597655000004,
+            2603.9500169999997,
+            2846.5243443000004
+          ]
+        },
+        {
+          "text": "butternut cream, pecorino, black pepper ~",
+          "bbox": [
+            291.04995405,
+            2791.4191578,
+            1353.64071285,
+            2856.85656165
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            291.04995405,
+            2875.798926,
+            382.32600375,
+            2911.961871
+          ]
+        },
+        {
+          "text": "PRAWN & SCOTCH BONNET BUNS(S)",
+          "bbox": [
+            1722.1891799999999,
+            2937.792312,
+            2602.2277814999998,
+            2986.009299
+          ]
+        },
+        {
+          "text": "ASPARAGUS & PARMESAN CUSTARD (V)",
+          "bbox": [
+            289.32777645,
+            3013.5616875,
+            1236.5317965000002,
+            3060.056727
+          ]
+        },
+        {
+          "text": "steamed buns, prawn salad, scotch-bonnet mayo ~ 550",
+          "bbox": [
+            1677.4122149999998,
+            3017.005992,
+            2605.6721367,
+            3137.5482547499996
+          ]
+        },
+        {
+          "text": "raw-shaved tips, warm parmesan custard,citrus crumb ~ 650",
+          "bbox": [
+            289.32777645,
+            3092.77549035,
+            1370.86260465,
+            3206.4298812
+          ]
+        },
+        {
+          "text": "SMOKED CHICKEN BUN",
+          "bbox": [
+            2035.6276455,
+            3237.42645135,
+            2600.5056618,
+            3275.311221
+          ]
+        },
+        {
+          "text": "CHARRED BABY CORN, BLACK GARLIC",
+          "bbox": [
+            287.60558147999996,
+            3313.1961134999997,
+            1221.0321112499998,
+            3354.524901
+          ]
+        },
+        {
+          "text": "wood smoked chicken, garlic cream,thyme, parmesan ~ 450",
+          "bbox": [
+            1692.912045,
+            3299.4197145000003,
+            2603.9500169999997,
+            3433.73837625
+          ]
+        },
+        {
+          "text": "BUTTER (V)",
+          "bbox": [
+            291.04995405,
+            3375.18909,
+            537.32302995,
+            3426.85017675
+          ]
+        },
+        {
+          "text": "brown-butter glaze, manchego snow",
+          "bbox": [
+            292.7721606,
+            3454.40277,
+            1229.64305715,
+            3512.9518515
+          ]
+        },
+        {
+          "text": "650",
+          "bbox": [
+            1295.0862691500001,
+            3457.8470745,
+            1388.0844675,
+            3497.4537916500003
+          ]
+        },
+        {
+          "text": "CAULIFLOWER STEAK, BROWN-BUTTERTRUFFLE EMULSION (V)",
+          "bbox": [
+            289.32777645,
+            3604.219983,
+            1262.36466315,
+            3719.5961985
+          ]
+        },
+        {
+          "text": "green chilli, knolle, scallion, chaat spice ~ 350",
+          "bbox": [
+            1586.1362232,
+            3600.77596515,
+            2605.6721367,
+            3724.7622867
+          ]
+        },
+        {
+          "text": "Please let us know of any allergies you order.Some dishes Gluten Free.",
+          "bbox": [
+            1591.3028718,
+            3862.525212,
+            2714.170194,
+            3960.6811334999998
+          ]
+        }
+      ],
+      "icons": [],
+      "page_text": "~ 350\nlemon,\nLEMON\ntra\nsocca\ncapers, toasted haelnut crumb ~ 750\nTOMATO BENEDICT CROSSA\nhed tomatoes,\npoached\negg\n,\nseasona eggie\nAATOR BIG MACWICH (V\nties, mozzarella beet,\nCH CHEESE BUN (V)\nrell\ncheddar\n-\n-\nbelper\nB\nade V\nTaxe are charg extra\ncan\nbe\nor\nTOFU & PEANUT LETTUCE CUPS (VG)ginger-chilli, peanut-sesame, lime\n+\nBABY SPINACH SALAD WITH DATES &\n(V)ALMONDS\ncarmelised dates, toasted almonds,\nsumac 350\nHEIRLOOM TOMATO & STRACCIATELLA(V)\nAVIATOR\nbasil oil, black olive caramel ~ 350\nASPARAGUS FRIES, PECORINO DUST,\nAIOLI (V)\nultra-crisp spears, pepper, lemon ~ 350\n(S)RUSSET POTATO, TRUFFLE, CAVIAR\n(V)COURGETTE & CHICKPEA PANCAKES\ncrisp potato, hot truffle sauce,\n-style, dill yoghurt, herb salad ~ 450\n495\n(V)\nSMOKED CHICKEN & GREEN TOMATO\nchilihollandaise ~ 450\nchilled slices, dill oil, kombu-chicken dashigel, pickled green tomatoes ~ 450\nSEA BASS CRUDO (S)\nslaw, rocket ~ 350\nchilled slices, finger-lime pearls, aromaticoil - 750\nICONIQ CLUB\nTAGLIATELLE & TRUFFLE (V)\ngrilled chicken, herb mayo, bacon,tomatoes, rocket ~ 450\nrich yolk pasta, beurre mont\u00e9, shavedtruffle ~ 950\n-\n(S)LOBSTER ROLL\nBUTTERNUT SQUASH \"CARBONARA\" (V)\nwarm buttered brioche, truffle mayo,butter garlic, chive ~ 650\nbutternut cream, pecorino, black pepper ~\n650\nPRAWN & SCOTCH BONNET BUNS(S)\nASPARAGUS & PARMESAN CUSTARD (V)\nsteamed buns, prawn salad, scotch-bonnet mayo ~ 550\nraw-shaved tips, warm parmesan custard,citrus crumb ~ 650\nSMOKED CHICKEN BUN\nCHARRED BABY CORN, BLACK GARLIC\nwood smoked chicken, garlic cream,thyme, parmesan ~ 450\nBUTTER (V)\nbrown-butter glaze, manchego snow\n650\nCAULIFLOWER STEAK, BROWN-BUTTERTRUFFLE EMULSION (V)\ngreen chilli, knolle, scallion, chaat spice ~ 350\nPlease let us know of any allergies you order.Some dishes Gluten Free."
+    }
+  ]
+}

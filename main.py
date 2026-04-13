@@ -50,6 +50,7 @@ except Exception:
     pass
 # ── End safe stream wrapper ───────────────────────────────────────────
 
+import asyncio
 from time import perf_counter
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -93,16 +94,23 @@ async def lifespan(app: FastAPI):
     )
 
     # Initialize database
+    db_init_timeout = max(
+        5.0,
+        float(getattr(settings, "admin_db_fast_fallback_timeout_seconds", 30.0) or 30.0),
+    )
     try:
-        await init_db()
+        await asyncio.wait_for(init_db(), timeout=db_init_timeout)
         print("Database initialized")
         new_detailed_logger.log_db_init(success=True)
+    except asyncio.TimeoutError:
+        timeout_msg = f"Database init timed out after {db_init_timeout:.0f}s"
+        print(f"{timeout_msg} (continuing with startup)")
+        new_detailed_logger.log_db_init(success=False, error=timeout_msg)
     except Exception as e:
         print(f"Database init failed (will use in-memory): {e}")
         new_detailed_logger.log_db_init(success=False, error=str(e))
 
     # Restore KB files from DB if missing from disk, then sync services to JSON.
-    import asyncio
     try:
         from services.rag_service import rag_service as _rag
         restored = await db_config_service.restore_kb_files(str(_rag.kb_dir))

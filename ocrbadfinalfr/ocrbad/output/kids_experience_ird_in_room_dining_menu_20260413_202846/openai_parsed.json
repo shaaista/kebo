@@ -1,0 +1,131 @@
+{
+  "menu_name": "KIDS EXPERIENCE - IRD - In Room Dining Menu",
+  "items": [
+    {
+      "name": "Veggie Sliders",
+      "description": "Vegetable Patty, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "148",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Rainbow Veggie Pizza",
+      "description": "Assorted Veggies, Cheese",
+      "price": "450",
+      "kcal": "175",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Mac n Cheese",
+      "description": "Classic Macaroni, Melted Cheddar Cheese",
+      "price": "450",
+      "kcal": "176",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Red Sauce Spaghetti",
+      "description": "Tomato Sauce, Basil, Cheese, Spaghetti",
+      "price": "450",
+      "kcal": "132",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Bucket of Assorted Potato Fries",
+      "description": "Potato Chips, Wedges, Corn, Cheese pop",
+      "price": "450",
+      "kcal": "254",
+      "allergens": [
+        "gluten",
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Mashed Potato",
+      "description": "Creamy Mashed, Butter, Cheese",
+      "price": "450",
+      "kcal": "111",
+      "allergens": [
+        "milk"
+      ],
+      "veg": "v",
+      "non_veg": null,
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    },
+    {
+      "name": "Crispy Chicken Sliders",
+      "description": "Crispy Chicken, Mini Burger, Cheese",
+      "price": "450",
+      "kcal": "208",
+      "allergens": [
+        "egg",
+        "gluten",
+        "milk"
+      ],
+      "veg": null,
+      "non_veg": "non-veg",
+      "dish_type": "Kids Experience",
+      "page": 1,
+      "extras": {}
+    }
+  ],
+  "other_text": [],
+  "footer_text": [
+    "Milk",
+    "Gluten",
+    "Lupin",
+    "Crustaceans",
+    "Celery",
+    "Sulpher Dioxide",
+    "Soybeans",
+    "Molluscs",
+    "Mustard",
+    "Peanuts",
+    "Sesame",
+    "Tree Nuts",
+    "Vegetarian",
+    "Kindly inform our associates of any allergies you may have.",
+    "All prices are in INR, exclusive of taxes. We levy no service charge.",
+    "The calorie content is per 100 grams of the serving."
+  ],
+  "notes": [],
+  "page_extras": {}
+}

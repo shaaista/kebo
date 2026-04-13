@@ -1403,7 +1403,39 @@ class ConfigService:
             "fact_lines": fact_lines,
             "ocr_raw_output": ocr_raw_output,
             "ocr_raw_output_text": str(document.get("ocr_raw_output_text") or "").strip(),
+            "formatted_text": str(document.get("formatted_text") or "").strip(),
+            "raw_text": str(document.get("raw_text") or "").strip(),
         }
+
+    @classmethod
+    def _merge_service_kb_text_blocks(
+        cls,
+        existing_text: Any,
+        blocks: list[Any],
+    ) -> str:
+        existing = str(existing_text or "").strip()
+        normalized_existing = re.sub(r"\s+", " ", existing).strip().lower()
+        merged_blocks: list[str] = []
+        seen: set[str] = set()
+
+        def _add(block: Any) -> None:
+            text = str(block or "").strip()
+            if not text:
+                return
+            normalized = re.sub(r"\s+", " ", text).strip().lower()
+            if not normalized:
+                return
+            if normalized_existing and normalized != normalized_existing and normalized in normalized_existing:
+                return
+            if normalized in seen:
+                return
+            seen.add(normalized)
+            merged_blocks.append(text)
+
+        _add(existing)
+        for block in blocks or []:
+            _add(block)
+        return "\n\n---\n\n".join(merged_blocks).strip()
 
     @classmethod
     def _normalize_service_kb_record(cls, record: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -4321,6 +4353,156 @@ class ConfigService:
             "published_by": published_by_clean,
             "release_notes": f"Manual override update at {now_iso}.",
             "completeness": completeness,
+        }
+        return self.upsert_service_kb_record(payload)
+
+    def set_service_kb_menu_documents(
+        self,
+        *,
+        service_id: str,
+        documents: list[dict[str, Any]],
+        plugin_id: Optional[str] = None,
+        published_by: str = "admin",
+        replace: bool = False,
+    ) -> Optional[dict[str, Any]]:
+        normalized_service_id = self._normalize_identifier(service_id)
+        if not normalized_service_id:
+            return None
+
+        clean_plugin_id = self._normalize_identifier(plugin_id)
+        incoming_documents = documents if isinstance(documents, list) else []
+        normalized_incoming: list[dict[str, Any]] = []
+        for idx, document in enumerate(incoming_documents):
+            normalized_doc = self._normalize_service_kb_menu_document(document, index=idx)
+            if normalized_doc:
+                normalized_incoming.append(normalized_doc)
+
+        existing = self.get_service_kb_record(
+            service_id=normalized_service_id,
+            plugin_id=clean_plugin_id or None,
+            active_only=False,
+        ) or self.get_service_kb_record(service_id=normalized_service_id, active_only=False)
+
+        if not existing:
+            self.compile_service_kb_records(
+                service_id=normalized_service_id,
+                force=True,
+                preserve_manual=True,
+                published_by="system",
+            )
+            existing = self.get_service_kb_record(
+                service_id=normalized_service_id,
+                plugin_id=clean_plugin_id or None,
+                active_only=False,
+            ) or self.get_service_kb_record(service_id=normalized_service_id, active_only=False)
+
+        existing_facts = (existing or {}).get("facts", [])
+        if not isinstance(existing_facts, list):
+            existing_facts = []
+
+        existing_documents_value = (existing or {}).get("menu_documents", [])
+        existing_documents = existing_documents_value if isinstance(existing_documents_value, list) else []
+        existing_extracted_knowledge = str((existing or {}).get("extracted_knowledge") or "").strip()
+
+        def _menu_document_key(document: dict[str, Any], fallback_index: int) -> str:
+            trace = document.get("trace", {})
+            if not isinstance(trace, dict):
+                trace = {}
+            run_id = self._normalize_identifier(trace.get("run_id"))
+            if run_id:
+                return f"run:{run_id}"
+
+            source_file = self._normalize_slug(document.get("source_file"))
+            menu_name_value = document.get("menu_name")
+            if not menu_name_value:
+                summary_value = document.get("summary", {})
+                if isinstance(summary_value, dict):
+                    menu_name_value = summary_value.get("menu_name")
+            menu_name_slug = self._normalize_slug(menu_name_value)
+            if source_file or menu_name_slug:
+                return f"source:{source_file}|menu:{menu_name_slug}"
+
+            doc_id = self._normalize_identifier(document.get("id"))
+            if doc_id:
+                return f"id:{doc_id}"
+
+            return f"fallback:{fallback_index}"
+
+        merged_documents: list[dict[str, Any]] = []
+        if not replace:
+            for idx, document in enumerate(existing_documents):
+                normalized_doc = self._normalize_service_kb_menu_document(document, index=idx)
+                if normalized_doc:
+                    merged_documents.append(normalized_doc)
+
+        index_by_key: dict[str, int] = {}
+        for idx, document in enumerate(merged_documents):
+            index_by_key[_menu_document_key(document, idx)] = idx
+
+        for idx, document in enumerate(normalized_incoming):
+            key = _menu_document_key(document, idx)
+            existing_index = index_by_key.get(key)
+            if existing_index is not None:
+                merged_documents[existing_index] = document
+            else:
+                index_by_key[key] = len(merged_documents)
+                merged_documents.append(document)
+
+        incoming_menu_text_blocks: list[str] = []
+        for document in normalized_incoming:
+            formatted_text = str(document.get("formatted_text") or "").strip()
+            if formatted_text:
+                incoming_menu_text_blocks.append(formatted_text)
+                continue
+            raw_text = str(document.get("raw_text") or "").strip()
+            if raw_text:
+                incoming_menu_text_blocks.append(raw_text)
+                continue
+            raw_output_text = str(document.get("ocr_raw_output_text") or "").strip()
+            if raw_output_text:
+                incoming_menu_text_blocks.append(raw_output_text)
+
+        merged_extracted_knowledge = self._merge_service_kb_text_blocks(
+            existing_extracted_knowledge,
+            incoming_menu_text_blocks,
+        )
+
+        current_version = int((existing or {}).get("version") or 0)
+        next_version = current_version + 1 if current_version > 0 else 1
+        now_iso = datetime.now(UTC).isoformat()
+        completeness = (existing or {}).get("completeness", {})
+        if not isinstance(completeness, dict):
+            completeness = {}
+        completeness = dict(completeness)
+        completeness.update(
+            {
+                "updated_at": now_iso,
+                "menu_document_count": len(merged_documents),
+                "menu_document_upload_count": len(normalized_incoming),
+                "fact_count": len(existing_facts),
+            }
+        )
+
+        payload = {
+            "id": str((existing or {}).get("id") or f"{normalized_service_id}_kb").strip(),
+            "service_id": normalized_service_id,
+            "plugin_id": str(
+                (existing or {}).get("plugin_id")
+                or clean_plugin_id
+                or self._service_default_plugin_id(normalized_service_id)
+            ).strip()
+            or None,
+            "strict_mode": bool((existing or {}).get("strict_mode", True)),
+            "facts": existing_facts,
+            "menu_documents": merged_documents,
+            "version": next_version,
+            "is_active": True,
+            "published_at": now_iso,
+            "published_by": str(published_by or "admin").strip() or "admin",
+            "release_notes": f"Menu OCR documents updated at {now_iso}.",
+            "completeness": completeness,
+            "extracted_knowledge": merged_extracted_knowledge,
+            "generated_extraction_prompt": str((existing or {}).get("generated_extraction_prompt") or "").strip(),
         }
         return self.upsert_service_kb_record(payload)
 

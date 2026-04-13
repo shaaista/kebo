@@ -553,6 +553,77 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
+async def _column_exists(conn, table: str, column: str) -> bool:
+    """Check whether a column exists on the active backend."""
+    backend = str(getattr(conn.dialect, "name", "") or "").lower()
+
+    if backend == "mysql":
+        result = await conn.execute(
+            text(
+                """
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = DATABASE()
+                  AND table_name = :table_name
+                  AND column_name = :column_name
+                LIMIT 1
+                """
+            ),
+            {"table_name": table, "column_name": column},
+        )
+        return result.scalar_one_or_none() is not None
+
+    if backend in {"postgresql", "postgres"}:
+        result = await conn.execute(
+            text(
+                """
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = :table_name
+                  AND column_name = :column_name
+                LIMIT 1
+                """
+            ),
+            {"table_name": table, "column_name": column},
+        )
+        return result.scalar_one_or_none() is not None
+
+    if backend == "sqlite":
+        # Table/column names come from a static migration list below.
+        result = await conn.execute(text(f"PRAGMA table_info({table})"))
+        for row in result:
+            row_name = str(getattr(row, "_mapping", {}).get("name", row[1]) or "")
+            if row_name.lower() == column.lower():
+                return True
+        return False
+
+    try:
+        await conn.execute(text(f"SELECT {column} FROM {table} WHERE 1=0"))
+        return True
+    except Exception:
+        return False
+
+
+async def _mysql_data_type(conn, table: str, column: str) -> str:
+    """Return MySQL DATA_TYPE for a given column (empty when unavailable)."""
+    result = await conn.execute(
+        text(
+            """
+            SELECT DATA_TYPE
+            FROM information_schema.columns
+            WHERE table_schema = DATABASE()
+              AND table_name = :table_name
+              AND column_name = :column_name
+            LIMIT 1
+            """
+        ),
+        {"table_name": table, "column_name": column},
+    )
+    value = result.scalar_one_or_none()
+    return str(value or "").strip().lower()
+
+
 async def init_db() -> None:
     """Initialize database tables (safe if tables already exist)."""
     async with engine.begin() as conn:
@@ -586,32 +657,43 @@ async def init_db() -> None:
     async with engine.begin() as conn:
         for table, col, col_type in _new_columns:
             try:
+                if await _column_exists(conn, table, col):
+                    continue
                 await conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
             except Exception:
-                pass  # column already exists
+                # Best effort: skip when backend doesn't support the DDL or migration races.
+                pass
 
-    # Ensure config_value can hold large JSON snapshots (knowledge_base/library index).
+    # MySQL-only longtext widening (skip when already LONGTEXT).
     try:
-        async with engine.begin() as conn:
-            await conn.execute(
-                text("ALTER TABLE new_bot_business_config MODIFY COLUMN config_value LONGTEXT NULL")
-            )
+        parsed = make_url(ACTIVE_DATABASE_URL)
+        backend = str(parsed.get_backend_name() or "").lower()
     except Exception:
-        # Non-MySQL backends (or already-migrated schemas) can safely ignore this.
-        pass
+        backend = ""
 
-    # Ensure KB and long-form prompt columns can hold large payloads.
-    try:
-        async with engine.begin() as conn:
-            await conn.execute(
-                text("ALTER TABLE new_bot_kb_files MODIFY COLUMN content LONGTEXT NOT NULL")
-            )
-            await conn.execute(
-                text("ALTER TABLE new_bot_services MODIFY COLUMN generated_system_prompt LONGTEXT NULL")
-            )
-            await conn.execute(
-                text("ALTER TABLE new_bot_services MODIFY COLUMN ticketing_policy LONGTEXT NULL")
-            )
-    except Exception:
-        # Non-MySQL backends (or already-migrated schemas) can safely ignore this.
-        pass
+    if backend == "mysql":
+        try:
+            async with engine.begin() as conn:
+                if await _mysql_data_type(conn, "new_bot_business_config", "config_value") != "longtext":
+                    await conn.execute(
+                        text("ALTER TABLE new_bot_business_config MODIFY COLUMN config_value LONGTEXT NULL")
+                    )
+        except Exception:
+            pass
+
+        try:
+            async with engine.begin() as conn:
+                if await _mysql_data_type(conn, "new_bot_kb_files", "content") != "longtext":
+                    await conn.execute(
+                        text("ALTER TABLE new_bot_kb_files MODIFY COLUMN content LONGTEXT NOT NULL")
+                    )
+                if await _mysql_data_type(conn, "new_bot_services", "generated_system_prompt") != "longtext":
+                    await conn.execute(
+                        text("ALTER TABLE new_bot_services MODIFY COLUMN generated_system_prompt LONGTEXT NULL")
+                    )
+                if await _mysql_data_type(conn, "new_bot_services", "ticketing_policy") != "longtext":
+                    await conn.execute(
+                        text("ALTER TABLE new_bot_services MODIFY COLUMN ticketing_policy LONGTEXT NULL")
+                    )
+        except Exception:
+            pass
