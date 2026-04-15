@@ -20,6 +20,9 @@ class TicketDecision(BaseModel):
 
     required: bool = False
     ready_to_create: bool = False
+    generic_request: bool = False
+    phase_applicable: bool | None = None
+    approval_required: bool = False
     reason: str = ""
     issue: str = ""
     category: str = ""
@@ -27,11 +30,33 @@ class TicketDecision(BaseModel):
     priority: str = ""
     department_id: str = ""
     department_name: str = ""
+    evidence: list[str] = Field(default_factory=list)
 
     @field_validator("category", "sub_category", "priority", mode="before")
     @classmethod
     def _normalize_label(cls, value: Any) -> str:
         return str(value or "").strip().lower().replace(" ", "_")
+
+    @field_validator("evidence", mode="before")
+    @classmethod
+    def _normalize_evidence(cls, value: Any) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for item in value:
+            text = str(item or "").strip()
+            if not text:
+                continue
+            compact = " ".join(text.split())
+            key = compact.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            normalized.append(compact[:280])
+            if len(normalized) >= 4:
+                break
+        return normalized
 
 
 class OrchestrationDecision(BaseModel):

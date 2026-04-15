@@ -320,6 +320,72 @@ class BusinessConfig(BaseModel):
     ui_settings: Optional[Dict[str, str]] = None
 
 
+def _prettify_kb_block(text: str) -> str:
+    """Prettify raw JSON KB blobs for LLM readability WITHOUT altering any content.
+
+    If the scope text is already prose / pre-formatted (as it is for most properties),
+    it is returned untouched. Only when the text looks like a raw JSON dump
+    (starts with '{' or '[' and parses as JSON) do we flatten it into human-readable
+    "Key Name: value" lines, preserving every character of every value verbatim.
+    """
+    raw = (text or "").strip()
+    if not raw or raw[0] not in "{[":
+        return text
+
+    try:
+        parsed = json.loads(raw)
+    except Exception:
+        return text
+
+    def _humanize_key(key: str) -> str:
+        cleaned = str(key or "").replace("_", " ").strip()
+        if not cleaned:
+            return ""
+        # Preserve original casing if mixed/upper, else title-case
+        if cleaned == cleaned.lower():
+            cleaned = cleaned.title()
+        return cleaned
+
+    def _emit(node, depth: int, out: list) -> None:
+        indent = "  " * depth
+        if isinstance(node, dict):
+            for k, v in node.items():
+                label = _humanize_key(k)
+                if isinstance(v, dict):
+                    out.append(f"{indent}{label}:")
+                    _emit(v, depth + 1, out)
+                elif isinstance(v, list):
+                    if all(not isinstance(item, (dict, list)) for item in v):
+                        out.append(f"{indent}{label}: {', '.join(str(x) for x in v)}")
+                    else:
+                        out.append(f"{indent}{label}:")
+                        for item in v:
+                            _emit(item, depth + 1, out)
+                else:
+                    value_text = str(v) if v is not None else ""
+                    if "\n" in value_text:
+                        out.append(f"{indent}{label}:")
+                        for line in value_text.splitlines():
+                            out.append(f"{indent}  {line}")
+                    else:
+                        out.append(f"{indent}{label}: {value_text}")
+        elif isinstance(node, list):
+            for item in node:
+                _emit(item, depth, out)
+        else:
+            out.append(f"{indent}{node}")
+
+    lines: list[str] = []
+    # Common top-level wrapper seen in property KBs: {"editable": {...}}
+    if isinstance(parsed, dict) and set(parsed.keys()) == {"editable"} and isinstance(parsed["editable"], dict):
+        _emit(parsed["editable"], 0, lines)
+    else:
+        _emit(parsed, 0, lines)
+
+    pretty = "\n".join(lines).strip()
+    return pretty if pretty else text
+
+
 class ConfigService:
     """Service for managing business configurations."""
 
@@ -4248,7 +4314,7 @@ class ConfigService:
 
             # Wrap extraction with property header for downstream scoping
             property_blocks.append(
-                f"=== PROPERTY: {property_label} ===\n{extracted.strip()}"
+                f"=== PROPERTY: {property_label} ===\n{_prettify_kb_block(extracted.strip())}"
             )
 
         if not property_blocks:
@@ -6594,7 +6660,7 @@ class ConfigService:
                 if str(alias).strip()
             ] if isinstance(row.get("aliases"), list) else []
             alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
-            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{scope_text}")
+            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{_prettify_kb_block(scope_text)}")
             loaded_property_ids.append(pid)
 
         # 4) Past property context (brief summaries of previously discussed properties)
@@ -6764,7 +6830,7 @@ class ConfigService:
                 if str(alias).strip()
             ] if isinstance(row.get("aliases"), list) else []
             alias_block = f" | ALIASES: {', '.join(aliases[:6])}" if aliases else ""
-            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{scope_text}")
+            sections.append(f"=== PROPERTY: {property_name}{alias_block} ===\n{_prettify_kb_block(scope_text)}")
             property_contexts.append(
                 {
                     "property_id": property_id,

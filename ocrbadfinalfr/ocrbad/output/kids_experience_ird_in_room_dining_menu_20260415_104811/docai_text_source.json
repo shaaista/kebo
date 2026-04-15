@@ -1,0 +1,5 @@
+{
+  "source": "docai",
+  "input_type": "ocr_document",
+  "ocr_mode": "page_by_page"
+}

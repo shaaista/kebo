@@ -71,6 +71,55 @@ class OrchestrationPolicyService:
                 return dict(service)
         return None
 
+    @staticmethod
+    def _coerce_bool(value: Any, *, default: bool = False) -> bool:
+        if isinstance(value, bool):
+            return value
+        text = str(value or "").strip().lower()
+        if text in {"true", "1", "yes", "y"}:
+            return True
+        if text in {"false", "0", "no", "n"}:
+            return False
+        return default
+
+    def _generic_kb_request_enabled(self) -> bool:
+        return bool(getattr(settings, "chat_llm_generic_kb_ticketing_enabled", True))
+
+    def _generic_kb_evidence(self, decision: OrchestrationDecision) -> list[str]:
+        ticket = getattr(decision, "ticket", None)
+        ticket_evidence = getattr(ticket, "evidence", None)
+        if isinstance(ticket_evidence, list):
+            return [str(item).strip() for item in ticket_evidence if str(item).strip()]
+        metadata = decision.metadata if isinstance(decision.metadata, dict) else {}
+        meta_evidence = metadata.get("generic_kb_evidence") or metadata.get("kb_evidence")
+        if isinstance(meta_evidence, list):
+            return [str(item).strip() for item in meta_evidence if str(item).strip()]
+        return []
+
+    def _is_generic_kb_request(self, decision: OrchestrationDecision) -> bool:
+        if not self._generic_kb_request_enabled():
+            return False
+        ticket = getattr(decision, "ticket", None)
+        if bool(getattr(ticket, "generic_request", False)):
+            return True
+        metadata = decision.metadata if isinstance(decision.metadata, dict) else {}
+        return self._coerce_bool(
+            metadata.get("generic_kb_request") or metadata.get("kb_grounded_request"),
+            default=False,
+        )
+
+    def _generic_kb_phase_applicable(self, decision: OrchestrationDecision) -> bool:
+        ticket = getattr(decision, "ticket", None)
+        phase_applicable = getattr(ticket, "phase_applicable", None)
+        if phase_applicable is not None:
+            return bool(phase_applicable)
+        metadata = decision.metadata if isinstance(decision.metadata, dict) else {}
+        if "generic_kb_phase_applicable" in metadata:
+            return self._coerce_bool(metadata.get("generic_kb_phase_applicable"), default=False)
+        if "kb_phase_applicable" in metadata:
+            return self._coerce_bool(metadata.get("kb_phase_applicable"), default=False)
+        return False
+
     def _current_phase(
         self,
         *,
@@ -166,15 +215,39 @@ class OrchestrationPolicyService:
 
         # Action-level service resolution checks.
         service_required_actions = {"collect_info", "dispatch_handler", "create_ticket"}
+        generic_kb_request = self._is_generic_kb_request(decision)
+        generic_kb_evidence = self._generic_kb_evidence(decision)
         if action in service_required_actions and not service:
-            result.allowed = False
-            result.action_allowed = False
-            result.blocked_reason = "unknown_target_service"
-            result.override_response = (
-                "I could not map this request to a configured service yet. "
-                "Please share which service you need, and I will continue."
-            )
-            return result
+            if generic_kb_request and action in {"collect_info", "create_ticket"}:
+                if not generic_kb_evidence:
+                    result.allowed = False
+                    result.action_allowed = False
+                    result.blocked_reason = "generic_kb_evidence_missing"
+                    result.override_response = (
+                        "I do not have enough confirmed policy information to arrange that here yet. "
+                        "If you want, I can connect you with our staff team."
+                    )
+                    return result
+                if not self._generic_kb_phase_applicable(decision):
+                    result.allowed = False
+                    result.action_allowed = False
+                    result.blocked_reason = "generic_kb_request_not_applicable_in_phase"
+                    result.override_response = (
+                        "I can share the hotel policy for that, but I cannot arrange it right now. "
+                        "If you need help with something else, tell me what you need."
+                    )
+                    return result
+                result.metadata["generic_kb_request"] = True
+                result.metadata["generic_kb_evidence"] = list(generic_kb_evidence[:3])
+            else:
+                result.allowed = False
+                result.action_allowed = False
+                result.blocked_reason = "unknown_target_service"
+                result.override_response = (
+                    "I could not map this request to a configured service yet. "
+                    "Please share which service you need, and I will continue."
+                )
+                return result
 
         if service is not None and not bool(service.get("is_active", True)):
             result.allowed = False
@@ -233,7 +306,17 @@ class OrchestrationPolicyService:
             checkin = str(pending.get("stay_checkin_date") or pending.get("checkin_date") or "").strip()
             checkout = str(pending.get("stay_checkout_date") or pending.get("checkout_date") or "").strip()
             guests = str(pending.get("guest_count") or pending.get("guests") or "").strip()
-            service_name = str((result.target_service or {}).get("name") or decision.target_service_id or "service").strip()
+            service_name = str((result.target_service or {}).get("name") or decision.target_service_id or "").strip()
+            if not service_name and generic_kb_request:
+                service_name = str(
+                    pending.get("generic_kb_issue")
+                    or pending.get("generic_kb_reason")
+                    or pending.get("request_summary")
+                    or pending.get("request_type")
+                    or "request"
+                ).strip()
+            if not service_name:
+                service_name = "service"
             fallback_parts = [service_name]
             if room_type:
                 fallback_parts.append(room_type)

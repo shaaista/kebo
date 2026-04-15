@@ -11,8 +11,7 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File, Form
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from pathlib import Path
@@ -38,7 +37,9 @@ from llm.client import llm_client
 from models.database import AsyncSessionLocal, Hotel, Guest, Booking, KBFile
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
-templates = Jinja2Templates(directory="templates")
+
+_ADMIN_UI_DIST_DIR = (Path(__file__).resolve().parents[2] / "admin_ui" / "dist").resolve()
+_ADMIN_UI_INDEX_FILE = (_ADMIN_UI_DIST_DIR / "index.html").resolve()
 
 
 def _safe_print(*args, **kwargs) -> None:
@@ -3518,11 +3519,45 @@ async def delete_booking(booking_id: int):
 # ============ Admin UI ============
 
 @router.get("", response_class=HTMLResponse)
-async def admin_dashboard(request: Request):
-    """Serve the admin dashboard."""
-    return templates.TemplateResponse(
-        request,
-        "admin.html",
-        context={"title": "Admin Portal"},
+async def admin_dashboard():
+    """Serve the React admin dashboard shell."""
+    if _ADMIN_UI_INDEX_FILE.exists():
+        return FileResponse(_ADMIN_UI_INDEX_FILE)
+    return HTMLResponse(
+        "<h3>Admin UI build not found.</h3><p>Build React app in <code>admin_ui</code> using <code>npm run build</code>.</p>",
+        status_code=503,
+    )
+
+
+def _resolve_admin_asset(full_path: str) -> Optional[Path]:
+    path = str(full_path or "").strip().lstrip("/")
+    if not path:
+        return None
+    candidate = (_ADMIN_UI_DIST_DIR / path).resolve()
+    try:
+        candidate.relative_to(_ADMIN_UI_DIST_DIR)
+    except ValueError:
+        return None
+    if candidate.is_file():
+        return candidate
+    return None
+
+
+@router.get("/{full_path:path}", include_in_schema=False)
+async def admin_spa_fallback(full_path: str):
+    """Serve static assets and SPA fallback for React admin routes."""
+    if str(full_path or "").startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not found")
+
+    asset = _resolve_admin_asset(full_path)
+    if asset:
+        return FileResponse(asset)
+
+    if _ADMIN_UI_INDEX_FILE.exists():
+        return FileResponse(_ADMIN_UI_INDEX_FILE)
+
+    return HTMLResponse(
+        "<h3>Admin UI build not found.</h3><p>Build React app in <code>admin_ui</code> using <code>npm run build</code>.</p>",
+        status_code=503,
     )
 

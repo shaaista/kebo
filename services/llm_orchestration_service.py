@@ -136,11 +136,39 @@ class LLMOrchestrationService:
                     "If they request a date outside this window, politely inform them and ask for a valid date."
                 )
             lines.append(
-                "Use this guest information naturally. Address the guest by name when appropriate. "
-                "Reference their room number and property when relevant. "
-                "However, NEVER include booking metadata (guest ID, stay dates, check-in/check-out dates, "
-                "confirmation codes) in confirmation summaries or response text shown to the guest — "
-                "this data is for your internal reference only (e.g. date validation)."
+                "NAME USAGE RULE (strict): Do NOT begin every reply with 'Hi {name}!' or any name-led "
+                "greeting — that reads robotic, not human. Use the guest's first name ONLY when it "
+                "genuinely adds value: the very first greeting of the session, a personal confirmation "
+                "('Done, {name} — booked for 3 PM.'), apologising, or acknowledging something sensitive. "
+                "For ordinary informational answers, follow-up replies, and mid-conversation turns, do "
+                "NOT use their name at all. Aim for AT MOST one name mention every several turns. "
+                "Humans don't repeat each other's names in every message — mirror that. "
+                "Reference room number and property only when it actually helps the answer. "
+                "NEVER include raw booking metadata (guest ID, confirmation codes, phone/email) in "
+                "response text unless the guest explicitly asks for it."
+            )
+
+            lines.append(
+                "TIMING QUESTION RULE: When the guest asks WHEN they can check in / check out, "
+                "what time their stay starts/ends, or any question combining a time-of-day policy "
+                "with their specific stay, ALWAYS combine the guest's specific check-in/check-out DATE "
+                "(from this booking context) with the property's check-in/check-out TIME (from KB policy). "
+                "Never give only the time or only the date when both are available in context — "
+                "ground the policy time on the guest's actual stay date."
+            )
+
+            lines.append(
+                "SPECIFICITY RULE: When ACTIVE BOOKING CONTEXT exists, interpret the guest's message through "
+                "that context first. In pre_checkin, during_stay, and post_checkout, default to the guest's "
+                "own reservation or stay when the message is ambiguous. Prefer the most specific grounded answer "
+                "available, using this priority order: active booking context, booked-property context, general "
+                "property policy, then broad fallback knowledge. If active booking context provides a specific "
+                "date, room type, property, or stay detail, do not replace it with a generic policy answer. "
+                "If both personal stay data and general property policy are relevant, combine them naturally in "
+                "one answer. Only answer generically when the guest is clearly asking a general question, asking "
+                "hypothetically, asking about another property, or when no stay-specific detail is available. "
+                "Before finalizing the reply, silently check whether active booking context makes the answer more "
+                "personal, more specific, or more accurate. If it does, use it."
             )
 
         # --- Phase behavioral rules ---
@@ -284,6 +312,112 @@ class LLMOrchestrationService:
             if len(normalized) >= 12:
                 break
         return normalized
+
+    def _normalize_ticket_evidence(self, value: Any) -> list[str]:
+        if not isinstance(value, list):
+            return []
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for item in value:
+            text = " ".join(str(item or "").strip().split())
+            if not text:
+                continue
+            key = text.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            normalized.append(text[:280])
+            if len(normalized) >= 4:
+                break
+        return normalized
+
+    def _generic_kb_ticketing_enabled(self) -> bool:
+        return bool(getattr(settings, "chat_llm_generic_kb_ticketing_enabled", True))
+
+    def _is_generic_kb_request(self, decision: OrchestrationDecision | None) -> bool:
+        if not isinstance(decision, OrchestrationDecision):
+            return False
+        if not self._generic_kb_ticketing_enabled():
+            return False
+        if bool(getattr(decision.ticket, "generic_request", False)):
+            return True
+        metadata = decision.metadata if isinstance(decision.metadata, dict) else {}
+        return self._coerce_bool(
+            metadata.get("generic_kb_request") or metadata.get("kb_grounded_request"),
+            default=False,
+        )
+
+    def _normalize_generic_kb_request_decision(
+        self,
+        decision: OrchestrationDecision,
+    ) -> OrchestrationDecision:
+        if not self._is_generic_kb_request(decision):
+            return decision
+
+        if not isinstance(decision.metadata, dict):
+            decision.metadata = {}
+        decision.ticket.generic_request = True
+        decision.metadata["generic_kb_request"] = True
+
+        evidence = self._normalize_ticket_evidence(
+            decision.ticket.evidence
+            or decision.metadata.get("generic_kb_evidence")
+            or decision.metadata.get("kb_evidence")
+        )
+        if evidence:
+            decision.ticket.evidence = list(evidence)
+            decision.metadata["generic_kb_evidence"] = list(evidence)
+
+        if decision.ticket.phase_applicable is None:
+            if "generic_kb_phase_applicable" in decision.metadata:
+                decision.ticket.phase_applicable = self._coerce_bool(
+                    decision.metadata.get("generic_kb_phase_applicable"),
+                    default=False,
+                )
+            elif "kb_phase_applicable" in decision.metadata:
+                decision.ticket.phase_applicable = self._coerce_bool(
+                    decision.metadata.get("kb_phase_applicable"),
+                    default=False,
+                )
+        if decision.ticket.phase_applicable is not None:
+            decision.metadata["generic_kb_phase_applicable"] = bool(decision.ticket.phase_applicable)
+        if bool(decision.ticket.approval_required):
+            decision.metadata["generic_kb_approval_required"] = True
+
+        if not str(decision.ticket.category or "").strip():
+            decision.ticket.category = "request"
+        if not str(decision.ticket.sub_category or "").strip():
+            decision.ticket.sub_category = "generic_kb_request"
+
+        if not isinstance(decision.pending_data_updates, dict):
+            decision.pending_data_updates = {}
+        decision.pending_data_updates.setdefault("generic_kb_request", True)
+        if decision.ticket.phase_applicable is not None:
+            decision.pending_data_updates.setdefault(
+                "generic_kb_phase_applicable",
+                bool(decision.ticket.phase_applicable),
+            )
+        if bool(decision.ticket.approval_required):
+            decision.pending_data_updates.setdefault("generic_kb_approval_required", True)
+        if decision.ticket.evidence:
+            decision.pending_data_updates.setdefault("generic_kb_evidence", list(decision.ticket.evidence))
+        if str(decision.ticket.sub_category or "").strip():
+            decision.pending_data_updates.setdefault("ticket_sub_category", decision.ticket.sub_category)
+        if str(decision.ticket.issue or "").strip():
+            decision.pending_data_updates.setdefault("generic_kb_issue", str(decision.ticket.issue).strip())
+        if str(decision.ticket.reason or "").strip():
+            decision.pending_data_updates.setdefault("generic_kb_reason", str(decision.ticket.reason).strip())
+
+        action = str(decision.action or "").strip().lower()
+        if action == "collect_info" and not str(decision.pending_action or "").strip():
+            if bool(decision.ticket.required) and not bool(decision.missing_fields) and not bool(decision.ticket.ready_to_create):
+                decision.pending_action = "confirm_generic_kb_request"
+            else:
+                decision.pending_action = "collect_generic_kb_request"
+        if action == "create_ticket" and bool(decision.ticket.ready_to_create):
+            decision.pending_action = None
+
+        return decision
 
     @staticmethod
     def _split_kb_text_for_llm(*, kb_text: str, chunk_chars: int) -> list[str]:
@@ -1723,6 +1857,7 @@ class LLMOrchestrationService:
                 "response_text": str(decision.response_text or "").strip(),
                 "action": str(decision.action or ""),
                 "target_service_id": str(decision.target_service_id or ""),
+                "generic_kb_request": bool(self._is_generic_kb_request(decision)),
                 "answered_current_query": bool(decision.answered_current_query),
                 "blocking_fields": list(decision.blocking_fields or []),
                 "deferrable_fields": list(decision.deferrable_fields or []),
@@ -1771,10 +1906,11 @@ class LLMOrchestrationService:
             "5) If answer is weak but context supports a better answer, provide revised_response_text.\n"
             "6) Never invent unsupported facts. If unknown, keep the response transparent.\n"
             "7) If recommended_action=collect_info, set recommended_pending_action to the best next slot prompt id.\n"
-            "8) If decision.target_service_id is empty, avoid recommended_action=collect_info.\n"
+            "8) If decision.target_service_id is empty and decision.generic_kb_request is false, avoid recommended_action=collect_info.\n"
             "9) For out-of-phase or unavailable-service situations, keep recommended_action=respond_only and provide a clearer response instead.\n"
             "10) If full_knowledge_base contains explicit facts answering the ask, can_answer_from_context must be true and revised_response_text must use those facts.\n"
             "11) Do not say details are unavailable when full_knowledge_base or service facts contain them.\n"
+            "12) For decision.generic_kb_request=true, preserve the collection flow when the response is explicitly collecting the remaining details for a KB-grounded manual request.\n"
         )
         _guard_bk = self._build_booking_context_prompt_block(context)
         if _guard_bk:
@@ -2221,6 +2357,12 @@ class LLMOrchestrationService:
             merged.ticket.required = True
         if overlay.ticket.ready_to_create:
             merged.ticket.ready_to_create = True
+        if overlay.ticket.generic_request:
+            merged.ticket.generic_request = True
+        if overlay.ticket.phase_applicable is not None:
+            merged.ticket.phase_applicable = overlay.ticket.phase_applicable
+        if overlay.ticket.approval_required:
+            merged.ticket.approval_required = True
         if overlay.ticket.reason:
             merged.ticket.reason = overlay.ticket.reason
         if overlay.ticket.issue:
@@ -2235,6 +2377,8 @@ class LLMOrchestrationService:
             merged.ticket.department_id = overlay.ticket.department_id
         if overlay.ticket.department_name:
             merged.ticket.department_name = overlay.ticket.department_name
+        if overlay.ticket.evidence:
+            merged.ticket.evidence = list(overlay.ticket.evidence)
 
         if overlay.metadata:
             merged.metadata.update(overlay.metadata)
@@ -3974,6 +4118,7 @@ class LLMOrchestrationService:
                     "Response text must be final user-facing text; do not rely on handler text generation.",
                     "Out-of-phase service asks must not trigger transactional execution.",
                     "Ticket creation intent is allowed only when service ticketing is enabled.",
+                    "KB-grounded generic requests may keep target_service_id empty only when backed by KB evidence.",
                 ],
             },
             "complaint_routing_note": (
@@ -3990,7 +4135,7 @@ class LLMOrchestrationService:
                 "intent": "core intent",
                 "confidence": "0..1",
                 "action": "respond_only|collect_info|dispatch_handler|create_ticket|resume_pending|cancel_pending",
-                "target_service_id": "exact service id from services list when service-specific",
+                "target_service_id": "exact service id from services list when service-specific; empty for KB-grounded generic requests",
                 "response_text": "assistant response",
                 "pending_action": "string|null",
                 "pending_data_updates": {"slot": "value"},
@@ -4011,11 +4156,15 @@ class LLMOrchestrationService:
                 "ticket": {
                     "required": "bool",
                     "ready_to_create": "bool",
+                    "generic_request": "bool",
+                    "phase_applicable": "bool|null",
+                    "approval_required": "bool",
                     "reason": "string",
                     "issue": "string",
                     "category": "string",
                     "sub_category": "string",
                     "priority": "low|medium|high|critical",
+                    "evidence": ["1-3 short KB facts backing the request"],
                 },
                 "metadata": {"any": "json"},
             },
@@ -4059,6 +4208,9 @@ class LLMOrchestrationService:
             "1) share factual info from the KB about what the service offers, "
             "2) explicitly state that booking/ordering/requesting it is not possible right now, "
             "3) use the 'availability_hint' field from that service entry to tell the guest when it will be available. "
+            "Exception: if NO configured service matches, but the KB clearly says the hotel can handle the guest's request now "
+            "or through manual staff approval in the guest's current context, you may keep target_service_id empty and handle it "
+            "as a KB-grounded generic request. Only do this when you can cite KB evidence; never guess.\n"
             "Phrase this naturally — NEVER mention phase names.\n"
             "\n"
             "=== KNOWLEDGE PRIORITY ===\n"
@@ -4122,6 +4274,11 @@ class LLMOrchestrationService:
             "(e.g. 'what about your Mumbai hotel?', 'do you have this at another location?').\n"
             "  - Treat the pinned property as the default for ALL questions — rooms, amenities, dining, services, policies.\n"
             "  - If the guest asks something generic like 'what time is checkout?', answer for their booked property only.\n"
+            "  - When active booking context exists, treat that stay as the default frame of reference for interpreting the message.\n"
+            "  - Resolve ambiguity toward the guest's own stay, not toward generic hotel information.\n"
+            "  - If a question can be answered from the guest's active stay plus the booked property's knowledge, answer that way.\n"
+            "  - Do NOT default to a general hotel-policy answer when a more guest-specific answer is already grounded in context.\n"
+            "  - Ask a clarifying question only when there is genuine ambiguity that cannot be resolved from active booking context, booked-property context, or conversation history.\n"
             "\n"
             "=== STEP 1: READ HISTORY ===\n"
             "Always read history_last_10 first, then full_history_context before deciding anything. "
@@ -4141,9 +4298,13 @@ class LLMOrchestrationService:
             "Read pending_action and pending_action_context carefully. "
             "If pending_action is set, the guest is mid-flow in a service — read pending_action_context to understand exactly what was happening. "
             "Stay on that service and route back to it immediately using action=dispatch_handler with the same target_service_id. "
+            "If pending_action starts with collect_generic_kb_request or confirm_generic_kb_request, continue that same KB-grounded request yourself. "
+            "Keep target_service_id empty unless a configured service later becomes clearly correct. "
             "Short replies ('yes', 'ok', 'sure', 'no', 'cancel', a number, a name, a date) when pending_action is set are ALWAYS a direct continuation of that flow — never re-route them. "
             "A question about the current service (e.g. asking about vehicle type during airport transfer, asking about room details during room booking, asking about menu during table booking) is NOT an interrupt — dispatch to the same service agent so it can answer and continue collecting slots. "
             "When the guest confirms a booking ('yes', 'yes confirm', 'ok', 'proceed', 'go ahead') while pending_action is set: dispatch to the service agent — the service agent owns confirmation and ticket creation. Do NOT set action=create_ticket yourself. "
+            "When the guest confirms a KB-grounded generic request while pending_action starts with confirm_generic_kb_request: "
+            "set action=create_ticket, target_service_id='', ticket.required=true, ticket.ready_to_create=true, and keep the same KB evidence. "
             "When the guest cancels or refuses ('no', 'cancel', 'stop', 'forget it') while pending_action is set: set action=cancel_pending and acknowledge politely. "
             "Only interrupt the pending flow if the guest explicitly and clearly asks to start a completely unrelated and different service.\n"
             "Also check last_active_service — if it has an id, the guest was just interacting with that service last turn. "
@@ -4194,6 +4355,18 @@ class LLMOrchestrationService:
             "The key: share the info, clearly state you cannot book/order it now, and warmly tell them when they can. "
             "Do NOT promise, invite, offer, or imply the guest can use it now. NEVER mention phase names (pre_checkin, during_stay, etc.).\n"
             "   -> Wanting to book a room, order food, or request any service is NEVER a complaint.\n"
+            "   -> If NO allowed configured service matches, but full_knowledge_base clearly says the hotel does allow or handle this request "
+            "in the guest's current context (including cases that require staff approval), you may manage it as a KB-grounded generic request.\n"
+            "      For a KB-grounded generic request:\n"
+            "      - keep target_service_id empty\n"
+            "      - set ticket.generic_request=true\n"
+            "      - set ticket.phase_applicable=true only when the request makes sense right now from KB + guest context\n"
+            "      - set ticket.approval_required=true when KB says approval or manual review is needed\n"
+            "      - set ticket.evidence to 1-3 short fact lines copied or paraphrased from full_knowledge_base / policy text\n"
+            "      - if details are missing: action=collect_info and pending_action=collect_generic_kb_request\n"
+            "      - if all details are present but you still need the guest to approve submission: action=collect_info and pending_action=confirm_generic_kb_request\n"
+            "      - if the guest already confirmed and it is ready: action=create_ticket, ticket.required=true, ticket.ready_to_create=true, pending_action=null\n"
+            "      - if KB is unclear, silent, or contradictory: do NOT guess, do NOT collect transactional details, do NOT create a ticket\n"
             "\n"
             "C) STAFF-ACTION REQUEST — guest needs something that requires a hotel staff member to physically do something, "
             "but it is NOT a booking or an order and no specific service is configured for it.\n"
@@ -4304,6 +4477,7 @@ class LLMOrchestrationService:
         decision.metadata.setdefault("source", "orchestrator")
         decision.metadata.setdefault("orchestration_trace_id", orchestration_trace_id)
         decision = self._apply_answer_priority_fields(decision)
+        decision = self._normalize_generic_kb_request_decision(decision)
 
         # ── Persist LLM-determined property scope into conversation state ──
         # The orchestrator returns selected_property_name / selected_property_ids.
@@ -4377,6 +4551,8 @@ class LLMOrchestrationService:
             or (decision.metadata or {}).get("service_id")
             or ""
         )
+        decision = self._normalize_generic_kb_request_decision(decision)
+        generic_kb_request = self._is_generic_kb_request(decision)
 
         # Continuity router: use LLM to decide whether this short/ambiguous turn
         # should continue the last active service flow.
@@ -4422,7 +4598,7 @@ class LLMOrchestrationService:
             and not decision.target_service_id
         )
         _skip_answer_first = False  # default; overridden later if service runs
-        if not decision.target_service_id and not _orchestrator_gave_clarification:
+        if not decision.target_service_id and not _orchestrator_gave_clarification and not generic_kb_request:
             resolved_service_id, action_hint = await self._resolve_target_service_with_llm(
                 user_message=user_message,
                 selected_phase_id=selected_phase_id,
@@ -4471,6 +4647,7 @@ class LLMOrchestrationService:
                 target_service=None,
                 full_kb_text=full_kb_text,
             )
+            fallback_decision = self._normalize_generic_kb_request_decision(fallback_decision)
             _early_result = await self._ensure_suggested_actions(
                 user_message=user_message,
                 context=context,
@@ -4596,6 +4773,7 @@ class LLMOrchestrationService:
                     return rerouted_decision
 
         merged_decision = self._merge_decisions(decision, service_decision)
+        merged_decision = self._normalize_generic_kb_request_decision(merged_decision)
         # Skip answer-first enforcement for first-turn intros (it overwrites the room list),
         # for confirmation overrides (already deterministically correct),
         # and for ready-to-create ticket confirmations.
@@ -4621,6 +4799,7 @@ class LLMOrchestrationService:
                 target_service=target_service,
                 full_kb_text=full_kb_text,
             )
+            merged_decision = self._normalize_generic_kb_request_decision(merged_decision)
 
         # ── RESUME PROMPT ────────────────────────────────────────────────────
         # After the current turn settles with no active pending, ask user ONCE
@@ -4647,6 +4826,7 @@ class LLMOrchestrationService:
             selected_phase_name=selected_phase_name,
             target_service=target_service,
         )
+        final = self._normalize_generic_kb_request_decision(final)
         _log_decision({
             "ts": datetime.now(UTC).isoformat(),
             "trace_id": orchestration_trace_id,
@@ -4665,6 +4845,12 @@ class LLMOrchestrationService:
             "response_text": str(final.response_text or "")[:500] if final else "",
             "intent": str(final.intent or "") if final else "",
             "missing_fields": list(final.missing_fields or []) if final else [],
+            "ticket": {
+                "required": bool(getattr((final or decision).ticket, "required", False)) if (final or decision) else False,
+                "ready_to_create": bool(getattr((final or decision).ticket, "ready_to_create", False)) if (final or decision) else False,
+                "generic_request": bool(getattr((final or decision).ticket, "generic_request", False)) if (final or decision) else False,
+                "evidence": list(getattr((final or decision).ticket, "evidence", []) or [])[:3] if (final or decision) else [],
+            },
             "context_switched": bool((merged_decision.metadata or {}).get("context_switched")),
             "answer_first_guard_skipped": _skip_answer_first,
             "pending_action_at_start": str(context.pending_action or ""),

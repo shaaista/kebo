@@ -56,9 +56,8 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 import uvicorn
 
 from config.settings import settings
@@ -74,6 +73,23 @@ from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
 from services import new_detailed_logger
 
+
+def _print_api_log(method: str, path: str, query: str, status_code: int, duration_ms: float) -> None:
+    """Emit compact terminal logs for /api and /admin/api calls."""
+    path_text = str(path or "")
+    is_admin_api = path_text.startswith("/admin/api/")
+    is_public_api = path_text.startswith("/api/")
+    if not (is_admin_api or is_public_api):
+        return
+    target = f"{path_text}?{query}" if str(query or "").strip() else path_text
+    tag = "[ADMIN_API]" if is_admin_api else "[API]"
+    try:
+        print(
+            f"{tag} {str(method or '').upper()} {target} -> {int(status_code)} ({float(duration_ms):.2f} ms)",
+            flush=True,
+        )
+    except Exception:
+        pass
 
 
 @asynccontextmanager
@@ -122,10 +138,13 @@ async def lifespan(app: FastAPI):
         print(f"Startup DB sync failed (non-fatal): {e}")
         new_detailed_logger.log_kb_restore(restored=0, error=str(e))
 
-    print(f"Server: http://{settings.host}:{settings.port}")
-    print(f"API Docs: http://localhost:{settings.port}/docs")
-    print(f"Test Chat: http://localhost:{settings.port}/")
-    print(f"Admin Portal: http://localhost:{settings.port}/admin")
+    display_host = str(settings.host)
+    if display_host in {"0.0.0.0", "::"}:
+        display_host = "localhost"
+    print(f"Server: http://{display_host}:{settings.port}")
+    print(f"API Docs: http://{display_host}:{settings.port}/docs")
+    print(f"Test Chat: http://{display_host}:{settings.port}/chat")
+    print(f"Admin Portal: http://{display_host}:{settings.port}/admin")
 
     # ── new_detailed_logger: server ready ───────────────────────────────────
     new_detailed_logger.log_startup_ready(
@@ -177,6 +196,7 @@ async def gateway_middleware(request: Request, call_next):
     trace_id = request.headers.get("x-trace-id") or observability_service.new_trace_id()
     request.state.trace_id = trace_id
     start = perf_counter()
+    query_string = str(request.url.query or "")
 
     path = request.url.path or ""
     is_docs_or_public = path in {"/", "/health", "/api/config"} or path.startswith(
@@ -303,6 +323,14 @@ async def gateway_middleware(request: Request, call_next):
                     component="main.gateway_middleware",
                     error="unauthorized_api_key",
                 )
+            duration_ms = round((perf_counter() - start) * 1000.0, 2)
+            _print_api_log(
+                method=request.method,
+                path=path,
+                query=query_string,
+                status_code=401,
+                duration_ms=duration_ms,
+            )
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Unauthorized: invalid API key.", "trace_id": trace_id},
@@ -369,6 +397,14 @@ async def gateway_middleware(request: Request, call_next):
                     component="main.gateway_middleware",
                     error="rate_limited",
                 )
+            duration_ms = round((perf_counter() - start) * 1000.0, 2)
+            _print_api_log(
+                method=request.method,
+                path=path,
+                query=query_string,
+                status_code=429,
+                duration_ms=duration_ms,
+            )
             return JSONResponse(
                 status_code=429,
                 content={"detail": "Too many requests.", "retry_after_seconds": retry_after, "trace_id": trace_id},
@@ -448,6 +484,13 @@ async def gateway_middleware(request: Request, call_next):
                 component="main.gateway_middleware",
                 error=str(exc),
             )
+        _print_api_log(
+            method=request.method,
+            path=path,
+            query=query_string,
+            status_code=500,
+            duration_ms=duration_ms,
+        )
         # Return JSON error instead of re-raising (prevents bare 500 HTML responses)
         return JSONResponse(
             status_code=500,
@@ -513,6 +556,13 @@ async def gateway_middleware(request: Request, call_next):
             status_code=response.status_code,
             component="main.gateway_middleware",
         )
+    _print_api_log(
+        method=request.method,
+        path=path,
+        query=query_string,
+        status_code=response.status_code,
+        duration_ms=duration_ms,
+    )
     return response
 
 # CORS middleware
@@ -524,18 +574,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files and templates
+# Mount static files and UI bundles
 _BASE_DIR = Path(__file__).resolve().parent
 _STATIC_DIR = _BASE_DIR / "static"
-_TEMPLATES_DIR = _BASE_DIR / "templates"
-_CHAT_TEMPLATE_FILE = _TEMPLATES_DIR / "chat.html"
+_ADMIN_UI_DIST_DIR = (_BASE_DIR / "admin_ui" / "dist").resolve()
+_CHAT_UI_FILE = (_ADMIN_UI_DIST_DIR / "chat.html").resolve()
 
 if _STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(_STATIC_DIR)), name="static")
 else:
     print(f"Warning: static directory not found: {_STATIC_DIR}")
-
-templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
 # Include routers
 app.include_router(chat_router)
@@ -550,17 +598,14 @@ async def home(request: Request):
 
 
 @app.get("/chat", response_class=HTMLResponse)
-async def chat_ui(request: Request):
-    """Serve the test chat interface."""
-    if not _CHAT_TEMPLATE_FILE.exists():
+async def chat_ui():
+    """Serve the React chat harness build."""
+    if not _CHAT_UI_FILE.exists():
         return HTMLResponse(
-            "<h3>NexOria API is running.</h3><p>Chat UI template is unavailable in this deployment bundle.</p>"
+            "<h3>NexOria API is running.</h3><p>Chat UI build is unavailable. Build admin_ui with npm run build.</p>",
+            status_code=503,
         )
-    return templates.TemplateResponse(
-        request,
-        "chat.html",
-        context={"app_name": settings.app_name},
-    )
+    return FileResponse(_CHAT_UI_FILE)
 
 
 @app.get("/health")
@@ -595,4 +640,6 @@ if __name__ == "__main__":
         host=settings.host,
         port=settings.port,
         reload=settings.is_development,
+        access_log=True,
+        log_level="info",
     )

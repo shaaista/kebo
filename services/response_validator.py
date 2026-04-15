@@ -925,6 +925,19 @@ class ResponseValidator:
             )
         )
 
+    @staticmethod
+    def _intent_has_generic_kb_request(intent_result: IntentResult) -> bool:
+        entities = intent_result.entities if isinstance(intent_result.entities, dict) else {}
+        if not entities:
+            return False
+        for key in ("generic_kb_request", "kb_grounded_request"):
+            value = entities.get(key)
+            if isinstance(value, bool) and value:
+                return True
+            if str(value or "").strip().lower() in {"true", "1", "yes", "y"}:
+                return True
+        return False
+
     def _check_unconfigured_service_promise(
         self,
         *,
@@ -934,6 +947,8 @@ class ResponseValidator:
         intent_result: IntentResult,
     ) -> Optional[ValidationIssue]:
         if intent_result.intent != IntentType.FAQ:
+            return None
+        if self._intent_has_generic_kb_request(intent_result):
             return None
         if not self._looks_like_service_request(latest_user_message):
             return None
@@ -960,6 +975,8 @@ class ResponseValidator:
         intent_result: IntentResult,
     ) -> Optional[ValidationIssue]:
         if intent_result.intent != IntentType.FAQ:
+            return None
+        if self._intent_has_generic_kb_request(intent_result):
             return None
         if not self._looks_like_service_request(latest_user_message):
             return None

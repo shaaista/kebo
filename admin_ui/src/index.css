@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 220 20% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 14%;
+
+    --primary: 348 72% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 14%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 14%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 348 72% 48%;
+
+    --radius: 0.625rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 348 72% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 20% 14%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 348 72% 48%;
+  }
+
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 210 20% 93%;
+
+    --card: 222 25% 11%;
+    --card-foreground: 210 20% 93%;
+
+    --popover: 222 25% 11%;
+    --popover-foreground: 210 20% 93%;
+
+    --primary: 348 72% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 222 20% 16%;
+    --secondary-foreground: 210 20% 93%;
+
+    --muted: 222 20% 16%;
+    --muted-foreground: 215 15% 58%;
+
+    --accent: 222 20% 16%;
+    --accent-foreground: 210 20% 93%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 20% 93%;
+
+    --border: 222 20% 18%;
+    --input: 222 20% 18%;
+    --ring: 348 72% 55%;
+
+    --sidebar-background: 222 30% 8%;
+    --sidebar-foreground: 210 20% 93%;
+    --sidebar-primary: 348 72% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 20% 16%;
+    --sidebar-accent-foreground: 210 20% 93%;
+    --sidebar-border: 222 20% 18%;
+    --sidebar-ring: 348 72% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

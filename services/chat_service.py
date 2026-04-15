@@ -3300,6 +3300,10 @@ class ChatService:
                     pending_action=context.pending_action,
                 )
                 if ticket_allowed_now:
+                    generic_kb_request = bool(
+                        getattr(decision.ticket, "generic_request", False)
+                        or bool((decision.metadata or {}).get("generic_kb_request"))
+                    )
                     issue_text = str(
                         decision.ticket.issue
                         or decision.ticket.reason
@@ -3313,7 +3317,7 @@ class ChatService:
                     sub_category = str(
                         decision.ticket.sub_category
                         or self._normalize_service_identifier(decision.target_service_id)
-                        or "general_request"
+                        or ("generic_kb_request" if generic_kb_request else "general_request")
                     ).strip().lower()
                     priority = str(decision.ticket.priority or "medium").strip().upper()
                     if priority not in {"LOW", "MEDIUM", "HIGH", "CRITICAL"}:
@@ -3326,10 +3330,13 @@ class ChatService:
                     try:
                         _dept_id = str(decision.ticket.department_id or "").strip()
                         _dept_name = str(decision.ticket.department_name or "").strip()
+                        ticket_message = str(effective_user_message or "").strip() or issue_text
+                        if generic_kb_request:
+                            ticket_message = issue_text or ticket_message
                         payload = ticketing_service.build_lumira_ticket_payload(
                             context=context,
                             issue=issue_text,
-                            message=effective_user_message or issue_text,
+                            message=ticket_message,
                             category=category,
                             sub_category=sub_category,
                             priority=priority,
