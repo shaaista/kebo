@@ -6,9 +6,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 type Role = "user" | "assistant";
 
 const WIDGET_BRAND_COLOR_DEFAULT = "#C72C41";
-const WIDGET_ACCENT_COLOR_DEFAULT = "#2563EB";
-const WIDGET_BACKGROUND_COLOR_DEFAULT = "#F8FAFC";
-const WIDGET_TEXT_COLOR_DEFAULT = "#1E293B";
+const WIDGET_ACCENT_COLOR_DEFAULT = "#C72C41";
+const WIDGET_BACKGROUND_COLOR_DEFAULT = "#FFFFFF";
+const WIDGET_TEXT_COLOR_DEFAULT = "#1A1A2E";
 const WIDGET_BOT_NAME_DEFAULT = "Kebo";
 const WIDGET_DEFAULT_WIDTH = 380;
 const WIDGET_DEFAULT_HEIGHT = 620;
@@ -339,7 +339,10 @@ function readEmbedRuntimeConfig(): EmbedRuntimeConfig {
   const sessionId = String(params.get("session_id") || "").trim() || generateSessionId();
   const widgetId = String(params.get("widget_id") || "default").trim() || "default";
   const brandColor = normalizeColorParam(params.get("brand_color") || WIDGET_BRAND_COLOR_DEFAULT, WIDGET_BRAND_COLOR_DEFAULT);
-  const accentColor = normalizeColorParam(params.get("accent_color") || WIDGET_ACCENT_COLOR_DEFAULT, WIDGET_ACCENT_COLOR_DEFAULT);
+  const accentColor = normalizeColorParam(
+    params.get("accent_color") || params.get("brand_color") || WIDGET_ACCENT_COLOR_DEFAULT,
+    WIDGET_ACCENT_COLOR_DEFAULT,
+  );
   const backgroundColor = normalizeColorParam(
     params.get("bg_color") || WIDGET_BACKGROUND_COLOR_DEFAULT,
     WIDGET_BACKGROUND_COLOR_DEFAULT,
@@ -494,6 +497,7 @@ const ChatHarness = () => {
   const widgetAccentColor = runtimeConfig.accentColor;
   const widgetBackgroundColor = runtimeConfig.backgroundColor;
   const widgetTextColor = runtimeConfig.textColor;
+  const widgetUiColor = widgetBrandColor || widgetAccentColor || WIDGET_BRAND_COLOR_DEFAULT;
   const widgetBotName = runtimeConfig.botName;
   const widgetDefaultWidth = runtimeConfig.width;
   const widgetDefaultHeight = runtimeConfig.height;
@@ -1646,7 +1650,11 @@ const ChatHarness = () => {
 
   return (
     <div
-      className={embedMode ? "h-screen w-full overflow-hidden" : "min-h-screen bg-[radial-gradient(circle_at_top,_#f8fafc_0%,_#e2e8f0_55%,_#cbd5e1_100%)] text-slate-900"}
+      className={
+        embedMode
+          ? "h-screen w-full overflow-hidden font-sans"
+          : "min-h-screen bg-[radial-gradient(circle_at_top,_#f8fafc_0%,_#e2e8f0_55%,_#cbd5e1_100%)] text-slate-900 font-sans"
+      }
       style={embedMode ? { backgroundColor: widgetBackgroundColor, color: widgetTextColor } : undefined}
     >
       {!embedMode && (
@@ -1998,7 +2006,7 @@ const ChatHarness = () => {
                             ? "rounded-bl-sm border border-slate-200 bg-white text-slate-900"
                             : "rounded-br-sm text-white"
                         }`}
-                        style={isAssistant ? { color: widgetTextColor } : { backgroundColor: widgetAccentColor, color: "#ffffff" }}
+                        style={isAssistant ? { color: widgetTextColor } : { backgroundColor: widgetUiColor, color: "#ffffff" }}
                       >
                         {isAssistant ? (
                           <p
@@ -2044,11 +2052,11 @@ const ChatHarness = () => {
                       onClick={() => void sendMessage(item, "suggested_action")}
                       className="rounded-full border bg-white px-3 py-1 text-xs transition-colors hover:text-white"
                       style={{
-                        borderColor: `${widgetAccentColor}40`,
-                        color: widgetAccentColor,
+                        borderColor: `${widgetUiColor}40`,
+                        color: widgetUiColor,
                       }}
                       onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = widgetAccentColor;
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = widgetUiColor;
                       }}
                       onMouseLeave={(e) => {
                         (e.currentTarget as HTMLButtonElement).style.backgroundColor = "white";
@@ -2062,7 +2070,7 @@ const ChatHarness = () => {
               <div ref={messageEndRef} />
             </div>
 
-            <div className="shrink-0 border-t p-3" style={{ backgroundColor: widgetBackgroundColor, borderTopColor: `${widgetAccentColor}33` }}>
+            <div className="shrink-0 border-t p-3" style={{ backgroundColor: widgetBackgroundColor, borderTopColor: `${widgetUiColor}33` }}>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
@@ -2083,14 +2091,14 @@ const ChatHarness = () => {
                   }}
                   placeholder="Type a message..."
                   className="max-h-24 min-h-[38px] flex-1 resize-none rounded border border-slate-300 px-2 py-2 text-sm"
-                  style={{ borderColor: `${widgetAccentColor}66`, color: widgetTextColor, backgroundColor: "#ffffff" }}
+                  style={{ borderColor: `${widgetUiColor}66`, color: widgetTextColor, backgroundColor: "#ffffff" }}
                 />
                 <button
                   type="submit"
                   disabled={isSending || !input.trim()}
                   aria-label="Send message"
                   className="flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-opacity disabled:opacity-50"
-                  style={{ backgroundColor: widgetAccentColor }}
+                  style={{ backgroundColor: widgetUiColor }}
                 >
                   <Send className="h-4 w-4" />
                 </button>

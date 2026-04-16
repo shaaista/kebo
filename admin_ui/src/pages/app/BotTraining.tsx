@@ -136,7 +136,7 @@ const defaultKnowledge: KnowledgeData = {
 
 const defaultChannels: ChannelsData = {
   primaryColor: "#C72C41",
-  accentColor: "#2563EB",
+  accentColor: "#C72C41",
   bgColor: "#FFFFFF",
   textColor: "#1A1A2E",
   widgetPosition: "right",

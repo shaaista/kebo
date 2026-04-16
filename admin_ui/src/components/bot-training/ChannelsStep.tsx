@@ -117,7 +117,7 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
                 <button
                   type="button"
                   className="rounded-md px-2 py-1 text-xs text-white/90"
-                  style={{ backgroundColor: `${data.accentColor}66` }}
+                  style={{ backgroundColor: `${data.primaryColor}66` }}
                 >
                   Close
                 </button>
@@ -134,7 +134,7 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
                   <div className="flex justify-end">
                     <div
                       className="max-w-[72%] rounded-2xl rounded-br-sm px-3 py-2 text-white shadow-sm"
-                      style={{ backgroundColor: data.accentColor }}
+                      style={{ backgroundColor: data.primaryColor }}
                     >
                       Hi
                     </div>
@@ -149,12 +149,12 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
                       readOnly
                       value="Type a message..."
                       className="h-10 flex-1 rounded-lg border px-3 text-sm"
-                      style={{ borderColor: `${data.accentColor}99`, color: data.textColor }}
+                      style={{ borderColor: `${data.primaryColor}66`, color: data.textColor }}
                     />
                     <button
                       type="button"
                       className="flex h-10 w-10 items-center justify-center rounded-full text-white"
-                      style={{ backgroundColor: data.accentColor }}
+                      style={{ backgroundColor: data.primaryColor }}
                     >
                       →
                     </button>

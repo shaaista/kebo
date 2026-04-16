@@ -82,9 +82,9 @@
     offset: parseNumber(data.offset, 20, 8, 64),
     zIndex: parseNumber(data.zIndex, 2147482000, 1000, 2147483647),
     brandColor: normalizeColor(data.brandColor, "#C72C41"),
-    accentColor: normalizeColor(data.accentColor, "#2563eb"),
-    bgColor: normalizeColor(data.bgColor, "#f8fafc"),
-    textColor: normalizeColor(data.textColor, "#1e293b"),
+    accentColor: normalizeColor(data.accentColor, "#C72C41"),
+    bgColor: normalizeColor(data.bgColor, "#FFFFFF"),
+    textColor: normalizeColor(data.textColor, "#1A1A2E"),
     botName: String(data.botName || "Assistant").trim() || "Assistant",
     autoOpen: parseBoolean(data.autoOpen, false),
   };
