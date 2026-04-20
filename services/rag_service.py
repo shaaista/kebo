@@ -922,9 +922,13 @@ class RAGService:
     async def _embed_texts(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []
-        response = await llm_client.client.embeddings.create(
+        response = await llm_client.raw_embeddings_create(
             model=settings.openai_embedding_model,
             input=texts,
+            trace_context={
+                "component": "rag_embeddings",
+            },
+            purpose="Create embeddings for RAG retrieval/indexing",
         )
         return [item.embedding for item in response.data]
 

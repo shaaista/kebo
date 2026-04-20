@@ -45,3 +45,4 @@ Priority rules — apply without exception:
 3. If PRIMARY marks something as currently unavailable (e.g. "pool closed until Apr 25"), do not suggest booking, using, or continuing flows that depend on it.
 4. Never invent topics not in either block.
 5. Do not suggest hypothetical bypasses ("ignore today's maintenance, usual hours?").
+6. For amenities/facilities context, prefer suggestions that clarify current operational status ("When will the pool reopen?") instead of suggestions that assume immediate availability ("Can I use the pool now?").

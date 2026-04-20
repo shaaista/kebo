@@ -5623,7 +5623,7 @@
     "property_index": {
       "version": "v1",
       "generator": "heuristic_v1",
-      "generated_at": "2026-04-19T15:52:57.678145+00:00",
+      "generated_at": "2026-04-20T14:26:58.177273+00:00",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
       "expected_property_count": 0,
       "detected_property_count": 1,
@@ -5701,10 +5701,10 @@
   },
   "ui_settings": {
     "theme": {
-      "primary_color": "#f5eb7f",
-      "accent_color": "#c42121",
-      "background_color": "#e8bfd5",
-      "text_color": "#34cb2a"
+      "primary_color": "#cdafcf",
+      "accent_color": "#b8b8b8",
+      "background_color": "#ffffff",
+      "text_color": "#000000"
     },
     "widget": {
       "position": "right",

@@ -17,6 +17,7 @@ from openai import AsyncOpenAI
 from config.settings import settings
 from services.config_service import config_service
 from services.faq_context_service import build_faq_block
+from services.llm_simple_call_logger import llm_simple_call_logger
 from services.turn_diagnostics_service import turn_diagnostics_service
 
 
@@ -392,6 +393,151 @@ class LLMClient:
                 result[key] = int(value)
         return result
 
+    @staticmethod
+    def _usage_token_counts(usage: dict[str, Any]) -> tuple[int, int, int]:
+        prompt_tokens = int(usage.get("prompt_tokens") or 0)
+        completion_tokens = int(usage.get("completion_tokens") or 0)
+        total_tokens = int(usage.get("total_tokens") or 0)
+        if total_tokens <= 0:
+            total_tokens = max(0, prompt_tokens + completion_tokens)
+        return prompt_tokens, completion_tokens, total_tokens
+
+    @staticmethod
+    def _derive_simple_call_purpose(
+        *,
+        operation: str,
+        trace_context: dict[str, Any],
+        caller: dict[str, Any],
+        default_purpose: str,
+    ) -> str:
+        explicit_purpose = str(
+            trace_context.get("what_this_call_is_for")
+            or trace_context.get("purpose")
+            or trace_context.get("description")
+            or ""
+        ).strip()
+        if explicit_purpose:
+            return explicit_purpose
+
+        context_tag = str(
+            trace_context.get("component")
+            or trace_context.get("agent")
+            or trace_context.get("actor")
+            or trace_context.get("service_name")
+            or trace_context.get("service_id")
+            or ""
+        ).strip()
+        if context_tag:
+            readable = context_tag.replace("_", " ").replace("-", " ").strip()
+            if operation == "embedding":
+                return f"Create embeddings for {readable}"
+            if operation == "chat_with_json":
+                return f"Generate JSON output for {readable}"
+            return f"Generate assistant output for {readable}"
+
+        caller_function = str(caller.get("caller_function") or "").strip()
+        if caller_function:
+            readable_fn = caller_function.replace("_", " ").strip()
+            if operation == "embedding":
+                return f"Create embeddings for {readable_fn}"
+            if operation == "chat_with_json":
+                return f"Generate JSON output for {readable_fn}"
+            return f"Generate assistant output for {readable_fn}"
+
+        return default_purpose
+
+    def _log_llm_simple_call(
+        self,
+        *,
+        call_id: str,
+        operation: str,
+        model: str,
+        duration_ms: float,
+        status: str,
+        trace_context: Optional[dict[str, Any]] = None,
+        caller: Optional[dict[str, Any]] = None,
+        usage: Optional[dict[str, Any]] = None,
+        purpose: str = "",
+        input_preview: Any = "",
+        output_preview: Any = "",
+        error: str = "",
+    ) -> None:
+        trace_meta = trace_context if isinstance(trace_context, dict) else {}
+        caller_meta = caller if isinstance(caller, dict) else {}
+        usage_map = usage if isinstance(usage, dict) else {}
+        input_tokens, output_tokens, total_tokens = self._usage_token_counts(usage_map)
+
+        default_purpose = {
+            "chat": "Generate assistant response",
+            "chat_with_json": "Generate structured JSON response",
+            "chat_completion": "Generate assistant completion",
+            "embedding": "Create embedding vector",
+        }.get(operation, "LLM call")
+        final_purpose = str(purpose or "").strip() or self._derive_simple_call_purpose(
+            operation=operation,
+            trace_context=trace_meta,
+            caller=caller_meta,
+            default_purpose=default_purpose,
+        )
+
+        route = str(
+            trace_meta.get("route")
+            or trace_meta.get("path")
+            or trace_meta.get("endpoint")
+            or ""
+        ).strip()
+        component = str(
+            trace_meta.get("component")
+            or trace_meta.get("agent")
+            or trace_meta.get("actor")
+            or trace_meta.get("service_name")
+            or ""
+        ).strip()
+        session_id = str(trace_meta.get("session_id") or "").strip()
+        trace_id = str(trace_meta.get("trace_id") or "").strip()
+        turn_trace_id = str(trace_meta.get("turn_trace_id") or "").strip()
+        caller_module = str(caller_meta.get("caller_module") or "").strip()
+        caller_function = str(caller_meta.get("caller_function") or "").strip()
+
+        try:
+            input_text = (
+                input_preview
+                if isinstance(input_preview, str)
+                else json.dumps(self._coerce_json_safe(input_preview), ensure_ascii=False)
+            )
+        except Exception:
+            input_text = str(input_preview or "")
+        try:
+            output_text = (
+                output_preview
+                if isinstance(output_preview, str)
+                else json.dumps(self._coerce_json_safe(output_preview), ensure_ascii=False)
+            )
+        except Exception:
+            output_text = str(output_preview or "")
+
+        llm_simple_call_logger.log_call(
+            call_id=call_id,
+            operation=operation,
+            model=model,
+            purpose=final_purpose,
+            duration_ms=duration_ms,
+            status=status,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+            session_id=session_id,
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            route=route,
+            component=component,
+            caller_module=caller_module,
+            caller_function=caller_function,
+            input_preview=input_text,
+            output_preview=output_text,
+            error=str(error or ""),
+        )
+
     def _log_llm_trace(self, payload: dict[str, Any]) -> None:
         try:
             safe_payload = self._coerce_json_safe(payload)
@@ -443,6 +589,19 @@ class LLMClient:
             )
             output_text = response.choices[0].message.content or ""
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            usage = self._response_usage(response)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="success",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=usage,
+                input_preview={"messages": messages, "user_query": user_query},
+                output_preview=output_text,
+            )
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
@@ -461,7 +620,7 @@ class LLMClient:
                     },
                     "inputs": input_snapshot,
                     "output": output_text,
-                    "usage": self._response_usage(response),
+                    "usage": usage,
                     "caller": caller,
                     "trace_actor": trace_actor,
                     "trace_context": trace_meta,
@@ -489,6 +648,19 @@ class LLMClient:
             except OSError:
                 pass
             duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="error",
+                trace_context=trace_meta,
+                caller=caller,
+                usage={},
+                input_preview={"messages": messages, "user_query": user_query},
+                output_preview="",
+                error=str(e),
+            )
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
@@ -556,6 +728,8 @@ class LLMClient:
         request_temperature = temperature if temperature is not None else self.temperature
         request_max_tokens = max_tokens or self.max_tokens
         user_query = self._extract_user_query(request_messages)
+        response: Any = None
+        content = "{}"
         try:
             response = await self.client.chat.completions.create(
                 model=request_model,
@@ -566,13 +740,27 @@ class LLMClient:
             )
             content = response.choices[0].message.content or "{}"
             parsed = json.loads(content)
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            usage = self._response_usage(response)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat_with_json",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="success",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=usage,
+                input_preview={"messages": request_messages, "user_query": user_query},
+                output_preview=parsed,
+            )
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "request_id": request_id,
                     "method": "chat_with_json",
                     "status": "success",
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": duration_ms,
                     "model": request_model,
                     "temperature": request_temperature,
                     "max_tokens": self.max_tokens,
@@ -585,7 +773,7 @@ class LLMClient:
                     "inputs": input_snapshot,
                     "output": parsed,
                     "raw_output": content,
-                    "usage": self._response_usage(response),
+                    "usage": usage,
                     "caller": caller,
                     "trace_actor": trace_actor,
                     "trace_context": trace_meta,
@@ -597,13 +785,27 @@ class LLMClient:
                 print(f"JSON Parse Error: {e}")
             except OSError:
                 pass
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat_with_json",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="json_parse_error",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=self._response_usage(response) if response is not None else {},
+                input_preview={"messages": request_messages, "user_query": user_query},
+                output_preview=content,
+                error=str(e),
+            )
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "request_id": request_id,
                     "method": "chat_with_json",
                     "status": "json_parse_error",
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": duration_ms,
                     "model": request_model,
                     "temperature": request_temperature,
                     "max_tokens": self.max_tokens,
@@ -627,13 +829,27 @@ class LLMClient:
                 print(f"LLM Error: {e}")
             except OSError:
                 pass
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat_with_json",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="error",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=self._response_usage(response) if response is not None else {},
+                input_preview={"messages": request_messages, "user_query": user_query},
+                output_preview=content,
+                error=str(e),
+            )
             self._log_llm_trace(
                 {
                     "timestamp": datetime.now(UTC).isoformat(),
                     "request_id": request_id,
                     "method": "chat_with_json",
                     "status": "error",
-                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    "duration_ms": duration_ms,
                     "model": request_model,
                     "temperature": request_temperature,
                     "max_tokens": self.max_tokens,
@@ -652,6 +868,148 @@ class LLMClient:
                 }
             )
             return {"intent": "unclear", "confidence": 0.3, "entities": {}}
+
+    async def raw_chat_completion(
+        self,
+        *,
+        trace_context: Optional[dict[str, Any]] = None,
+        purpose: str = "",
+        **request_kwargs: Any,
+    ) -> Any:
+        """
+        Proxy chat.completions.create with simple call logging.
+        Raises original exceptions so caller behavior remains unchanged.
+        """
+        started = time.perf_counter()
+        request_id = uuid.uuid4().hex
+        caller = self._caller_context()
+        trace_meta = trace_context if isinstance(trace_context, dict) else {}
+        request_model = str(request_kwargs.get("model") or self.model).strip() or self.model
+
+        try:
+            response = await self.client.chat.completions.create(**request_kwargs)
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            usage = self._response_usage(response)
+            output_preview = ""
+            try:
+                output_preview = str(response.choices[0].message.content or "").strip()
+            except Exception:
+                output_preview = ""
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat_completion",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="success",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=usage,
+                purpose=purpose,
+                input_preview={
+                    "messages": request_kwargs.get("messages"),
+                    "request_kwargs": {
+                        key: value
+                        for key, value in request_kwargs.items()
+                        if key != "messages"
+                    },
+                },
+                output_preview=output_preview,
+            )
+            return response
+        except Exception as exc:
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="chat_completion",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="error",
+                trace_context=trace_meta,
+                caller=caller,
+                usage={},
+                purpose=purpose,
+                input_preview={
+                    "messages": request_kwargs.get("messages"),
+                    "request_kwargs": {
+                        key: value
+                        for key, value in request_kwargs.items()
+                        if key != "messages"
+                    },
+                },
+                output_preview="",
+                error=str(exc),
+            )
+            raise
+
+    async def raw_embeddings_create(
+        self,
+        *,
+        trace_context: Optional[dict[str, Any]] = None,
+        purpose: str = "",
+        **request_kwargs: Any,
+    ) -> Any:
+        """
+        Proxy embeddings.create with simple call logging.
+        Raises original exceptions so caller behavior remains unchanged.
+        """
+        started = time.perf_counter()
+        request_id = uuid.uuid4().hex
+        caller = self._caller_context()
+        trace_meta = trace_context if isinstance(trace_context, dict) else {}
+        request_model = str(
+            request_kwargs.get("model") or getattr(settings, "openai_embedding_model", "")
+        ).strip() or "text-embedding-3-small"
+
+        try:
+            response = await self.client.embeddings.create(**request_kwargs)
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            usage = self._response_usage(response)
+            output_preview = f"embedding_count={len(getattr(response, 'data', []) or [])}"
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="embedding",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="success",
+                trace_context=trace_meta,
+                caller=caller,
+                usage=usage,
+                purpose=purpose,
+                input_preview={
+                    "input": request_kwargs.get("input"),
+                    "request_kwargs": {
+                        key: value
+                        for key, value in request_kwargs.items()
+                        if key != "input"
+                    },
+                },
+                output_preview=output_preview,
+            )
+            return response
+        except Exception as exc:
+            duration_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._log_llm_simple_call(
+                call_id=request_id,
+                operation="embedding",
+                model=request_model,
+                duration_ms=duration_ms,
+                status="error",
+                trace_context=trace_meta,
+                caller=caller,
+                usage={},
+                purpose=purpose,
+                input_preview={
+                    "input": request_kwargs.get("input"),
+                    "request_kwargs": {
+                        key: value
+                        for key, value in request_kwargs.items()
+                        if key != "input"
+                    },
+                },
+                output_preview="",
+                error=str(exc),
+            )
+            raise
 
     async def classify_intent(
         self,

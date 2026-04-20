@@ -336,6 +336,222 @@ class LLMOrchestrationService:
                 break
         return normalized
 
+    @staticmethod
+    def _compact_text(value: Any, *, max_chars: int = 400) -> str:
+        return " ".join(str(value or "").strip().split())[:max_chars]
+
+    def _build_faq_candidates(
+        self,
+        *,
+        capabilities_summary: dict[str, Any] | None = None,
+        max_items: int | None = None,
+    ) -> list[dict[str, Any]]:
+        cap_summary = capabilities_summary if isinstance(capabilities_summary, dict) else {}
+        raw_bank = cap_summary.get("faq_bank", [])
+        if not isinstance(raw_bank, list) or not raw_bank:
+            try:
+                raw_bank = config_service.get_faq_bank()
+            except Exception:
+                raw_bank = []
+
+        limit_cfg = max_items
+        if limit_cfg is None:
+            limit_cfg = int(getattr(settings, "llm_orchestration_faq_max_items", 80) or 80)
+        limit = max(0, min(int(limit_cfg or 0), 200))
+        if limit <= 0:
+            return []
+
+        entries: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        for faq in raw_bank:
+            if not isinstance(faq, dict):
+                continue
+            if not bool(faq.get("enabled", True)):
+                continue
+            question = self._compact_text(faq.get("question"), max_chars=300)
+            answer = self._compact_text(faq.get("answer"), max_chars=1000)
+            faq_id = self._normalize_identifier(
+                faq.get("id")
+                or question
+                or ""
+            )
+            if not faq_id or not question or not answer:
+                continue
+            if faq_id in seen_ids:
+                continue
+            seen_ids.add(faq_id)
+            tags_raw = faq.get("tags", [])
+            tags: list[str] = []
+            if isinstance(tags_raw, list):
+                for tag in tags_raw:
+                    cleaned = self._compact_text(tag, max_chars=60).lower()
+                    if cleaned:
+                        tags.append(cleaned)
+                    if len(tags) >= 12:
+                        break
+            entries.append(
+                {
+                    "faq_id": faq_id,
+                    "question": question,
+                    "answer": answer,
+                    "description": self._compact_text(faq.get("description"), max_chars=240),
+                    "tags": tags,
+                }
+            )
+            if len(entries) >= limit:
+                break
+        return entries
+
+    @staticmethod
+    def _coerce_confidence(value: Any, default: float = 0.0) -> float:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return default
+        if parsed != parsed:  # NaN guard
+            return default
+        return max(0.0, min(1.0, parsed))
+
+    def _normalize_faq_resolution_metadata(
+        self,
+        decision: OrchestrationDecision,
+        *,
+        faq_candidates: list[dict[str, Any]] | None = None,
+    ) -> OrchestrationDecision:
+        if not isinstance(decision.metadata, dict):
+            decision.metadata = {}
+        metadata = decision.metadata
+
+        known_ids: set[str] = set()
+        for row in faq_candidates or []:
+            if not isinstance(row, dict):
+                continue
+            row_id = self._normalize_identifier(row.get("faq_id") or row.get("id"))
+            if row_id:
+                known_ids.add(row_id)
+
+        normalized_resolution: list[dict[str, Any]] = []
+        seen_resolution: set[str] = set()
+        raw_resolution = metadata.get("faq_resolution")
+        if isinstance(raw_resolution, list):
+            for item in raw_resolution:
+                if not isinstance(item, dict):
+                    continue
+                faq_id = self._normalize_identifier(
+                    item.get("faq_id")
+                    or item.get("id")
+                    or ""
+                )
+                relation = self._normalize_identifier(
+                    item.get("relation")
+                    or item.get("resolution")
+                    or item.get("type")
+                    or ""
+                )
+                if relation not in {"override", "merge", "ignore"}:
+                    relation = "ignore"
+                if faq_id:
+                    dedupe_key = faq_id
+                else:
+                    dedupe_key = f"unknown:{relation}:{self._compact_text(item.get('reason'), max_chars=80)}"
+                if dedupe_key in seen_resolution:
+                    continue
+                seen_resolution.add(dedupe_key)
+                confidence = self._coerce_confidence(
+                    item.get("confidence"),
+                    default=1.0 if relation in {"override", "merge"} else 0.0,
+                )
+                applied = self._coerce_bool(
+                    item.get("applied"),
+                    default=relation in {"override", "merge"},
+                )
+                reason = self._compact_text(item.get("reason"), max_chars=260)
+                fact = self._compact_text(
+                    item.get("fact")
+                    or item.get("resolved_fact")
+                    or item.get("value")
+                    or "",
+                    max_chars=340,
+                )
+                normalized_item: dict[str, Any] = {
+                    "faq_id": faq_id,
+                    "relation": relation,
+                    "applied": bool(applied),
+                    "confidence": confidence,
+                }
+                if reason:
+                    normalized_item["reason"] = reason
+                if fact:
+                    normalized_item["fact"] = fact
+                if faq_id and known_ids and faq_id not in known_ids:
+                    normalized_item["unknown_faq_id"] = True
+                normalized_resolution.append(normalized_item)
+                if len(normalized_resolution) >= 40:
+                    break
+        metadata["faq_resolution"] = normalized_resolution
+
+        normalized_facts: list[dict[str, str]] = []
+        seen_facts: set[str] = set()
+        raw_facts = metadata.get("resolved_facts")
+        if isinstance(raw_facts, list):
+            for row in raw_facts:
+                source = ""
+                fact = ""
+                if isinstance(row, dict):
+                    source = self._compact_text(row.get("source"), max_chars=80).lower()
+                    fact = self._compact_text(
+                        row.get("fact")
+                        or row.get("text")
+                        or row.get("value")
+                        or "",
+                        max_chars=340,
+                    )
+                else:
+                    fact = self._compact_text(row, max_chars=340)
+                if not fact:
+                    continue
+                if not source:
+                    source = "kb"
+                dedupe_key = f"{source}|{fact.lower()}"
+                if dedupe_key in seen_facts:
+                    continue
+                seen_facts.add(dedupe_key)
+                normalized_facts.append({"source": source, "fact": fact})
+                if len(normalized_facts) >= 40:
+                    break
+
+        if not normalized_facts:
+            for row in normalized_resolution:
+                if not isinstance(row, dict):
+                    continue
+                if not bool(row.get("applied")):
+                    continue
+                relation = self._normalize_identifier(row.get("relation"))
+                if relation not in {"override", "merge"}:
+                    continue
+                fact = self._compact_text(row.get("fact"), max_chars=340)
+                faq_id = self._normalize_identifier(row.get("faq_id"))
+                if not fact:
+                    continue
+                source = f"faq:{faq_id}" if faq_id else "faq"
+                dedupe_key = f"{source}|{fact.lower()}"
+                if dedupe_key in seen_facts:
+                    continue
+                seen_facts.add(dedupe_key)
+                normalized_facts.append({"source": source, "fact": fact})
+                if len(normalized_facts) >= 20:
+                    break
+
+        metadata["resolved_facts"] = normalized_facts
+        metadata["faq_resolution_applied"] = any(
+            bool(row.get("applied"))
+            and self._normalize_identifier(row.get("relation")) in {"override", "merge"}
+            for row in normalized_resolution
+            if isinstance(row, dict)
+        )
+        metadata["faq_candidates_considered"] = len(faq_candidates or [])
+        return decision
+
     def _generic_kb_ticketing_enabled(self) -> bool:
         return bool(getattr(settings, "chat_llm_generic_kb_ticketing_enabled", True))
 
@@ -2630,7 +2846,10 @@ class LLMOrchestrationService:
             "- If the KB lists 5 room types, show all 5. If it lists 8 amenities, show all 8.\n"
             "- Include ALL details for each item (price, description, features, capacity, etc.) as given in the KB.\n"
             "- Do NOT say 'and more' or 'among others' — be exhaustive.\n"
-            "- The guest deserves complete information to make a decision."
+            "- The guest deserves complete information to make a decision.\n"
+            "ROOM PRESENTATION STYLE: For room options, lead with what makes each room uniquely appealing to guests "
+            "(experience, view, inclusions, standout features). Do not lead with square-foot/area specs, "
+            "and mention size only if the guest explicitly asks for size/area."
         )
 
         # ── Operating constraints (hours, zones, cuisine) ─────────────────────
@@ -2788,7 +3007,11 @@ class LLMOrchestrationService:
             '    "department_id": "pick the numeric id from available_departments that best fits this service",\n'
             '    "department_name": "the matching department name"\n'
             '  },\n'
-            '  "metadata": {"context_switched": false}\n'
+            '  "metadata": {\n'
+            '    "context_switched": false,\n'
+            '    "faq_resolution": [{"faq_id":"", "relation":"override|merge|ignore", "applied":false, "confidence":0.0, "reason":"", "fact":""}],\n'
+            '    "resolved_facts": [{"source":"faq:<id>|kb", "fact":"short fact used in response"}]\n'
+            "  }\n"
             "}"
         )
 
@@ -2914,7 +3137,11 @@ class LLMOrchestrationService:
             '    "department_id": "numeric id from available_departments that best fits this service",\n'
             '    "department_name": "the matching department name"\n'
             "  },\n"
-            '  "metadata": {"context_switched": false}\n'
+            '  "metadata": {\n'
+            '    "context_switched": false,\n'
+            '    "faq_resolution": [{"faq_id":"", "relation":"override|merge|ignore", "applied":false, "confidence":0.0, "reason":"", "fact":""}],\n'
+            '    "resolved_facts": [{"source":"faq:<id>|kb", "fact":"short fact used in response"}]\n'
+            "  }\n"
             "}\n"
             "relevant_to_service: set to false ONLY when the guest's message is entirely outside "
             "this service's domain AND you cannot make meaningful progress. When false, also set "
@@ -3237,6 +3464,7 @@ class LLMOrchestrationService:
         # FAQ-as-primary-truth: runtime-inject admin FAQ as PRIMARY KNOWLEDGE
         # ahead of the steady-state KB. Empty string when no FAQs configured.
         _faq_block = build_faq_block()
+        faq_candidates = self._build_faq_candidates()
         if _generated_prompt:
             kb_section = str(extracted_knowledge or "").strip()
             if kb_section:
@@ -3252,6 +3480,9 @@ class LLMOrchestrationService:
                 "- List ALL items from the knowledge base — never summarize, skip, or show only a partial list.\n"
                 "- Include ALL details for each item (price, description, features, capacity, etc.) as given in the KB.\n"
                 "- Do NOT say 'and more' or 'among others' — be exhaustive.\n\n"
+                "ROOM PRESENTATION STYLE: For room options, lead with what makes each room uniquely appealing to guests "
+                "(experience, view, inclusions, standout features). Do not lead with square-foot/area specs, "
+                "and mention size only if the guest explicitly asks for size/area.\n\n"
                 "=== RUNTIME RULES (OVERRIDE — these take precedence over any earlier instructions) ===\n"
                 f"{self._build_service_runtime_json_contract(confirmation_pending_action=confirmation_pending_action, current_phase_id=selected_phase_id, ticketing_mode=_svc_ticketing_mode, trigger_field_id=_svc_trigger_field_id, trigger_field_label=_svc_trigger_field_label, form_field_names=_svc_form_field_names, service_type=str(service.get('type') or '').strip(), service_cuisine=service_cuisine, service_description=description)}"
             )
@@ -3282,6 +3513,23 @@ class LLMOrchestrationService:
             )
             if _faq_block:
                 system_prompt = _faq_block + "\n\n" + system_prompt
+        faq_resolution_rules = (
+            "\n=== FAQ RESOLUTION (SMART MERGE/OVERRIDE) ===\n"
+            "The payload includes faq_candidates (admin-curated Q/A entries).\n"
+            "Treat faq_candidates as high-priority current facts.\n"
+            "If FAQ conflicts with steady-state KB, FAQ is current truth (relation=override).\n"
+            "If FAQ adds detail to KB, include both (relation=merge).\n"
+            "If FAQ is unrelated, ignore it (relation=ignore).\n"
+            "For amenities/facilities asks, if FAQ marks an amenity unavailable or under maintenance,\n"
+            "do not present it as open/available in the same response.\n"
+            "For amenities lists, clearly separate available vs temporarily unavailable items.\n"
+            "If useful, phrase context as: 'Usually X, but currently Y.'\n"
+            "Do not skip relevant FAQ inclusions in the final answer.\n"
+            "Record your reasoning in metadata.faq_resolution (faq_id, relation, applied, confidence, reason, fact)\n"
+            "and metadata.resolved_facts (source=faq:<id>|kb, fact=short line).\n"
+            "Example: if FAQ says Lux Suite includes complimentary dinner, include that in the Lux Suite answer.\n"
+        )
+        system_prompt = system_prompt + faq_resolution_rules
 
         pending_pub = self._coerce_public_pending(context.pending_data)
         # Build a human-readable view of already-collected slot data for the LLM
@@ -3379,6 +3627,7 @@ class LLMOrchestrationService:
             "last_assistant_message": str(history_bundle.get("last_assistant_message") or ""),
             "memory_summary": str(memory_snapshot.get("summary") or "")[:1200],
             "memory_facts": self._sanitize_json(_mem_facts),
+            "faq_candidates": self._sanitize_json(faq_candidates),
             "confirmation_phrase": confirmation_phrase,
             "available_departments": _available_departments,
             "service_ticketing_mode": _svc_ticketing_mode,
@@ -3438,6 +3687,10 @@ class LLMOrchestrationService:
         decision.metadata["source"] = "service_agent"
         decision.metadata["service_agent_id"] = service_id
         decision.metadata["is_first_service_turn"] = is_first_service_turn
+        decision = self._normalize_faq_resolution_metadata(
+            decision,
+            faq_candidates=faq_candidates,
+        )
 
         if _svc_ticketing_mode == "form":
             decision.response_text = strip_form_confirmation_instructions(decision.response_text)
@@ -4009,6 +4262,7 @@ class LLMOrchestrationService:
         # The orchestrator system prompt contains property resolution rules and
         # receives property_scope in the payload — it decides when to ask for
         # clarification vs answer from the full KB. No hardcoded guard needed.
+        faq_candidates = self._build_faq_candidates(capabilities_summary=capabilities_summary)
         _now = datetime.now(UTC)
         payload = {
             "trace_id": orchestration_trace_id,
@@ -4038,6 +4292,7 @@ class LLMOrchestrationService:
             "active_property_ids": list(_cached_active_ids) if _cached_active_ids else [],
             "past_property_context": _runtime_past_ctx if _runtime_past_ctx else {},
             "full_knowledge_base": full_kb_text or None,
+            "faq_candidates": self._sanitize_json(faq_candidates),
             "history": history_bundle.get("history_last_10", []),
             "history_last_10": history_bundle.get("history_last_10", []),
             "full_history_context": history_bundle.get("full_history_context", {}),
@@ -4117,7 +4372,25 @@ class LLMOrchestrationService:
                     "priority": "low|medium|high|critical",
                     "evidence": ["1-3 short KB facts backing the request"],
                 },
-                "metadata": {"any": "json"},
+                "metadata": {
+                    "faq_resolution": [
+                        {
+                            "faq_id": "faq identifier from faq_candidates",
+                            "relation": "override|merge|ignore",
+                            "applied": "bool",
+                            "confidence": "0..1",
+                            "reason": "short explanation",
+                            "fact": "specific fact used from FAQ",
+                        }
+                    ],
+                    "resolved_facts": [
+                        {
+                            "source": "faq:<id>|kb",
+                            "fact": "short factual line used in final answer",
+                        }
+                    ],
+                    "any": "json",
+                },
             },
         }
 
@@ -4172,6 +4445,26 @@ class LLMOrchestrationService:
             "COMPLETENESS: When listing rooms, packages, amenities, or any offerings — list ALL of them from the KB. "
             "Never show a partial list. If the KB has 5 room types, list all 5 with their details. "
             "Do NOT say 'and more' or summarize — be exhaustive.\n"
+            "ROOM PRESENTATION STYLE: For room options, lead with what makes each room uniquely appealing to guests "
+            "(experience, view, inclusions, standout features). Do not lead with square-foot/area specs, "
+            "and mention size only if the guest explicitly asks for size/area.\n"
+            "\n"
+            "=== FAQ RESOLUTION (SMART MERGE/OVERRIDE) ===\n"
+            "The payload includes faq_candidates (admin-curated Q/A entries).\n"
+            "Treat faq_candidates as high-priority current facts, especially for temporary updates and offer inclusions.\n"
+            "When FAQ and KB conflict, FAQ wins for current reality (relation='override').\n"
+            "When FAQ adds extra detail not present in KB, include BOTH (relation='merge').\n"
+            "If FAQ is unrelated, ignore it (relation='ignore').\n"
+            "Never drop a relevant FAQ inclusion. Example: if an FAQ says Lux Suite includes complimentary dinner,\n"
+            "your final room answer must include that inclusion when describing Lux Suite.\n"
+            "For amenities/facilities asks, enforce status consistency: if FAQ says an amenity is under maintenance\n"
+            "or unavailable, do NOT present it as open/available in the same response.\n"
+            "For broad amenities list answers, separate into clear groups such as 'Currently available' and\n"
+            "'Temporarily unavailable', so status is unambiguous.\n"
+            "If helpful, you may mention steady-state context in this pattern: 'Usually X, but currently Y.'\n"
+            "Run a final self-check before output: no amenity appears in both available and unavailable form.\n"
+            "For every relevant FAQ candidate, write metadata.faq_resolution with faq_id, relation, applied, confidence, and reason.\n"
+            "Also write metadata.resolved_facts with the compact facts actually used in response_text (source=faq:<id> or kb).\n"
             "\n"
             "=== PROPERTY RESOLUTION (YOU decide — no hardcoded rules) ===\n"
             "The payload includes:\n"
@@ -4428,6 +4721,10 @@ class LLMOrchestrationService:
         decision.metadata.setdefault("source", "orchestrator")
         decision.metadata.setdefault("orchestration_trace_id", orchestration_trace_id)
         decision = self._apply_answer_priority_fields(decision)
+        decision = self._normalize_faq_resolution_metadata(
+            decision,
+            faq_candidates=faq_candidates,
+        )
         decision = self._normalize_generic_kb_request_decision(decision)
 
         # ── Persist LLM-determined property scope into conversation state ──

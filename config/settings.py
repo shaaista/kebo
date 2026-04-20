@@ -69,6 +69,10 @@ class Settings(BaseSettings):
     llm_io_trace_enabled: bool = True
     llm_io_trace_file: str = "./logs/llm_io_trace.jsonl"
     llm_io_trace_max_chars: int = 300000
+    llm_call_simple_logging_enabled: bool = True
+    llm_call_simple_log_file: str = "./logs/llm_calls_simple.jsonl"
+    llm_call_simple_text_max_chars: int = 1200
+    llm_model_pricing_json: str = ""
 
     # RAG Settings
     rag_backend: str = "local"  # local | qdrant
@@ -167,6 +171,17 @@ class Settings(BaseSettings):
     conversation_local_store_enabled: bool = True
     chat_test_phase_profile_auto_apply: bool = True
     chat_test_phase_profiles_json: str = ""
+    chat_suggestion_prefetch_enabled: bool = True
+    chat_suggestion_prefetch_count: int = 3
+    chat_suggestion_prefetch_ttl_seconds: int = 300
+    chat_suggestion_prefetch_parallelism: int = 3
+    chat_suggestion_prefetch_similarity_threshold: float = 0.90
+    chat_suggestion_prefetch_max_batches_per_session: int = 6
+    chat_suggestion_prefetch_model: str = ""
+    chat_suggestion_prefetch_temperature: float = 0.2
+    chat_suggestion_prefetch_max_tokens: int = 420
+    chat_suggestion_prefetch_max_kb_chars: int = 12000
+    chat_suggestion_prefetch_wait_ms: int = 220
     conversation_local_store_file: str = Field(
         default_factory=lambda: (
             "/tmp/kepsla_local_contexts.json"

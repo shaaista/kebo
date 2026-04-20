@@ -16,7 +16,7 @@ from typing import Any, Optional, List
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 
-from schemas.chat import ChatRequest, ChatResponse
+from schemas.chat import ChatRequest, ChatResponse, ConversationState, MessageRole
 from llm.client import llm_client
 from services.chat_service import chat_service
 from services.evaluation_metrics_service import evaluation_metrics_service
@@ -28,6 +28,8 @@ from services.turn_diagnostics_service import turn_diagnostics_service
 from services.response_beautifier_service import response_beautifier_service
 from services.db_config_service import db_config_service
 from services.config_service import config_service
+from services.conversation_memory_service import conversation_memory_service
+from services.suggestion_prefetch_service import suggestion_prefetch_service
 from services import new_detailed_logger
 from config.settings import settings
 from core.context_manager import context_manager
@@ -220,6 +222,105 @@ def _sanitize_suggestions(raw: list[str], limit: int = 4) -> list[str]:
         if len(cleaned) >= max(1, int(limit or 4)):
             break
     return cleaned
+
+
+def _coerce_conversation_state(value: Any, default: ConversationState = ConversationState.IDLE) -> ConversationState:
+    raw = str(value or "").strip().lower()
+    if not raw:
+        return default
+    for item in ConversationState:
+        if item.value == raw:
+            return item
+    return default
+
+
+async def _build_prefetch_cached_response(
+    *,
+    request: ChatRequest,
+    hotel_code: str,
+    cached_payload: dict[str, Any],
+    db: AsyncSession | None,
+) -> ChatResponse:
+    try:
+        context = await context_manager.get_or_create_context(
+            session_id=request.session_id,
+            hotel_code=hotel_code,
+            guest_phone=request.guest_phone,
+            channel=request.channel or (request.metadata or {}).get("channel") or None,
+            db_session=db,
+        )
+    except OperationalError:
+        context = await context_manager.get_or_create_context(
+            session_id=request.session_id,
+            hotel_code=hotel_code,
+            guest_phone=request.guest_phone,
+            channel=request.channel or (request.metadata or {}).get("channel") or None,
+            db_session=None,
+        )
+    request_channel = request.channel or (request.metadata or {}).get("channel") or context.channel
+    if request_channel:
+        context.channel = str(request_channel).strip()
+
+    user_text = str(request.message or "").strip()
+    assistant_text = str(cached_payload.get("message") or "").strip()
+    if not assistant_text:
+        assistant_text = "I can help with that. Could you share one more detail so I can answer accurately?"
+
+    user_meta = {
+        "channel": context.channel,
+        "prefetch_cache_hit": True,
+    }
+    context.add_message(MessageRole.USER, user_text, metadata=user_meta)
+
+    incoming_meta = cached_payload.get("metadata")
+    if not isinstance(incoming_meta, dict):
+        incoming_meta = {}
+    assistant_meta = {
+        "channel": context.channel,
+        "prefetch_cache_hit": True,
+        "response_source": str(incoming_meta.get("response_source") or "suggestion_prefetch_cache"),
+        "prefetch_batch_id": str(incoming_meta.get("prefetch_batch_id") or ""),
+        "prefetch_entry_id": str(incoming_meta.get("prefetch_entry_id") or ""),
+        "prefetch_chip_text": str(incoming_meta.get("prefetch_chip_text") or ""),
+        "prefetch_similarity": incoming_meta.get("prefetch_similarity"),
+        "prefetch_match_mode": str(incoming_meta.get("prefetch_match_mode") or ""),
+    }
+    context.add_message(MessageRole.ASSISTANT, assistant_text, metadata=assistant_meta)
+
+    target_state = _coerce_conversation_state(
+        cached_payload.get("state"),
+        default=context.state if isinstance(context.state, ConversationState) else ConversationState.IDLE,
+    )
+    context.state = target_state
+
+    try:
+        await context_manager.save_context(context, db_session=db)
+    except Exception:
+        await context_manager.save_context(context, db_session=None)
+
+    outgoing_meta = dict(incoming_meta)
+    outgoing_meta.update(
+        {
+            "message_count": len(context.messages),
+            "response_source": "suggestion_prefetch_cache",
+            "prefetch_cache_hit": True,
+            "prefetch_batch_id": str(incoming_meta.get("prefetch_batch_id") or ""),
+            "prefetch_entry_id": str(incoming_meta.get("prefetch_entry_id") or ""),
+            "prefetch_chip_text": str(incoming_meta.get("prefetch_chip_text") or ""),
+            "prefetch_similarity": incoming_meta.get("prefetch_similarity"),
+            "prefetch_match_mode": str(incoming_meta.get("prefetch_match_mode") or ""),
+            "prefetch_threshold": incoming_meta.get("prefetch_threshold"),
+        }
+    )
+
+    return ChatResponse(
+        session_id=request.session_id,
+        message=assistant_text,
+        display_message=str(cached_payload.get("display_message") or "").strip() or None,
+        state=target_state,
+        suggested_actions=[],
+        metadata=outgoing_meta,
+    )
 
 
 def _service_kb_fact_lines(record: dict[str, Any], max_items: int = 16) -> list[str]:
@@ -906,8 +1007,6 @@ async def _generate_confirmation_message(
 ) -> str:
     """Generate an LLM confirmation message after ticket creation."""
     try:
-        from openai import AsyncOpenAI
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
         model = str(getattr(settings, "openai_model", None) or "gpt-4o-mini")
 
         details = "; ".join(
@@ -922,7 +1021,7 @@ async def _generate_confirmation_message(
             f"Guest provided details: {details}"
         )
 
-        completion = await client.chat.completions.create(
+        completion = await llm_client.raw_chat_completion(
             model=model,
             messages=[
                 {"role": "system", "content": _FORM_CONFIRM_SYSTEM_PROMPT},
@@ -930,6 +1029,11 @@ async def _generate_confirmation_message(
             ],
             temperature=0.7,
             max_tokens=200,
+            trace_context={
+                "component": "form_confirmation_message",
+                "route": "/api/chat/form-submit",
+            },
+            purpose="Generate post-ticket confirmation message for the guest",
         )
 
         msg = str(completion.choices[0].message.content or "").strip()
@@ -1933,6 +2037,16 @@ async def send_message(
     scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
     if not isinstance(request.metadata, dict):
         request.metadata = {}
+    prefetch_batch_id = str(
+        request.metadata.get("prefetch_batch_id")
+        or request.metadata.get("ui_prefetch_batch_id")
+        or ""
+    ).strip()
+    prefetch_source_type = str(
+        request.metadata.get("ui_source_type")
+        or request.metadata.get("source_type")
+        or ""
+    ).strip().lower()
     turn_trace_id, turn_token = turn_diagnostics_service.begin_turn(
         request=request,
         api_trace_id=trace_id,
@@ -2000,7 +2114,24 @@ async def send_message(
         print(f"[new_detailed_logger] chat turn IN log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
 
     try:
-        response = await chat_service.process_message(request, db_session=db)
+        cached_prefetch_payload: Optional[dict[str, Any]] = None
+        should_check_prefetch = bool(prefetch_batch_id) or prefetch_source_type == "suggested_action"
+        if should_check_prefetch:
+            cached_prefetch_payload = await suggestion_prefetch_service.resolve_cached_answer(
+                session_id=str(request.session_id or "").strip(),
+                user_message=str(request.message or "").strip(),
+                source_type=prefetch_source_type,
+                batch_id=prefetch_batch_id,
+            )
+        if isinstance(cached_prefetch_payload, dict) and cached_prefetch_payload:
+            response = await _build_prefetch_cached_response(
+                request=request,
+                hotel_code=resolved_hotel_code,
+                cached_payload=cached_prefetch_payload,
+                db=db,
+            )
+        else:
+            response = await chat_service.process_message(request, db_session=db)
         await _attach_display_message(response)
         if not isinstance(response.metadata, dict):
             response.metadata = {}
@@ -2621,6 +2752,7 @@ class SuggestionsRequest(BaseModel):
     hotel_code: Optional[str] = "DEFAULT"
     current_phase: Optional[str] = "pre_booking"
     session_id: Optional[str] = None
+    assistant_turn_id: Optional[str] = None
     fallback_suggestions: list[str] = Field(default_factory=list)
 
 
@@ -2641,8 +2773,11 @@ async def get_contextual_suggestions(
         active_service_id = ""
         active_service: dict[str, Any] = {}
         conversation_state = ""
+        pending_action = ""
         conversation_history: list[dict[str, str]] = []
         pending_data_public: dict[str, Any] = {}
+        known_context: dict[str, str] = {}
+        memory_snapshot: dict[str, Any] = {}
 
         cap_summary = config_service.get_capability_summary(hotel_code)
         raw_caps = cap_summary.get("capabilities", {})
@@ -2680,6 +2815,11 @@ async def get_contextual_suggestions(
                         for key, value in pending_data_raw.items()
                         if isinstance(key, str) and not key.startswith("_")
                     }
+                    known_context = {
+                        "guest_name": str(context.guest_name or "").strip(),
+                        "room_number": str(context.room_number or "").strip(),
+                    }
+                    memory_snapshot = conversation_memory_service.get_snapshot(context)
 
                     phase_candidates = [
                         pending_data_public.get("phase"),
@@ -2990,6 +3130,10 @@ async def get_contextual_suggestions(
             "4. Reject out-of-phase or unsupported runtime candidates.\n"
             "5. Prefer suggestions that can receive a direct helpful answer now.\n"
             "6. If `active_service` exists, prioritize continuation suggestions.\n\n"
+            "Operational truth rule:\n"
+            "- If knowledge indicates an amenity/service is currently unavailable or under maintenance,\n"
+            "  do not suggest using or booking it now.\n"
+            "- Prefer status-aware follow-ups (e.g., reopening timeline) over availability-assuming asks.\n\n"
             "Style:\n"
             "- First-person guest chat text.\n"
             "- Questions or requests only; never data submission.\n"
@@ -3008,17 +3152,50 @@ async def get_contextual_suggestions(
         )
         suggestions = _sanitize_suggestions(
             _extract_suggestion_candidates(result.get("suggestions", [])),
-            limit=4,
+            limit=3,
         )
         if not suggestions and fallback_candidates:
-            suggestions = _sanitize_suggestions(fallback_candidates, limit=4)
-        return {"suggestions": suggestions}
+            suggestions = _sanitize_suggestions(fallback_candidates, limit=3)
+
+        prefetch_batch_id: Optional[str] = None
+        if suggestions and str(request.session_id or "").strip():
+            try:
+                prefetch_batch_id = await suggestion_prefetch_service.schedule_batch(
+                    session_id=str(request.session_id or "").strip(),
+                    hotel_code=hotel_code,
+                    assistant_turn_id=str(request.assistant_turn_id or "").strip(),
+                    phase_id=phase_id,
+                    conversation_state=conversation_state,
+                    last_bot_message=str(request.last_bot_message or "").strip(),
+                    triggering_user_message=str(request.user_message or "").strip(),
+                    suggestions=suggestions,
+                    conversation_history=conversation_history,
+                    active_service=active_service,
+                    services_allowed_in_phase=phase_services_context,
+                    knowledge_base_excerpt={
+                        "full_kb_text": kb_text,
+                        "service_knowledge_corpus": service_knowledge_corpus,
+                    },
+                    capabilities_summary=cap_summary,
+                    memory_snapshot=memory_snapshot,
+                    selected_phase_context={
+                        "selected_phase_id": phase_id,
+                        "selected_phase_name": phase_name,
+                    },
+                    pending_action=pending_action,
+                    pending_data_public=pending_data_public,
+                    known_context=known_context,
+                )
+            except Exception:
+                prefetch_batch_id = None
+
+        return {"suggestions": suggestions, "prefetch_batch_id": prefetch_batch_id}
     except Exception as e:
         print(f"Suggestions endpoint error: {e}")
         fallback = _sanitize_suggestions(
             [str(item).strip() for item in (request.fallback_suggestions or []) if str(item).strip()],
-            limit=4,
+            limit=3,
         )
-        return {"suggestions": fallback}
+        return {"suggestions": fallback, "prefetch_batch_id": None}
     finally:
         db_config_service.reset_hotel_context(scope_token)

@@ -16,6 +16,7 @@ import re
 from typing import Any
 
 from config.settings import settings
+from llm.client import llm_client
 
 logger = logging.getLogger(__name__)
 
@@ -145,12 +146,9 @@ _EXTRACT_SYSTEM_PROMPT = (
 async def _llm_extract(ticketing_conditions: str) -> list[dict[str, Any]]:
     """Attempt LLM-based extraction. Returns [] on any failure."""
     try:
-        from openai import AsyncOpenAI
-
-        client = AsyncOpenAI(api_key=settings.openai_api_key)
         model = str(getattr(settings, "openai_model", None) or "gpt-4o-mini")
 
-        completion = await client.chat.completions.create(
+        completion = await llm_client.raw_chat_completion(
             model=model,
             messages=[
                 {"role": "system", "content": _EXTRACT_SYSTEM_PROMPT},
@@ -163,6 +161,11 @@ async def _llm_extract(ticketing_conditions: str) -> list[dict[str, Any]]:
             ],
             temperature=0,
             max_tokens=600,
+            trace_context={
+                "component": "form_fields_extraction",
+                "service_id": "form_fields_service",
+            },
+            purpose="Extract structured form fields from ticketing conditions",
         )
 
         raw = str(completion.choices[0].message.content or "").strip()

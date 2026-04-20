@@ -73,6 +73,11 @@ interface ChatApiResponse {
   form_service_id?: string;
 }
 
+interface SuggestionsApiResponse {
+  suggestions?: string[];
+  prefetch_batch_id?: string | null;
+}
+
 interface InlineFormField {
   id: string;
   label: string;
@@ -523,6 +528,7 @@ const ChatHarness = () => {
 
   const [messages, setMessages] = useState<ChatMessageRow[]>([]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [prefetchBatchId, setPrefetchBatchId] = useState("");
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [inlineForm, setInlineForm] = useState<InlineFormState | null>(null);
@@ -639,6 +645,7 @@ const ChatHarness = () => {
       },
     ]);
     setSuggestions([]);
+    setPrefetchBatchId("");
     setInlineForm(null);
     setSessionState("idle");
     setMessageCount(0);
@@ -649,13 +656,20 @@ const ChatHarness = () => {
   }, [resolvedWelcomeMessage]);
 
   const fetchAndShowSuggestions = useCallback(
-    async (lastBotMessage: string, userMessage: string, fallbackSuggestions: string[]) => {
+    async (
+      lastBotMessage: string,
+      userMessage: string,
+      fallbackSuggestions: string[],
+      assistantTurnId: string,
+    ) => {
       if (inlineForm && !inlineForm.successMessage) {
         setSuggestions([]);
+        setPrefetchBatchId("");
         return;
       }
       const requestId = ++suggestionRequestIdRef.current;
       setSuggestions([]);
+      setPrefetchBatchId("");
       try {
         const response = await fetch("/api/chat/suggestions", {
           method: "POST",
@@ -666,6 +680,7 @@ const ChatHarness = () => {
             hotel_code: hotelCode,
             current_phase: phase,
             session_id: sessionId,
+            assistant_turn_id: assistantTurnId,
             fallback_suggestions: Array.isArray(fallbackSuggestions) ? fallbackSuggestions : [],
           }),
         });
@@ -676,19 +691,22 @@ const ChatHarness = () => {
             (!inlineForm || inlineForm.successMessage)
           ) {
             setSuggestions(fallbackSuggestions);
+            setPrefetchBatchId("");
           }
           return;
         }
-        const data = (await response.json()) as { suggestions?: string[] };
+        const data = (await response.json()) as SuggestionsApiResponse;
         if (requestId !== suggestionRequestIdRef.current) return;
         if (inlineForm && !inlineForm.successMessage) return;
         const next = Array.isArray(data.suggestions) ? data.suggestions.filter(Boolean) : [];
         if (next.length > 0) {
           setSuggestions(next);
+          setPrefetchBatchId(String(data.prefetch_batch_id || "").trim());
           return;
         }
         if (fallbackSuggestions.length > 0) {
           setSuggestions(fallbackSuggestions);
+          setPrefetchBatchId("");
         }
       } catch {
         if (
@@ -697,6 +715,7 @@ const ChatHarness = () => {
           (!inlineForm || inlineForm.successMessage)
         ) {
           setSuggestions(fallbackSuggestions);
+          setPrefetchBatchId("");
         }
       }
     },
@@ -1011,6 +1030,7 @@ const ChatHarness = () => {
       setWidgetOpen(true);
       setInput("");
       setSuggestions([]);
+      setPrefetchBatchId("");
       setMessages((prev) => [
         ...prev,
         { id: userId, role: "user", content: text, canonicalContent: text },
@@ -1018,6 +1038,15 @@ const ChatHarness = () => {
       setIsSending(true);
 
       try {
+        const requestMetadata = buildRequestMetadata({
+          source_type: sourceType,
+          source_label: sourceType === "typed_input" ? "typed_input" : text,
+          source_text: text,
+        });
+        if (prefetchBatchId) {
+          requestMetadata.prefetch_batch_id = prefetchBatchId;
+          requestMetadata.ui_prefetch_batch_id = prefetchBatchId;
+        }
         const response = await fetch("/api/chat/message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1026,11 +1055,7 @@ const ChatHarness = () => {
             message: text,
             hotel_code: hotelCode,
             channel: "web_widget",
-            metadata: buildRequestMetadata({
-              source_type: sourceType,
-              source_label: sourceType === "typed_input" ? "typed_input" : text,
-              source_text: text,
-            }),
+            metadata: requestMetadata,
           }),
         });
         if (!response.ok) {
@@ -1055,6 +1080,7 @@ const ChatHarness = () => {
         updateSessionUiFromResponse(data);
 
         const metadata = (data.metadata || {}) as Record<string, unknown>;
+        const assistantTurnId = String(metadata.turn_trace_id || "").trim();
         const fields = normalizeFormFields(
           Array.isArray(metadata.form_fields) ? metadata.form_fields : data.form_fields,
         );
@@ -1108,6 +1134,7 @@ const ChatHarness = () => {
             successMessage: "",
           });
           setSuggestions([]);
+          setPrefetchBatchId("");
         } else {
           setInlineForm(null);
           const runtimeSuggestions = Array.isArray(data.suggested_actions)
@@ -1119,8 +1146,14 @@ const ChatHarness = () => {
             (stateValue === "awaiting_confirmation" || stateValue === "escalated");
           if (useRuntimeDirectly) {
             setSuggestions(runtimeSuggestions);
+            setPrefetchBatchId("");
           } else {
-            void fetchAndShowSuggestions(String(data.message || ""), text, runtimeSuggestions);
+            void fetchAndShowSuggestions(
+              String(data.message || ""),
+              text,
+              runtimeSuggestions,
+              assistantTurnId,
+            );
           }
         }
       } catch (error) {
@@ -1138,6 +1171,7 @@ const ChatHarness = () => {
           },
         ]);
         setSuggestions([]);
+        setPrefetchBatchId("");
       } finally {
         setIsSending(false);
         setTimeout(() => {
@@ -1150,6 +1184,7 @@ const ChatHarness = () => {
       fetchAndShowSuggestions,
       hotelCode,
       isSending,
+      prefetchBatchId,
       sessionId,
       updateSessionUiFromResponse,
     ],
@@ -1218,6 +1253,7 @@ const ChatHarness = () => {
           });
           setMessageCount((prev) => prev + 1);
           setSuggestions([]);
+          setPrefetchBatchId("");
           return;
         }
 
@@ -1268,6 +1304,7 @@ const ChatHarness = () => {
       setTicketDetails(null);
       setInlineForm(null);
       setSuggestions([]);
+      setPrefetchBatchId("");
       setMessages([
         {
           id: `welcome_${Date.now()}`,

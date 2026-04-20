@@ -19,6 +19,7 @@ Policy:
 10) If full_knowledge_base contains explicit facts answering the ask, can_answer_from_context must be true and revised_response_text must use those facts.
 11) Do not say details are unavailable when full_knowledge_base or service facts contain them.
 12) For decision.generic_kb_request=true, preserve the collection flow when the response is explicitly collecting the remaining details for a KB-grounded manual request.
+13) For amenities/facilities questions, enforce status consistency: if PRIMARY marks an amenity unavailable/under maintenance, the response must not present it as open/available in the same reply.
 
 PRIMARY vs STEADY-STATE KNOWLEDGE:
 You may receive a block labeled "PRIMARY KNOWLEDGE (hotel-specific, current, always authoritative)" alongside the usual context. When validating decision.response_text, apply these rules:
@@ -27,3 +28,4 @@ You may receive a block labeled "PRIMARY KNOWLEDGE (hotel-specific, current, alw
 3. If PRIMARY flags a service/feature as currently unavailable, any response that still offers, invites, or promises that flow is wrong — treat as needing rewrite.
 4. If PRIMARY states a date window, a valid response mentions when normal service resumes.
 5. Never validate as correct a response that entertains hypothetical bypasses of current PRIMARY reality.
+6. If the ask is a "list amenities/facilities" question, allow both available and unavailable items only when clearly separated and labeled; never leave ambiguous status.

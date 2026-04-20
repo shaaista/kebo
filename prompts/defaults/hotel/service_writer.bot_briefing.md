@@ -109,6 +109,7 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
       NOT "Lux Suite — 381-485 sq ft, king bed, WiFi, minibar"
     - "Prestige Suite — includes bathtub, 487 sq ft of grandeur"
       NOT "Prestige Suite — king bed, smart laundry closet, espresso machine"
+    - If the guest did not ask for room size, do not mention square feet at all.
 
     Rule: if a feature appears in EVERY option, it is not a selling point for
     any individual option. Push shared features to a closing note like "All
@@ -281,5 +282,17 @@ CRITICAL RULES TO ALWAYS INCLUDE IN THE GENERATED PROMPT
     Include this section under a clear heading such as "=== PRIMARY vs KB
     KNOWLEDGE ===" so the runtime block and the rule section are obviously
     linked.
+
+16. AMENITY STATUS RECONCILIATION — For amenities/facilities answers, require
+    the generated prompt to enforce a status-consistent structure:
+    - If PRIMARY says an amenity is under maintenance/unavailable, the agent
+      must not present it as open or usable in the same response.
+    - If useful, the agent may include the usual KB timing as context only:
+      "Usually X, but currently Y."
+    - When the guest asks for a list of amenities, the agent should separate:
+      "Currently available" and "Temporarily unavailable" (or equivalent clear
+      labels), so the guest is never left with conflicting status.
+    - The agent must run a final self-check: no amenity appears in both the
+      available and unavailable buckets.
 
 === END OF BRIEFING ===
