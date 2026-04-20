@@ -1379,35 +1379,56 @@ const ChatHarness = () => {
     if (!inlineForm) return null;
     const bounds = getStayDateBounds(phase, selectedBooking);
     return (
-      <form onSubmit={handleInlineFormSubmit} className="mt-3 rounded-md border border-slate-200 bg-slate-50 p-3">
+      <form
+        onSubmit={handleInlineFormSubmit}
+        className="mt-3 rounded-xl p-3"
+        style={{ backgroundColor: `${widgetUiColor}08`, border: `1px solid ${widgetUiColor}20` }}
+      >
         {inlineForm.successMessage ? (
-          <div className="rounded border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          <div
+            className="rounded-lg px-3 py-2 text-sm"
+            style={{ backgroundColor: `${widgetUiColor}12`, color: widgetUiColor, border: `1px solid ${widgetUiColor}25` }}
+          >
             {inlineForm.successMessage}
           </div>
         ) : (
           <>
             {inlineForm.errors._global ? (
-              <div className="mb-3 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              <div className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                 {inlineForm.errors._global}
               </div>
             ) : null}
             <div className="grid grid-cols-1 gap-2">
               {inlineForm.fields.map((field) => {
                 const fieldError = inlineForm.errors[field.id];
-                const commonClass = `w-full rounded border px-2 py-1.5 text-sm ${
-                  fieldError ? "border-rose-400 bg-rose-50" : "border-slate-300 bg-white"
+                const commonClass = `w-full rounded-lg border px-2.5 py-1.5 text-sm outline-none transition-colors ${
+                  fieldError
+                    ? "border-rose-400 bg-rose-50"
+                    : "bg-white"
                 }`;
+                const commonStyle: React.CSSProperties = fieldError
+                  ? {}
+                  : { borderColor: `${widgetUiColor}30` };
+                const commonFocusHandler = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+                  if (!fieldError) e.currentTarget.style.borderColor = widgetUiColor;
+                };
+                const commonBlurHandler = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+                  if (!fieldError) e.currentTarget.style.borderColor = `${widgetUiColor}30`;
+                };
                 const key = `inline_${field.id}`;
 
                 if (field.type === "textarea") {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <textarea
                         className={commonClass}
+                        style={commonStyle}
+                        onFocus={commonFocusHandler as any}
+                        onBlur={commonBlurHandler as any}
                         rows={3}
                         value={inlineForm.values[field.id] || ""}
                         onChange={(event) => {
@@ -1431,13 +1452,16 @@ const ChatHarness = () => {
                 if (isPhoneField(field)) {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <div className="flex gap-2">
                         <select
-                          className="w-24 rounded border border-slate-300 bg-white px-2 py-1.5 text-sm"
+                          className="w-24 rounded-lg border bg-white px-2 py-1.5 text-sm outline-none transition-colors"
+                          style={{ borderColor: `${widgetUiColor}30` }}
+                          onFocus={(e) => { e.currentTarget.style.borderColor = widgetUiColor; }}
+                          onBlur={(e) => { e.currentTarget.style.borderColor = `${widgetUiColor}30`; }}
                           value={inlineForm.countryCodes[field.id] || "+91"}
                           onChange={(event) => {
                             const code = event.target.value;
@@ -1460,6 +1484,9 @@ const ChatHarness = () => {
                         <input
                           type="tel"
                           className={commonClass}
+                          style={commonStyle}
+                          onFocus={commonFocusHandler}
+                          onBlur={commonBlurHandler}
                           value={inlineForm.values[field.id] || ""}
                           onChange={(event) => {
                             const value = event.target.value;
@@ -1483,13 +1510,16 @@ const ChatHarness = () => {
                 if (field.type === "date") {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <input
                         type="date"
                         className={commonClass}
+                        style={commonStyle}
+                        onFocus={commonFocusHandler}
+                        onBlur={commonBlurHandler}
                         min={bounds.min || undefined}
                         max={bounds.max || undefined}
                         value={inlineForm.values[field.id] || ""}
@@ -1514,13 +1544,16 @@ const ChatHarness = () => {
                 if (field.type === "time") {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <input
                         type="time"
                         className={commonClass}
+                        style={commonStyle}
+                        onFocus={commonFocusHandler}
+                        onBlur={commonBlurHandler}
                         value={inlineForm.values[field.id] || ""}
                         onChange={(event) => {
                           const value = event.target.value;
@@ -1543,13 +1576,16 @@ const ChatHarness = () => {
                 if (field.type === "datetime-local" || field.type === "datetime") {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <input
                         type="datetime-local"
                         className={commonClass}
+                        style={commonStyle}
+                        onFocus={commonFocusHandler}
+                        onBlur={commonBlurHandler}
                         value={inlineForm.values[field.id] || ""}
                         onChange={(event) => {
                           const value = event.target.value;
@@ -1572,12 +1608,15 @@ const ChatHarness = () => {
                 if ((field.type === "select" || field.type === "dropdown") && field.options.length > 0) {
                   return (
                     <label key={key} className="flex flex-col gap-1">
-                      <span className="text-xs font-medium text-slate-700">
+                      <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                         {field.label}
-                        {field.required ? " *" : ""}
+                        {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                       </span>
                       <select
                         className={commonClass}
+                        style={commonStyle}
+                        onFocus={commonFocusHandler as any}
+                        onBlur={commonBlurHandler as any}
                         value={inlineForm.values[field.id] || ""}
                         onChange={(event) => {
                           const value = event.target.value;
@@ -1606,13 +1645,16 @@ const ChatHarness = () => {
 
                 return (
                   <label key={key} className="flex flex-col gap-1">
-                    <span className="text-xs font-medium text-slate-700">
+                    <span className="text-xs font-medium" style={{ color: widgetTextColor }}>
                       {field.label}
-                      {field.required ? " *" : ""}
+                      {field.required ? <span style={{ color: widgetUiColor }}> *</span> : ""}
                     </span>
                     <input
                       type={field.type === "number" ? "number" : field.type === "email" ? "email" : "text"}
                       className={commonClass}
+                      style={commonStyle}
+                      onFocus={commonFocusHandler}
+                      onBlur={commonBlurHandler}
                       placeholder={field.placeholder || undefined}
                       value={inlineForm.values[field.id] || ""}
                       onChange={(event) => {
@@ -1637,7 +1679,8 @@ const ChatHarness = () => {
               <button
                 type="submit"
                 disabled={inlineForm.submitting}
-                className="rounded bg-slate-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+                className="w-full rounded-lg px-3 py-2 text-sm font-medium text-white transition-opacity disabled:opacity-50"
+                style={{ backgroundColor: widgetUiColor }}
               >
                 {inlineForm.submitting ? "Submitting..." : "Submit"}
               </button>

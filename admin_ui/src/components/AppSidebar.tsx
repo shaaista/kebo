@@ -11,9 +11,10 @@ import {
   FlaskConical,
   AlertTriangle,
   SlidersHorizontal,
+  Sparkles,
   Users,
   Bell,
-  
+
   Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -46,6 +47,7 @@ const trainingItems = [
   { title: "FAQ", url: "/app/training?tab=faq", icon: MessageSquare },
   { title: "Evaluation", url: "/app/training?tab=evaluation", icon: FlaskConical },
   { title: "Escalation", url: "/app/training?tab=escalation", icon: AlertTriangle },
+  { title: "Prompts", url: "/app/training?tab=prompts", icon: Sparkles },
   { title: "Advanced", url: "/app/training?tab=advanced", icon: SlidersHorizontal },
 ];
 

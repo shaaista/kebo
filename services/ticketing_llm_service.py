@@ -17,6 +17,10 @@ from typing import Any
 
 from config.settings import settings
 from llm.client import llm_client
+from services.prompt_registry_service import (
+    PromptMissingError,
+    prompt_registry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -99,18 +103,18 @@ class TicketingLLMService:
         if not note_text:
             return fallback
 
-        prompt = (
-            "You are deciding if a late follow-up should open a new human-support ticket.\n"
-            "Context: guest tried to update an old ticket after the update window.\n"
-            "Decide create_new_ticket=true only when the follow-up indicates a genuinely important change,\n"
-            "urgent unresolved impact, safety/security/health risk, or explicit need for human escalation.\n"
-            "If it is minor/noise/non-urgent repetition, set false.\n"
-            "Return strict JSON only:\n"
-            "{\"create_new_ticket\": true|false, \"priority\": \"low|medium|high|critical\", \"reason\": \"...\"}\n\n"
-            f"Existing ticket id: {str(ticket_id or '').strip() or '(unknown)'}\n"
-            f"Follow-up note: {note_text}\n"
-            f"Conversation excerpt: {str(conversation or '').strip()[:1200] or '(none)'}"
-        )
+        try:
+            prompt = await prompt_registry.get(
+                "ticketing.expired_update_assessment",
+                {
+                    "ticket_id": str(ticket_id or "").strip() or "(unknown)",
+                    "note_text": note_text,
+                    "conversation": str(conversation or "").strip()[:1200] or "(none)",
+                },
+            )
+        except PromptMissingError:
+            logger.exception("ticketing_expired_update_assessment_prompt_missing")
+            return fallback
         messages = [
             {"role": "system", "content": "You are a strict JSON decision engine for support triage."},
             {"role": "user", "content": prompt},

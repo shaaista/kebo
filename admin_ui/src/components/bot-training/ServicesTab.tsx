@@ -260,6 +260,25 @@ const ServicesTab = ({ propertyCode }: ServicesTabProps) => {
                     </div>
                   ) : null}
 
+                  {svc.ticketingMode === "form" && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Form Trigger Instructions</p>
+                      <p className="text-xs text-muted-foreground/70">Tell the bot when to show the form. This gets baked into the service prompt on regeneration.</p>
+                      <Textarea
+                        value={String(
+                          (formConfig as Record<string, unknown> | undefined)?.pre_form_instructions || ""
+                        )}
+                        onChange={(e) => {
+                          const currentFormConfig = (svc.raw.form_config || {}) as Record<string, unknown>;
+                          const updatedFormConfig = { ...currentFormConfig, pre_form_instructions: e.target.value };
+                          updateService(svc.id, "raw", { ...svc.raw, form_config: updatedFormConfig });
+                        }}
+                        rows={3}
+                        placeholder='e.g. "Only trigger the form after the user explicitly confirms they want to book a specific room type. Asking about a room is NOT confirmation."'
+                      />
+                    </div>
+                  )}
+
                   <details className="rounded-md border bg-muted/30 p-3">
                     <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">
                       All Service Data (JSON)

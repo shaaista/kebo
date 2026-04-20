@@ -3516,6 +3516,269 @@ async def delete_booking(booking_id: int):
         return {"deleted": True, "booking_id": booking_id}
 
 
+# ============ Prompt Registry ============
+
+class PromptUpsertInput(BaseModel):
+    content: str
+    description: Optional[str] = None
+    variables: Optional[List[str]] = None
+    scope: str = "hotel"  # "hotel" (override) or "industry" (default)
+
+
+class PromptRegenerateInput(BaseModel):
+    instruction: str
+
+
+_PROMPT_GROUPS = {
+    "orchestrator": "Orchestrator",
+    "service_writer": "Service Writer",
+    "ticketing": "Ticketing",
+    "chat": "Chat",
+}
+
+
+def _prompt_group_for(key: str) -> str:
+    head = (key.split(".", 1)[0] if "." in key else key).strip().lower()
+    return _PROMPT_GROUPS.get(head, "Other")
+
+
+@router.get("/api/prompts")
+async def list_prompts(hotel_code: Optional[str] = None):
+    """List every effective prompt for the current/given hotel, grouped by category."""
+    from services.prompt_registry_service import prompt_registry
+    effective = await prompt_registry.list_effective_for_hotel(hotel_code=hotel_code)
+    groups: Dict[str, List[Dict[str, Any]]] = {}
+    for item in effective:
+        group = _prompt_group_for(item.key)
+        groups.setdefault(group, []).append({
+            "key": item.key,
+            "source": item.source,
+            "industry": item.industry,
+            "has_override": item.has_override,
+            "variables": item.variables,
+            "description": item.description,
+            "version": item.version,
+        })
+    return {"groups": groups}
+
+
+@router.get("/api/prompts/{key}")
+async def get_prompt(key: str, hotel_code: Optional[str] = None):
+    """Effective + industry default + hotel override (if any) for one key."""
+    from services.prompt_registry_service import prompt_registry
+    effective = await prompt_registry.list_effective_for_hotel(hotel_code=hotel_code)
+    match = next((p for p in effective if p.key == key), None)
+    if not match:
+        raise HTTPException(status_code=404, detail=f"Prompt {key!r} not found")
+    return {
+        "key": match.key,
+        "content": match.content,
+        "source": match.source,
+        "industry": match.industry,
+        "has_override": match.has_override,
+        "industry_default_content": match.industry_default_content,
+        "variables": match.variables,
+        "description": match.description,
+        "version": match.version,
+    }
+
+
+@router.put("/api/prompts/{key}")
+async def upsert_prompt(key: str, body: PromptUpsertInput, hotel_code: Optional[str] = None):
+    """
+    Upsert a prompt.
+    scope='hotel' creates/updates a hotel override (requires resolvable hotel context).
+    scope='industry' updates the industry default (use sparingly — files are the source of truth).
+    """
+    from services.prompt_registry_service import prompt_registry
+    if body.scope == "industry":
+        hotel_id, industry = await prompt_registry._resolve_hotel_and_industry()  # noqa: SLF001
+        record = await prompt_registry.upsert(
+            key,
+            body.content,
+            industry=industry,
+            variables=body.variables,
+            description=body.description,
+            updated_by="admin",
+        )
+    else:
+        if hotel_code:
+            token = db_config_service.set_hotel_context(hotel_code)
+        else:
+            token = None
+        try:
+            hotel_id = await db_config_service.get_current_hotel_id()
+        finally:
+            if token is not None:
+                db_config_service.reset_hotel_context(token)
+        if not hotel_id:
+            raise HTTPException(status_code=400, detail="No hotel context resolved")
+        record = await prompt_registry.upsert(
+            key,
+            body.content,
+            hotel_id=hotel_id,
+            variables=body.variables,
+            description=body.description,
+            updated_by="admin",
+        )
+    return {
+        "key": record.key,
+        "version": record.version,
+        "hotel_id": record.hotel_id,
+        "industry": record.industry,
+    }
+
+
+@router.delete("/api/prompts/{key}")
+async def delete_prompt_override(key: str, hotel_code: Optional[str] = None):
+    """Drop the hotel override for a prompt — falls back to industry default."""
+    from services.prompt_registry_service import prompt_registry
+    if hotel_code:
+        token = db_config_service.set_hotel_context(hotel_code)
+    else:
+        token = None
+    try:
+        hotel_id = await db_config_service.get_current_hotel_id()
+    finally:
+        if token is not None:
+            db_config_service.reset_hotel_context(token)
+    if not hotel_id:
+        raise HTTPException(status_code=400, detail="No hotel context resolved")
+    deleted = await prompt_registry.delete_override(key, hotel_id)
+    return {"deleted": bool(deleted)}
+
+
+@router.post("/api/prompts/{key}/regenerate")
+async def regenerate_prompt(key: str, body: PromptRegenerateInput, hotel_code: Optional[str] = None):
+    """LLM rewrite of the current prompt according to a plain-English instruction. Not saved."""
+    from services.prompt_registry_service import prompt_registry
+    instruction = (body.instruction or "").strip()
+    if not instruction:
+        raise HTTPException(status_code=400, detail="instruction is required")
+    try:
+        rewrite = await prompt_registry.regenerate_from_instruction(
+            key, instruction, hotel_code=hotel_code
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    return {"key": key, "rewrite": rewrite}
+
+
+@router.post("/api/services/{service_id}/lock-prompt")
+async def lock_service_prompt(service_id: int):
+    """Lock a service's generated_system_prompt so auto-regen will skip it."""
+    from models.database import BotService
+    async with AsyncSessionLocal() as session:
+        row = (await session.execute(
+            select(BotService).where(BotService.id == service_id)
+        )).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Service not found")
+        row.generated_system_prompt_override = True
+        await session.commit()
+    return {"service_id": service_id, "locked": True}
+
+
+@router.post("/api/services/{service_id}/unlock-prompt")
+async def unlock_service_prompt(service_id: int):
+    """Unlock and immediately regenerate the system prompt for one service."""
+    from models.database import BotService
+    async with AsyncSessionLocal() as session:
+        row = (await session.execute(
+            select(BotService).where(BotService.id == service_id)
+        )).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Service not found")
+        row.generated_system_prompt_override = False
+        service_payload = {
+            "id": row.id,
+            "name": row.name,
+            "type": row.service_type,
+            "description": row.description,
+            "ticketing_enabled": row.ticketing_enabled,
+            "ticketing_mode": row.ticketing_mode,
+            "ticketing_policy": row.ticketing_policy,
+            "service_prompt_pack": row.service_prompt_pack,
+            "extracted_knowledge": row.extracted_knowledge,
+            "phase_id": row.phase_id,
+            "hours": row.hours,
+            "delivery_zones": row.delivery_zones,
+            "cuisine": row.cuisine,
+            "form_config": row.form_config,
+        }
+        regenerated = await generate_service_system_prompt(service_payload)
+        if regenerated:
+            row.generated_system_prompt = regenerated
+        await session.commit()
+    return {"service_id": service_id, "locked": False, "regenerated": bool(regenerated)}
+
+
+@router.post("/api/services/regenerate-all-prompts")
+async def regenerate_all_service_prompts(hotel_code: Optional[str] = None):
+    """Regenerate generated_system_prompt for every non-locked service of the current hotel."""
+    from models.database import BotService
+    if hotel_code:
+        token = db_config_service.set_hotel_context(hotel_code)
+    else:
+        token = None
+    try:
+        hotel_id = await db_config_service.get_current_hotel_id()
+    finally:
+        if token is not None:
+            db_config_service.reset_hotel_context(token)
+    if not hotel_id:
+        raise HTTPException(status_code=400, detail="No hotel context resolved")
+    regenerated = 0
+    skipped = 0
+    errors: list[str] = []
+    async with AsyncSessionLocal() as session:
+        rows = (await session.execute(
+            select(BotService).where(BotService.hotel_id == hotel_id)
+        )).scalars().all()
+        print(f"[regenerate-all] hotel_id={hotel_id} found {len(rows)} services")
+        for row in rows:
+            print(f"[regenerate-all]   service={row.name} override={getattr(row, 'generated_system_prompt_override', 'N/A')}")
+            if bool(getattr(row, "generated_system_prompt_override", False)):
+                skipped += 1
+                continue
+            try:
+                prompt_pack = row.service_prompt_pack or {}
+                if not isinstance(prompt_pack, dict):
+                    prompt_pack = {}
+                payload = {
+                    "id": row.service_id,
+                    "name": row.name,
+                    "type": row.type,
+                    "description": row.description,
+                    "ticketing_enabled": row.ticketing_enabled,
+                    "ticketing_mode": getattr(row, "ticketing_mode", None),
+                    "ticketing_policy": getattr(row, "ticketing_policy", None),
+                    "service_prompt_pack": prompt_pack,
+                    "extracted_knowledge": prompt_pack.get("extracted_knowledge"),
+                    "phase_id": getattr(row, "phase_id", None),
+                    "hours": prompt_pack.get("hours"),
+                    "delivery_zones": prompt_pack.get("delivery_zones"),
+                    "cuisine": prompt_pack.get("cuisine"),
+                    "form_config": getattr(row, "form_config", None),
+                }
+                print(f"[regenerate-all]   calling generate_service_system_prompt for {row.name}...")
+                new_prompt = await generate_service_system_prompt(payload)
+                print(f"[regenerate-all]   result for {row.name}: {len(new_prompt) if new_prompt else 'None'} chars")
+                if new_prompt:
+                    row.generated_system_prompt = new_prompt
+                    regenerated += 1
+            except Exception as exc:
+                import traceback
+                print(f"[regenerate-all]   ERROR for {row.name}: {exc}")
+                traceback.print_exc()
+                errors.append(f"{row.name}: {exc}")
+        await session.commit()
+    result: dict = {"regenerated": regenerated, "skipped_locked": skipped}
+    if errors:
+        result["errors"] = errors
+    return result
+
+
 # ============ Admin UI ============
 
 @router.get("", response_class=HTMLResponse)

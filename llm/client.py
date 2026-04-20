@@ -16,6 +16,7 @@ from openai import AsyncOpenAI
 
 from config.settings import settings
 from services.config_service import config_service
+from services.faq_context_service import build_faq_block
 from services.turn_diagnostics_service import turn_diagnostics_service
 
 
@@ -759,123 +760,42 @@ class LLMClient:
             tool_lines.append(f"- {label} ({tool_type}, {status})")
         tools_str = "\n".join(tool_lines) if tool_lines else "- No tools configured."
 
-        system_prompt = """You are an intent classifier for a configurable business chatbot. Analyze the user message and classify it.
-
-AVAILABLE INTENTS:
-- greeting: Hello, hi, good morning, etc.
-- menu_request: Asking to see menus/offers/catalog options
-- order_food: Food ordering (if the business supports it)
-- order_status: Checking order/request status
-- table_booking: Reserve table/slot/appointment style booking
-- room_service: Service request intent (housekeeping/amenities/support tasks)
-- health_support: Medication or medical-assistance requests needing safe human handoff
-- complaint: Issues, problems, not working, bad experience
-- faq: General business information and FAQs
-- confirmation_yes: Yes, confirm, proceed, ok, sure
-- confirmation_no: No, cancel, don't want, stop
-- human_request: Want to talk to human, agent, manager, real person
-- unclear: Can't determine intent
-- out_of_scope: Request outside business services
-
-CONTEXT:
-- Business: {hotel_name}
-- Business Type: {business_type}
-- Guest: {guest_name}
-- Current State: {state}
-- Pending Action: {pending_action}
-- Selected Phase: {selected_phase_name} ({selected_phase_id})
-- Enabled Intents: {enabled_intents}
-
-LONG-TERM MEMORY SUMMARY:
-{conversation_summary}
-
-MEMORY FACTS (LATEST VALUES):
-{memory_facts}
-
-RECENT FACT CHANGES:
-{memory_recent_changes}
-
-STRICT CONTEXT PACK (authoritative each turn):
-{context_pack}
-
-ADMIN INTENT CATALOG:
-{intent_catalog}
-
-ADMIN SERVICE CATALOG:
-{service_catalog}
-
-ADMIN FAQ BANK:
-{faq_bank}
-
-ADMIN TOOLS:
-{tools}
-
-ADMIN CLASSIFIER INSTRUCTIONS:
-{classifier_prompt}
-
-NLU POLICY DOS:
-{nlu_dos}
-
-NLU POLICY DONTS:
-{nlu_donts}
-
-CONVERSATION HISTORY:
-{history}
-
-Use the full conversation history above for context continuity. Do not ignore prior collected details.
-
-MANDATORY ORCHESTRATION RULES:
-- Classify from context pack + policy + service schema only.
-- Do not make random assumptions for missing slots/phase/service data.
-- If confidence is low or context is insufficient, return intent="unclear" and request clarification in entities.clarification_needed.
-
-Respond in JSON format:
-{{
-    "intent": "intent_name",
-    "confidence": 0.0-1.0,
-    "entities": {{"items": ["item1", "item2"], "restaurant": "restaurant name", "party_size": "2", "time": "7 PM", "date": "today"}},
-    "reasoning": "brief explanation"
-}}
-
-ENTITY EXTRACTION RULES:
-- For order_food: ALWAYS extract food item names into "items" as a LIST, e.g. {{"items": ["margherita pizza", "coke"]}}
-- For table_booking: extract "restaurant", "party_size", "time", "date" if mentioned
-- For menu_request: extract "restaurant" if a specific restaurant is mentioned
-- For health_support: extract "urgency" (emergency/non_emergency) when possible
-- Only include entities that are actually mentioned in the message
-
-IMPORTANT INTENT ENABLEMENT RULE:
-- If a specific workflow intent appears disabled in Enabled Intents, avoid over-committing.
-- Prefer "faq", "human_request", or "unclear" with lower confidence instead.
-- Return a CORE intent from AVAILABLE INTENTS only.
-- If a custom/admin intent matches better, include it in entities.custom_intent and map to nearest core intent.
-- If a user message strongly matches an enabled FAQ bank question, prefer "faq"."""
-
         # Build history string (full available history by default).
         history_str = self._build_history_string(conversation_history)
 
-        formatted_prompt = system_prompt.format(
-            hotel_name=context.get("hotel_name", context.get("hotel_code", "Hotel")),
-            business_type=context.get("business_type", "generic"),
-            guest_name=context.get("guest_name", "Guest"),
-            state=context.get("state", "idle"),
-            pending_action=context.get("pending_action", "None"),
-            selected_phase_name=selected_phase_name or "Unknown",
-            selected_phase_id=selected_phase_id or "unknown",
-            enabled_intents=", ".join(context.get("enabled_intents", [])) or "not provided",
-            conversation_summary=memory_summary or "No long-term summary yet.",
-            memory_facts=json.dumps(memory_facts, ensure_ascii=False),
-            memory_recent_changes=json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
-            context_pack=json.dumps(context_pack, ensure_ascii=False),
-            intent_catalog=intent_catalog_str,
-            service_catalog=service_catalog_str,
-            faq_bank=faq_bank_str,
-            tools=tools_str,
-            classifier_prompt=classifier_prompt or "None configured.",
-            nlu_dos=nlu_dos,
-            nlu_donts=nlu_donts,
-            history=history_str,
+        from services.prompt_registry_service import (
+            PromptMissingError,
+            prompt_registry,
         )
+        try:
+            formatted_prompt = await prompt_registry.get(
+                "chat.classify_intent",
+                {
+                    "hotel_name": context.get("hotel_name", context.get("hotel_code", "Hotel")),
+                    "business_type": context.get("business_type", "generic"),
+                    "guest_name": context.get("guest_name", "Guest"),
+                    "state": context.get("state", "idle"),
+                    "pending_action": context.get("pending_action", "None"),
+                    "selected_phase_name": selected_phase_name or "Unknown",
+                    "selected_phase_id": selected_phase_id or "unknown",
+                    "enabled_intents": ", ".join(context.get("enabled_intents", [])) or "not provided",
+                    "conversation_summary": memory_summary or "No long-term summary yet.",
+                    "memory_facts": json.dumps(memory_facts, ensure_ascii=False),
+                    "memory_recent_changes": json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
+                    "context_pack": json.dumps(context_pack, ensure_ascii=False),
+                    "intent_catalog": intent_catalog_str,
+                    "service_catalog": service_catalog_str,
+                    "faq_bank": faq_bank_str,
+                    "tools": tools_str,
+                    "classifier_prompt": classifier_prompt or "None configured.",
+                    "nlu_dos": nlu_dos,
+                    "nlu_donts": nlu_donts,
+                    "history": history_str,
+                },
+            )
+        except PromptMissingError:
+            logging.getLogger(__name__).exception("chat_classify_intent_prompt_missing")
+            return {"intent": "unclear", "confidence": 0.3, "entities": {}}
 
         messages = [
             {"role": "system", "content": formatted_prompt},
@@ -1026,109 +946,54 @@ IMPORTANT INTENT ENABLEMENT RULE:
         if not selected_phase_name and selected_phase_id:
             selected_phase_name = selected_phase_id.replace("_", " ").title()
 
-        system_prompt = """You are a friendly AI assistant named {bot_name} for {hotel_name} in {city}.
-Business type: {business_type}
-
-ADMIN SYSTEM PROMPT (HIGHEST PRIORITY):
-{admin_system_prompt}
-
-IMPORTANT - ACTUAL BUSINESS CAPABILITIES (do NOT promise anything outside this list):
-{capabilities_str}
-
-SERVICE CATALOG (if applicable):
-{services_str}
-
-ADMIN FAQ BANK (authoritative Q/A pairs):
-{faq_bank}
-
-ADMIN TOOLS:
-{tools}
-
-STRICT RULES:
-- ONLY offer actions for capabilities marked Available and services marked status=active
-- Do not promise unsupported workflows
-- If a delivery/catalog outlet is marked "dine-in only", do not offer delivery from it
-- If unsure about availability, offer to connect with staff
-
-NLU POLICY DOS:
-{nlu_dos}
-
-NLU POLICY DONTS:
-{nlu_donts}
-
-CURRENT CONTEXT:
-- User: {guest_name}
-- Room: {room_number}
-- Conversation State: {state}
-- Pending Action: {pending_action}
-- Selected Phase: {selected_phase_name} ({selected_phase_id})
-
-LONG-TERM MEMORY SUMMARY:
-{conversation_summary}
-
-MEMORY FACTS (LATEST VALUES):
-{memory_facts}
-
-RECENT FACT CHANGES:
-{memory_recent_changes}
-
-STRICT CONTEXT PACK (authoritative each turn):
-{context_pack}
-
-DETECTED INTENT: {intent}
-EXTRACTED ENTITIES: {entities}
-
-CONVERSATION HISTORY:
-{history}
-
-Use the full conversation history above for context continuity. Do not ignore prior collected details.
-
-RESPONSE GUIDELINES:
-1. Be helpful, friendly, and concise
-2. If confirming an action, list details clearly and ask for confirmation
-3. If state is "awaiting_confirmation", respect the pending action
-4. NEVER promise something not in the capabilities list above
-5. If unsure, offer to connect with staff
-6. Keep responses under 150 words
-7. Response style preference: {response_style}
-8. Answer from context pack + policy + service schema only
-9. If critical data is missing, ask a targeted clarification question instead of guessing
-
-Respond naturally to the user's message."""
-
         # Build history string (full available history by default).
         history_str = self._build_history_string(conversation_history)
 
         # Get bot_name from capabilities (synced from admin portal config)
         bot_name = capabilities.get("bot_name", "Assistant")
 
-        formatted_prompt = system_prompt.format(
-            bot_name=bot_name,
-            hotel_name=context.get("hotel_name", context.get("hotel_code", "Hotel")).replace("_", " "),
-            business_type=business_type,
-            city=context.get("city", ""),
-            admin_system_prompt=admin_system_prompt or "No custom system prompt configured.",
-            capabilities_str=caps_str,
-            services_str=services_str,
-            faq_bank=faq_bank_str,
-            tools=tools_str,
-            nlu_dos=nlu_dos,
-            nlu_donts=nlu_donts,
-            guest_name=context.get("guest_name", "Guest"),
-            room_number=context.get("room_number", "Not specified"),
-            state=context.get("state", "idle"),
-            pending_action=context.get("pending_action", "None"),
-            selected_phase_name=selected_phase_name or "Unknown",
-            selected_phase_id=selected_phase_id or "unknown",
-            conversation_summary=memory_summary or "No long-term summary yet.",
-            memory_facts=json.dumps(memory_facts, ensure_ascii=False),
-            memory_recent_changes=json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
-            context_pack=json.dumps(context_pack, ensure_ascii=False),
-            intent=intent,
-            entities=json.dumps(entities),
-            response_style=response_style or "Default",
-            history=history_str,
+        from services.prompt_registry_service import (
+            PromptMissingError,
+            prompt_registry,
         )
+        try:
+            formatted_prompt = await prompt_registry.get(
+                "chat.generate_response",
+                {
+                    "bot_name": bot_name,
+                    "hotel_name": context.get("hotel_name", context.get("hotel_code", "Hotel")).replace("_", " "),
+                    "business_type": business_type,
+                    "city": context.get("city", ""),
+                    "admin_system_prompt": admin_system_prompt or "No custom system prompt configured.",
+                    "capabilities_str": caps_str,
+                    "services_str": services_str,
+                    "faq_bank": faq_bank_str,
+                    "tools": tools_str,
+                    "nlu_dos": nlu_dos,
+                    "nlu_donts": nlu_donts,
+                    "guest_name": context.get("guest_name", "Guest"),
+                    "room_number": context.get("room_number", "Not specified"),
+                    "state": context.get("state", "idle"),
+                    "pending_action": context.get("pending_action", "None"),
+                    "selected_phase_name": selected_phase_name or "Unknown",
+                    "selected_phase_id": selected_phase_id or "unknown",
+                    "conversation_summary": memory_summary or "No long-term summary yet.",
+                    "memory_facts": json.dumps(memory_facts, ensure_ascii=False),
+                    "memory_recent_changes": json.dumps(memory_recent_changes[-5:], ensure_ascii=False),
+                    "context_pack": json.dumps(context_pack, ensure_ascii=False),
+                    "intent": intent,
+                    "entities": json.dumps(entities),
+                    "response_style": response_style or "Default",
+                    "history": history_str,
+                },
+            )
+        except PromptMissingError:
+            logging.getLogger(__name__).exception("chat_generate_response_prompt_missing")
+            return ""
+
+        _faq_block_gen = build_faq_block()
+        if _faq_block_gen:
+            formatted_prompt = _faq_block_gen + "\n\n" + formatted_prompt
 
         messages = [
             {"role": "system", "content": formatted_prompt},

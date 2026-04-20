@@ -1263,12 +1263,16 @@ const PhasesTab = ({ propertyCode }: PhasesTabProps) => {
                   placeholder="Trigger description"
                 />
               </div>
-              <Textarea
-                rows={2}
-                value={formDraft.preFormInstructions}
-                onChange={(event) => setFormField("preFormInstructions", event.target.value)}
-                placeholder="Pre-form instructions"
-              />
+              <div className="space-y-1">
+                <Label className="text-xs font-semibold">Form Trigger Instructions</Label>
+                <p className="text-xs text-muted-foreground">Tell the bot when to show the form. This gets baked into the service prompt on regeneration.</p>
+                <Textarea
+                  rows={3}
+                  value={formDraft.preFormInstructions}
+                  onChange={(event) => setFormField("preFormInstructions", event.target.value)}
+                  placeholder='e.g. "Only trigger the form after the user explicitly confirms they want to book a specific room type. Asking about a room is NOT confirmation."'
+                />
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Fields</Label>

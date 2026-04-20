@@ -6,7 +6,7 @@ import { Download, Loader2, RotateCcw, Upload, Wand2 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import IndustryStep from "@/components/bot-training/IndustryStep";
 import BusinessInfoStep, { type BusinessInfo } from "@/components/bot-training/BusinessInfoStep";
-import { type PromptData } from "@/components/bot-training/SystemPromptStep";
+import SystemPromptStep, { type PromptData } from "@/components/bot-training/SystemPromptStep";
 import { type KnowledgeData } from "@/components/bot-training/KnowledgeStep";
 import ChannelsStep, { type ChannelsData } from "@/components/bot-training/ChannelsStep";
 import FaqToolsTab from "@/components/bot-training/FaqToolsTab";
@@ -16,6 +16,7 @@ import RagAgentsTab from "@/components/bot-training/RagAgentsTab";
 import EvaluationTab from "@/components/bot-training/EvaluationTab";
 import EscalationTab from "@/components/bot-training/EscalationTab";
 import AdvancedTab from "@/components/bot-training/AdvancedTab";
+import PromptsTab from "@/components/bot-training/PromptsTab";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -160,6 +161,7 @@ const tabItems = [
   { value: "faq", label: "FAQ" },
   { value: "evaluation", label: "Evaluation" },
   { value: "escalation", label: "Escalation" },
+  { value: "prompts", label: "Prompts" },
   { value: "advanced", label: "Advanced" },
 ];
 
@@ -730,6 +732,12 @@ const BotTraining = () => {
             onChange={handleChannelsChange}
             onSave={saveChannels}
           />
+          <SystemPromptStep
+            data={prompt}
+            onChange={handlePromptChange}
+            onApplyTemplate={handleApplyPromptTemplate}
+            onSave={savePrompt}
+          />
 
           <div className="flex flex-wrap gap-3 rounded-lg border bg-card p-4">
             <Button variant="outline" onClick={applyIndustryTemplate}>
@@ -769,6 +777,9 @@ const BotTraining = () => {
         </TabsContent>
         <TabsContent value="escalation">
           <EscalationTab propertyCode={propertyCode} />
+        </TabsContent>
+        <TabsContent value="prompts">
+          <PromptsTab propertyCode={propertyCode} />
         </TabsContent>
         <TabsContent value="advanced">
           <AdvancedTab propertyCode={propertyCode} onImported={() => loadStateForProperty(propertyCode)} />

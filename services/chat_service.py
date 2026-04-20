@@ -40,6 +40,11 @@ from services.ticketing_agent_service import ticketing_agent_service
 from services.ticketing_service import ticketing_service
 from services.llm_orchestration_service import llm_orchestration_service
 from services.orchestration_policy_service import orchestration_policy_service
+from services.prompt_registry_service import (
+    PromptMissingError,
+    prompt_registry,
+)
+from services.faq_context_service import build_faq_block
 from services.turn_diagnostics_service import turn_diagnostics_service
 from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
@@ -1208,78 +1213,9 @@ class ChatService:
                 },
             )
 
-        # 3d. Deterministic FAQ-bank shortcut (admin-defined Q/A pairs).
-        faq_match = self._match_faq_bank_answer(effective_user_message, context)
-        if faq_match is not None:
-            intent_result = IntentResult(
-                intent=IntentType.FAQ,
-                confidence=max(0.8, float(faq_match.get("match_score", 0.8))),
-                entities={
-                    "faq_id": faq_match.get("id"),
-                    "match_score": faq_match.get("match_score", 0.0),
-                },
-            )
-            response_text = str(faq_match.get("answer") or "").strip()
-            if faq_match.get("description"):
-                response_text = f"{response_text}\n\n{str(faq_match['description']).strip()}"
-            response_text, _ = await self._maybe_llm_rewrite_response(
-                response_text=response_text,
-                user_message=effective_user_message,
-                intent_result=intent_result,
-                context=context,
-                capabilities_summary=capabilities_summary,
-                capability_check_allowed=True,
-                capability_reason="",
-                response_source="faq_bank",
-                validator_replaced=False,
-            )
-
-            context.state = ConversationState.IDLE
-            assistant_metadata = {
-                "intent": intent_result.intent.value,
-                "confidence": intent_result.confidence,
-                "channel": context.channel,
-                "faq_id": faq_match.get("id"),
-                "faq_match_score": faq_match.get("match_score", 0.0),
-            }
-            context.add_message(
-                MessageRole.ASSISTANT,
-                response_text,
-                metadata=assistant_metadata,
-            )
-            conversation_memory_service.capture_assistant_message(
-                context,
-                response_text,
-                metadata=assistant_metadata,
-            )
-            await conversation_memory_service.maybe_refresh_summary(context)
-            await context_manager.save_context(context, db_session=db_session)
-            memory_snapshot = conversation_memory_service.get_snapshot(context)
-
-            return ChatResponse(
-                session_id=request.session_id,
-                message=response_text,
-                intent=intent_result.intent,
-                confidence=intent_result.confidence,
-                state=ConversationState.IDLE,
-                suggested_actions=self._get_suggested_actions(
-                    ConversationState.IDLE,
-                    IntentType.FAQ,
-                    capabilities_summary,
-                ),
-                metadata={
-                    "message_count": len(context.messages),
-                    "entities": intent_result.entities,
-                    "routing_path": ProcessingPath.SIMPLE.value,
-                    "routing_score": 1.0,
-                    "routing_signals": {"path": "faq_bank"},
-                    "faq_bank_match": True,
-                    "faq_id": faq_match.get("id"),
-                    "faq_match_score": faq_match.get("match_score", 0.0),
-                    "memory_summary": memory_snapshot.get("summary", ""),
-                    "memory_facts": memory_snapshot.get("facts", {}),
-                },
-            )
+        # 3d. (REMOVED) FAQ-bank shortcut deleted — FAQ entries are now injected
+        # as PRIMARY KNOWLEDGE context into every answer-side LLM prompt. All
+        # messages flow through the LLM, which sees FAQ as primary truth.
 
         # 3g. Deterministic menu recommendation shortcut.
         menu_recommendation = await self._match_menu_recommendation_response(
@@ -6324,17 +6260,14 @@ class ChatService:
         max_tokens = max(120, int(getattr(settings, "chat_llm_response_surface_max_tokens", 420) or 420))
         confirmation_phrase = str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "yes confirm").strip()
 
-        system_prompt = (
-            "You rewrite concierge assistant replies.\n"
-            "Return plain text only.\n"
-            "Strict rules:\n"
-            "- Preserve factual meaning from the draft.\n"
-            "- Do not add new facts, prices, policies, or promises.\n"
-            "- Preserve all restrictions (phase limits, unavailable services, ticketing constraints).\n"
-            "- Keep explicit confirmation phrase instructions unchanged when present.\n"
-            "- Keep list/number formatting if the draft uses it.\n"
-            "- Keep tone human, concise, and helpful.\n"
-        )
+        try:
+            system_prompt = await prompt_registry.get("chat.response_surface")
+        except PromptMissingError:
+            logger.exception("chat_response_surface_prompt_missing")
+            return base_text, metadata
+        _faq_block_surface = build_faq_block()
+        if _faq_block_surface:
+            system_prompt = _faq_block_surface + "\n\n" + system_prompt
         user_payload = (
             f"User message: {str(user_message or '').strip()}\n"
             f"Intent: {intent_result.intent.value}\n"
@@ -6388,33 +6321,34 @@ class ChatService:
 
             # First try an issue-aware LLM repair instead of surfacing deterministic replacement text.
             repair_issue_text = ", ".join(issue_codes) if issue_codes else "policy_violation"
-            repair_prompt = (
-                "Rewrite the assistant response so it passes runtime policy checks.\n"
-                "Return plain text only.\n"
-                "Do not use templated/canned phrasing.\n"
-                "Keep meaning aligned with policy restrictions and available services.\n"
-                "Do not promise blocked actions.\n\n"
-                f"User message: {str(user_message or '').strip()}\n"
-                f"Intent: {intent_result.intent.value}\n"
-                f"Policy issue codes: {repair_issue_text}\n"
-                f"Current phase: {phase_label} ({phase_id or 'unknown'})\n"
-                f"Current phase services: {phase_services_text}\n"
-                f"Capability allowed: {bool(capability_check_allowed)}\n"
-                f"Capability reason (if blocked): {str(capability_reason or '').strip() or 'N/A'}\n\n"
-                f"Original draft:\n{base_text}\n\n"
-                f"Unsafe candidate:\n{candidate}\n\n"
-                f"Validator-safe fallback reference:\n{safe_text}"
-            )
+            try:
+                repair_prompt = await prompt_registry.get(
+                    "chat.response_repair",
+                    {
+                        "user_message": str(user_message or "").strip(),
+                        "intent_value": intent_result.intent.value,
+                        "repair_issue_text": repair_issue_text,
+                        "phase_label": phase_label,
+                        "phase_id": phase_id or "unknown",
+                        "phase_services_text": phase_services_text,
+                        "capability_check_allowed": bool(capability_check_allowed),
+                        "capability_reason": str(capability_reason or "").strip() or "N/A",
+                        "base_text": base_text,
+                        "candidate": candidate,
+                        "safe_text": safe_text,
+                    },
+                )
+                repair_system_prompt = await prompt_registry.get("chat.response_repair_system")
+            except PromptMissingError:
+                logger.exception("chat_response_repair_prompt_missing")
+                return safe_text, metadata
+            _faq_block_repair = build_faq_block()
+            if _faq_block_repair:
+                repair_system_prompt = _faq_block_repair + "\n\n" + repair_system_prompt
             try:
                 repaired = await llm_client.chat(
                     messages=[
-                        {
-                            "role": "system",
-                            "content": (
-                                "You produce concise, policy-compliant concierge replies. "
-                                "Output plain text only."
-                            ),
-                        },
+                        {"role": "system", "content": repair_system_prompt},
                         {"role": "user", "content": repair_prompt},
                     ],
                     model=model,
@@ -6879,38 +6813,30 @@ class ChatService:
                         response_text = str(service_overview.get("response_text") or "").strip()
                         response_source = "multi_ask_service_overview_shortcut"
                     else:
-                        faq_match = self._match_faq_bank_answer(normalized_query, sub_context)
-                        if faq_match is not None:
-                            response_text = str(faq_match.get("answer") or "").strip()
-                            description = str(faq_match.get("description") or "").strip()
-                            if description:
-                                response_text = f"{response_text}\n\n{description}"
-                            response_source = "multi_ask_faq_bank_shortcut"
+                        service_match = self._match_service_information_response(
+                            normalized_query,
+                            sub_context,
+                            capabilities_summary,
+                        )
+                        if service_match is not None:
+                            response_text = str(service_match.get("response_text") or "").strip()
+                            response_source = "multi_ask_service_catalog_shortcut"
                         else:
-                            service_match = self._match_service_information_response(
-                                normalized_query,
-                                sub_context,
-                                capabilities_summary,
+                            kb_answer = await self._run_multi_ask_kb_answer(
+                                message=normalized_query,
+                                context=sub_context,
+                                capabilities_summary=capabilities_summary,
+                                db_session=db_session,
                             )
-                            if service_match is not None:
-                                response_text = str(service_match.get("response_text") or "").strip()
-                                response_source = "multi_ask_service_catalog_shortcut"
+                            if kb_answer:
+                                response_text = kb_answer
+                                response_source = "multi_ask_kb_handler"
                             else:
-                                kb_answer = await self._run_multi_ask_kb_answer(
-                                    message=normalized_query,
-                                    context=sub_context,
-                                    capabilities_summary=capabilities_summary,
-                                    db_session=db_session,
+                                response_text = (
+                                    "I could not find this in the current knowledge base for this property. "
+                                    "If you want, I can connect you with our team."
                                 )
-                                if kb_answer:
-                                    response_text = kb_answer
-                                    response_source = "multi_ask_kb_handler"
-                                else:
-                                    response_text = (
-                                        "I could not find this in the current knowledge base for this property. "
-                                        "If you want, I can connect you with our team."
-                                    )
-                                    response_source = "multi_ask_kb_miss"
+                                response_source = "multi_ask_kb_miss"
 
         response_text = self._dedupe_response_sentences(response_text) or str(response_text or "").strip()
 
@@ -9996,29 +9922,6 @@ class ChatService:
                 followup_queries.insert(0, f"tell me about {referenced_room_type}")
 
             for followup_query in followup_queries:
-                faq_match = self._match_faq_bank_answer(followup_query, context, allow_pending=True)
-                if faq_match is not None:
-                    answer = str(faq_match.get("answer") or "").strip()
-                    description = str(faq_match.get("description") or "").strip()
-                    if description:
-                        answer = f"{answer}\n\n{description}"
-                    if answer:
-                        return HandlerResult(
-                            response_text=answer,
-                            next_state=context.state if context.state in {
-                                ConversationState.AWAITING_INFO,
-                                ConversationState.AWAITING_SELECTION,
-                                ConversationState.AWAITING_CONFIRMATION,
-                            } else ConversationState.AWAITING_INFO,
-                            pending_action=context.pending_action,
-                            pending_data=context.pending_data if isinstance(context.pending_data, dict) else {},
-                            suggested_actions=["Select room type", "Share number of guests", "Talk to human"],
-                            metadata={
-                                "room_booking_context_preserved": True,
-                                "response_source": "faq_bank_room_followup",
-                            },
-                        )
-
                 service_match = self._match_service_information_response(
                     followup_query,
                     context,
@@ -12059,33 +11962,6 @@ class ChatService:
                 + "\n\nTell me what you'd like to order."
             ),
         }
-
-    def _match_faq_bank_answer(
-        self,
-        message: str,
-        context: ConversationContext,
-        allow_pending: bool = False,
-    ) -> Optional[dict]:
-        """
-        Match message against admin-defined FAQ bank.
-        Keeps deterministic answers for common policy questions.
-        """
-        configured_intents = config_service.get_intents()
-        if configured_intents and not config_service.is_intent_enabled("faq"):
-            return None
-
-        # Do not interrupt active transactional follow-ups.
-        if not allow_pending and context.state not in {ConversationState.IDLE, ConversationState.COMPLETED}:
-            return None
-        if not allow_pending and context.pending_action:
-            return None
-
-        match = config_service.find_faq_entry(message)
-        if not match:
-            return None
-        if not str(match.get("answer") or "").strip():
-            return None
-        return match
 
     def _match_service_information_response(
         self,
@@ -14873,15 +14749,18 @@ class ChatService:
         if last_assistant_msg:
             context_line = f"Last bot message: \"{last_assistant_msg}\"\n"
 
-        prompt = (
-            "You normalize chat user input before intent routing.\n"
-            f"Selected user journey phase: {phase_label} ({phase_id}).\n"
-            f"{context_line}"
-            "Task: fix spelling/typos and minor grammar only.\n"
-            "Do not add/remove intent, entities, requests, dates, times, quantities, room numbers, names, or polarity.\n"
-            "Keep language and tone as-is.\n"
-            "Return exactly one rewritten user message line and nothing else."
-        )
+        try:
+            prompt = await prompt_registry.get(
+                "chat.preprocess",
+                {
+                    "phase_label": phase_label,
+                    "phase_id": phase_id,
+                    "context_line": context_line,
+                },
+            )
+        except PromptMissingError:
+            logger.exception("chat_preprocess_prompt_missing")
+            return original
         preprocess_model = str(getattr(settings, "chat_llm_preprocess_model", "") or "").strip() or None
         preprocess_temp = float(getattr(settings, "chat_llm_preprocess_temperature", 0.0))
         preprocess_tokens = max(24, int(getattr(settings, "chat_llm_preprocess_max_tokens", 80)))

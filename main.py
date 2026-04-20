@@ -138,6 +138,18 @@ async def lifespan(app: FastAPI):
         print(f"Startup DB sync failed (non-fatal): {e}")
         new_detailed_logger.log_kb_restore(restored=0, error=str(e))
 
+    # Sync prompt markdown files (prompts/defaults/<industry>/*.md) into the
+    # DB-backed registry. Safe to run on every startup — hotel overrides are
+    # never touched; industry defaults only change when the file hash differs.
+    try:
+        from services.prompt_seed_service import seed_prompts_from_files
+        inserted, updated, unchanged = await seed_prompts_from_files()
+        print(
+            f"Prompt registry seed: inserted={inserted} updated={updated} unchanged={unchanged}"
+        )
+    except Exception as e:
+        print(f"Prompt registry seed failed (non-fatal): {e}")
+
     display_host = str(settings.host)
     if display_host in {"0.0.0.0", "::"}:
         display_host = "localhost"

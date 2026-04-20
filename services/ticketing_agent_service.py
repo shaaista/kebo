@@ -22,6 +22,10 @@ from config.settings import settings
 from llm.client import llm_client
 from schemas.chat import IntentType
 from services.config_service import config_service
+from services.prompt_registry_service import (
+    PromptMissingError,
+    prompt_registry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1103,26 +1107,21 @@ class TicketingAgentService:
         conversation_preview = str(conversation_excerpt or "").strip()
         if len(conversation_preview) > context_chars:
             conversation_preview = conversation_preview[-context_chars:]
-        prompt = (
-            "You are a ticketing-case matcher.\n"
-            "Decide if the latest user request should create a ticket under one of configured ticketing cases.\n\n"
-            "Rules:\n"
-            "1) Use latest user message + conversation excerpt + assistant response.\n"
-            "2) Choose a case only when domain and objective both match.\n"
-            "3) If no configured case fits exactly, return should_create_ticket=false.\n"
-            "4) Do not force-match across different service domains "
-            "(for example, transport must not map to table booking).\n"
-            "5) Do not match only because generic words overlap (book, request, service, support).\n"
-            "6) If a case fits, return that exact configured case text.\n"
-            "6.1) Treat explicit ticket/escalation asks and clear operational issue wording as escalation signals.\n"
-            "7) Output strict JSON only:\n"
-            "{\"should_create_ticket\":true|false, \"matched_case\":\"...\", \"reason\":\"...\"}\n\n"
-            f"Selected user journey phase: {phase_label} ({phase_id})\n"
-            f"Configured cases: {configured_cases}\n"
-            f"Latest user message: {latest_user_preview}\n"
-            f"Assistant response draft: {assistant_preview}\n"
-            f"Conversation excerpt: {conversation_preview or '(none)'}"
-        )
+        try:
+            prompt = await prompt_registry.get(
+                "ticketing.case_matcher",
+                {
+                    "phase_label": phase_label,
+                    "phase_id": phase_id,
+                    "configured_cases": configured_cases,
+                    "latest_user_preview": latest_user_preview,
+                    "assistant_preview": assistant_preview,
+                    "conversation_preview": conversation_preview or "(none)",
+                },
+            )
+        except PromptMissingError:
+            logger.exception("ticketing_case_matcher_prompt_missing")
+            return "", False
         messages = [
             {"role": "system", "content": "You return strict JSON for ticketing-case matching."},
             {"role": "user", "content": prompt},

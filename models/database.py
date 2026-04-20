@@ -487,8 +487,48 @@ class BotService(Base, TimestampMixin):
     form_config = Column(JSON, nullable=True)
     service_prompt_pack = Column(JSON, nullable=True)
     generated_system_prompt = Column(Text, nullable=True)
+    generated_system_prompt_override = Column(
+        Boolean,
+        nullable=False,
+        server_default=text("0"),
+    )
 
     hotel = relationship("Hotel", back_populates="bot_services")
+
+
+class PromptRegistry(Base, TimestampMixin):
+    """
+    DB-backed registry for every customizable prompt.
+
+    Scope:
+      - industry-default row: industry set, hotel_id NULL  (one per supported industry)
+      - hotel override row:   hotel_id set                  (industry may be NULL)
+
+    Resolution order (see PromptRegistryService.get):
+      hotel override  ->  industry default  ->  raise PromptMissingError
+    """
+    __tablename__ = "new_bot_prompt_registry"
+    __table_args__ = (
+        UniqueConstraint("prompt_key", "industry", "hotel_id", name="uq_prompt_scope"),
+        Index("idx_prompt_registry_key", "prompt_key"),
+        Index("idx_prompt_registry_hotel", "hotel_id"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    prompt_key = Column(String(128), nullable=False)
+    industry = Column(String(32), nullable=True)
+    hotel_id = Column(
+        Integer,
+        ForeignKey("new_bot_hotels.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    content = Column(Text(length=4294967295), nullable=False)  # LONGTEXT
+    variables = Column(JSON, nullable=True)
+    version = Column(Integer, nullable=False, server_default=text("1"))
+    description = Column(Text, nullable=True)
+    updated_by = Column(String(64), nullable=True)
+    seeded_from_file_hash = Column(String(64), nullable=True)
+    is_active = Column(Boolean, nullable=False, server_default=text("1"))
 
 
 class KBFile(Base, TimestampMixin):
@@ -645,6 +685,7 @@ async def init_db() -> None:
         ("new_bot_services", "generated_system_prompt", "TEXT NULL"),
         ("new_bot_services", "ticketing_mode", "VARCHAR(20) NULL"),
         ("new_bot_services", "form_config", "JSON NULL"),
+        ("new_bot_services", "generated_system_prompt_override", "BOOLEAN NOT NULL DEFAULT 0"),
         ("new_bot_kb_files", "content_hash", "VARCHAR(64) NULL"),
         ("new_bot_business_config", "created_at", "DATETIME NULL DEFAULT CURRENT_TIMESTAMP"),
         (
@@ -694,6 +735,10 @@ async def init_db() -> None:
                 if await _mysql_data_type(conn, "new_bot_services", "ticketing_policy") != "longtext":
                     await conn.execute(
                         text("ALTER TABLE new_bot_services MODIFY COLUMN ticketing_policy LONGTEXT NULL")
+                    )
+                if await _mysql_data_type(conn, "new_bot_prompt_registry", "content") != "longtext":
+                    await conn.execute(
+                        text("ALTER TABLE new_bot_prompt_registry MODIFY COLUMN content LONGTEXT NOT NULL")
                     )
         except Exception:
             pass
