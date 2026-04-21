@@ -1,0 +1,6 @@
+# This project uses the unified root requirements file.
+# Install from repo root once:
+#   pip install -r requirements.txt
+#
+# If you install from this folder directly, this include still works.
+-r ../requirements.txt

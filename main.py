@@ -8,7 +8,10 @@ NexOria - Main Application Entry Point
 # Wrapping early guarantees every print() and logging write is safe.
 import sys as _sys
 import io as _io
+import os
+import subprocess
 
+import httpx
 
 class _SafeStream:
     """Drop-in stdout/stderr wrapper that silently swallows OSError."""
@@ -75,6 +78,252 @@ from services.step_trace_service import step_trace_service
 from services.log_retention_service import log_retention_service
 from services.log_setup_service import log_setup_service
 from services import new_detailed_logger
+
+
+_BASE_DIR = Path(__file__).resolve().parent
+_SCRAPER_DIR = (_BASE_DIR / "Kepsla-hotal-kb-scraper-main").resolve()
+_SCRAPER_MAIN_FILE = (_SCRAPER_DIR / "main.py").resolve()
+_PROXY_HOP_BY_HOP_HEADERS = {
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "upgrade",
+    "content-length",
+}
+
+
+def _parse_dotenv_file(env_path: Path) -> dict[str, str]:
+    """Parse a simple KEY=VALUE dotenv file without expanding variables."""
+    parsed: dict[str, str] = {}
+    if not env_path.exists():
+        return parsed
+
+    try:
+        for raw_line in env_path.read_text(encoding="utf-8-sig").splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip().lstrip("\ufeff")
+            value = value.strip()
+            if not key:
+                continue
+            if (value.startswith('"') and value.endswith('"')) or (
+                value.startswith("'") and value.endswith("'")
+            ):
+                value = value[1:-1]
+            parsed[key] = value
+    except Exception:
+        return {}
+
+    return parsed
+
+
+def _build_scraper_env() -> dict[str, str]:
+    """Build environment for scraper process using current env + root .env."""
+    merged = dict(os.environ)
+    root_env_values = _parse_dotenv_file(_BASE_DIR / ".env")
+
+    # Keep explicit shell env values highest priority.
+    for key, value in root_env_values.items():
+        merged.setdefault(key, value)
+
+    merged.setdefault("PYTHONUNBUFFERED", "1")
+    return merged
+
+
+def _resolve_scraper_upstream() -> tuple[str, int]:
+    """Resolve scraper upstream host/port from env and .env defaults."""
+    env_map = _build_scraper_env()
+    host = str(env_map.get("SCRAPER_UPSTREAM_HOST") or "127.0.0.1").strip() or "127.0.0.1"
+    raw_port = str(env_map.get("APP_PORT") or "8501").strip()
+    try:
+        port = int(raw_port)
+    except Exception:
+        port = 8501
+    return host, port
+
+
+def _rewrite_scraper_payload(content_type: str, payload: bytes) -> bytes:
+    """Rewrite absolute scraper asset/api URLs so iframe stays on same origin/port."""
+    lowered = str(content_type or "").lower()
+    if "text/html" not in lowered and "javascript" not in lowered:
+        return payload
+    try:
+        text = payload.decode("utf-8")
+    except UnicodeDecodeError:
+        return payload
+
+    text = text.replace('href="/static/', 'href="/kb-scraper/static/')
+    text = text.replace('src="/static/', 'src="/kb-scraper/static/')
+    text = text.replace('"/api/', '"/kb-scraper/api/')
+    text = text.replace("'/api/", "'/kb-scraper/api/")
+    text = text.replace("`/api/", "`/kb-scraper/api/")
+    return text.encode("utf-8")
+
+
+async def _proxy_to_kb_scraper(request: Request, proxy_path: str = "") -> Response:
+    """Proxy request to KB scraper process while preserving same-origin frontend flow."""
+    upstream_host, upstream_port = _resolve_scraper_upstream()
+    target_path = str(proxy_path or "").lstrip("/")
+    upstream_url = f"http://{upstream_host}:{upstream_port}/{target_path}" if target_path else f"http://{upstream_host}:{upstream_port}/"
+    query = str(request.url.query or "").strip()
+    if query:
+        upstream_url = f"{upstream_url}?{query}"
+
+    upstream_headers: dict[str, str] = {}
+    for key, value in request.headers.items():
+        lower_key = key.lower()
+        if lower_key in {"host", "content-length"}:
+            continue
+        upstream_headers[key] = value
+
+    client_host = request.client.host if request.client else ""
+    if client_host:
+        prior_forwarded = upstream_headers.get("X-Forwarded-For", "").strip()
+        upstream_headers["X-Forwarded-For"] = f"{prior_forwarded}, {client_host}".strip(", ")
+
+    body = await request.body()
+    try:
+        async with httpx.AsyncClient(timeout=60.0, follow_redirects=False) as client:
+            upstream_response = await client.request(
+                method=request.method,
+                url=upstream_url,
+                headers=upstream_headers,
+                content=body,
+            )
+    except Exception as exc:
+        return JSONResponse(
+            status_code=502,
+            content={
+                "detail": f"KB scraper upstream unavailable at {upstream_host}:{upstream_port}",
+                "error": str(exc),
+            },
+        )
+
+    response_headers: dict[str, str] = {}
+    for key, value in upstream_response.headers.items():
+        lower_key = key.lower()
+        if lower_key in _PROXY_HOP_BY_HOP_HEADERS:
+            continue
+        if lower_key == "location":
+            if value.startswith("/"):
+                value = f"/kb-scraper{value}"
+            elif value.startswith(f"http://{upstream_host}:{upstream_port}/"):
+                value = value.replace(
+                    f"http://{upstream_host}:{upstream_port}",
+                    "",
+                    1,
+                )
+                if not value.startswith("/kb-scraper"):
+                    value = f"/kb-scraper{value}"
+        response_headers[key] = value
+
+    content_type = upstream_response.headers.get("content-type", "")
+    payload = _rewrite_scraper_payload(content_type, upstream_response.content)
+
+    return Response(
+        content=payload,
+        status_code=upstream_response.status_code,
+        headers=response_headers,
+    )
+
+
+def _start_scraper_process() -> subprocess.Popen[bytes] | None:
+    """Start KB scraper API as a child process managed by root main.py."""
+    if not _SCRAPER_MAIN_FILE.exists():
+        print(f"KB scraper entrypoint not found at {_SCRAPER_MAIN_FILE}; skipping auto-start.")
+        return None
+
+    try:
+        scraper_env = _build_scraper_env()
+        scraper_env["APP_ENV"] = "production"
+        scraper_env["PYTHONUNBUFFERED"] = "1"
+
+        # Use venv Python if available — scraper dependencies (scrapling etc.) live there.
+        venv_python = _BASE_DIR / ".venv" / "Scripts" / "python.exe"
+        if not venv_python.exists():
+            venv_python = _BASE_DIR / ".venv" / "bin" / "python"
+        scraper_python = str(venv_python) if venv_python.exists() else _sys.executable
+
+        # Resolve the port from env so it matches the scraper's settings.
+        _, scraper_port = _resolve_scraper_upstream()
+
+        # Launch uvicorn directly — bypasses the scraper's __main__ block which
+        # would enable watchfiles reload based on APP_ENV, causing duplicate port binds.
+        process = subprocess.Popen(
+            [scraper_python, "-m", "uvicorn", "main:app",
+             "--host", "0.0.0.0",
+             "--port", str(scraper_port),
+             "--log-level", "info"],
+            cwd=str(_SCRAPER_DIR),
+            env=scraper_env,
+        )
+        print(f"KB scraper started (pid={process.pid}) on port {scraper_port} using {scraper_python}")
+        return process
+    except Exception as exc:
+        print(f"KB scraper auto-start failed: {exc}")
+        return None
+
+
+def _stop_scraper_process(process: subprocess.Popen[bytes] | None) -> None:
+    """Terminate KB scraper process started by this main process."""
+    if process is None:
+        return
+    if process.poll() is not None:
+        return
+
+    try:
+        process.terminate()
+        process.wait(timeout=10)
+        print("KB scraper stopped")
+    except subprocess.TimeoutExpired:
+        process.kill()
+    except Exception:
+        pass
+
+
+_ADMIN_UI_DIR = (_BASE_DIR / "admin_ui").resolve()
+_VITE_DEV_PORT = 8080
+
+
+def _start_vite_process() -> subprocess.Popen[bytes] | None:
+    """Start Vite dev server for admin_ui live reload (development only)."""
+    npm_cmd = "npm.cmd" if _sys.platform == "win32" else "npm"
+    if not (_ADMIN_UI_DIR / "package.json").exists():
+        print(f"admin_ui not found at {_ADMIN_UI_DIR}; skipping Vite dev server.")
+        return None
+    try:
+        process = subprocess.Popen(
+            [npm_cmd, "run", "dev"],
+            cwd=str(_ADMIN_UI_DIR),
+            env=dict(os.environ),
+        )
+        print(f"Vite dev server started (pid={process.pid}) — admin UI served with HMR")
+        return process
+    except Exception as exc:
+        print(f"Vite dev server auto-start failed: {exc}")
+        return None
+
+
+def _stop_vite_process(process: subprocess.Popen[bytes] | None) -> None:
+    """Terminate Vite dev server process."""
+    if process is None:
+        return
+    if process.poll() is not None:
+        return
+    try:
+        process.terminate()
+        process.wait(timeout=10)
+        print("Vite dev server stopped")
+    except subprocess.TimeoutExpired:
+        process.kill()
+    except Exception:
+        pass
 
 
 def _print_api_log(method: str, path: str, query: str, status_code: int, duration_ms: float) -> None:
@@ -212,6 +461,7 @@ async def lifespan(app: FastAPI):
     print(f"API Docs: http://{display_host}:{settings.port}/docs")
     print(f"Test Chat: http://{display_host}:{settings.port}/chat")
     print(f"Admin Portal: http://{display_host}:{settings.port}/admin")
+    print(f"KB Scraper (same port): http://{display_host}:{settings.port}/kb-scraper/")
 
     # ── new_detailed_logger: server ready ───────────────────────────────────
     new_detailed_logger.log_startup_ready(
@@ -732,7 +982,6 @@ app.add_middleware(
 )
 
 # Mount static files and UI bundles
-_BASE_DIR = Path(__file__).resolve().parent
 _STATIC_DIR = _BASE_DIR / "static"
 _ADMIN_UI_DIST_DIR = (_BASE_DIR / "admin_ui" / "dist").resolve()
 _CHAT_UI_FILE = (_ADMIN_UI_DIST_DIR / "chat.html").resolve()
@@ -748,6 +997,22 @@ app.include_router(admin_router)
 app.include_router(lumira_compat_router)
 
 
+@app.api_route("/kb-scraper", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
+@app.api_route("/kb-scraper/", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
+async def kb_scraper_proxy_root(request: Request):
+    """Reverse-proxy KB scraper root under same app port."""
+    return await _proxy_to_kb_scraper(request, "")
+
+
+@app.api_route(
+    "/kb-scraper/{proxy_path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+)
+async def kb_scraper_proxy_path(proxy_path: str, request: Request):
+    """Reverse-proxy KB scraper subpaths under same app port."""
+    return await _proxy_to_kb_scraper(request, proxy_path)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Open admin first for setup."""
@@ -755,8 +1020,18 @@ async def home(request: Request):
 
 
 @app.get("/chat", response_class=HTMLResponse)
-async def chat_ui():
-    """Serve the React chat harness build."""
+async def chat_ui(request: Request):
+    """Serve the React chat harness — proxies to Vite dev server in development."""
+    vite_base = os.environ.get("ADMIN_DEV_URL", "").strip()
+    if vite_base:
+        target = f"{vite_base.rstrip('/')}/admin/chat.html"
+        try:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+                resp = await client.get(target)
+            if resp.status_code == 200:
+                return HTMLResponse(content=resp.text)
+        except Exception:
+            pass
     if not _CHAT_UI_FILE.exists():
         return HTMLResponse(
             "<h3>NexOria API is running.</h3><p>Chat UI build is unavailable. Build admin_ui with npm run build.</p>",
@@ -792,11 +1067,30 @@ async def get_config():
 
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.is_development,
-        access_log=True,
-        log_level="info",
-    )
+    if settings.is_development:
+        os.environ.setdefault("ADMIN_DEV_URL", f"http://localhost:{_VITE_DEV_PORT}")
+
+    vite_process = _start_vite_process() if settings.is_development else None
+    scraper_process = _start_scraper_process()
+    try:
+        uvicorn.run(
+            "main:app",
+            host=settings.host,
+            port=settings.port,
+            reload=settings.is_development,
+            reload_excludes=[
+                "admin_ui/*",
+                "node_modules/*",
+                "*.log",
+                "*.db",
+                "*.db-wal",
+                "*.db-shm",
+                "output/*",
+                "logs/*",
+            ],
+            access_log=True,
+            log_level="info",
+        )
+    finally:
+        _stop_scraper_process(scraper_process)
+        _stop_vite_process(vite_process)

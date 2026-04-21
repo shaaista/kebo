@@ -1,384 +1,364 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  Loader2,
+  Play,
+  RefreshCcw,
+  Square,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Globe, Play, Square, CheckCircle2, Loader2, Building2, Settings2, ChevronDown, X, Power } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { scraperApi, type JobSummary } from "@/lib/scraperApi";
 
-type CrawlStatus = "idle" | "crawling" | "done";
+const STATUS_COLORS: Record<string, string> = {
+  pending: "bg-gray-100 text-gray-700",
+  discovering: "bg-blue-100 text-blue-700",
+  extracting: "bg-indigo-100 text-indigo-700",
+  properties_detected: "bg-yellow-100 text-yellow-800",
+  generating: "bg-purple-100 text-purple-700",
+  downloading_images: "bg-cyan-100 text-cyan-700",
+  completed: "bg-green-100 text-green-700",
+  failed: "bg-red-100 text-red-700",
+  stopped: "bg-orange-100 text-orange-700",
+};
 
-interface DetectedProperty {
-  name: string;
-  urlPattern: string;
-  pagesFound: number;
-  selected: boolean;
+function statusColor(status: string) {
+  return STATUS_COLORS[status] ?? "bg-gray-100 text-gray-700";
 }
 
-const crawlResults = [
-  { type: "Pages", count: 142, icon: "📄" },
-  { type: "Images", count: 89, icon: "🖼️" },
-  { type: "Videos", count: 7, icon: "🎥" },
-  { type: "Files", count: 23, icon: "📁" },
-];
+function statusLabel(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
-const crawlLog = [
-  { url: "/gateway-calicut/index.html", status: "success", time: "0.3s", size: "24 KB" },
-  { url: "/gateway-calicut/rooms", status: "success", time: "0.5s", size: "18 KB" },
-  { url: "/vivanta-goa/", status: "success", time: "0.8s", size: "32 KB" },
-  { url: "/vivanta-goa/spa", status: "success", time: "0.4s", size: "12 KB" },
-  { url: "/taj-malabar/", status: "success", time: "0.6s", size: "28 KB" },
-  { url: "/taj-malabar/events", status: "success", time: "0.2s", size: "8 KB" },
-  { url: "/taj-exotica-goa/dining", status: "success", time: "1.1s", size: "42 KB" },
-  { url: "/vivanta-trivandrum/rooms", status: "success", time: "1.5s", size: "15 KB" },
-];
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
 
-const initialDetectedProperties: DetectedProperty[] = [
-  { name: "The Gateway Hotel Calicut", urlPattern: "/gateway-calicut/*", pagesFound: 18, selected: true },
-  { name: "Vivanta Goa", urlPattern: "/vivanta-goa/*", pagesFound: 22, selected: true },
-  { name: "Taj Malabar Resort & Spa", urlPattern: "/taj-malabar/*", pagesFound: 15, selected: true },
-  { name: "The Gateway Hotel Athwalines Surat", urlPattern: "/gateway-surat/*", pagesFound: 12, selected: true },
-  { name: "Taj Exotica Resort & Spa Goa", urlPattern: "/taj-exotica-goa/*", pagesFound: 20, selected: true },
-  { name: "Vivanta Trivandrum", urlPattern: "/vivanta-trivandrum/*", pagesFound: 14, selected: true },
-];
+function JobRow({
+  job,
+  onAction,
+}: {
+  job: JobSummary;
+  onAction: () => void;
+}) {
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
 
-const WebCrawl = () => {
-  const [url, setUrl] = useState("https://www.khil.com");
-  const [status, setStatus] = useState<CrawlStatus>("idle");
-  const [progress, setProgress] = useState(0);
-  const [detectedProperties, setDetectedProperties] = useState<DetectedProperty[]>(initialDetectedProperties);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [projectSettingsOpen, setProjectSettingsOpen] = useState(false);
-  const [projectName, setProjectName] = useState("Grand Hotel Bot");
-  const [botEnabled, setBotEnabled] = useState(true);
-  const [language, setLanguage] = useState("en");
-  const [crawlDepth, setCrawlDepth] = useState("full");
-  const [specificUrls, setSpecificUrls] = useState<string[]>([]);
-  const [newSpecificUrl, setNewSpecificUrl] = useState("");
-  const [autoSync, setAutoSync] = useState(false);
-  const [syncFrequency, setSyncFrequency] = useState("weekly");
-
-  const startCrawl = () => {
-    setStatus("crawling");
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(interval);
-          setStatus("done");
-          return 100;
-        }
-        return p + 8;
-      });
-    }, 200);
-  };
-
-  const toggleProperty = (name: string) => {
-    setDetectedProperties((prev) =>
-      prev.map((p) => (p.name === name ? { ...p, selected: !p.selected } : p))
-    );
-  };
-
-  const selectAllProperties = (selected: boolean) => {
-    setDetectedProperties((prev) => prev.map((p) => ({ ...p, selected })));
-  };
-
-  const addSpecificUrl = () => {
-    const trimmed = newSpecificUrl.trim();
-    if (trimmed && !specificUrls.includes(trimmed)) {
-      setSpecificUrls([...specificUrls, trimmed]);
-      setNewSpecificUrl("");
+  async function act(fn: () => Promise<unknown>) {
+    setBusy(true);
+    try {
+      await fn();
+      onAction();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Action failed");
+    } finally {
+      setBusy(false);
     }
-  };
-
-  const removeSpecificUrl = (url: string) => {
-    setSpecificUrls(specificUrls.filter((u) => u !== url));
-  };
-
-  const handleUrlKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addSpecificUrl();
-    }
-  };
-
-  const selectedCount = detectedProperties.filter((p) => p.selected).length;
+  }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Web Crawling</h1>
-        <p className="text-muted-foreground">Crawl your website to extract content for the knowledge base</p>
-      </div>
-
-      {/* Project Settings */}
-      <Collapsible open={projectSettingsOpen} onOpenChange={setProjectSettingsOpen}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Power className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Project Settings</CardTitle>
-                </div>
-                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${projectSettingsOpen ? "rotate-180" : ""}`} />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4 pt-0">
-              <div className="space-y-2">
-                <Label htmlFor="project-name">Project Name</Label>
-                <Input id="project-name" value={projectName} onChange={(e) => setProjectName(e.target.value)} />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Bot Enabled</Label>
-                  <p className="text-sm text-muted-foreground">Toggle the bot on/off on your website</p>
-                </div>
-                <Switch checked={botEnabled} onCheckedChange={setBotEnabled} />
-              </div>
-              <div className="space-y-2">
-                <Label>Language</Label>
-                <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="ar">Arabic</SelectItem>
-                    <SelectItem value="es">Spanish</SelectItem>
-                    <SelectItem value="fr">French</SelectItem>
-                    <SelectItem value="de">German</SelectItem>
-                    <SelectItem value="zh">Chinese</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* Crawl Settings */}
-      <Collapsible open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <Card>
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Settings2 className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Crawl Settings</CardTitle>
-                </div>
-                <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${settingsOpen ? "rotate-180" : ""}`} />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="space-y-4 pt-0">
-
-              <div className="space-y-3">
-                <div>
-                  <Label>Specific URLs</Label>
-                  <p className="text-sm text-muted-foreground">Add specific pages you want the bot to crawl</p>
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="https://example.com/page"
-                    value={newSpecificUrl}
-                    onChange={(e) => setNewSpecificUrl(e.target.value)}
-                    onKeyDown={handleUrlKeyDown}
-                  />
-                  <Button onClick={addSpecificUrl} variant="outline" size="sm" className="shrink-0">
-                    Add URL
-                  </Button>
-                </div>
-                {specificUrls.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {specificUrls.map((sUrl) => (
-                      <span
-                        key={sUrl}
-                        className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-3 py-1 text-sm"
-                      >
-                        {sUrl}
-                        <button
-                          onClick={() => removeSpecificUrl(sUrl)}
-                          className="ml-1 rounded-full p-0.5 hover:bg-destructive/20 hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Auto-sync</Label>
-                    <p className="text-sm text-muted-foreground">Automatically re-crawl and update knowledge base</p>
-                  </div>
-                  <Switch checked={autoSync} onCheckedChange={setAutoSync} />
-                </div>
-                {autoSync && (
-                  <div className="space-y-2">
-                    <Label>Sync Frequency</Label>
-                    <Select value={syncFrequency} onValueChange={setSyncFrequency}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly (Monday)</SelectItem>
-                        <SelectItem value="monthly">Monthly (1st day)</SelectItem>
-                        <SelectItem value="bimonthly">In 2 months</SelectItem>
-                        <SelectItem value="quarterly">In 3 months</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* Start Crawl */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Start a Crawl</CardTitle>
-          <CardDescription>Enter your website URL to begin crawling</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://yourwebsite.com"
-                className="pl-10"
-              />
+    <Card className="mb-3">
+      <CardContent className="p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium truncate max-w-[200px]" title={job.session_name}>
+                {job.session_name || "Unnamed Session"}
+              </span>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(job.status)}`}
+              >
+                {statusLabel(job.status)}
+              </span>
             </div>
-            {status === "crawling" ? (
-              <Button variant="destructive" onClick={() => setStatus("idle")}>
-                <Square className="mr-2 h-4 w-4" /> Stop
-              </Button>
-            ) : (
-              <Button onClick={startCrawl}>
-                <Play className="mr-2 h-4 w-4" /> Start Crawl
-              </Button>
+            <p className="text-xs text-muted-foreground truncate mt-0.5" title={job.url}>
+              {job.url}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">{job.progress_msg}</p>
+            {job.progress_pct > 0 && job.status !== "completed" && job.status !== "failed" && (
+              <Progress value={job.progress_pct} className="mt-2 h-1.5 w-full max-w-xs" />
             )}
           </div>
 
-          {status !== "idle" && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
-                  {status === "crawling" ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  )}
-                  {status === "crawling" ? "Crawling..." : "Crawl complete!"}
-                </span>
-                <span className="text-muted-foreground">{Math.min(progress, 100)}%</span>
-              </div>
-              <Progress value={Math.min(progress, 100)} />
+          <div className="flex flex-wrap items-center gap-1 shrink-0">
+            {job.can_open_review && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/app/content")}
+              >
+                Review
+              </Button>
+            )}
+            {job.can_download && (
+              <Button
+                size="sm"
+                variant="outline"
+                asChild
+              >
+                <a href={scraperApi.downloadUrl(job.job_id)} download>
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                  Download
+                </a>
+              </Button>
+            )}
+            {job.can_stop && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => act(() => scraperApi.stop(job.job_id))}
+              >
+                <Square className="h-3.5 w-3.5 mr-1" />
+                Stop
+              </Button>
+            )}
+            {job.can_resume && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => act(() => scraperApi.resume(job.job_id))}
+              >
+                <Play className="h-3.5 w-3.5 mr-1" />
+                Resume
+              </Button>
+            )}
+            {!job.can_stop && (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-red-500 hover:text-red-700"
+                disabled={busy}
+                onClick={() => {
+                  if (confirm("Delete this session?"))
+                    act(() => scraperApi.remove(job.job_id));
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Started {formatDate(job.created_at)}
+          {job.completed_at ? ` · Finished ${formatDate(job.completed_at)}` : ""}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function WebCrawl() {
+  const [url, setUrl] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [outputMode, setOutputMode] = useState<"both" | "kb_only" | "media_only">("both");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchJobs = useCallback(async () => {
+    try {
+      const list = await scraperApi.listJobs();
+      setJobs(list);
+    } catch {
+      // silently ignore poll errors
+    } finally {
+      setLoadingJobs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchJobs();
+    // Poll faster when jobs are actively running, slower when idle
+    const interval = jobs.some((j) => j.can_stop) ? 2000 : 6000;
+    pollRef.current = setInterval(fetchJobs, interval);
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [fetchJobs, jobs]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    if (!url.trim().startsWith("http")) {
+      setError("URL must start with http:// or https://");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await scraperApi.startScrape({
+        url: url.trim(),
+        project_name: projectName.trim() || "Hotel Bot",
+        language,
+        output_mode: outputMode,
+      });
+      setSuccess("Crawl started. Track progress in the jobs list below.");
+      setUrl("");
+      setProjectName("");
+      await fetchJobs();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to start crawl");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const hasActive = jobs.some((j) => j.can_stop);
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold">Web Crawling</h1>
+        <p className="text-muted-foreground">
+          Crawl a hotel website and generate a knowledge base.
+        </p>
+      </div>
+
+      {/* Start crawl form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Start New Crawl</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="url">Website URL</Label>
+              <Input
+                id="url"
+                placeholder="https://hotelwebsite.com"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                required
+              />
             </div>
-          )}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="project">Project Name</Label>
+                <Input
+                  id="project"
+                  placeholder="Grand Hotel Bot"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="language">Language</Label>
+                <Select value={language} onValueChange={setLanguage}>
+                  <SelectTrigger id="language">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="English">English</SelectItem>
+                    <SelectItem value="Spanish">Spanish</SelectItem>
+                    <SelectItem value="French">French</SelectItem>
+                    <SelectItem value="German">German</SelectItem>
+                    <SelectItem value="Arabic">Arabic</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="output-mode">Output Mode</Label>
+              <Select
+                value={outputMode}
+                onValueChange={(v) => setOutputMode(v as typeof outputMode)}
+              >
+                <SelectTrigger id="output-mode">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">KB + Images</SelectItem>
+                  <SelectItem value="kb_only">KB Text Only</SelectItem>
+                  <SelectItem value="media_only">Images Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="flex items-center gap-2 text-sm text-green-600">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {success}
+              </div>
+            )}
+
+            <Button type="submit" disabled={submitting}>
+              {submitting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Start Crawl
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
-      {status === "done" && (
-        <>
-          <div className="grid gap-4 sm:grid-cols-4">
-            {crawlResults.map((r) => (
-              <Card key={r.type}>
-                <CardContent className="flex items-center gap-3 p-4">
-                  <span className="text-2xl">{r.icon}</span>
-                  <div>
-                    <div className="text-xl font-bold">{r.count}</div>
-                    <div className="text-xs text-muted-foreground">{r.type}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+      {/* Jobs list */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold">
+            Recent Sessions
+            {hasActive && (
+              <Badge variant="secondary" className="ml-2 text-xs">
+                Active
+              </Badge>
+            )}
+          </h2>
+          <Button variant="ghost" size="sm" onClick={fetchJobs}>
+            <RefreshCcw className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+
+        {loadingJobs ? (
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Loading sessions…
           </div>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">Detected Properties ({detectedProperties.length})</CardTitle>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => selectAllProperties(true)}>
-                    Select All
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => selectAllProperties(false)}>
-                    Deselect All
-                  </Button>
-                </div>
-              </div>
-              <CardDescription>
-                {selectedCount} of {detectedProperties.length} properties selected for content import
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y rounded-lg border">
-                {detectedProperties.map((prop) => (
-                  <div key={prop.name} className="flex items-center justify-between px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <Switch
-                        checked={prop.selected}
-                        onCheckedChange={() => toggleProperty(prop.name)}
-                      />
-                      <div>
-                        <div className="text-sm font-medium">{prop.name}</div>
-                        <div className="text-xs text-muted-foreground font-mono">{prop.urlPattern}</div>
-                      </div>
-                    </div>
-                    <Badge variant="secondary">{prop.pagesFound} pages</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Crawl Log</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y">
-                {crawlLog.map((log) => (
-                  <div key={log.url} className="flex items-center justify-between py-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-                      <span className="text-sm font-mono">{log.url}</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Badge variant="secondary" className="text-xs">{log.size}</Badge>
-                      <span className="text-xs text-muted-foreground w-8 text-right">{log.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="mt-4 w-full" asChild>
-                <a href="/app/content">Review All Content →</a>
-              </Button>
-            </CardContent>
-          </Card>
-        </>
-      )}
+        ) : jobs.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No sessions yet. Start a crawl above.
+          </p>
+        ) : (
+          jobs.map((job) => (
+            <JobRow key={job.job_id} job={job} onAction={fetchJobs} />
+          ))
+        )}
+      </div>
     </div>
   );
-};
-
-export default WebCrawl;
+}

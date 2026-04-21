@@ -3869,9 +3869,41 @@ async def regenerate_all_service_prompts(hotel_code: Optional[str] = None):
 
 # ============ Admin UI ============
 
+_VITE_HOP_BY_HOP = frozenset({"connection", "keep-alive", "transfer-encoding", "upgrade", "content-length"})
+
+
+async def _proxy_vite_request(request: Request, admin_path: str):
+    """Forward request to Vite dev server when ADMIN_DEV_URL is set; returns None otherwise."""
+    import os as _os
+    import httpx as _httpx
+    from fastapi.responses import Response as _Response
+
+    vite_base = _os.environ.get("ADMIN_DEV_URL", "").strip()
+    if not vite_base:
+        return None
+
+    path = (admin_path or "").lstrip("/")
+    target = f"{vite_base.rstrip('/')}/admin/{path}" if path else f"{vite_base.rstrip('/')}/admin/"
+    query = str(request.url.query or "").strip()
+    if query:
+        target = f"{target}?{query}"
+
+    headers = {k: v for k, v in request.headers.items() if k.lower() not in {"host", "content-length"}}
+    try:
+        async with _httpx.AsyncClient(timeout=10.0, follow_redirects=False) as client:
+            resp = await client.request(request.method, target, headers=headers, content=await request.body())
+        resp_headers = {k: v for k, v in resp.headers.items() if k.lower() not in _VITE_HOP_BY_HOP}
+        return _Response(content=resp.content, status_code=resp.status_code, headers=resp_headers)
+    except Exception:
+        return None
+
+
 @router.get("", response_class=HTMLResponse)
-async def admin_dashboard():
+async def admin_dashboard(request: Request):
     """Serve the React admin dashboard shell."""
+    vite = await _proxy_vite_request(request, "")
+    if vite is not None:
+        return vite
     if _ADMIN_UI_INDEX_FILE.exists():
         return FileResponse(_ADMIN_UI_INDEX_FILE)
     return HTMLResponse(
@@ -3895,10 +3927,14 @@ def _resolve_admin_asset(full_path: str) -> Optional[Path]:
 
 
 @router.get("/{full_path:path}", include_in_schema=False)
-async def admin_spa_fallback(full_path: str):
+async def admin_spa_fallback(full_path: str, request: Request):
     """Serve static assets and SPA fallback for React admin routes."""
     if str(full_path or "").startswith("api/"):
         raise HTTPException(status_code=404, detail="Not found")
+
+    vite = await _proxy_vite_request(request, full_path)
+    if vite is not None:
+        return vite
 
     asset = _resolve_admin_asset(full_path)
     if asset:

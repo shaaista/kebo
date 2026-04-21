@@ -1,281 +1,329 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Download,
+  Loader2,
+  RefreshCcw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Search, Edit2, ChevronDown, Building2, FileText, Image, Video, File } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
+  scraperApi,
+  type JobSummary,
+  type ReviewEntity,
+  type ReviewItem,
+  type ReviewPayload,
+} from "@/lib/scraperApi";
 
-interface ContentItem {
-  id: string;
-  name: string;
-  type: string;
-  url?: string;
-  enabled: boolean;
-  label?: string;
-  size?: string;
-  property: string;
+function statusLabel(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-const properties = [
-  "The Gateway Hotel Calicut",
-  "Vivanta Goa",
-  "Taj Malabar Resort & Spa",
-  "The Gateway Hotel Athwalines Surat",
-  "Taj Exotica Resort & Spa Goa",
-  "Vivanta Trivandrum",
-];
+function itemDisplayName(item: ReviewItem) {
+  return item.name || item.suggested_name || item.url || item.id;
+}
 
-const initialPages: ContentItem[] = [
-  { id: "p1", name: "Home Page", type: "page", url: "/gateway-calicut/", enabled: true, label: "Main", property: "The Gateway Hotel Calicut" },
-  { id: "p2", name: "Rooms & Suites", type: "page", url: "/gateway-calicut/rooms", enabled: true, label: "Rooms", property: "The Gateway Hotel Calicut" },
-  { id: "p3", name: "Dining", type: "page", url: "/gateway-calicut/dining", enabled: true, label: "Dining", property: "The Gateway Hotel Calicut" },
-  { id: "p4", name: "Contact", type: "page", url: "/gateway-calicut/contact", enabled: true, label: "Info", property: "The Gateway Hotel Calicut" },
-  { id: "p5", name: "Home Page", type: "page", url: "/vivanta-goa/", enabled: true, label: "Main", property: "Vivanta Goa" },
-  { id: "p6", name: "Spa & Wellness", type: "page", url: "/vivanta-goa/spa", enabled: true, label: "Spa", property: "Vivanta Goa" },
-  { id: "p7", name: "Beach Activities", type: "page", url: "/vivanta-goa/activities", enabled: true, property: "Vivanta Goa" },
-  { id: "p8", name: "Gallery", type: "page", url: "/vivanta-goa/gallery", enabled: false, property: "Vivanta Goa" },
-  { id: "p9", name: "Home Page", type: "page", url: "/taj-malabar/", enabled: true, label: "Main", property: "Taj Malabar Resort & Spa" },
-  { id: "p10", name: "Luxury Rooms", type: "page", url: "/taj-malabar/rooms", enabled: true, label: "Rooms", property: "Taj Malabar Resort & Spa" },
-  { id: "p11", name: "Events & Weddings", type: "page", url: "/taj-malabar/events", enabled: true, label: "Events", property: "Taj Malabar Resort & Spa" },
-  { id: "p12", name: "Home Page", type: "page", url: "/gateway-surat/", enabled: true, label: "Main", property: "The Gateway Hotel Athwalines Surat" },
-  { id: "p13", name: "Amenities", type: "page", url: "/gateway-surat/amenities", enabled: false, property: "The Gateway Hotel Athwalines Surat" },
-  { id: "p14", name: "Home Page", type: "page", url: "/taj-exotica-goa/", enabled: true, label: "Main", property: "Taj Exotica Resort & Spa Goa" },
-  { id: "p15", name: "Pool & Beach", type: "page", url: "/taj-exotica-goa/pool", enabled: true, label: "Facilities", property: "Taj Exotica Resort & Spa Goa" },
-  { id: "p16", name: "Fine Dining", type: "page", url: "/taj-exotica-goa/dining", enabled: true, label: "Dining", property: "Taj Exotica Resort & Spa Goa" },
-  { id: "p17", name: "Home Page", type: "page", url: "/vivanta-trivandrum/", enabled: true, label: "Main", property: "Vivanta Trivandrum" },
-  { id: "p18", name: "Rooms", type: "page", url: "/vivanta-trivandrum/rooms", enabled: true, label: "Rooms", property: "Vivanta Trivandrum" },
-];
+function entityDisplayName(entity: ReviewEntity) {
+  return entity.name || entity.suggested_name || entity.id;
+}
 
-const initialImages: ContentItem[] = [
-  { id: "i1", name: "hero-banner.jpg", type: "image", enabled: true, size: "2.4 MB", label: "Hero", property: "The Gateway Hotel Calicut" },
-  { id: "i2", name: "lobby-photo.png", type: "image", enabled: true, size: "1.8 MB", label: "Lobby", property: "The Gateway Hotel Calicut" },
-  { id: "i3", name: "beach-view.jpg", type: "image", enabled: true, size: "3.1 MB", label: "Views", property: "Vivanta Goa" },
-  { id: "i4", name: "pool-area.jpg", type: "image", enabled: true, size: "2.7 MB", property: "Taj Exotica Resort & Spa Goa" },
-  { id: "i5", name: "spa-interior.jpg", type: "image", enabled: false, size: "1.2 MB", property: "Vivanta Goa" },
-  { id: "i6", name: "restaurant-interior.jpg", type: "image", enabled: true, size: "2.0 MB", label: "Dining", property: "Taj Malabar Resort & Spa" },
-  { id: "i7", name: "suite-deluxe.jpg", type: "image", enabled: true, size: "1.9 MB", label: "Rooms", property: "Vivanta Trivandrum" },
-];
+function EntityBlock({
+  entity,
+  onChange,
+}: {
+  entity: ReviewEntity;
+  onChange: (updated: ReviewEntity) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
 
-const initialVideos: ContentItem[] = [
-  { id: "v1", name: "property-tour.mp4", type: "video", enabled: true, size: "45 MB", label: "Tour", property: "The Gateway Hotel Calicut" },
-  { id: "v2", name: "goa-promo.mp4", type: "video", enabled: false, size: "120 MB", property: "Vivanta Goa" },
-  { id: "v3", name: "spa-experience.mp4", type: "video", enabled: true, size: "32 MB", label: "Spa", property: "Taj Malabar Resort & Spa" },
-];
+  const pages = entity.items.filter((i) => i.type === "page");
+  const assets = entity.items.filter((i) => i.type !== "page");
 
-const initialFiles: ContentItem[] = [
-  { id: "f1", name: "room-rates-2024.pdf", type: "file", enabled: true, size: "340 KB", label: "Pricing", property: "The Gateway Hotel Calicut" },
-  { id: "f2", name: "restaurant-menu.pdf", type: "file", enabled: true, size: "2.1 MB", label: "Dining", property: "Vivanta Goa" },
-  { id: "f3", name: "event-brochure.pdf", type: "file", enabled: true, size: "5.4 MB", label: "Events", property: "Taj Malabar Resort & Spa" },
-  { id: "f4", name: "tariff-card.pdf", type: "file", enabled: false, size: "120 KB", property: "Taj Exotica Resort & Spa Goa" },
-];
-
-const typeIcon = (type: string) => {
-  switch (type) {
-    case "page": return <FileText className="h-3.5 w-3.5 text-muted-foreground" />;
-    case "image": return <Image className="h-3.5 w-3.5 text-muted-foreground" />;
-    case "video": return <Video className="h-3.5 w-3.5 text-muted-foreground" />;
-    default: return <File className="h-3.5 w-3.5 text-muted-foreground" />;
+  function toggleEntity(checked: boolean) {
+    onChange({
+      ...entity,
+      enabled: checked,
+      items: entity.items.map((i) => ({ ...i, enabled: checked })),
+    });
   }
-};
 
-const ContentManager = () => {
-  const [pages, setPages] = useState(initialPages);
-  const [images, setImages] = useState(initialImages);
-  const [videos, setVideos] = useState(initialVideos);
-  const [files, setFiles] = useState(initialFiles);
-  const [search, setSearch] = useState("");
-  const [editingLabel, setEditingLabel] = useState<string | null>(null);
-  const [expandedProperties, setExpandedProperties] = useState<string[]>([properties[0]]);
+  function toggleItem(id: string, checked: boolean) {
+    onChange({
+      ...entity,
+      items: entity.items.map((i) =>
+        i.id === id ? { ...i, enabled: checked } : i
+      ),
+    });
+  }
 
-  const allItems = [...pages, ...images, ...videos, ...files];
-
-  const toggleExpanded = (property: string) => {
-    setExpandedProperties((prev) =>
-      prev.includes(property) ? prev.filter((p) => p !== property) : [...prev, property]
-    );
-  };
-
-  const toggle = (id: string) => {
-    const updater = (items: ContentItem[]) =>
-      items.map((item) => (item.id === id ? { ...item, enabled: !item.enabled } : item));
-    setPages(updater);
-    setImages(updater);
-    setVideos(updater);
-    setFiles(updater);
-  };
-
-  const updateLabel = (id: string, label: string) => {
-    const updater = (items: ContentItem[]) =>
-      items.map((item) => (item.id === id ? { ...item, label } : item));
-    setPages(updater);
-    setImages(updater);
-    setVideos(updater);
-    setFiles(updater);
-    setEditingLabel(null);
-  };
-
-  const getPropertyItems = (property: string) => {
-    const all = [...pages, ...images, ...videos, ...files];
-    return all.filter(
-      (item) =>
-        item.property === property &&
-        item.name.toLowerCase().includes(search.toLowerCase())
-    );
-  };
-
-  const getPropertyStats = (property: string) => {
-    const propPages = pages.filter((i) => i.property === property);
-    const propImages = images.filter((i) => i.property === property);
-    const propVideos = videos.filter((i) => i.property === property);
-    const propFiles = files.filter((i) => i.property === property);
-    return { pages: propPages.length, images: propImages.length, videos: propVideos.length, files: propFiles.length };
-  };
+  const enabledCount = pages.filter((p) => p.enabled !== false).length;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Content Manager</h1>
-          <p className="text-muted-foreground">
-            Review, label, and enable/disable crawled content before training
-          </p>
+    <Card className="mb-3">
+      <CardHeader className="py-3 px-4">
+        <div className="flex items-center gap-3">
+          <Checkbox
+            id={`entity-${entity.id}`}
+            checked={entity.enabled !== false}
+            onCheckedChange={(v) => toggleEntity(!!v)}
+          />
+          <Label
+            htmlFor={`entity-${entity.id}`}
+            className="text-base font-semibold cursor-pointer flex-1"
+          >
+            {entityDisplayName(entity)}
+          </Label>
+          <span className="text-xs text-muted-foreground">
+            {enabledCount}/{pages.length} pages
+          </span>
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="text-muted-foreground"
+          >
+            {expanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
         </div>
-        <Button>Publish to Knowledge Base</Button>
+      </CardHeader>
+
+      {expanded && (
+        <CardContent className="pt-0 px-4 pb-4">
+          {pages.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No pages found.</p>
+          ) : (
+            <ul className="space-y-1.5">
+              {pages.map((page) => (
+                <li key={page.id} className="flex items-start gap-2">
+                  <Checkbox
+                    id={`page-${page.id}`}
+                    checked={page.enabled !== false}
+                    onCheckedChange={(v) => toggleItem(page.id, !!v)}
+                    className="mt-0.5"
+                  />
+                  <Label
+                    htmlFor={`page-${page.id}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    <span className="font-medium">{itemDisplayName(page)}</span>
+                    {page.url && (
+                      <span className="block text-xs text-muted-foreground truncate max-w-sm">
+                        {page.url}
+                      </span>
+                    )}
+                  </Label>
+                </li>
+              ))}
+            </ul>
+          )}
+          {assets.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              +{assets.length} media asset{assets.length !== 1 ? "s" : ""}
+            </p>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
+export default function ContentManager() {
+  const [jobs, setJobs] = useState<JobSummary[]>([]);
+  const [loadingJobs, setLoadingJobs] = useState(true);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+
+  const [reviewPayload, setReviewPayload] = useState<ReviewPayload | null>(null);
+  const [loadingReview, setLoadingReview] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<"idle" | "busy" | "ok" | "err">("idle");
+  const [publishMsg, setPublishMsg] = useState("");
+
+  const fetchJobs = useCallback(async () => {
+    try {
+      const list = await scraperApi.listJobs();
+      setJobs(list.filter((j) => j.can_open_review || j.status === "completed"));
+    } catch {
+      // ignore
+    } finally {
+      setLoadingJobs(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
+
+  async function loadReview(jobId: string) {
+    setSelectedJobId(jobId);
+    setReviewPayload(null);
+    setPublishStatus("idle");
+    setPublishMsg("");
+    setLoadingReview(true);
+    try {
+      const res = await scraperApi.getReview(jobId);
+      setReviewPayload(res.review_data);
+    } catch (e) {
+      setPublishMsg(e instanceof Error ? e.message : "Failed to load review data");
+      setPublishStatus("err");
+    } finally {
+      setLoadingReview(false);
+    }
+  }
+
+  function updateEntity(updated: ReviewEntity) {
+    if (!reviewPayload) return;
+    setReviewPayload({
+      ...reviewPayload,
+      entities: reviewPayload.entities.map((e) =>
+        e.id === updated.id ? updated : e
+      ),
+    });
+  }
+
+  async function handlePublish() {
+    if (!selectedJobId || !reviewPayload) return;
+    setPublishStatus("busy");
+    setPublishMsg("");
+    try {
+      await scraperApi.publish(selectedJobId, reviewPayload);
+      setPublishStatus("ok");
+      setPublishMsg("Publishing started. Check the Web Crawl page for progress.");
+      await fetchJobs();
+    } catch (e) {
+      setPublishStatus("err");
+      setPublishMsg(e instanceof Error ? e.message : "Publish failed");
+    }
+  }
+
+  const selectedJob = jobs.find((j) => j.job_id === selectedJobId);
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold">Content Manager</h1>
+        <p className="text-muted-foreground">
+          Review extracted content and publish your knowledge base.
+        </p>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search content across all properties..."
-          className="pl-10"
-        />
-      </div>
-
-      <div className="space-y-3">
-        {properties.map((property, index) => {
-          const stats = getPropertyStats(property);
-          const items = getPropertyItems(property);
-          const isExpanded = expandedProperties.includes(property);
-          const enabledCount = items.filter((i) => i.enabled).length;
-
-          if (search && items.length === 0) return null;
-
-          return (
-            <Collapsible key={property} open={isExpanded} onOpenChange={() => toggleExpanded(property)}>
-              <Card>
-                <CollapsibleTrigger asChild>
-                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Building2 className="h-5 w-5 text-primary" />
-                        <div>
-                          <CardTitle className="text-base">
-                            <span className="text-muted-foreground text-sm font-normal mr-2">Entity {index + 1}</span>
-                            {property}
-                          </CardTitle>
-                          <div className="flex items-center gap-3 mt-1">
-                            {stats.pages > 0 && (
-                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <FileText className="h-3 w-3" /> {stats.pages} pages
-                              </span>
-                            )}
-                            {stats.images > 0 && (
-                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Image className="h-3 w-3" /> {stats.images} images
-                              </span>
-                            )}
-                            {stats.videos > 0 && (
-                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Video className="h-3 w-3" /> {stats.videos} videos
-                              </span>
-                            )}
-                            {stats.files > 0 && (
-                              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <File className="h-3 w-3" /> {stats.files} files
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="text-xs">
-                          {enabledCount}/{items.length} enabled
-                        </Badge>
-                        <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                      </div>
+      {/* Job selector */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Select a Session to Review</CardTitle>
+            <Button variant="ghost" size="sm" onClick={fetchJobs}>
+              <RefreshCcw className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingJobs ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading sessions…
+            </div>
+          ) : jobs.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No reviewable sessions yet. Start a crawl in Web Crawling first.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {jobs.map((job) => (
+                <li key={job.job_id}>
+                  <button
+                    className={`w-full text-left rounded-lg border px-4 py-3 transition-colors ${
+                      selectedJobId === job.job_id
+                        ? "border-primary bg-primary/5"
+                        : "hover:bg-muted/50"
+                    }`}
+                    onClick={() => loadReview(job.job_id)}
+                  >
+                    <div className="font-medium text-sm">
+                      {job.session_name || "Unnamed Session"}
                     </div>
-                  </CardHeader>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    <div className="divide-y rounded-lg border">
-                      {items.map((item) => (
-                        <div
-                          key={item.id}
-                          className={`flex items-center gap-3 px-4 py-2.5 transition-colors ${!item.enabled ? "opacity-50" : ""}`}
-                        >
-                          <Switch
-                            checked={item.enabled}
-                            onCheckedChange={() => toggle(item.id)}
-                          />
-                          {typeIcon(item.type)}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="truncate text-sm font-medium">{item.name}</span>
-                              {item.url && (
-                                <span className="hidden truncate text-xs text-muted-foreground sm:inline">
-                                  {item.url}
-                                </span>
-                              )}
-                            </div>
-                            {item.size && <span className="text-xs text-muted-foreground">{item.size}</span>}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {editingLabel === item.id ? (
-                              <Input
-                                className="h-7 w-24 text-xs"
-                                defaultValue={item.label || ""}
-                                autoFocus
-                                onBlur={(e) => updateLabel(item.id, e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    updateLabel(item.id, (e.target as HTMLInputElement).value);
-                                  }
-                                }}
-                              />
-                            ) : (
-                              <button
-                                onClick={() => setEditingLabel(item.id)}
-                                className="flex items-center gap-1"
-                              >
-                                {item.label ? (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {item.label}
-                                  </Badge>
-                                ) : (
-                                  <span className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                                    <Edit2 className="h-3 w-3" /> Label
-                                  </span>
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="text-xs text-muted-foreground truncate">
+                      {job.url} · {statusLabel(job.status)}
                     </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          );
-        })}
-      </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Review panel */}
+      {selectedJobId && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold">
+              Review:{" "}
+              {selectedJob?.session_name || selectedJobId.slice(0, 8)}
+            </h2>
+            {selectedJob?.can_download && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={scraperApi.downloadUrl(selectedJobId)} download>
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                  Download ZIP
+                </a>
+              </Button>
+            )}
+          </div>
+
+          {loadingReview ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading review data…
+            </div>
+          ) : reviewPayload ? (
+            <>
+              {reviewPayload.entities.map((entity) => (
+                <EntityBlock
+                  key={entity.id}
+                  entity={entity}
+                  onChange={updateEntity}
+                />
+              ))}
+
+              <div className="mt-4 flex items-center gap-3">
+                <Button
+                  onClick={handlePublish}
+                  disabled={publishStatus === "busy"}
+                >
+                  {publishStatus === "busy" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : null}
+                  Publish to Knowledge Base
+                </Button>
+
+                {publishStatus === "ok" && (
+                  <div className="flex items-center gap-1.5 text-sm text-green-600">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {publishMsg}
+                  </div>
+                )}
+                {publishStatus === "err" && (
+                  <div className="flex items-center gap-1.5 text-sm text-red-600">
+                    <AlertTriangle className="h-4 w-4" />
+                    {publishMsg}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : publishStatus === "err" ? (
+            <div className="flex items-center gap-2 text-sm text-red-600">
+              <AlertTriangle className="h-4 w-4" />
+              {publishMsg}
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
-};
-
-export default ContentManager;
+}

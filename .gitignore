@@ -68,3 +68,10 @@ nul
 # Google Cloud / service credentials
 **/service_account.json
 **/credentials.json
+
+# Docker files (local only — not committed to repo)
+Dockerfile
+docker-compose.yml
+admin_ui/Dockerfile
+admin_ui/Dockerfile_1
+admin_ui/nginx.conf

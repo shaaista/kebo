@@ -1,0 +1,1 @@
+{"nodes": [{"id": "admin_ui_src_test_setup_ts", "label": "setup.ts", "file_type": "code", "source_file": "admin_ui\\src\\test\\setup.ts", "source_location": "L1"}], "edges": [{"source": "admin_ui_src_test_setup_ts", "target": "jest_dom", "relation": "imports_from", "confidence": "EXTRACTED", "source_file": "admin_ui\\src\\test\\setup.ts", "source_location": "L1", "weight": 1.0}]}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_name }} | Web Crawling</title>
+  <meta
+    name="description"
+    content="Crawl hotel websites, review extracted content, and publish a knowledge base."
+  />
+  <link rel="stylesheet" href="/static/css/style.css?v={{ asset_version }}" />
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    window.APP_CONFIG = {
+      appName: {{ app_name | tojson }}
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel" src="/static/js/app.js?v={{ asset_version }}"></script>
+</body>
+</html>
