@@ -141,6 +141,11 @@ class Hotel(Base, TimestampMixin):
         back_populates="hotel",
         cascade="all, delete-orphan",
     )
+    image_assets = relationship(
+        "ImageAsset",
+        back_populates="hotel",
+        cascade="all, delete-orphan",
+    )
     bookings = relationship(
         "Booking",
         back_populates="hotel",
@@ -553,6 +558,32 @@ class KBFile(Base, TimestampMixin):
     hotel = relationship("Hotel", back_populates="kb_files")
 
 
+class ImageAsset(Base, TimestampMixin):
+    """Stores curated image assets per hotel for LLM-selected media responses."""
+    __tablename__ = "bot_hotel_images_scraper"
+    __table_args__ = (
+        Index("idx_image_assets_hotel_id", "hotel_id"),
+        Index("idx_image_assets_hotel_active", "hotel_id", "is_active"),
+    )
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    hotel_id = Column(
+        Integer,
+        ForeignKey("new_bot_hotels.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    image_url = Column(Text, nullable=False)
+    category = Column(String(120), nullable=True)
+    tags = Column(JSON, nullable=True)
+    source_label = Column(String(255), nullable=True)
+    is_active = Column(Boolean, nullable=False, server_default=text("1"))
+    priority = Column(Integer, nullable=False, server_default=text("0"))
+
+    hotel = relationship("Hotel", back_populates="image_assets")
+
+
 # Async engine + session factory
 _engine_connect_args = _build_connect_args(ACTIVE_DATABASE_URL)
 _engine_kwargs: dict[str, Any] = {
@@ -694,6 +725,7 @@ async def init_db() -> None:
             "DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",
         ),
         ("new_bot_conversations", "booking_id", "INT NULL"),
+        ("bot_hotel_images_scraper", "description", "TEXT NULL"),
     ]
     async with engine.begin() as conn:
         for table, col, col_type in _new_columns:

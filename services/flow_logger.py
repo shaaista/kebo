@@ -520,3 +520,27 @@ def clear_log() -> None:
     except Exception:
         pass
 
+
+def ensure_log_files() -> None:
+    """Ensure all managed flow log files exist without truncating existing logs."""
+    try:
+        _LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        started_line = f"# Started: {_ts()}\n\n"
+        with _LOCK:
+            if not _LOG_FILE.exists():
+                with _LOG_FILE.open("w", encoding="utf-8") as fh:
+                    fh.write(f"# KePSLA Bot - Flow Log\n{started_line}")
+            if not _KB_LOG_FILE.exists():
+                with _KB_LOG_FILE.open("w", encoding="utf-8") as fh:
+                    fh.write(f"# KB Pipeline Log\n{started_line}")
+            if not _SERVICE_CONFIG_LOG_FILE.exists():
+                with _SERVICE_CONFIG_LOG_FILE.open("w", encoding="utf-8") as fh:
+                    fh.write(f"# Service Config Log\n{started_line}")
+            if not _SERVICE_RUNTIME_LOG_FILE.exists():
+                with _SERVICE_RUNTIME_LOG_FILE.open("w", encoding="utf-8") as fh:
+                    fh.write(f"# Service Runtime Log\n{started_line}")
+            if not _PROCESSING_JSONL_FILE.exists():
+                with _PROCESSING_JSONL_FILE.open("w", encoding="utf-8") as fh:
+                    fh.write("")
+    except Exception:
+        pass

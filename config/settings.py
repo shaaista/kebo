@@ -42,9 +42,22 @@ class Settings(BaseSettings):
     turn_diagnostics_enabled: bool = True
     turn_diagnostics_log_file: str = "./logs/turn_diagnostics.jsonl"
     turn_diagnostics_max_chars: int = 250000
+    turn_llm_summary_enabled: bool = True
+    turn_llm_summary_log_file: str = "./logs/chat_turn_llm_summary.jsonl"
+    chat_step_timing_enabled: bool = True
+    chat_step_timing_log_file: str = "./logs/chat_step_timing.jsonl"
+    chat_step_timing_max_chars: int = 250000
     everything_trace_enabled: bool = True
     everything_trace_log_file: str = "./logs/everything_backend_trace.jsonl"
     everything_trace_max_chars: int = 400000
+    step_trace_logging_enabled: bool = True
+    step_trace_log_file: str = "./logs/step_trace.jsonl"
+    step_trace_max_chars: int = 25000
+    log_retention_enabled: bool = True
+    log_retention_days: int = 7
+    log_retention_cleanup_on_startup: bool = True
+    log_retention_cleanup_interval_minutes: int = 360
+    log_retention_include_root_temp_logs: bool = True
 
     # Database (SQLite for dev, PostgreSQL for production)
     database_url: str = "sqlite+aiosqlite:///./kepsla_bot.db"
@@ -70,8 +83,9 @@ class Settings(BaseSettings):
     llm_io_trace_file: str = "./logs/llm_io_trace.jsonl"
     llm_io_trace_max_chars: int = 300000
     llm_call_simple_logging_enabled: bool = True
-    llm_call_simple_log_file: str = "./logs/llm_calls_simple.jsonl"
+    llm_call_simple_log_file: str = "./logs/llm_call_metrics.jsonl"
     llm_call_simple_text_max_chars: int = 1200
+    llm_orchestration_input_log_enabled: bool = False
     llm_model_pricing_json: str = ""
 
     # RAG Settings
@@ -155,6 +169,10 @@ class Settings(BaseSettings):
     chat_display_beautifier_temperature: float = 0.2
     chat_display_beautifier_max_tokens: int = 420
     chat_display_beautifier_min_similarity: float = 0.25
+    smart_image_kb_caption_enabled: bool = False
+    smart_image_kb_caption_model: str = ""
+    smart_image_kb_caption_max_tokens: int = 420
+    smart_image_kb_context_max_chars: int = 14000
     qdrant_url: str = ""
     qdrant_api_key: str = ""
     qdrant_collection: str = "kepsla_kb_chunks"

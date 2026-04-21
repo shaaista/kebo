@@ -71,6 +71,9 @@ from services.gateway_service import gateway_service
 from services.observability_service import observability_service
 from services.backend_trace_service import backend_trace_service
 from services.everything_trace_service import everything_trace_service
+from services.step_trace_service import step_trace_service
+from services.log_retention_service import log_retention_service
+from services.log_setup_service import log_setup_service
 from services import new_detailed_logger
 
 
@@ -92,12 +95,64 @@ def _print_api_log(method: str, path: str, query: str, status_code: int, duratio
         pass
 
 
+async def _periodic_log_cleanup_task() -> None:
+    """Run age-based log cleanup in the background."""
+    interval_minutes = max(
+        5,
+        int(getattr(settings, "log_retention_cleanup_interval_minutes", 360) or 360),
+    )
+    interval_seconds = float(interval_minutes * 60)
+    while True:
+        await asyncio.sleep(interval_seconds)
+        try:
+            summary = log_retention_service.cleanup_old_logs()
+            step_trace_service.log_event(
+                "log_retention_cleanup",
+                payload=summary,
+                component="main._periodic_log_cleanup_task",
+                step="periodic_cleanup",
+                stage="completed",
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            step_trace_service.log_event(
+                "log_retention_cleanup_failed",
+                payload={},
+                component="main._periodic_log_cleanup_task",
+                step="periodic_cleanup",
+                stage="failed",
+                error=str(exc),
+            )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan handler."""
+    cleanup_task: asyncio.Task | None = None
+
     # Startup
-    from services.flow_logger import clear_log
-    clear_log()
+    from services.flow_logger import ensure_log_files
+    ensure_log_files()
+    log_setup_summary = log_setup_service.ensure_configured_log_files()
+    step_trace_service.log_event(
+        "log_files_ensured",
+        payload=log_setup_summary,
+        component="main.lifespan",
+        step="log_bootstrap",
+        stage="completed",
+    )
+
+    if bool(getattr(settings, "log_retention_cleanup_on_startup", True)):
+        cleanup_summary = log_retention_service.cleanup_old_logs()
+        step_trace_service.log_event(
+            "log_retention_cleanup",
+            payload=cleanup_summary,
+            component="main.lifespan",
+            step="startup_cleanup",
+            stage="completed",
+        )
+
     print(f"Starting {settings.app_name}...")
     print(f"Environment: {settings.app_env}")
 
@@ -164,8 +219,21 @@ async def lifespan(app: FastAPI):
         port=int(settings.port),
     )
 
+    if bool(getattr(settings, "log_retention_enabled", True)):
+        cleanup_task = asyncio.create_task(_periodic_log_cleanup_task())
+
     yield
+
     # Shutdown
+    if cleanup_task is not None:
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            pass
+
     print("Shutting down...")
     new_detailed_logger.log_shutdown()
 
@@ -229,6 +297,22 @@ async def gateway_middleware(request: Request, call_next):
         request.headers.get("x-forwarded-for", "").split(",")[0].strip()
         or (request.client.host if request.client else "unknown")
     )
+    step_trace_service.log_event(
+        "http_request_start",
+        payload={
+            "query": dict(request.query_params),
+            "client_host": client_host,
+            "user_agent": request.headers.get("user-agent", ""),
+            "should_guard": should_guard,
+            "should_trace_backend": should_trace_backend,
+        },
+        trace_id=trace_id,
+        endpoint=path,
+        method=request.method,
+        component="main.gateway_middleware",
+        step="request_received",
+        stage="start",
+    )
 
     # -- new_detailed_logger: HTTP request in --
     try:
@@ -284,6 +368,18 @@ async def gateway_middleware(request: Request, call_next):
     if should_guard:
         provided_api_key = request.headers.get("x-api-key")
         if not gateway_service.is_authorized(provided_api_key):
+            step_trace_service.log_event(
+                "http_request_denied_auth",
+                payload={"client_host": client_host},
+                trace_id=trace_id,
+                endpoint=path,
+                method=request.method,
+                status_code=401,
+                component="main.gateway_middleware",
+                step="auth_check",
+                stage="failed",
+                error="unauthorized_api_key",
+            )
             observability_service.log_event(
                 "gateway_denied_auth",
                 {
@@ -353,6 +449,22 @@ async def gateway_middleware(request: Request, call_next):
         rate_limit_key = f"{client_host}:{path}"
         allowed, retry_after = gateway_service.allow_request(rate_limit_key)
         if not allowed:
+            step_trace_service.log_event(
+                "http_request_rate_limited",
+                payload={
+                    "client_host": client_host,
+                    "retry_after_seconds": retry_after,
+                    "rate_limit_key": rate_limit_key,
+                },
+                trace_id=trace_id,
+                endpoint=path,
+                method=request.method,
+                status_code=429,
+                component="main.gateway_middleware",
+                step="rate_limit_check",
+                stage="failed",
+                error="rate_limited",
+            )
             observability_service.log_event(
                 "gateway_rate_limited",
                 {
@@ -426,10 +538,32 @@ async def gateway_middleware(request: Request, call_next):
                 },
             )
 
+    step_trace_service.log_event(
+        "http_request_dispatch",
+        payload={"client_host": client_host},
+        trace_id=trace_id,
+        endpoint=path,
+        method=request.method,
+        component="main.gateway_middleware",
+        step="handler_dispatch",
+        stage="start",
+    )
     try:
         response = await call_next(request)
     except Exception as exc:
         duration_ms = round((perf_counter() - start) * 1000.0, 2)
+        step_trace_service.log_event(
+            "http_request_exception",
+            payload={"duration_ms": duration_ms, "client_host": client_host},
+            trace_id=trace_id,
+            endpoint=path,
+            method=request.method,
+            status_code=500,
+            component="main.gateway_middleware",
+            step="handler_dispatch",
+            stage="failed",
+            error=str(exc),
+        )
         # -- Write full traceback to file so OSError/Errno-22 never hides root cause --
         try:
             import traceback as _tb
@@ -513,6 +647,17 @@ async def gateway_middleware(request: Request, call_next):
     duration_ms = round((perf_counter() - start) * 1000.0, 2)
     response.headers["X-Trace-Id"] = trace_id
     response.headers["X-Response-Time-Ms"] = str(duration_ms)
+    step_trace_service.log_event(
+        "http_request_end",
+        payload={"duration_ms": duration_ms, "client_host": client_host},
+        trace_id=trace_id,
+        endpoint=path,
+        method=request.method,
+        status_code=response.status_code,
+        component="main.gateway_middleware",
+        step="response_emitted",
+        stage="completed",
+    )
 
     # -- new_detailed_logger: HTTP response out --
     try:

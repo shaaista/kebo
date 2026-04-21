@@ -153,9 +153,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
-      "generated_at": "2026-04-20T14:15:43.367460+00:00",
+      "generated_at": "2026-04-21T07:17:40.484212+00:00",
       "book_index_generator": "default_v1",
-      "book_index_generated_at": "2026-04-20T14:15:43.367460+00:00",
+      "book_index_generated_at": "2026-04-21T07:17:40.484212+00:00",
       "source_count": 1,
       "documents": [
         {
@@ -4511,7 +4511,7 @@
     "property_index": {
       "version": "v1",
       "generator": "heuristic_v1",
-      "generated_at": "2026-04-14T16:39:08.423005+00:00",
+      "generated_at": "2026-04-20T17:00:09.699737+00:00",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
       "expected_property_count": 0,
       "detected_property_count": 1,

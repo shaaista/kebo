@@ -461,10 +461,12 @@ class LLMClient:
         input_preview: Any = "",
         output_preview: Any = "",
         error: str = "",
-    ) -> None:
+    ) -> dict[str, Any]:
         trace_meta = trace_context if isinstance(trace_context, dict) else {}
         caller_meta = caller if isinstance(caller, dict) else {}
         usage_map = usage if isinstance(usage, dict) else {}
+        turn_ctx = turn_diagnostics_service.get_turn_context()
+        turn_ctx = turn_ctx if isinstance(turn_ctx, dict) else {}
         input_tokens, output_tokens, total_tokens = self._usage_token_counts(usage_map)
 
         default_purpose = {
@@ -484,6 +486,7 @@ class LLMClient:
             trace_meta.get("route")
             or trace_meta.get("path")
             or trace_meta.get("endpoint")
+            or turn_ctx.get("route")
             or ""
         ).strip()
         component = str(
@@ -491,11 +494,45 @@ class LLMClient:
             or trace_meta.get("agent")
             or trace_meta.get("actor")
             or trace_meta.get("service_name")
+            or turn_ctx.get("component")
             or ""
         ).strip()
-        session_id = str(trace_meta.get("session_id") or "").strip()
-        trace_id = str(trace_meta.get("trace_id") or "").strip()
-        turn_trace_id = str(trace_meta.get("turn_trace_id") or "").strip()
+        session_id = str(
+            trace_meta.get("session_id")
+            or trace_meta.get("session")
+            or turn_ctx.get("session_id")
+            or ""
+        ).strip()
+        trace_id = str(
+            trace_meta.get("trace_id")
+            or trace_meta.get("api_trace_id")
+            or turn_ctx.get("api_trace_id")
+            or ""
+        ).strip()
+        turn_trace_id = str(
+            trace_meta.get("turn_trace_id")
+            or turn_ctx.get("turn_trace_id")
+            or ""
+        ).strip()
+        hotel_code = str(
+            trace_meta.get("hotel_code")
+            or trace_meta.get("tenant_id")
+            or turn_ctx.get("hotel_code")
+            or ""
+        ).strip()
+        channel = str(
+            trace_meta.get("channel")
+            or turn_ctx.get("channel")
+            or ""
+        ).strip()
+        if session_id:
+            session_key = session_id
+        elif trace_id:
+            session_key = f"trace:{trace_id}"
+        elif turn_trace_id:
+            session_key = f"turn:{turn_trace_id}"
+        else:
+            session_key = "global"
         caller_module = str(caller_meta.get("caller_module") or "").strip()
         caller_function = str(caller_meta.get("caller_function") or "").strip()
 
@@ -516,7 +553,7 @@ class LLMClient:
         except Exception:
             output_text = str(output_preview or "")
 
-        llm_simple_call_logger.log_call(
+        metric_record = llm_simple_call_logger.log_call(
             call_id=call_id,
             operation=operation,
             model=model,
@@ -527,6 +564,9 @@ class LLMClient:
             output_tokens=output_tokens,
             total_tokens=total_tokens,
             session_id=session_id,
+            session_key=session_key,
+            hotel_code=hotel_code,
+            channel=channel,
             trace_id=trace_id,
             turn_trace_id=turn_trace_id,
             route=route,
@@ -537,6 +577,12 @@ class LLMClient:
             output_preview=output_text,
             error=str(error or ""),
         )
+        try:
+            if isinstance(metric_record, dict):
+                turn_diagnostics_service.record_llm_call_metrics(metric_record)
+        except Exception:
+            pass
+        return metric_record if isinstance(metric_record, dict) else {}
 
     def _log_llm_trace(self, payload: dict[str, Any]) -> None:
         try:

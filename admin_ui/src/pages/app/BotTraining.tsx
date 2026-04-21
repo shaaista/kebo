@@ -10,6 +10,7 @@ import SystemPromptStep, { type PromptData } from "@/components/bot-training/Sys
 import { type KnowledgeData } from "@/components/bot-training/KnowledgeStep";
 import ChannelsStep, { type ChannelsData } from "@/components/bot-training/ChannelsStep";
 import FaqToolsTab from "@/components/bot-training/FaqToolsTab";
+import ToolsTab from "@/components/bot-training/ToolsTab";
 import ServicesTab from "@/components/bot-training/ServicesTab";
 import PhasesTab from "@/components/bot-training/PhasesTab";
 import RagAgentsTab from "@/components/bot-training/RagAgentsTab";
@@ -151,6 +152,7 @@ const defaultChannels: ChannelsData = {
 const legacyTabAliases: Record<string, string> = {
   "faq-tools": "faq",
   "rag-agents": "rag",
+  workflows: "tools",
 };
 
 const tabItems = [
@@ -159,6 +161,7 @@ const tabItems = [
   { value: "phases", label: "Phases" },
   { value: "services", label: "Services" },
   { value: "faq", label: "FAQ" },
+  { value: "tools", label: "Tools" },
   { value: "evaluation", label: "Evaluation" },
   { value: "escalation", label: "Escalation" },
   { value: "prompts", label: "Prompts" },
@@ -639,7 +642,7 @@ const BotTraining = () => {
       <div>
         <h1 className="text-2xl font-bold">Bot Training & Setup</h1>
         <p className="text-muted-foreground">
-          Configure your bot setup, RAG, phases, services, FAQ, evaluation, escalation, and advanced settings.
+          Configure your bot setup, RAG, phases, services, FAQ, tools, evaluation, escalation, and advanced settings.
         </p>
       </div>
 
@@ -771,6 +774,9 @@ const BotTraining = () => {
         </TabsContent>
         <TabsContent value="faq">
           <FaqToolsTab propertyCode={propertyCode} />
+        </TabsContent>
+        <TabsContent value="tools">
+          <ToolsTab propertyCode={propertyCode} />
         </TabsContent>
         <TabsContent value="evaluation">
           <EvaluationTab propertyCode={propertyCode} />

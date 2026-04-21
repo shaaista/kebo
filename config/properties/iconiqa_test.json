@@ -199,7 +199,21 @@
       "enabled": true
     }
   ],
-  "tools": [],
+  "tools": [
+    {
+      "id": "smart_image_gallery",
+      "name": "Smart Image Gallery",
+      "description": "LLM selects relevant hotel images to enrich assistant responses.",
+      "type": "workflow",
+      "handler": "smart_image_selector",
+      "channels": [
+        "web_widget",
+        "whatsapp"
+      ],
+      "enabled": true,
+      "requires_confirmation": false
+    }
+  ],
   "intents": [],
   "escalation": {
     "confidence_threshold": 0.4,
@@ -5623,7 +5637,7 @@
     "property_index": {
       "version": "v1",
       "generator": "heuristic_v1",
-      "generated_at": "2026-04-20T14:26:58.177273+00:00",
+      "generated_at": "2026-04-21T07:33:49.287728+00:00",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
       "expected_property_count": 0,
       "detected_property_count": 1,

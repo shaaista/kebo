@@ -38,6 +38,18 @@ class TurnDiagnosticsService:
             2000,
             int(getattr(settings, "turn_diagnostics_max_chars", 250000) or 250000),
         )
+        self.turn_llm_summary_enabled = bool(
+            getattr(settings, "turn_llm_summary_enabled", True)
+        )
+        self.turn_llm_summary_log_file = Path(
+            str(
+                getattr(
+                    settings,
+                    "turn_llm_summary_log_file",
+                    "./logs/chat_turn_llm_summary.jsonl",
+                )
+            )
+        )
         self._lock = threading.Lock()
         self._logger = logging.getLogger("turn_diagnostics")
         if not self._logger.handlers:
@@ -47,10 +59,41 @@ class TurnDiagnosticsService:
             self._logger.addHandler(handler)
             self._logger.setLevel(logging.INFO)
             self._logger.propagate = False
+        self._turn_llm_summary_logger: logging.Logger | None = None
+        if self.turn_llm_summary_enabled:
+            self._turn_llm_summary_logger = logging.getLogger("turn_llm_summary")
+            if not self._turn_llm_summary_logger.handlers:
+                self.turn_llm_summary_log_file.parent.mkdir(parents=True, exist_ok=True)
+                summary_handler = logging.FileHandler(
+                    self.turn_llm_summary_log_file,
+                    encoding="utf-8",
+                )
+                summary_handler.setFormatter(logging.Formatter("%(message)s"))
+                self._turn_llm_summary_logger.addHandler(summary_handler)
+                self._turn_llm_summary_logger.setLevel(logging.INFO)
+                self._turn_llm_summary_logger.propagate = False
 
     @staticmethod
     def _as_text(value: Any) -> str:
         return str(value or "").strip()
+
+    @staticmethod
+    def _as_int(value: Any) -> int:
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return 0
+        return max(0, parsed)
+
+    @staticmethod
+    def _as_float(value: Any) -> float:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return 0.0
+        if parsed != parsed:
+            return 0.0
+        return max(0.0, parsed)
 
     @staticmethod
     def _coerce_json_safe(value: Any, depth: int = 0) -> Any:
@@ -120,6 +163,8 @@ class TurnDiagnosticsService:
             "channel": channel,
             "phase_id": phase_hint_id,
             "phase_name": "",
+            "_user_message": self._as_text(getattr(request, "message", "")),
+            "_llm_call_metrics": [],
             "_seq": 0,
         }
         token = _ACTIVE_TURN_CONTEXT.set(ctx)
@@ -202,6 +247,111 @@ class TurnDiagnosticsService:
         except Exception:
             return
 
+    def record_llm_call_metrics(self, call_record: dict[str, Any]) -> None:
+        """Collect normalized per-call metrics for the active turn summary."""
+        if not self.enabled:
+            return
+        ctx = self.get_turn_context()
+        if not ctx or not isinstance(call_record, dict):
+            return
+
+        calls = ctx.get("_llm_call_metrics")
+        if not isinstance(calls, list):
+            calls = []
+            ctx["_llm_call_metrics"] = calls
+
+        normalized = {
+            "timestamp": self._as_text(call_record.get("timestamp")),
+            "call_id": self._as_text(call_record.get("call_id")),
+            "operation": self._as_text(call_record.get("operation")),
+            "model": self._as_text(call_record.get("model")),
+            "what_this_call_is_for": self._as_text(call_record.get("what_this_call_is_for")),
+            "status": self._as_text(call_record.get("status")),
+            "duration_ms": round(self._as_float(call_record.get("duration_ms")), 2),
+            "input_tokens": self._as_int(call_record.get("input_tokens")),
+            "output_tokens": self._as_int(call_record.get("output_tokens")),
+            "total_tokens": self._as_int(call_record.get("total_tokens")),
+            "input_cost_usd": round(self._as_float(call_record.get("input_cost_usd")), 8),
+            "output_cost_usd": round(self._as_float(call_record.get("output_cost_usd")), 8),
+            "total_cost_usd": round(self._as_float(call_record.get("total_cost_usd")), 8),
+            "component": self._as_text(call_record.get("component")),
+            "caller_module": self._as_text(call_record.get("caller_module")),
+            "caller_function": self._as_text(call_record.get("caller_function")),
+            "route": self._as_text(call_record.get("route")),
+            "error": self._as_text(call_record.get("error")),
+        }
+        calls.append(normalized)
+
+    def _build_llm_turn_summary(self, llm_calls: list[dict[str, Any]]) -> dict[str, Any]:
+        calls = llm_calls if isinstance(llm_calls, list) else []
+        total_duration = 0.0
+        total_input_tokens = 0
+        total_output_tokens = 0
+        total_tokens = 0
+        total_cost = 0.0
+        for item in calls:
+            if not isinstance(item, dict):
+                continue
+            total_duration += self._as_float(item.get("duration_ms"))
+            total_input_tokens += self._as_int(item.get("input_tokens"))
+            total_output_tokens += self._as_int(item.get("output_tokens"))
+            total_tokens += self._as_int(item.get("total_tokens"))
+            total_cost += self._as_float(item.get("total_cost_usd"))
+
+        return {
+            "llm_call_count": len(calls),
+            "total_duration_ms": round(total_duration, 2),
+            "total_input_tokens": total_input_tokens,
+            "total_output_tokens": total_output_tokens,
+            "total_tokens": total_tokens,
+            "total_cost_usd": round(total_cost, 8),
+            "calls": calls,
+        }
+
+    def _log_turn_llm_summary(
+        self,
+        *,
+        event_name: str,
+        request_message: str,
+        llm_summary: dict[str, Any],
+        db_fallback: bool,
+        error: str,
+    ) -> None:
+        if not self.turn_llm_summary_enabled:
+            return
+        if self._turn_llm_summary_logger is None:
+            return
+        ctx = self.get_turn_context()
+        if not ctx:
+            return
+
+        record = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "event_type": event_name,
+            "turn_trace_id": self._as_text(ctx.get("turn_trace_id")),
+            "api_trace_id": self._as_text(ctx.get("api_trace_id")),
+            "session_id": self._as_text(ctx.get("session_id")),
+            "hotel_code": self._as_text(ctx.get("hotel_code")),
+            "channel": self._as_text(ctx.get("channel")),
+            "phase": {
+                "id": self._as_text(ctx.get("phase_id")),
+                "name": self._as_text(ctx.get("phase_name")),
+            },
+            "request_message": self._as_text(request_message),
+            "db_fallback": bool(db_fallback),
+            "error": self._as_text(error),
+            "llm_summary": llm_summary if isinstance(llm_summary, dict) else {},
+        }
+
+        try:
+            safe_record = self._coerce_json_safe(record)
+            safe_record = self._truncate_large_strings(safe_record)
+            line = json.dumps(safe_record, ensure_ascii=False)
+            with self._lock:
+                self._turn_llm_summary_logger.info(line)
+        except Exception:
+            return
+
     def log_llm_trace(self, trace_payload: dict[str, Any]) -> None:
         if not self.enabled:
             return
@@ -272,10 +422,16 @@ class TurnDiagnosticsService:
             or ""
         ).strip()
         self.update_turn_context(phase_id=resolved_phase_id, phase_name=resolved_phase_name)
+        ctx = self.get_turn_context()
+        llm_calls = []
+        if isinstance(ctx.get("_llm_call_metrics"), list):
+            llm_calls = list(ctx.get("_llm_call_metrics"))
+        llm_summary = self._build_llm_turn_summary(llm_calls)
+        request_message = self._as_text(getattr(request, "message", ""))
 
         payload = {
             "request": {
-                "message": self._as_text(getattr(request, "message", "")),
+                "message": request_message,
                 "metadata": request_meta,
             },
             "response": {
@@ -295,10 +451,17 @@ class TurnDiagnosticsService:
             },
             "db_fallback": bool(db_fallback),
             "error": self._as_text(error),
+            "llm_summary": llm_summary,
         }
         event_name = "turn_error" if error else "turn_end"
         self.log_event(event_name, payload)
+        self._log_turn_llm_summary(
+            event_name=event_name,
+            request_message=request_message,
+            llm_summary=llm_summary,
+            db_fallback=bool(db_fallback),
+            error=self._as_text(error),
+        )
 
 
 turn_diagnostics_service = TurnDiagnosticsService()
-

@@ -12,6 +12,8 @@ from datetime import date, timedelta
 from time import perf_counter as _perf_counter
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, Request
+from fastapi.routing import APIRoute
+from starlette.responses import Response
 from typing import Any, Optional, List
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -30,6 +32,9 @@ from services.db_config_service import db_config_service
 from services.config_service import config_service
 from services.conversation_memory_service import conversation_memory_service
 from services.suggestion_prefetch_service import suggestion_prefetch_service
+from services.image_tool_service import image_tool_service
+from services.step_trace_service import step_trace_service
+from services.chat_step_timing_service import chat_step_timing_service
 from services import new_detailed_logger
 from config.settings import settings
 from core.context_manager import context_manager
@@ -38,8 +43,102 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import OperationalError
 
 
-router = APIRouter(prefix="/api/chat", tags=["Chat"])
 logger = logging.getLogger(__name__)
+
+
+class ChatStepTraceRoute(APIRoute):
+    """Route-level step tracing for all chat endpoints."""
+
+    def get_route_handler(self):
+        original_route_handler = super().get_route_handler()
+        route_path = str(self.path or "").strip()
+
+        async def custom_route_handler(request: Request) -> Response:
+            trace_id = str(getattr(request.state, "trace_id", "") or "").strip()
+            endpoint = str(request.url.path or route_path or "/api/chat").strip()
+            method = str(request.method or "GET").strip().upper()
+            session_id = str(
+                request.path_params.get("session_id")
+                or request.query_params.get("session_id")
+                or ""
+            ).strip()
+            hotel_code = str(
+                getattr(request.state, "hotel_code", "")
+                or request.query_params.get("hotel_code")
+                or ""
+            ).strip()
+            start_ts = _perf_counter()
+
+            step_trace_service.log_event(
+                "chat_route_start",
+                payload={"route_path": route_path},
+                trace_id=trace_id,
+                session_id=session_id,
+                hotel_code=hotel_code,
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.chat",
+                step=route_path or endpoint,
+                stage="start",
+            )
+
+            try:
+                response = await original_route_handler(request)
+            except HTTPException as exc:
+                duration_ms = round((_perf_counter() - start_ts) * 1000.0, 2)
+                step_trace_service.log_event(
+                    "chat_route_failed",
+                    payload={"route_path": route_path, "duration_ms": duration_ms},
+                    trace_id=trace_id,
+                    session_id=session_id,
+                    hotel_code=hotel_code,
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=int(exc.status_code),
+                    component="api.routes.chat",
+                    step=route_path or endpoint,
+                    stage="failed",
+                    error=str(exc.detail),
+                )
+                raise
+            except Exception as exc:
+                duration_ms = round((_perf_counter() - start_ts) * 1000.0, 2)
+                step_trace_service.log_event(
+                    "chat_route_failed",
+                    payload={"route_path": route_path, "duration_ms": duration_ms},
+                    trace_id=trace_id,
+                    session_id=session_id,
+                    hotel_code=hotel_code,
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=500,
+                    component="api.routes.chat",
+                    step=route_path or endpoint,
+                    stage="failed",
+                    error=str(exc),
+                )
+                raise
+
+            duration_ms = round((_perf_counter() - start_ts) * 1000.0, 2)
+            step_trace_service.log_event(
+                "chat_route_end",
+                payload={"route_path": route_path, "duration_ms": duration_ms},
+                trace_id=trace_id,
+                session_id=session_id,
+                hotel_code=hotel_code,
+                endpoint=endpoint,
+                method=method,
+                status_code=int(getattr(response, "status_code", 200) or 200),
+                component="api.routes.chat",
+                step=route_path or endpoint,
+                stage="completed",
+            )
+            return response
+
+        return custom_route_handler
+
+
+router = APIRouter(prefix="/api/chat", tags=["Chat"], route_class=ChatStepTraceRoute)
 
 _DEFAULT_CHAT_TEST_PHASE_PROFILES: dict[str, dict[str, str]] = {
     "pre_booking": {
@@ -547,6 +646,150 @@ async def _attach_display_message(response: ChatResponse) -> None:
     response.metadata["canonical_message"] = canonical
     if isinstance(beautifier_meta, dict):
         response.metadata.update(beautifier_meta)
+
+
+def _is_form_visual_turn(response: ChatResponse) -> bool:
+    metadata = response.metadata if isinstance(response.metadata, dict) else {}
+    if bool(metadata.get("form_trigger")):
+        return True
+    form_fields = metadata.get("form_fields")
+    if isinstance(form_fields, list) and bool(form_fields):
+        return True
+    if str(metadata.get("form_service_id") or "").strip():
+        return True
+    return False
+
+
+def _is_text_confirmation_turn(response: ChatResponse) -> bool:
+    state_value = str(getattr(response.state, "value", response.state) or "").strip().lower()
+    if state_value == "awaiting_confirmation":
+        return True
+
+    metadata = response.metadata if isinstance(response.metadata, dict) else {}
+    entities = metadata.get("entities") if isinstance(metadata.get("entities"), dict) else {}
+
+    pending_candidates = (
+        metadata.get("pending_action"),
+        metadata.get("ticket_pending_action"),
+        entities.get("pending_action"),
+    )
+    for candidate in pending_candidates:
+        pending = str(candidate or "").strip().lower()
+        if pending.startswith("confirm_"):
+            return True
+
+    confirmation_phrase = re.sub(
+        r"\s+",
+        " ",
+        str(getattr(settings, "chat_confirmation_phrase", "yes confirm") or "").strip().lower(),
+    )
+    if not confirmation_phrase:
+        confirmation_phrase = "yes confirm"
+
+    suggested_actions = response.suggested_actions if isinstance(response.suggested_actions, list) else []
+    normalized_actions = [
+        re.sub(r"\s+", " ", str(item or "").strip().lower())
+        for item in suggested_actions
+        if str(item or "").strip()
+    ]
+    if normalized_actions:
+        if confirmation_phrase in normalized_actions:
+            return True
+        if "cancel" in normalized_actions and any(action.startswith("confirm") for action in normalized_actions):
+            return True
+
+    text_candidates = [
+        str(response.display_message or "").strip().lower(),
+        str(response.message or "").strip().lower(),
+        str(metadata.get("display_message") or "").strip().lower(),
+    ]
+    for text in text_candidates:
+        if not text:
+            continue
+        if confirmation_phrase in re.sub(r"\s+", " ", text):
+            return True
+        if re.search(r"\b(?:type|reply|respond|say)\b.{0,35}\bconfirm\b", text):
+            return True
+        if re.search(r"\b(?:please\s+)?confirm\b.{0,40}\?", text):
+            return True
+
+    return False
+
+
+async def _attach_smart_images(
+    *,
+    response: ChatResponse,
+    request: ChatRequest,
+    hotel_code: str,
+    trace_id: str = "",
+    turn_trace_id: str = "",
+) -> None:
+    """
+    Attach LLM-selected image cards when smart image tool is enabled for the hotel.
+    If the tool is disabled, this function does nothing and never calls the LLM.
+    """
+    if not isinstance(response.metadata, dict):
+        response.metadata = {}
+    metadata = response.metadata
+
+    try:
+        tool_enabled = await image_tool_service.is_enabled_for_hotel(hotel_code)
+    except Exception as exc:
+        metadata["smart_image_tool_error"] = f"tool_lookup_failed: {exc}"
+        return
+
+    if not tool_enabled:
+        return
+
+    if _is_form_visual_turn(response):
+        metadata["smart_image_selection_reason"] = "skipped_form_turn"
+        metadata["smart_image_tool_used"] = False
+        return
+
+    if _is_text_confirmation_turn(response):
+        metadata["smart_image_selection_reason"] = "skipped_confirmation_turn"
+        metadata["smart_image_tool_used"] = False
+        return
+
+    state_value = str(getattr(response.state, "value", response.state) or "").strip().lower()
+    if state_value in {"awaiting_info", "awaiting_confirmation", "processing_order"}:
+        return
+
+    intent_value = str(metadata.get("classified_intent") or "").strip()
+    user_text = str(request.message or "").strip()
+    assistant_text = str(response.display_message or response.message or "").strip()
+    if not assistant_text:
+        return
+
+    try:
+        selection = await image_tool_service.llm_select_images(
+            hotel_code=hotel_code,
+            user_message=user_text,
+            assistant_message=assistant_text,
+            intent=intent_value,
+            max_images=0,
+            trace_context={
+                "trace_id": trace_id,
+                "turn_trace_id": turn_trace_id,
+                "session_id": str(request.session_id or "").strip(),
+                "route": "/api/chat/message",
+            },
+        )
+    except Exception as exc:
+        metadata["smart_image_tool_error"] = f"selection_failed: {exc}"
+        return
+
+    images = selection.get("images") if isinstance(selection, dict) else []
+    if isinstance(images, list) and images:
+        metadata["images"] = images
+    metadata["smart_image_tool_used"] = bool(selection.get("tool_used")) if isinstance(selection, dict) else False
+    metadata["smart_image_selection_reason"] = (
+        str(selection.get("selection_reason") or "").strip()
+        if isinstance(selection, dict)
+        else ""
+    )
+    if isinstance(selection, dict) and selection.get("candidate_count") is not None:
+        metadata["smart_image_candidate_count"] = int(selection.get("candidate_count") or 0)
 
 
 async def _inject_form_trigger(response: ChatResponse, *, user_message: str = "") -> None:
@@ -1773,6 +2016,28 @@ async def submit_form(
     resolved_hotel_code = config_service.resolve_hotel_code(request.hotel_code)
     request.hotel_code = resolved_hotel_code
     scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
+    trace_id = str(getattr(http_request.state, "trace_id", "") or "").strip()
+    endpoint = str(http_request.url.path or "/api/chat/form-submit").strip()
+    method = str(http_request.method or "POST").strip().upper()
+    incoming_meta = request.metadata if isinstance(request.metadata, dict) else {}
+    step_trace_service.log_event(
+        "chat_form_submit_start",
+        payload={
+            "service_id": str(request.service_id or "").strip(),
+            "form_field_count": len(request.form_data or {}),
+            "metadata_keys": sorted([str(k) for k in incoming_meta.keys()])[:80],
+            "db_session_available": db is not None,
+        },
+        trace_id=trace_id,
+        session_id=str(request.session_id or "").strip(),
+        hotel_code=resolved_hotel_code,
+        channel=str(incoming_meta.get("channel") or "").strip(),
+        endpoint=endpoint,
+        method=method,
+        component="api.routes.chat.submit_form",
+        step="request_received",
+        stage="start",
+    )
     try:
         requested_service_id = _normalize_service_identifier(request.service_id)
         service = config_service.get_service(requested_service_id)
@@ -1804,6 +2069,24 @@ async def submit_form(
         form_data = request.form_data or {}
         req_meta = request.metadata or {}
         service_name = str(service.get("name") or resolved_service_id)
+        step_trace_service.log_event(
+            "chat_form_submit_service_resolved",
+            payload={
+                "requested_service_id": requested_service_id,
+                "resolved_service_id": resolved_service_id,
+                "service_name": service_name,
+                "ticketing_enabled": bool(service.get("ticketing_enabled", False)),
+            },
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(req_meta.get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.submit_form",
+            step="service_resolution",
+            stage="completed",
+        )
 
         phase = str(
             service.get("phase_id")
@@ -1817,6 +2100,22 @@ async def submit_form(
         context = await context_manager.get_or_create_context(
             session_id=request.session_id,
             hotel_code=resolved_hotel_code,
+        )
+        step_trace_service.log_event(
+            "chat_form_submit_context_loaded",
+            payload={
+                "has_pending_data": isinstance(getattr(context, "pending_data", None), dict),
+                "pending_action": str(getattr(context, "pending_action", "") or ""),
+            },
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(req_meta.get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.submit_form",
+            step="context_load",
+            stage="completed",
         )
 
         if isinstance(context.pending_data, dict):
@@ -1872,15 +2171,66 @@ async def submit_form(
         for k, v in merged_form_data.items():
             ticket_payload.setdefault(k, str(v))
 
+        step_trace_service.log_event(
+            "chat_form_submit_ticket_create_start",
+            payload={
+                "service_id": resolved_service_id,
+                "service_name": service_name,
+                "payload_keys": sorted([str(k) for k in ticket_payload.keys()])[:120],
+            },
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(req_meta.get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.submit_form",
+            step="ticket_create",
+            stage="start",
+        )
         try:
             result = await ticketing_service.create_ticket(ticket_payload)
         except Exception:
             logger.exception("form-submit: create_ticket raised an exception")
+            step_trace_service.log_event(
+                "chat_form_submit_ticket_create_failed",
+                payload={"service_id": resolved_service_id},
+                trace_id=trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(req_meta.get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                status_code=500,
+                component="api.routes.chat.submit_form",
+                step="ticket_create",
+                stage="failed",
+                error="create_ticket_exception",
+            )
             return {
                 "success": False,
                 "ticket_id": "",
                 "message": "Something went wrong while creating your request. Please try again.",
             }
+
+        step_trace_service.log_event(
+            "chat_form_submit_ticket_create_end",
+            payload={
+                "service_id": resolved_service_id,
+                "ticket_success": bool(getattr(result, "success", False)),
+                "ticket_id": str(getattr(result, "ticket_id", "") or ""),
+            },
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(req_meta.get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.submit_form",
+            step="ticket_create",
+            stage="completed" if bool(getattr(result, "success", False)) else "failed",
+            error="" if bool(getattr(result, "success", False)) else str(getattr(result, "error", "") or ""),
+        )
 
         if result.success:
             confirm_msg = await _generate_confirmation_message(
@@ -1992,6 +2342,25 @@ async def submit_form(
             except Exception:
                 await context_manager.save_context(context, db_session=None)
 
+            step_trace_service.log_event(
+                "chat_form_submit_end",
+                payload={
+                    "success": True,
+                    "ticket_id": str(result.ticket_id or ""),
+                    "booking_created": bool(booking_info),
+                    "booking_id": booking_info.get("booking_id") if booking_info else None,
+                },
+                trace_id=trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(req_meta.get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                status_code=200,
+                component="api.routes.chat.submit_form",
+                step="response_build",
+                stage="completed",
+            )
             return {
                 "success": True,
                 "ticket_id": result.ticket_id or "",
@@ -2008,6 +2377,24 @@ async def submit_form(
         else:
             clean_error = raw_error or "Unknown error"
 
+        step_trace_service.log_event(
+            "chat_form_submit_end",
+            payload={
+                "success": False,
+                "ticket_error": clean_error,
+            },
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(req_meta.get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            status_code=200,
+            component="api.routes.chat.submit_form",
+            step="response_build",
+            stage="completed",
+            error=clean_error,
+        )
         return {
             "success": False,
             "ticket_id": "",
@@ -2017,6 +2404,18 @@ async def submit_form(
             ),
         }
     finally:
+        step_trace_service.log_event(
+            "chat_form_submit_scope_reset",
+            payload={},
+            trace_id=trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.submit_form",
+            step="scope_reset",
+            stage="completed",
+        )
         db_config_service.reset_hotel_context(scope_token)
 
 
@@ -2031,7 +2430,38 @@ async def send_message(
     DB session is injected so handlers can persist orders, guests, etc.
     """
     trace_id = getattr(http_request.state, "trace_id", "")
+    endpoint = str(http_request.url.path or "/api/chat/message").strip()
+    method = str(http_request.method or "POST").strip().upper()
     _turn_start = _perf_counter()  # for new_detailed_logger duration tracking
+    _step_timings: list[dict[str, Any]] = []
+    _timing_status = "started"
+    _timing_status_code = 0
+    _timing_error = ""
+    _timing_db_fallback = False
+    _timing_response_message = ""
+    _timing_response_state = ""
+    _timing_response_source = ""
+    response: Optional[ChatResponse] = None
+
+    def _record_step(
+        step: str,
+        started_at: float,
+        *,
+        status: str = "completed",
+        details: dict[str, Any] | None = None,
+        error: str = "",
+    ) -> None:
+        _step_timings.append(
+            {
+                "step": str(step or "").strip(),
+                "status": str(status or "").strip() or "completed",
+                "duration_ms": round((_perf_counter() - float(started_at)) * 1000, 2),
+                "details": details or {},
+                "error": str(error or "").strip(),
+            }
+        )
+
+    _setup_started = _perf_counter()
     resolved_hotel_code = config_service.resolve_hotel_code(request.hotel_code)
     request.hotel_code = resolved_hotel_code
     scope_token = db_config_service.set_hotel_context(resolved_hotel_code)
@@ -2051,9 +2481,36 @@ async def send_message(
         request=request,
         api_trace_id=trace_id,
     )
+    _record_step(
+        "turn_setup",
+        _setup_started,
+        details={
+            "db_session_available": db is not None,
+            "hotel_code": resolved_hotel_code,
+        },
+    )
     if trace_id:
         request.metadata.setdefault("trace_id", trace_id)
     request.metadata.setdefault("turn_trace_id", turn_trace_id)
+    step_trace_service.log_event(
+        "chat_message_step_start",
+        payload={
+            "message_length": len(str(request.message or "")),
+            "prefetch_batch_id": prefetch_batch_id,
+            "prefetch_source_type": prefetch_source_type,
+            "db_session_available": db is not None,
+        },
+        trace_id=trace_id,
+        turn_trace_id=turn_trace_id,
+        session_id=str(request.session_id or "").strip(),
+        hotel_code=resolved_hotel_code,
+        channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+        endpoint=endpoint,
+        method=method,
+        component="api.routes.chat.send_message",
+        step="request_received",
+        stage="start",
+    )
     _trace_chat_event(
         "chat_message_received",
         trace_id=trace_id,
@@ -2069,6 +2526,8 @@ async def send_message(
     _chat_meta = request.metadata or {}
     _chat_phase = str(_chat_meta.get("phase_id") or _chat_meta.get("phase") or getattr(request, "phase_id", "") or "").strip()
     _chat_guest_info = {k: v for k, v in _chat_meta.items() if k in ("room_number", "guest_name", "guest_id", "entity_id") and v}
+    _flow_log_error = ""
+    _flow_log_started = _perf_counter()
     try:
         from services.flow_logger import log_chat_turn
         meta = _chat_meta
@@ -2093,9 +2552,17 @@ async def send_message(
             guest_info=guest_info,
             summary=summary,
         )
-    except Exception:
-        pass
+    except Exception as _flow_exc:
+        _flow_log_error = str(_flow_exc)
+    _record_step(
+        "log_chat_turn_start",
+        _flow_log_started,
+        status="failed" if _flow_log_error else "completed",
+        error=_flow_log_error,
+    )
     # -- new_detailed_logger: chat turn IN --
+    _detailed_turn_in_error = ""
+    _detailed_turn_in_started = _perf_counter()
     try:
         new_detailed_logger.log_chat_turn_in(
             session_id=str(request.session_id or ""),
@@ -2110,19 +2577,73 @@ async def send_message(
             metadata=_chat_meta,
         )
     except Exception as _ndl_exc:
+        _detailed_turn_in_error = str(_ndl_exc)
         import sys as _sys
         print(f"[new_detailed_logger] chat turn IN log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+    _record_step(
+        "log_new_detailed_turn_in",
+        _detailed_turn_in_started,
+        status="failed" if _detailed_turn_in_error else "completed",
+        error=_detailed_turn_in_error,
+    )
 
     try:
         cached_prefetch_payload: Optional[dict[str, Any]] = None
         should_check_prefetch = bool(prefetch_batch_id) or prefetch_source_type == "suggested_action"
+        prefetch_lookup_started = _perf_counter()
         if should_check_prefetch:
+            step_trace_service.log_event(
+                "chat_message_prefetch_lookup_start",
+                payload={
+                    "prefetch_batch_id": prefetch_batch_id,
+                    "prefetch_source_type": prefetch_source_type,
+                },
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.chat.send_message",
+                step="prefetch_lookup",
+                stage="start",
+            )
             cached_prefetch_payload = await suggestion_prefetch_service.resolve_cached_answer(
                 session_id=str(request.session_id or "").strip(),
                 user_message=str(request.message or "").strip(),
                 source_type=prefetch_source_type,
                 batch_id=prefetch_batch_id,
             )
+            step_trace_service.log_event(
+                "chat_message_prefetch_lookup_end",
+                payload={
+                    "prefetch_hit": isinstance(cached_prefetch_payload, dict) and bool(cached_prefetch_payload),
+                    "prefetch_batch_id": prefetch_batch_id,
+                },
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.chat.send_message",
+                step="prefetch_lookup",
+                stage="completed",
+            )
+        prefetch_hit = isinstance(cached_prefetch_payload, dict) and bool(cached_prefetch_payload)
+        _record_step(
+            "prefetch_lookup",
+            prefetch_lookup_started,
+            details={
+                "checked": should_check_prefetch,
+                "hit": prefetch_hit,
+                "batch_id": prefetch_batch_id,
+                "source_type": prefetch_source_type,
+            },
+        )
+        response_generation_started = _perf_counter()
         if isinstance(cached_prefetch_payload, dict) and cached_prefetch_payload:
             response = await _build_prefetch_cached_response(
                 request=request,
@@ -2130,22 +2651,94 @@ async def send_message(
                 cached_payload=cached_prefetch_payload,
                 db=db,
             )
+            selected_engine = "prefetch_cache"
+            step_trace_service.log_event(
+                "chat_message_engine_selected",
+                payload={"engine": "prefetch_cache"},
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.chat.send_message",
+                step="response_generation",
+                stage="completed",
+            )
         else:
             response = await chat_service.process_message(request, db_session=db)
+            selected_engine = "chat_service"
+            step_trace_service.log_event(
+                "chat_message_engine_selected",
+                payload={"engine": "chat_service"},
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.chat.send_message",
+                step="response_generation",
+                stage="completed",
+            )
+        _record_step(
+            "response_generation",
+            response_generation_started,
+            details={"engine": selected_engine},
+        )
+        display_attach_started = _perf_counter()
         await _attach_display_message(response)
+        _record_step("attach_display_message", display_attach_started)
+        enrich_fields_started = _perf_counter()
         if not isinstance(response.metadata, dict):
             response.metadata = {}
         _enrich_service_llm_display_fields(response)
+        _record_step("enrich_response_fields", enrich_fields_started)
+        form_trigger_started = _perf_counter()
+        form_trigger_error = ""
         try:
             await _inject_form_trigger(response, user_message=request.message)
         except Exception as _form_exc:
+            form_trigger_error = str(_form_exc)
             import sys as _sys
             print(f"[form_trigger] EXCEPTION: {_form_exc!r}", file=_sys.stderr, flush=True)
+        _record_step(
+            "inject_form_trigger",
+            form_trigger_started,
+            status="failed" if form_trigger_error else "completed",
+            error=form_trigger_error,
+        )
+        smart_images_started = _perf_counter()
+        smart_images_error = ""
+        try:
+            await _attach_smart_images(
+                response=response,
+                request=request,
+                hotel_code=resolved_hotel_code,
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+            )
+        except Exception as _smart_exc:
+            smart_images_error = str(_smart_exc)
+        _record_step(
+            "attach_smart_images",
+            smart_images_started,
+            status="failed" if smart_images_error else "completed",
+            error=smart_images_error,
+        )
+        metadata_finalize_started = _perf_counter()
         if trace_id:
             response.metadata.setdefault("trace_id", trace_id)
         response.metadata.setdefault("turn_trace_id", turn_trace_id)
+        _record_step("response_metadata_finalize", metadata_finalize_started)
+        evaluation_started = _perf_counter()
         _record_evaluation_event(request, response, trace_id)
+        _record_step("evaluation_record", evaluation_started)
         # Log chat response to flow.log
+        flow_response_log_error = ""
+        flow_response_log_started = _perf_counter()
         try:
             from services.flow_logger import log_chat_response, log_orchestration_decision
             resp_meta = response.metadata or {}
@@ -2161,8 +2754,15 @@ async def send_message(
                     session_id=str(request.session_id or ""),
                     decision=orchestration,
                 )
-        except Exception:
-            pass
+        except Exception as _flow_resp_exc:
+            flow_response_log_error = str(_flow_resp_exc)
+        _record_step(
+            "log_chat_response_and_orchestration",
+            flow_response_log_started,
+            status="failed" if flow_response_log_error else "completed",
+            error=flow_response_log_error,
+        )
+        postprocess_started = _perf_counter()
         observability_service.log_event(
             "chat_message_processed",
             {
@@ -2200,6 +2800,7 @@ async def send_message(
             db_fallback=False,
             error="",
         )
+        _record_step("postprocess_and_turn_end", postprocess_started)
         # -- new_detailed_logger: chat turn SUCCESS --
         try:
             _resp_meta = response.metadata or {}
@@ -2225,6 +2826,34 @@ async def send_message(
         except Exception as _ndl_exc:
             import sys as _sys
             print(f"[new_detailed_logger] chat turn SUCCESS log failed: {_ndl_exc!r}", file=_sys.stderr, flush=True)
+        _timing_status = "success"
+        _timing_status_code = 200
+        _timing_db_fallback = False
+        _timing_error = ""
+        _timing_response_message = str(response.message or "")
+        _timing_response_state = str(getattr(response.state, "value", response.state) or "")
+        _timing_response_source = str((response.metadata or {}).get("response_source") or "")
+        step_trace_service.log_event(
+            "chat_message_step_end",
+            payload={
+                "db_fallback": False,
+                "response_state": str(getattr(response.state, "value", response.state) or ""),
+                "response_source": str((response.metadata or {}).get("response_source") or ""),
+                "ticket_created": bool((response.metadata or {}).get("ticket_created", False)),
+                "duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+            },
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            status_code=200,
+            component="api.routes.chat.send_message",
+            step="response_emit",
+            stage="completed",
+        )
         return response
     except OperationalError as e:
         db_first_mode = bool(getattr(settings, "chat_db_first_mode", False))
@@ -2282,6 +2911,33 @@ async def send_message(
                 )
             except Exception:
                 pass
+            step_trace_service.log_event(
+                "chat_message_step_end",
+                payload={
+                    "db_fallback": False,
+                    "db_required": True,
+                    "duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+                },
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                status_code=503,
+                component="api.routes.chat.send_message",
+                step="response_emit",
+                stage="failed",
+                error=str(e),
+            )
+            _timing_status = "failed_db_required"
+            _timing_status_code = 503
+            _timing_db_fallback = False
+            _timing_error = str(e)
+            _timing_response_message = ""
+            _timing_response_state = ""
+            _timing_response_source = ""
             raise HTTPException(
                 status_code=503,
                 detail="Database is unavailable. DB-first mode requires database connectivity.",
@@ -2289,20 +2945,61 @@ async def send_message(
 
         print(f"API DB Error (fallback to in-memory): {e}")
         try:
+            fallback_generation_started = _perf_counter()
             response = await chat_service.process_message(request, db_session=None)
+            _record_step(
+                "response_generation_db_fallback",
+                fallback_generation_started,
+                details={"engine": "chat_service_fallback"},
+            )
+            fallback_display_started = _perf_counter()
             await _attach_display_message(response)
+            _record_step("attach_display_message_db_fallback", fallback_display_started)
+            fallback_enrich_started = _perf_counter()
             if not isinstance(response.metadata, dict):
                 response.metadata = {}
             _enrich_service_llm_display_fields(response)
+            _record_step("enrich_response_fields_db_fallback", fallback_enrich_started)
+            fallback_form_started = _perf_counter()
+            fallback_form_error = ""
             try:
                 await _inject_form_trigger(response, user_message=request.message)
-            except Exception:
-                pass
+            except Exception as _fallback_form_exc:
+                fallback_form_error = str(_fallback_form_exc)
+            _record_step(
+                "inject_form_trigger_db_fallback",
+                fallback_form_started,
+                status="failed" if fallback_form_error else "completed",
+                error=fallback_form_error,
+            )
+            fallback_images_started = _perf_counter()
+            fallback_images_error = ""
+            try:
+                await _attach_smart_images(
+                    response=response,
+                    request=request,
+                    hotel_code=resolved_hotel_code,
+                    trace_id=trace_id,
+                    turn_trace_id=turn_trace_id,
+                )
+            except Exception as _fallback_image_exc:
+                fallback_images_error = str(_fallback_image_exc)
+            _record_step(
+                "attach_smart_images_db_fallback",
+                fallback_images_started,
+                status="failed" if fallback_images_error else "completed",
+                error=fallback_images_error,
+            )
+            fallback_metadata_started = _perf_counter()
             response.metadata["db_fallback"] = True
             if trace_id:
                 response.metadata.setdefault("trace_id", trace_id)
             response.metadata.setdefault("turn_trace_id", turn_trace_id)
+            _record_step("response_metadata_finalize_db_fallback", fallback_metadata_started)
+            fallback_eval_started = _perf_counter()
             _record_evaluation_event(request, response, trace_id)
+            _record_step("evaluation_record_db_fallback", fallback_eval_started)
+            fallback_postprocess_started = _perf_counter()
             observability_service.log_event(
                 "chat_message_processed_db_fallback",
                 {
@@ -2337,6 +3034,7 @@ async def send_message(
                 db_fallback=True,
                 error=f"primary_db_failed: {str(e)}",
             )
+            _record_step("postprocess_and_turn_end_db_fallback", fallback_postprocess_started)
             # â”€â”€ new_detailed_logger: SUCCESS via DB-fallback path â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             try:
                 _resp_meta = response.metadata or {}
@@ -2361,6 +3059,33 @@ async def send_message(
                 )
             except Exception:
                 pass
+            _timing_status = "success_db_fallback"
+            _timing_status_code = 200
+            _timing_db_fallback = True
+            _timing_error = str(e)
+            _timing_response_message = str(response.message or "")
+            _timing_response_state = str(getattr(response.state, "value", response.state) or "")
+            _timing_response_source = str((response.metadata or {}).get("response_source") or "")
+            step_trace_service.log_event(
+                "chat_message_step_end",
+                payload={
+                    "db_fallback": True,
+                    "response_state": str(getattr(response.state, "value", response.state) or ""),
+                    "response_source": str((response.metadata or {}).get("response_source") or ""),
+                    "duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+                },
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                status_code=200,
+                component="api.routes.chat.send_message",
+                step="response_emit",
+                stage="completed",
+            )
             return response
         except Exception as fallback_error:
             print(f"API Fallback Error: {fallback_error}")
@@ -2415,6 +3140,32 @@ async def send_message(
                 )
             except Exception:
                 pass
+            step_trace_service.log_event(
+                "chat_message_step_end",
+                payload={
+                    "db_fallback": True,
+                    "duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+                },
+                trace_id=trace_id,
+                turn_trace_id=turn_trace_id,
+                session_id=str(request.session_id or "").strip(),
+                hotel_code=resolved_hotel_code,
+                channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                endpoint=endpoint,
+                method=method,
+                status_code=503,
+                component="api.routes.chat.send_message",
+                step="response_emit",
+                stage="failed",
+                error=str(fallback_error),
+            )
+            _timing_status = "failed_db_fallback"
+            _timing_status_code = 503
+            _timing_db_fallback = True
+            _timing_error = str(fallback_error)
+            _timing_response_message = ""
+            _timing_response_state = ""
+            _timing_response_source = ""
             raise HTTPException(
                 status_code=503,
                 detail="Database is unavailable and fallback processing failed.",
@@ -2472,9 +3223,110 @@ async def send_message(
             )
         except Exception:
             pass
+        step_trace_service.log_event(
+            "chat_message_step_end",
+            payload={
+                "db_fallback": False,
+                "duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+            },
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            channel=str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+            endpoint=endpoint,
+            method=method,
+            status_code=500,
+            component="api.routes.chat.send_message",
+            step="response_emit",
+            stage="failed",
+            error=str(e),
+        )
+        _timing_status = "failed"
+        _timing_status_code = 500
+        _timing_db_fallback = False
+        _timing_error = str(e)
+        _timing_response_message = ""
+        _timing_response_state = ""
+        _timing_response_source = ""
         raise HTTPException(status_code=500, detail=str(e))
     finally:
+        step_trace_service.log_event(
+            "chat_message_scope_reset",
+            payload={},
+            trace_id=trace_id,
+            turn_trace_id=turn_trace_id,
+            session_id=str(request.session_id or "").strip(),
+            hotel_code=resolved_hotel_code,
+            endpoint=endpoint,
+            method=method,
+            component="api.routes.chat.send_message",
+            step="scope_reset",
+            stage="completed",
+        )
+        scope_reset_started = _perf_counter()
         db_config_service.reset_hotel_context(scope_token)
+        _record_step("scope_reset", scope_reset_started)
+
+        turn_ctx = turn_diagnostics_service.get_turn_context()
+        llm_calls = []
+        if isinstance(turn_ctx, dict) and isinstance(turn_ctx.get("_llm_call_metrics"), list):
+            llm_calls = list(turn_ctx.get("_llm_call_metrics") or [])
+        llm_total_duration = round(
+            sum(float(item.get("duration_ms") or 0.0) for item in llm_calls if isinstance(item, dict)),
+            2,
+        )
+        llm_total_input_tokens = int(
+            sum(int(item.get("input_tokens") or 0) for item in llm_calls if isinstance(item, dict))
+        )
+        llm_total_output_tokens = int(
+            sum(int(item.get("output_tokens") or 0) for item in llm_calls if isinstance(item, dict))
+        )
+        llm_total_tokens = int(
+            sum(int(item.get("total_tokens") or 0) for item in llm_calls if isinstance(item, dict))
+        )
+        llm_total_cost = round(
+            sum(float(item.get("total_cost_usd") or 0.0) for item in llm_calls if isinstance(item, dict)),
+            8,
+        )
+
+        if not _timing_response_message and response is not None:
+            _timing_response_message = str(response.message or "")
+        if not _timing_response_state and response is not None:
+            _timing_response_state = str(getattr(response.state, "value", response.state) or "")
+        if not _timing_response_source and response is not None and isinstance(response.metadata, dict):
+            _timing_response_source = str(response.metadata.get("response_source") or "")
+
+        chat_step_timing_service.log_turn(
+            {
+                "event_type": "chat_message_timing_breakdown",
+                "trace_id": str(trace_id or "").strip(),
+                "turn_trace_id": str(turn_trace_id or "").strip(),
+                "session_id": str(request.session_id or "").strip(),
+                "hotel_code": str(resolved_hotel_code or "").strip(),
+                "channel": str(request.channel or (request.metadata or {}).get("channel") or "").strip(),
+                "endpoint": endpoint,
+                "method": method,
+                "status": _timing_status,
+                "status_code": int(_timing_status_code or 0),
+                "db_fallback": bool(_timing_db_fallback),
+                "error": str(_timing_error or "").strip(),
+                "request_message": str(request.message or ""),
+                "response_message": _timing_response_message,
+                "response_state": _timing_response_state,
+                "response_source": _timing_response_source,
+                "total_duration_ms": round((_perf_counter() - _turn_start) * 1000, 2),
+                "step_count": len(_step_timings),
+                "steps": _step_timings,
+                "llm_call_count": len(llm_calls),
+                "llm_total_duration_ms": llm_total_duration,
+                "llm_total_input_tokens": llm_total_input_tokens,
+                "llm_total_output_tokens": llm_total_output_tokens,
+                "llm_total_tokens": llm_total_tokens,
+                "llm_total_cost_usd": llm_total_cost,
+                "llm_calls": llm_calls,
+            }
+        )
         turn_diagnostics_service.clear_turn(turn_token)
 
 

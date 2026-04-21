@@ -57,7 +57,7 @@ class LLMSimpleCallLogger:
 
     def __init__(self) -> None:
         self.enabled = bool(getattr(settings, "llm_call_simple_logging_enabled", True))
-        self.log_file = Path(str(getattr(settings, "llm_call_simple_log_file", "./logs/llm_calls_simple.jsonl")))
+        self.log_file = Path(str(getattr(settings, "llm_call_simple_log_file", "./logs/llm_call_metrics.jsonl")))
         self.max_text_chars = max(200, int(getattr(settings, "llm_call_simple_text_max_chars", 1200) or 1200))
         self._lock = threading.Lock()
         self._pricing = dict(self._DEFAULT_PRICING_USD_PER_1M)
@@ -126,6 +126,9 @@ class LLMSimpleCallLogger:
         output_tokens: int = 0,
         total_tokens: int = 0,
         session_id: str = "",
+        session_key: str = "",
+        hotel_code: str = "",
+        channel: str = "",
         trace_id: str = "",
         turn_trace_id: str = "",
         route: str = "",
@@ -135,9 +138,7 @@ class LLMSimpleCallLogger:
         input_preview: str = "",
         output_preview: str = "",
         error: str = "",
-    ) -> None:
-        if not self.enabled:
-            return
+    ) -> dict[str, Any]:
         input_tok = _safe_int(input_tokens)
         output_tok = _safe_int(output_tokens)
         total_tok = _safe_int(total_tokens) or (input_tok + output_tok)
@@ -161,6 +162,9 @@ class LLMSimpleCallLogger:
             "output_cost_usd": round(output_cost, 8),
             "total_cost_usd": round(total_cost, 8),
             "session_id": str(session_id or "").strip(),
+            "session_key": str(session_key or "").strip(),
+            "hotel_code": str(hotel_code or "").strip(),
+            "channel": str(channel or "").strip(),
             "trace_id": str(trace_id or "").strip(),
             "turn_trace_id": str(turn_trace_id or "").strip(),
             "route": str(route or "").strip(),
@@ -171,6 +175,8 @@ class LLMSimpleCallLogger:
             "output_preview": _truncate_text(output_preview, self.max_text_chars),
             "error": _truncate_text(error, self.max_text_chars) if error else "",
         }
+        if not self.enabled:
+            return dict(record)
         try:
             self.log_file.parent.mkdir(parents=True, exist_ok=True)
             encoded = json.dumps(record, ensure_ascii=False)
@@ -178,8 +184,8 @@ class LLMSimpleCallLogger:
                 with self.log_file.open("a", encoding="utf-8") as fh:
                     fh.write(encoded + "\n")
         except Exception:
-            return
+            return dict(record)
+        return dict(record)
 
 
 llm_simple_call_logger = LLMSimpleCallLogger()
-

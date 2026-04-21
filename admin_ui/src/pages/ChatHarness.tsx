@@ -73,6 +73,14 @@ interface ChatApiResponse {
   form_service_id?: string;
 }
 
+interface ChatImageCard {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+  category?: string;
+}
+
 interface SuggestionsApiResponse {
   suggestions?: string[];
   prefetch_batch_id?: string | null;
@@ -188,6 +196,200 @@ function buildAssistantLinkHtml(url: string, label: string): string {
   return `<a class="underline underline-offset-2 text-teal-700 hover:text-teal-800" href="${escapeHtml(
     href,
   )}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`;
+}
+
+function normalizeChatImages(raw: unknown): ChatImageCard[] {
+  if (!Array.isArray(raw)) return [];
+  const parsed: ChatImageCard[] = [];
+  const seen = new Set<string>();
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const url = normalizeSafeLink(String(row.url || row.image_url || row.image || "").trim());
+    const title = String(row.title || row.label || row.name || "").trim();
+    if (!url || !title) continue;
+    const dedupeKey = `${title.toLowerCase()}|${url.toLowerCase()}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    parsed.push({
+      id: String(row.id || dedupeKey),
+      title,
+      url,
+      description: String(row.description || row.caption || row.text || row.summary || "").trim(),
+      category: String(row.category || "").trim(),
+    });
+  }
+  return parsed;
+}
+
+function AssistantImageCarousel({ images, accentColor }: { images: ChatImageCard[]; accentColor: string }) {
+  const [index, setIndex] = useState(0);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [inlineLoading, setInlineLoading] = useState(true);
+  const [inlineFailed, setInlineFailed] = useState(false);
+  const [viewerLoading, setViewerLoading] = useState(true);
+  const [viewerFailed, setViewerFailed] = useState(false);
+
+  useEffect(() => {
+    setIndex(0);
+    setViewerOpen(false);
+  }, [images]);
+
+  const totalImages = images.length;
+  const safeIndex = totalImages > 0 ? Math.max(0, Math.min(index, totalImages - 1)) : 0;
+  const current = images[safeIndex];
+
+  useEffect(() => {
+    setInlineLoading(true);
+    setInlineFailed(false);
+    setViewerLoading(true);
+    setViewerFailed(false);
+  }, [safeIndex, current?.url]);
+
+  useEffect(() => {
+    if (!totalImages || !current?.url) return;
+    const neighborIndexes = [safeIndex - 1, safeIndex + 1].filter((value) => value >= 0 && value < totalImages);
+    for (const idx of neighborIndexes) {
+      const preload = new Image();
+      preload.src = images[idx].url;
+    }
+  }, [images, safeIndex, totalImages, current?.url]);
+
+  if (!totalImages || !current) return null;
+
+  return (
+    <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+      <button
+        type="button"
+        onClick={() => setViewerOpen(true)}
+        className="relative block w-full overflow-hidden rounded-lg border border-slate-200 bg-white text-left"
+      >
+        {inlineLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-100 text-[11px] text-slate-500">
+            Loading image...
+          </div>
+        ) : null}
+        {inlineFailed ? (
+          <div className="flex h-36 w-full items-center justify-center bg-slate-100 text-xs text-slate-500">
+            Image failed to load
+          </div>
+        ) : (
+          <img
+            src={current.url}
+            alt={current.title}
+            loading={safeIndex <= 1 ? "eager" : "lazy"}
+            className="h-36 w-full object-cover"
+            onLoad={() => setInlineLoading(false)}
+            onError={() => {
+              setInlineLoading(false);
+              setInlineFailed(true);
+            }}
+          />
+        )}
+      </button>
+      <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+        <button
+          type="button"
+          disabled={safeIndex === 0}
+          onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
+          className="rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Prev
+        </button>
+        <div className="min-w-0 flex-1 text-center">
+          <p className="truncate font-medium text-slate-800">{current.title}</p>
+          {current.description ? (
+            <p className="mx-auto mt-0.5 max-w-[92%] line-clamp-2 text-[11px] leading-snug text-slate-600">
+              {current.description}
+            </p>
+          ) : null}
+          <p className="text-[11px] text-slate-500">
+            {safeIndex + 1}/{totalImages}
+            {current.category ? ` | ${current.category}` : ""}
+          </p>
+        </div>
+        <button
+          type="button"
+          disabled={safeIndex >= totalImages - 1}
+          onClick={() => setIndex((prev) => Math.min(totalImages - 1, prev + 1))}
+          className="rounded-md border border-slate-300 bg-white px-2 py-1 text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Next
+        </button>
+      </div>
+
+      {viewerOpen ? (
+        <div className="fixed inset-0 z-[90] bg-black/90 p-3 sm:p-5">
+          <div className="mx-auto flex h-full w-full max-w-5xl flex-col">
+            <div className="mb-3 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setViewerOpen(false)}
+                className="rounded-md border border-white/30 bg-white/10 px-3 py-1 text-xs text-white"
+                style={{ borderColor: `${accentColor}90` }}
+              >
+                Back to chat
+              </button>
+              <p className="text-xs text-white">
+                {safeIndex + 1}/{totalImages}
+              </p>
+            </div>
+
+            <div className="relative flex min-h-0 flex-1 items-center justify-center rounded-xl bg-black/70 p-3">
+              <button
+                type="button"
+                disabled={safeIndex === 0}
+                onClick={() => setIndex((prev) => Math.max(0, prev - 1))}
+                className="absolute left-2 rounded-full border border-white/30 bg-black/60 px-3 py-2 text-sm text-white disabled:opacity-30"
+                aria-label="Previous image"
+              >
+                {"<"}
+              </button>
+
+              {viewerLoading ? (
+                <div className="absolute inset-0 flex items-center justify-center text-sm text-white/80">
+                  Loading image...
+                </div>
+              ) : null}
+              {viewerFailed ? (
+                <div className="flex h-full w-full items-center justify-center text-sm text-white/80">
+                  Image failed to load
+                </div>
+              ) : (
+                <img
+                  src={current.url}
+                  alt={current.title}
+                  className="max-h-full max-w-full object-contain"
+                  loading="eager"
+                  onLoad={() => setViewerLoading(false)}
+                  onError={() => {
+                    setViewerLoading(false);
+                    setViewerFailed(true);
+                  }}
+                />
+              )}
+
+              <button
+                type="button"
+                disabled={safeIndex >= totalImages - 1}
+                onClick={() => setIndex((prev) => Math.min(totalImages - 1, prev + 1))}
+                className="absolute right-2 rounded-full border border-white/30 bg-black/60 px-3 py-2 text-sm text-white disabled:opacity-30"
+                aria-label="Next image"
+              >
+                {">"}
+              </button>
+            </div>
+
+            <div className="mt-3 text-center text-white">
+              <p className="text-sm font-medium">{current.title}</p>
+              {current.description ? <p className="mt-1 text-xs text-white/85">{current.description}</p> : null}
+              {current.category ? <p className="mt-1 text-[11px] text-white/70">{current.category}</p> : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function renderAssistantMarkdownToHtml(text: string): string {
@@ -2078,6 +2280,9 @@ const ChatHarness = () => {
                 {messages.map((row) => {
                   const isAssistant = row.role === "assistant";
                   const isInlineTarget = inlineForm && inlineForm.messageId === row.id;
+                  const imageCards = isAssistant
+                    ? normalizeChatImages((row.raw?.metadata || {}).images)
+                    : [];
                   return (
                     <div key={row.id} className={isAssistant ? "flex justify-start" : "flex justify-end"}>
                       <div
@@ -2106,6 +2311,9 @@ const ChatHarness = () => {
                                 String((row.raw?.metadata || {}).service_llm_label || "").trim(),
                             )}
                           </p>
+                        ) : null}
+                        {isAssistant && imageCards.length > 0 ? (
+                          <AssistantImageCarousel images={imageCards} accentColor={widgetUiColor} />
                         ) : null}
                         {isInlineTarget ? renderInlineForm() : null}
                       </div>
@@ -2374,3 +2582,4 @@ const ChatHarness = () => {
 };
 
 export default ChatHarness;
+

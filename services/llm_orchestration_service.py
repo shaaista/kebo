@@ -29,13 +29,16 @@ from services.prompt_registry_service import (
 # ── LLM Input Logger ─────────────────────────────────────────────────────────
 _log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs")
 os.makedirs(_log_dir, exist_ok=True)
-_llm_logger = logging.getLogger("llm_inputs")
-if not _llm_logger.handlers:
-    _fh = logging.FileHandler(os.path.join(_log_dir, "llm_inputs.log"), encoding="utf-8")
-    _fh.setFormatter(logging.Formatter("%(message)s"))
-    _llm_logger.addHandler(_fh)
-    _llm_logger.setLevel(logging.DEBUG)
-    _llm_logger.propagate = False
+_llm_input_log_enabled = bool(getattr(settings, "llm_orchestration_input_log_enabled", False))
+_llm_logger: logging.Logger | None = None
+if _llm_input_log_enabled:
+    _llm_logger = logging.getLogger("llm_inputs")
+    if not _llm_logger.handlers:
+        _fh = logging.FileHandler(os.path.join(_log_dir, "llm_inputs.log"), encoding="utf-8")
+        _fh.setFormatter(logging.Formatter("%(message)s"))
+        _llm_logger.addHandler(_fh)
+        _llm_logger.setLevel(logging.DEBUG)
+        _llm_logger.propagate = False
 
 # ── Structured Decision Logger ────────────────────────────────────────────────
 _decision_log_dir = os.path.join(_log_dir, "decisions")
@@ -71,21 +74,22 @@ def _log_decision(record: dict) -> None:
 def _log_llm_call(label: str, session_id: str, user_message: str, system_prompt: str, payload: Any, response: Any = None) -> None:
     """Write full LLM input (and optional response) to logs/llm_inputs.log."""
     try:
-        sep = "=" * 80
-        lines = [
-            f"\n{sep}",
-            f"[{datetime.now(UTC).isoformat()}] {label}",
-            f"SESSION : {session_id}",
-            f"USER    : {user_message}",
-            "--- SYSTEM PROMPT ---",
-            str(system_prompt or ""),
-            "--- PAYLOAD ---",
-            json.dumps(payload, ensure_ascii=False, indent=2) if not isinstance(payload, str) else payload,
-        ]
-        if response is not None:
-            lines += ["--- LLM RESPONSE ---", json.dumps(response, ensure_ascii=False, indent=2) if not isinstance(response, str) else str(response)]
-        lines.append(sep)
-        _llm_logger.debug("\n".join(lines))
+        if _llm_input_log_enabled and _llm_logger is not None:
+            sep = "=" * 80
+            lines = [
+                f"\n{sep}",
+                f"[{datetime.now(UTC).isoformat()}] {label}",
+                f"SESSION : {session_id}",
+                f"USER    : {user_message}",
+                "--- SYSTEM PROMPT ---",
+                str(system_prompt or ""),
+                "--- PAYLOAD ---",
+                json.dumps(payload, ensure_ascii=False, indent=2) if not isinstance(payload, str) else payload,
+            ]
+            if response is not None:
+                lines += ["--- LLM RESPONSE ---", json.dumps(response, ensure_ascii=False, indent=2) if not isinstance(response, str) else str(response)]
+            lines.append(sep)
+            _llm_logger.debug("\n".join(lines))
         everything_trace_service.log_event(
             "llm_orchestration_call",
             {

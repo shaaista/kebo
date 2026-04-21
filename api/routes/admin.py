@@ -11,7 +11,9 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request, Depends, UploadFile, File, Form
+from fastapi.routing import APIRoute
 from fastapi.responses import HTMLResponse, FileResponse
+from starlette.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from pathlib import Path
@@ -32,11 +34,97 @@ from services.gateway_service import gateway_service
 from services.menu_ocr_plugin_service import menu_ocr_plugin_service
 from services.prompt_writer_service import generate_service_system_prompt
 from services.everything_trace_service import everything_trace_service
+from services.step_trace_service import step_trace_service
 from config.settings import settings
 from llm.client import llm_client
 from models.database import AsyncSessionLocal, Hotel, Guest, Booking, KBFile
 
-router = APIRouter(prefix="/admin", tags=["Admin"])
+
+class AdminStepTraceRoute(APIRoute):
+    """Route-level step tracing for all admin endpoints."""
+
+    def get_route_handler(self):
+        original_route_handler = super().get_route_handler()
+        route_path = str(self.path or "").strip()
+
+        async def custom_route_handler(request: Request) -> Response:
+            trace_id = str(getattr(request.state, "trace_id", "") or "").strip()
+            endpoint = str(request.url.path or route_path or "/admin").strip()
+            method = str(request.method or "GET").strip().upper()
+            hotel_code = str(
+                getattr(request.state, "hotel_code", "")
+                or request.query_params.get("hotel_code")
+                or request.query_params.get("tenant_id")
+                or ""
+            ).strip()
+            start_ts = time.perf_counter()
+
+            step_trace_service.log_event(
+                "admin_route_start",
+                payload={"route_path": route_path},
+                trace_id=trace_id,
+                hotel_code=hotel_code,
+                endpoint=endpoint,
+                method=method,
+                component="api.routes.admin",
+                step=route_path or endpoint,
+                stage="start",
+            )
+
+            try:
+                response = await original_route_handler(request)
+            except HTTPException as exc:
+                duration_ms = round((time.perf_counter() - start_ts) * 1000.0, 2)
+                step_trace_service.log_event(
+                    "admin_route_failed",
+                    payload={"route_path": route_path, "duration_ms": duration_ms},
+                    trace_id=trace_id,
+                    hotel_code=hotel_code,
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=int(exc.status_code),
+                    component="api.routes.admin",
+                    step=route_path or endpoint,
+                    stage="failed",
+                    error=str(exc.detail),
+                )
+                raise
+            except Exception as exc:
+                duration_ms = round((time.perf_counter() - start_ts) * 1000.0, 2)
+                step_trace_service.log_event(
+                    "admin_route_failed",
+                    payload={"route_path": route_path, "duration_ms": duration_ms},
+                    trace_id=trace_id,
+                    hotel_code=hotel_code,
+                    endpoint=endpoint,
+                    method=method,
+                    status_code=500,
+                    component="api.routes.admin",
+                    step=route_path or endpoint,
+                    stage="failed",
+                    error=str(exc),
+                )
+                raise
+
+            duration_ms = round((time.perf_counter() - start_ts) * 1000.0, 2)
+            step_trace_service.log_event(
+                "admin_route_end",
+                payload={"route_path": route_path, "duration_ms": duration_ms},
+                trace_id=trace_id,
+                hotel_code=hotel_code,
+                endpoint=endpoint,
+                method=method,
+                status_code=int(getattr(response, "status_code", 200) or 200),
+                component="api.routes.admin",
+                step=route_path or endpoint,
+                stage="completed",
+            )
+            return response
+
+        return custom_route_handler
+
+
+router = APIRouter(prefix="/admin", tags=["Admin"], route_class=AdminStepTraceRoute)
 
 _ADMIN_UI_DIST_DIR = (Path(__file__).resolve().parents[2] / "admin_ui" / "dist").resolve()
 _ADMIN_UI_INDEX_FILE = (_ADMIN_UI_DIST_DIR / "index.html").resolve()
