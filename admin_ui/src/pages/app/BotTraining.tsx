@@ -237,7 +237,7 @@ const BotTraining = () => {
 
       const mergedByCode = new Map<string, PropertyOption>();
       for (const row of rows) mergedByCode.set(row.code, row);
-      if (currentCode && !mergedByCode.has(currentCode)) {
+      if (currentCode && mergedByCode.size === 0 && !mergedByCode.has(currentCode)) {
         mergedByCode.set(currentCode, { code: currentCode, name: currentCode, city: "" });
       }
       const mergedRows = [...mergedByCode.values()].sort((a, b) => a.code.localeCompare(b.code));

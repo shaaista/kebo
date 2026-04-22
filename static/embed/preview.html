@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widget Preview</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 0; padding: 32px; background: #f1f5f9; color: #0f172a; }
+      .card { max-width: 720px; margin: 0 auto; background: white; padding: 28px; border-radius: 14px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); }
+      code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+      .hint { color: #64748b; font-size: 14px; margin-top: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Mock Host Site</h1>
+      <p>This page exists only so you can confirm how the widget appears on a real site.</p>
+      <p class="hint">Click the launcher in the corner to open the chat. Pass <code>?widget_key=...</code> in the URL to render a specific deployment.</p>
+    </div>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var widgetKey = params.get("widget_key") || "";
+        var hotelCode = params.get("hotel_code") || "";
+        if (!widgetKey && !hotelCode) {
+          var msg = document.createElement("div");
+          msg.style.cssText = "max-width:720px;margin:24px auto;padding:16px;background:#fef3c7;border:1px solid #fbbf24;border-radius:10px;color:#78350f;";
+          msg.textContent = "Add ?widget_key=... or ?hotel_code=... to the URL to load a widget.";
+          document.body.appendChild(msg);
+          return;
+        }
+        var s = document.createElement("script");
+        s.src = "/static/embed/kebo-widget-loader.js";
+        if (widgetKey) s.dataset.widgetKey = widgetKey;
+        if (hotelCode) s.dataset.hotelCode = hotelCode;
+        s.async = true;
+        document.body.appendChild(s);
+      })();
+    </script>
+  </body>
+</html>

@@ -486,6 +486,9 @@ interface EmbedRuntimeConfig {
   position: "left" | "right";
   width: number;
   height: number;
+  metadataOverrides: ProfileMap;
+  extraMetadata: Record<string, unknown>;
+  disablePrefetch: boolean;
 }
 
 function parseBooleanParam(value: string | null, fallback = false): boolean {
@@ -527,6 +530,9 @@ function readEmbedRuntimeConfig(): EmbedRuntimeConfig {
       position: "right",
       width: WIDGET_DEFAULT_WIDTH,
       height: WIDGET_DEFAULT_HEIGHT,
+      metadataOverrides: {},
+      extraMetadata: {},
+      disablePrefetch: false,
     };
   }
 
@@ -544,7 +550,7 @@ function readEmbedRuntimeConfig(): EmbedRuntimeConfig {
   const width = parseNumberParam(params.get("width"), WIDGET_DEFAULT_WIDTH, 280, 600);
   const height = parseNumberParam(params.get("height"), WIDGET_DEFAULT_HEIGHT, 360, 900);
   const sessionId = String(params.get("session_id") || "").trim() || generateSessionId();
-  const widgetId = String(params.get("widget_id") || "default").trim() || "default";
+  const widgetId = String(params.get("widget_id") || params.get("widget_key") || "default").trim() || "default";
   const brandColor = normalizeColorParam(params.get("brand_color") || WIDGET_BRAND_COLOR_DEFAULT, WIDGET_BRAND_COLOR_DEFAULT);
   const accentColor = normalizeColorParam(
     params.get("accent_color") || params.get("brand_color") || WIDGET_ACCENT_COLOR_DEFAULT,
@@ -556,6 +562,31 @@ function readEmbedRuntimeConfig(): EmbedRuntimeConfig {
   );
   const textColor = normalizeColorParam(params.get("text_color") || WIDGET_TEXT_COLOR_DEFAULT, WIDGET_TEXT_COLOR_DEFAULT);
   const botName = String(params.get("bot_name") || WIDGET_BOT_NAME_DEFAULT).trim() || WIDGET_BOT_NAME_DEFAULT;
+  const metadataOverrides =
+    parseProfile({
+      guest_id: params.get("guest_id"),
+      entity_id: params.get("entity_id"),
+      organisation_id: params.get("organisation_id") || params.get("organization_id"),
+      room_number: params.get("room_number"),
+      guest_phone: params.get("guest_phone"),
+      guest_name: params.get("guest_name"),
+      group_id: params.get("group_id"),
+      ticket_source: params.get("ticket_source"),
+      flow: params.get("flow"),
+    }) || {};
+  const disablePrefetch = parseBooleanParam(params.get("disable_prefetch"), false);
+  const extraMetadataRaw = String(params.get("extra_metadata") || "").trim();
+  let extraMetadata: Record<string, unknown> = {};
+  if (extraMetadataRaw) {
+    try {
+      const parsed = JSON.parse(extraMetadataRaw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        extraMetadata = parsed as Record<string, unknown>;
+      }
+    } catch {
+      extraMetadata = {};
+    }
+  }
 
   return {
     embedMode,
@@ -571,6 +602,9 @@ function readEmbedRuntimeConfig(): EmbedRuntimeConfig {
     position,
     width,
     height,
+    metadataOverrides,
+    extraMetadata,
+    disablePrefetch,
   };
 }
 
@@ -718,8 +752,10 @@ const ChatHarness = () => {
   const [phase, setPhase] = useState(runtimeConfig.phase);
   const [testProfilesByPhase, setTestProfilesByPhase] = useState<Record<string, ProfileMap>>({});
   const [autoPhaseProfile, setAutoPhaseProfile] = useState(true);
-  const [profileOverrides, setProfileOverrides] = useState<ProfileMap>({});
-  const [extraMetadataRaw, setExtraMetadataRaw] = useState("");
+  const [profileOverrides, setProfileOverrides] = useState<ProfileMap>(runtimeConfig.metadataOverrides);
+  const [extraMetadataRaw, setExtraMetadataRaw] = useState(() =>
+    Object.keys(runtimeConfig.extraMetadata).length > 0 ? JSON.stringify(runtimeConfig.extraMetadata, null, 2) : "",
+  );
 
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [selectedBookingId, setSelectedBookingId] = useState<number | "">("");
@@ -903,7 +939,7 @@ const ChatHarness = () => {
         const next = Array.isArray(data.suggestions) ? data.suggestions.filter(Boolean) : [];
         if (next.length > 0) {
           setSuggestions(next);
-          setPrefetchBatchId(String(data.prefetch_batch_id || "").trim());
+          setPrefetchBatchId(runtimeConfig.disablePrefetch ? "" : String(data.prefetch_batch_id || "").trim());
           return;
         }
         if (fallbackSuggestions.length > 0) {
@@ -921,7 +957,7 @@ const ChatHarness = () => {
         }
       }
     },
-    [hotelCode, inlineForm, phase, sessionId],
+    [hotelCode, inlineForm, phase, runtimeConfig.disablePrefetch, sessionId],
   );
 
   const loadProperties = useCallback(async () => {
@@ -961,13 +997,6 @@ const ChatHarness = () => {
   }, [embedMode, runtimeConfig.hotelCode]);
 
   const loadTestProfiles = useCallback(async () => {
-    if (embedMode) {
-      setTestProfilesByPhase({});
-      setAutoPhaseProfile(false);
-      setPhases(PHASE_FALLBACK);
-      setPhase(normalizePhaseId(runtimeConfig.phase) || "pre_booking");
-      return;
-    }
     try {
       const response = await fetch(`/api/chat/test-profiles?hotel_code=${encodeURIComponent(hotelCode || "default")}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -1014,7 +1043,7 @@ const ChatHarness = () => {
       setPhases(PHASE_FALLBACK);
       setPhase((prev) => normalizePhaseId(prev) || "pre_booking");
     }
-  }, [embedMode, hotelCode, runtimeConfig.phase]);
+  }, [hotelCode]);
 
   const loadBusinessWelcome = useCallback(async () => {
     try {
@@ -1245,7 +1274,7 @@ const ChatHarness = () => {
           source_label: sourceType === "typed_input" ? "typed_input" : text,
           source_text: text,
         });
-        if (prefetchBatchId) {
+        if (!runtimeConfig.disablePrefetch && prefetchBatchId) {
           requestMetadata.prefetch_batch_id = prefetchBatchId;
           requestMetadata.ui_prefetch_batch_id = prefetchBatchId;
         }
@@ -1387,6 +1416,7 @@ const ChatHarness = () => {
       hotelCode,
       isSending,
       prefetchBatchId,
+      runtimeConfig.disablePrefetch,
       sessionId,
       updateSessionUiFromResponse,
     ],

@@ -14,6 +14,7 @@ import StaffManagement from "./pages/app/StaffManagement";
 import NotificationRules from "./pages/app/NotificationRules";
 import EscalationMatrix from "./pages/app/EscalationMatrix";
 import Departments from "./pages/app/Departments";
+import Widget from "./pages/app/Widget";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="departments" element={<Departments />} />
             <Route path="notifications" element={<NotificationRules />} />
             <Route path="escalation" element={<EscalationMatrix />} />
+            <Route path="widget" element={<Widget />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

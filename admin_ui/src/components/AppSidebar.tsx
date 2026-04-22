@@ -14,7 +14,7 @@ import {
   Sparkles,
   Users,
   Bell,
-
+  Code2,
   Building2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
@@ -56,7 +56,7 @@ const operationsItems = [
   { title: "Departments", url: "/app/departments", icon: Building2 },
   { title: "Notification Rules", url: "/app/notifications", icon: Bell },
   { title: "Escalation Matrix", url: "/app/escalation", icon: AlertTriangle },
-  
+  { title: "Widget Embed", url: "/app/widget", icon: Code2 },
 ];
 
 export function AppSidebar() {

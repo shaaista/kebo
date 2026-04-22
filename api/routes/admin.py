@@ -570,6 +570,7 @@ router.dependencies = [Depends(_bind_admin_hotel_scope)]
 async def list_admin_properties():
     """List known properties/hotels for admin property switching."""
     properties_by_code: Dict[str, Dict[str, str]] = {}
+    db_properties_found = False
 
     try:
         from models.database import Hotel, AsyncSessionLocal
@@ -580,6 +581,8 @@ async def list_admin_properties():
                     select(Hotel).where(Hotel.is_active == True).order_by(Hotel.code.asc())  # noqa: E712
                 )
             ).scalars().all()
+        if rows:
+            db_properties_found = True
         for row in rows:
             raw_code = str(row.code or "").strip()
             if not raw_code:
@@ -593,35 +596,36 @@ async def list_admin_properties():
     except Exception:
         pass
 
-    # Merge properties discovered from scoped config files so options survive
-    # transient DB outages and JSON-only bootstrap flows.
-    try:
-        properties_dir = Path(__file__).resolve().parent.parent.parent / "config" / "properties"
-        if properties_dir.exists() and properties_dir.is_dir():
-            for json_file in sorted(properties_dir.glob("*.json")):
-                code = _normalize_tenant(json_file.stem)
-                if not code:
-                    continue
-                name = code
-                city = ""
-                try:
-                    payload = json.loads(json_file.read_text(encoding="utf-8"))
-                    business = payload.get("business", {}) if isinstance(payload, dict) else {}
-                    business_id = _normalize_tenant(str(business.get("id") or "").strip())
-                    if business_id and business_id != "default":
-                        code = business_id
-                    name = str(business.get("name") or code).strip()
-                    city = str(business.get("city") or "").strip()
-                except Exception:
-                    pass
-                if code not in properties_by_code:
-                    properties_by_code[code] = {
-                        "code": code,
-                        "name": name or code,
-                        "city": city,
-                    }
-    except Exception:
-        pass
+    # Only merge JSON-scoped properties when DB has no active rows.
+    # This prevents stale/deleted properties from reappearing in admin lists.
+    if not db_properties_found:
+        try:
+            properties_dir = Path(__file__).resolve().parent.parent.parent / "config" / "properties"
+            if properties_dir.exists() and properties_dir.is_dir():
+                for json_file in sorted(properties_dir.glob("*.json")):
+                    code = _normalize_tenant(json_file.stem)
+                    if not code:
+                        continue
+                    name = code
+                    city = ""
+                    try:
+                        payload = json.loads(json_file.read_text(encoding="utf-8"))
+                        business = payload.get("business", {}) if isinstance(payload, dict) else {}
+                        business_id = _normalize_tenant(str(business.get("id") or "").strip())
+                        if business_id and business_id != "default":
+                            code = business_id
+                        name = str(business.get("name") or code).strip()
+                        city = str(business.get("city") or "").strip()
+                    except Exception:
+                        pass
+                    if code not in properties_by_code:
+                        properties_by_code[code] = {
+                            "code": code,
+                            "name": name or code,
+                            "city": city,
+                        }
+        except Exception:
+            pass
 
     properties = sorted(
         properties_by_code.values(),
@@ -4048,6 +4052,17 @@ async def regenerate_all_service_prompts(hotel_code: Optional[str] = None):
 _VITE_HOP_BY_HOP = frozenset({"connection", "keep-alive", "transfer-encoding", "upgrade", "content-length"})
 
 
+def _looks_like_admin_asset_request(full_path: str) -> bool:
+    """Detect static/module asset paths so missing files don't fall back to index.html."""
+    path = str(full_path or "").strip().lstrip("/")
+    if not path:
+        return False
+    if path.startswith(("assets/", "images/", "node_modules/", "@vite/", "@react-refresh")):
+        return True
+    leaf = Path(path).name
+    return "." in leaf
+
+
 async def _proxy_vite_request(request: Request, admin_path: str):
     """Forward request to Vite dev server when ADMIN_DEV_URL is set; returns None otherwise."""
     import os as _os
@@ -4068,6 +4083,19 @@ async def _proxy_vite_request(request: Request, admin_path: str):
     try:
         async with _httpx.AsyncClient(timeout=10.0, follow_redirects=False) as client:
             resp = await client.request(request.method, target, headers=headers, content=await request.body())
+        content_type = str(resp.headers.get("content-type") or "").lower()
+        # Vite can return index.html (200 text/html) for missing module chunks.
+        # Convert that to 404 so browsers don't fail with MIME mismatch.
+        if (
+            _looks_like_admin_asset_request(path)
+            and int(resp.status_code) == 200
+            and "text/html" in content_type
+        ):
+            return _Response(
+                content='{"detail":"Admin asset not found"}',
+                status_code=404,
+                headers={"content-type": "application/json"},
+            )
         resp_headers = {k: v for k, v in resp.headers.items() if k.lower() not in _VITE_HOP_BY_HOP}
         return _Response(content=resp.content, status_code=resp.status_code, headers=resp_headers)
     except Exception:
@@ -4115,6 +4143,11 @@ async def admin_spa_fallback(full_path: str, request: Request):
     asset = _resolve_admin_asset(full_path)
     if asset:
         return FileResponse(asset)
+
+    # Important: for missing chunks/assets return 404, not index.html.
+    # Returning HTML here causes MIME errors in the browser for module scripts.
+    if _looks_like_admin_asset_request(full_path):
+        raise HTTPException(status_code=404, detail="Admin asset not found")
 
     if _ADMIN_UI_INDEX_FILE.exists():
         return FileResponse(_ADMIN_UI_INDEX_FILE)

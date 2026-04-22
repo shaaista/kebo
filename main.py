@@ -67,6 +67,8 @@ from config.settings import settings
 from api.routes.chat import router as chat_router
 from api.routes.admin import router as admin_router
 from api.routes.lumira_compat import router as lumira_compat_router
+from api.routes.widget import public_router as widget_public_router, admin_router as widget_admin_router
+from api.middleware.widget_origin import WidgetOriginMiddleware
 from models.database import init_db
 from services.config_service import config_service
 from services.db_config_service import db_config_service
@@ -972,7 +974,9 @@ async def gateway_middleware(request: Request, call_next):
     )
     return response
 
-# CORS middleware
+# CORS middleware (broad, for admin/dev). Per-widget enforcement happens in
+# WidgetOriginMiddleware below, which sets specific Access-Control-Allow-Origin
+# headers when a widget_key is present (required for cross-origin credentials).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -980,6 +984,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Widget origin allowlist (Starlette runs middleware LIFO, so adding after CORS
+# means this runs first on the inbound path — it can short-circuit unauthorized
+# embed requests before they hit any route).
+app.add_middleware(WidgetOriginMiddleware)
 
 # Mount static files and UI bundles
 _STATIC_DIR = _BASE_DIR / "static"
@@ -995,6 +1004,8 @@ else:
 app.include_router(chat_router)
 app.include_router(admin_router)
 app.include_router(lumira_compat_router)
+app.include_router(widget_public_router)
+app.include_router(widget_admin_router)
 
 
 @app.api_route("/kb-scraper", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
@@ -1019,6 +1030,25 @@ async def home(request: Request):
     return RedirectResponse(url="/admin", status_code=307)
 
 
+def _stamp_widget_cookie(response: Response, request: Request) -> None:
+    """If /chat was loaded with ?widget_key=..., persist it as a SameSite=None;Secure
+    cookie so subsequent /api/chat/* calls from inside the iframe carry the key.
+    The WidgetOriginMiddleware reads this cookie when validating origins."""
+    widget_key = (request.query_params.get("widget_key") or "").strip()
+    if not widget_key:
+        return
+    is_https = (request.headers.get("x-forwarded-proto") or request.url.scheme or "").lower() == "https"
+    response.set_cookie(
+        key="kebo_widget_key",
+        value=widget_key,
+        max_age=60 * 60 * 24 * 30,  # 30 days
+        httponly=False,  # readable by iframe JS so it can attach as X-Widget-Key too
+        secure=is_https,
+        samesite="none" if is_https else "lax",
+        path="/",
+    )
+
+
 @app.get("/chat", response_class=HTMLResponse)
 async def chat_ui(request: Request):
     """Serve the React chat harness — proxies to Vite dev server in development."""
@@ -1029,7 +1059,9 @@ async def chat_ui(request: Request):
             async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 resp = await client.get(target)
             if resp.status_code == 200:
-                return HTMLResponse(content=resp.text)
+                html_resp = HTMLResponse(content=resp.text)
+                _stamp_widget_cookie(html_resp, request)
+                return html_resp
         except Exception:
             pass
     if not _CHAT_UI_FILE.exists():
@@ -1037,7 +1069,9 @@ async def chat_ui(request: Request):
             "<h3>NexOria API is running.</h3><p>Chat UI build is unavailable. Build admin_ui with npm run build.</p>",
             status_code=503,
         )
-    return FileResponse(_CHAT_UI_FILE)
+    file_resp = FileResponse(_CHAT_UI_FILE)
+    _stamp_widget_cookie(file_resp, request)
+    return file_resp
 
 
 @app.get("/health")

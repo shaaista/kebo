@@ -244,9 +244,9 @@
     "library_index": {
       "version": "v1",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
-      "generated_at": "2026-04-14T16:43:30.975830+00:00",
+      "generated_at": "2026-04-22T07:30:07.526464+00:00",
       "book_index_generator": "llm_v1",
-      "book_index_generated_at": "2026-04-14T16:43:59.791345+00:00",
+      "book_index_generated_at": "2026-04-22T07:30:25.093685+00:00",
       "source_count": 1,
       "documents": [
         {
@@ -298,7 +298,7 @@
           "text": "Over 300,000 sqft of built up space",
           "topics": [
             "property_details",
-            "hotel_infrastructure"
+            "building_specifications"
           ],
           "char_count": 35,
           "primary_topic_name": "Property Details"
@@ -313,7 +313,7 @@
           "text": "34 meters",
           "topics": [
             "property_details",
-            "hotel_infrastructure"
+            "building_specifications"
           ],
           "char_count": 9,
           "primary_topic_name": "Property Details"
@@ -328,7 +328,7 @@
           "text": "15 (including 4 basements and 10 guest floors)",
           "topics": [
             "property_details",
-            "hotel_infrastructure"
+            "building_specifications"
           ],
           "char_count": 46,
           "primary_topic_name": "Property Details"
@@ -358,7 +358,7 @@
           "text": "1st: 9, 6th: 34, 7th: 32, 2nd-5th, 8th-9th: 36 each",
           "topics": [
             "room_details",
-            "hotel_infrastructure"
+            "floor_plan"
           ],
           "char_count": 51,
           "primary_topic_name": "Room Details"
@@ -478,7 +478,7 @@
           "text": "Lobby Level: \nICONIQA Rooms \nICONIQA Rooms inside boast of a combined 3,000 sq. ft. of flexible, personality-packed space. Perfect for intimate gatherings, stylish socials, and standout events that deserve more than a standard setup. Adaptable layouts, elevated aesthetics, and a setting that speaks volumes, without saying a word.\nPre-function space of over 1200 sqft\nLawns attached are 2500 sqft\nICONIQA Rooms can be split into two halls - ICONIQA ROOM 1 and ICONIQA ROOM 2, so you could take one space for a more intimate setting\n\nGenius Rooms on the First Floor are smaller yet equally impressive spaces, perfect for intimate meetings, brainstorming sessions, or workshops. Equipped with state-of-the-art technology and professional support.\nGenius I : 300+ sq. ft\nGenius II : 650+ sq. ft\nGenius III : 430+ sq. ft\n\nThe hotel has multiple spaces at Aviator, Kadak or Bombay Swim Club that can be taken out for private-hire from 10 to 300 people. \n\nKadak Lab on Level 1 has a lovely space of about 1000 sqft that is divisible. The space can be used for private gatherings or conferences. Large windows with tree views make this a beautiful spot to work or entertain in.",
           "topics": [
             "event_spaces",
-            "hotel_facilities"
+            "banquet_facilities"
           ],
           "char_count": 1171,
           "primary_topic_name": "Event Spaces"
@@ -492,11 +492,11 @@
           "title": "spa_timings",
           "text": "9:00 AM – 11:00 PM",
           "topics": [
-            "hotel_facilities",
-            "wellness_services"
+            "guest_services",
+            "spa_information"
           ],
           "char_count": 18,
-          "primary_topic_name": "Hotel Facilities"
+          "primary_topic_name": "Guest Services"
         },
         {
           "id": "page_00017",
@@ -507,11 +507,11 @@
           "title": "pool_timings",
           "text": "7:00 AM to 7:00PM open to all.\nNo children allowed after 7:00pm \n\nGuests with reservations at Bombay Swim Club may use the pool until 11 PM",
           "topics": [
-            "hotel_facilities",
-            "wellness_services"
+            "guest_services",
+            "pool_information"
           ],
           "char_count": 139,
-          "primary_topic_name": "Hotel Facilities"
+          "primary_topic_name": "Guest Services"
         },
         {
           "id": "page_00018",
@@ -522,11 +522,11 @@
           "title": "jacuzzi_timings",
           "text": "6:00 AM – 8:00 PM",
           "topics": [
-            "hotel_facilities",
-            "wellness_services"
+            "guest_services",
+            "jacuzzi_information"
           ],
           "char_count": 17,
-          "primary_topic_name": "Hotel Facilities"
+          "primary_topic_name": "Guest Services"
         },
         {
           "id": "page_00019",
@@ -537,11 +537,11 @@
           "title": "yoga_sessions",
           "text": "Live: 8–9 AM (twice a week), \nThe Yoga studio is powered by AI Yoga Screens that you can access 24x7 and do a self-driven workout.",
           "topics": [
-            "hotel_facilities",
-            "wellness_services"
+            "guest_services",
+            "wellness_activities"
           ],
           "char_count": 130,
-          "primary_topic_name": "Hotel Facilities"
+          "primary_topic_name": "Guest Services"
         },
         {
           "id": "page_00020",
@@ -628,7 +628,7 @@
           "text": "Yes, Dr. Deepak Tiwari M.B.S(BOM), 24x7, ₹2500 consultation",
           "topics": [
             "hotel_services",
-            "medical_assistance"
+            "medical_services"
           ],
           "char_count": 59,
           "primary_topic_name": "Hotel Services"
@@ -658,7 +658,7 @@
           "text": "All rooms non-smoking, designated zones: Roof top, Outside the main porch,",
           "topics": [
             "hotel_policies",
-            "smoking_regulations"
+            "smoking_policies"
           ],
           "char_count": 74,
           "primary_topic_name": "Hotel Policies"
@@ -687,11 +687,11 @@
           "title": "nearby_hospitals",
           "text": "SevenHills, Mukund, Holy Spirit",
           "topics": [
-            "local_services",
-            "nearby_hospitals"
+            "nearby_facilities",
+            "medical_services"
           ],
           "char_count": 31,
-          "primary_topic_name": "Local Services"
+          "primary_topic_name": "Nearby Facilities"
         },
         {
           "id": "page_00030",
@@ -1359,6 +1359,140 @@
           ]
         },
         {
+          "id": "banquet_facilities",
+          "title": "Banquet Facilities",
+          "aliases": [
+            "banquet_facilities"
+          ],
+          "keywords": [
+            "000",
+            "10",
+            "1000",
+            "1200",
+            "2500",
+            "300",
+            "430",
+            "650",
+            "about",
+            "adaptable",
+            "aesthetics",
+            "are",
+            "art",
+            "at",
+            "attached",
+            "aviator",
+            "banquet",
+            "be",
+            "beautiful",
+            "boast",
+            "bombay",
+            "brainstorming",
+            "can",
+            "club",
+            "combined",
+            "conferences",
+            "could",
+            "deserve",
+            "divisible",
+            "elevated",
+            "entertain",
+            "equally",
+            "equipped",
+            "events",
+            "first",
+            "flexible",
+            "floor",
+            "ft",
+            "function",
+            "gatherings",
+            "genius",
+            "halls",
+            "has",
+            "hire",
+            "iconiqa",
+            "ii",
+            "iii",
+            "impressive",
+            "in",
+            "inside",
+            "intimate",
+            "into",
+            "is",
+            "kadak",
+            "lab",
+            "large",
+            "lawns",
+            "layouts",
+            "level",
+            "lobby",
+            "lovely",
+            "make",
+            "meetings",
+            "more",
+            "multiple",
+            "of",
+            "on",
+            "one",
+            "or",
+            "out",
+            "over",
+            "packed",
+            "people",
+            "perfect",
+            "personality",
+            "pre",
+            "private",
+            "professional",
+            "room",
+            "rooms",
+            "saying",
+            "sessions",
+            "setting",
+            "setup",
+            "smaller",
+            "so",
+            "socials",
+            "space",
+            "spaces",
+            "speaks",
+            "split",
+            "spot",
+            "sq",
+            "sqft",
+            "standard",
+            "standout",
+            "state",
+            "stylish",
+            "support",
+            "swim",
+            "take",
+            "taken",
+            "technology",
+            "than",
+            "to",
+            "tree",
+            "two",
+            "used",
+            "views",
+            "volumes",
+            "windows",
+            "without",
+            "word",
+            "work",
+            "workshops",
+            "yet",
+            "you"
+          ],
+          "page_ids": [
+            "page_00015"
+          ],
+          "page_count": 1,
+          "char_count": 1171,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
           "id": "beauty_and_wellness",
           "title": "Beauty And Wellness",
           "aliases": [
@@ -1446,6 +1580,44 @@
           ],
           "page_count": 1,
           "char_count": 254,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
+          "id": "building_specifications",
+          "title": "Building Specifications",
+          "aliases": [
+            "building_specifications"
+          ],
+          "keywords": [
+            "000",
+            "10",
+            "15",
+            "300",
+            "34",
+            "area",
+            "basements",
+            "building",
+            "built",
+            "floors",
+            "height",
+            "including",
+            "meters",
+            "of",
+            "over",
+            "space",
+            "sqft",
+            "total",
+            "up"
+          ],
+          "page_ids": [
+            "page_00003",
+            "page_00004",
+            "page_00005"
+          ],
+          "page_count": 3,
+          "char_count": 90,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
@@ -2591,6 +2763,36 @@
           ]
         },
         {
+          "id": "floor_plan",
+          "title": "Floor Plan",
+          "aliases": [
+            "floor_plan"
+          ],
+          "keywords": [
+            "1st",
+            "2nd",
+            "32",
+            "34",
+            "36",
+            "5th",
+            "6th",
+            "7th",
+            "8th",
+            "9th",
+            "distribution",
+            "each",
+            "room"
+          ],
+          "page_ids": [
+            "page_00007"
+          ],
+          "page_count": 1,
+          "char_count": 51,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
           "id": "guest_amenities",
           "title": "Guest Amenities",
           "aliases": [
@@ -2690,229 +2892,99 @@
           ],
           "keywords": [
             "00",
+            "00pm",
             "07",
             "11",
             "12",
             "14",
             "1500",
             "2000",
+            "24x7",
             "50",
+            "access",
+            "after",
+            "ai",
             "airport",
+            "all",
+            "allowed",
             "am",
             "applicable",
             "are",
+            "at",
             "availability",
             "available",
             "before",
+            "bombay",
+            "by",
+            "can",
             "charges",
             "checkin",
             "checkout",
+            "children",
+            "club",
             "complimentary",
+            "do",
+            "driven",
             "early",
             "full",
             "hrs",
             "hycross",
             "innova",
+            "is",
+            "jacuzzi",
             "late",
+            "live",
+            "may",
             "night",
+            "no",
             "noon",
             "of",
+            "open",
             "pm",
             "policy",
+            "pool",
             "post",
+            "powered",
             "rate",
+            "reservations",
             "room",
+            "screens",
             "seater",
+            "self",
+            "sessions",
+            "spa",
+            "studio",
             "subject",
+            "swim",
             "t1",
             "t2",
             "till",
             "time",
+            "timings",
             "to",
             "toyota",
-            "transfer"
+            "transfer",
+            "twice",
+            "until",
+            "use",
+            "week",
+            "workout",
+            "yoga",
+            "you"
           ],
           "page_ids": [
+            "page_00016",
+            "page_00017",
+            "page_00018",
+            "page_00019",
             "page_00020",
             "page_00021",
             "page_00022",
             "page_00023",
             "page_00024"
           ],
-          "page_count": 5,
-          "char_count": 275,
-          "sources": [
-            "60288dee_ROHL_Test_property.txt"
-          ]
-        },
-        {
-          "id": "hotel_facilities",
-          "title": "Hotel Facilities",
-          "aliases": [
-            "hotel_facilities"
-          ],
-          "keywords": [
-            "00",
-            "000",
-            "00pm",
-            "10",
-            "1000",
-            "11",
-            "1200",
-            "24x7",
-            "2500",
-            "300",
-            "430",
-            "650",
-            "about",
-            "access",
-            "adaptable",
-            "aesthetics",
-            "after",
-            "ai",
-            "all",
-            "allowed",
-            "am",
-            "are",
-            "art",
-            "at",
-            "attached",
-            "aviator",
-            "banquet",
-            "be",
-            "beautiful",
-            "boast",
-            "bombay",
-            "brainstorming",
-            "by",
-            "can",
-            "children",
-            "club",
-            "combined",
-            "conferences",
-            "could",
-            "deserve",
-            "divisible",
-            "do",
-            "driven",
-            "elevated",
-            "entertain",
-            "equally",
-            "equipped",
-            "events",
-            "first",
-            "flexible",
-            "floor",
-            "ft",
-            "function",
-            "gatherings",
-            "genius",
-            "halls",
-            "has",
-            "hire",
-            "iconiqa",
-            "ii",
-            "iii",
-            "impressive",
-            "in",
-            "inside",
-            "intimate",
-            "into",
-            "is",
-            "jacuzzi",
-            "kadak",
-            "lab",
-            "large",
-            "lawns",
-            "layouts",
-            "level",
-            "live",
-            "lobby",
-            "lovely",
-            "make",
-            "may",
-            "meetings",
-            "more",
-            "multiple",
-            "no",
-            "of",
-            "on",
-            "one",
-            "open",
-            "or",
-            "out",
-            "over",
-            "packed",
-            "people",
-            "perfect",
-            "personality",
-            "pm",
-            "pool",
-            "powered",
-            "pre",
-            "private",
-            "professional",
-            "reservations",
-            "room",
-            "rooms",
-            "saying",
-            "screens",
-            "self",
-            "sessions",
-            "setting",
-            "setup",
-            "smaller",
-            "so",
-            "socials",
-            "spa",
-            "space",
-            "spaces",
-            "speaks",
-            "split",
-            "spot",
-            "sq",
-            "sqft",
-            "standard",
-            "standout",
-            "state",
-            "studio",
-            "stylish",
-            "support",
-            "swim",
-            "take",
-            "taken",
-            "technology",
-            "than",
-            "timings",
-            "to",
-            "tree",
-            "twice",
-            "two",
-            "until",
-            "use",
-            "used",
-            "views",
-            "volumes",
-            "week",
-            "windows",
-            "without",
-            "word",
-            "work",
-            "workout",
-            "workshops",
-            "yet",
-            "yoga",
-            "you"
-          ],
-          "page_ids": [
-            "page_00015",
-            "page_00016",
-            "page_00017",
-            "page_00018",
-            "page_00019"
-          ],
-          "page_count": 5,
-          "char_count": 1475,
+          "page_count": 9,
+          "char_count": 579,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
@@ -2959,57 +3031,6 @@
           ],
           "page_count": 5,
           "char_count": 162,
-          "sources": [
-            "60288dee_ROHL_Test_property.txt"
-          ]
-        },
-        {
-          "id": "hotel_infrastructure",
-          "title": "Hotel Infrastructure",
-          "aliases": [
-            "hotel_infrastructure"
-          ],
-          "keywords": [
-            "000",
-            "10",
-            "15",
-            "1st",
-            "2nd",
-            "300",
-            "32",
-            "34",
-            "36",
-            "5th",
-            "6th",
-            "7th",
-            "8th",
-            "9th",
-            "area",
-            "basements",
-            "building",
-            "built",
-            "distribution",
-            "each",
-            "floors",
-            "height",
-            "including",
-            "meters",
-            "of",
-            "over",
-            "room",
-            "space",
-            "sqft",
-            "total",
-            "up"
-          ],
-          "page_ids": [
-            "page_00003",
-            "page_00004",
-            "page_00005",
-            "page_00007"
-          ],
-          "page_count": 4,
-          "char_count": 141,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
@@ -4514,6 +4535,28 @@
           ]
         },
         {
+          "id": "jacuzzi_information",
+          "title": "Jacuzzi Information",
+          "aliases": [
+            "jacuzzi_information"
+          ],
+          "keywords": [
+            "00",
+            "am",
+            "jacuzzi",
+            "pm",
+            "timings"
+          ],
+          "page_ids": [
+            "page_00018"
+          ],
+          "page_count": 1,
+          "char_count": 17,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
           "id": "kadak_restaurant_menu",
           "title": "Kadak Restaurant Menu",
           "aliases": [
@@ -4724,29 +4767,6 @@
           ]
         },
         {
-          "id": "local_services",
-          "title": "Local Services",
-          "aliases": [
-            "local_services"
-          ],
-          "keywords": [
-            "holy",
-            "hospitals",
-            "mukund",
-            "nearby",
-            "sevenhills",
-            "spirit"
-          ],
-          "page_ids": [
-            "page_00029"
-          ],
-          "page_count": 1,
-          "char_count": 31,
-          "sources": [
-            "60288dee_ROHL_Test_property.txt"
-          ]
-        },
-        {
           "id": "location_details",
           "title": "Location Details",
           "aliases": [
@@ -4786,10 +4806,10 @@
           ]
         },
         {
-          "id": "medical_assistance",
-          "title": "Medical Assistance",
+          "id": "medical_services",
+          "title": "Medical Services",
           "aliases": [
-            "medical_assistance"
+            "medical_services"
           ],
           "keywords": [
             "24x7",
@@ -4800,24 +4820,31 @@
             "deepak",
             "doctor",
             "dr",
+            "holy",
+            "hospitals",
+            "mukund",
+            "nearby",
             "on",
+            "sevenhills",
+            "spirit",
             "tiwari",
             "yes"
           ],
           "page_ids": [
-            "page_00025"
+            "page_00025",
+            "page_00029"
           ],
-          "page_count": 1,
-          "char_count": 59,
+          "page_count": 2,
+          "char_count": 90,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
         },
         {
-          "id": "nearby_hospitals",
-          "title": "Nearby Hospitals",
+          "id": "nearby_facilities",
+          "title": "Nearby Facilities",
           "aliases": [
-            "nearby_hospitals"
+            "nearby_facilities"
           ],
           "keywords": [
             "holy",
@@ -4932,6 +4959,45 @@
           ],
           "page_count": 1,
           "char_count": 43,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
+          "id": "pool_information",
+          "title": "Pool Information",
+          "aliases": [
+            "pool_information"
+          ],
+          "keywords": [
+            "00",
+            "00pm",
+            "11",
+            "after",
+            "all",
+            "allowed",
+            "am",
+            "at",
+            "bombay",
+            "children",
+            "club",
+            "may",
+            "no",
+            "open",
+            "pm",
+            "pool",
+            "reservations",
+            "swim",
+            "timings",
+            "to",
+            "until",
+            "use"
+          ],
+          "page_ids": [
+            "page_00017"
+          ],
+          "page_count": 1,
+          "char_count": 139,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
@@ -5304,10 +5370,10 @@
           ]
         },
         {
-          "id": "smoking_regulations",
-          "title": "Smoking Regulations",
+          "id": "smoking_policies",
+          "title": "Smoking Policies",
           "aliases": [
-            "smoking_regulations"
+            "smoking_policies"
           ],
           "keywords": [
             "all",
@@ -5494,6 +5560,29 @@
           ]
         },
         {
+          "id": "spa_information",
+          "title": "Spa Information",
+          "aliases": [
+            "spa_information"
+          ],
+          "keywords": [
+            "00",
+            "11",
+            "am",
+            "pm",
+            "spa",
+            "timings"
+          ],
+          "page_ids": [
+            "page_00016"
+          ],
+          "page_count": 1,
+          "char_count": 18,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
           "id": "transportation_options",
           "title": "Transportation Options",
           "aliases": [
@@ -5517,6 +5606,43 @@
           ],
           "page_count": 1,
           "char_count": 69,
+          "sources": [
+            "60288dee_ROHL_Test_property.txt"
+          ]
+        },
+        {
+          "id": "wellness_activities",
+          "title": "Wellness Activities",
+          "aliases": [
+            "wellness_activities"
+          ],
+          "keywords": [
+            "24x7",
+            "access",
+            "ai",
+            "am",
+            "by",
+            "can",
+            "do",
+            "driven",
+            "is",
+            "live",
+            "powered",
+            "screens",
+            "self",
+            "sessions",
+            "studio",
+            "twice",
+            "week",
+            "workout",
+            "yoga",
+            "you"
+          ],
+          "page_ids": [
+            "page_00019"
+          ],
+          "page_count": 1,
+          "char_count": 130,
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
@@ -5562,69 +5688,6 @@
           "sources": [
             "60288dee_ROHL_Test_property.txt"
           ]
-        },
-        {
-          "id": "wellness_services",
-          "title": "Wellness Services",
-          "aliases": [
-            "wellness_services"
-          ],
-          "keywords": [
-            "00",
-            "00pm",
-            "11",
-            "24x7",
-            "access",
-            "after",
-            "ai",
-            "all",
-            "allowed",
-            "am",
-            "at",
-            "bombay",
-            "by",
-            "can",
-            "children",
-            "club",
-            "do",
-            "driven",
-            "is",
-            "jacuzzi",
-            "live",
-            "may",
-            "no",
-            "open",
-            "pm",
-            "pool",
-            "powered",
-            "reservations",
-            "screens",
-            "self",
-            "sessions",
-            "spa",
-            "studio",
-            "swim",
-            "timings",
-            "to",
-            "twice",
-            "until",
-            "use",
-            "week",
-            "workout",
-            "yoga",
-            "you"
-          ],
-          "page_ids": [
-            "page_00016",
-            "page_00017",
-            "page_00018",
-            "page_00019"
-          ],
-          "page_count": 4,
-          "char_count": 304,
-          "sources": [
-            "60288dee_ROHL_Test_property.txt"
-          ]
         }
       ],
       "coverage": {
@@ -5637,7 +5700,7 @@
     "property_index": {
       "version": "v1",
       "generator": "heuristic_v1",
-      "generated_at": "2026-04-21T07:33:49.287728+00:00",
+      "generated_at": "2026-04-22T15:41:13.112198+00:00",
       "source_signature": "b00631b22169b5f61685010fff3cf496f4dda391",
       "expected_property_count": 0,
       "detected_property_count": 1,
