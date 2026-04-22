@@ -37,7 +37,7 @@ from services.everything_trace_service import everything_trace_service
 from services.step_trace_service import step_trace_service
 from config.settings import settings
 from llm.client import llm_client
-from models.database import AsyncSessionLocal, Hotel, Guest, Booking, KBFile
+from models.database import AsyncSessionLocal, Hotel, Guest, Booking, KBFile, ImageAsset
 
 
 class AdminStepTraceRoute(APIRoute):
@@ -3325,6 +3325,182 @@ async def list_local_tickets():
 
 
 # ============ Bookings / Guest Management ============
+
+
+class CreateContentHotelImageInput(BaseModel):
+    title: str
+    image_url: str
+    source_label: Optional[str] = None
+
+
+class UpdateContentHotelImageInput(BaseModel):
+    title: Optional[str] = None
+    image_url: Optional[str] = None
+    source_label: Optional[str] = None
+
+
+def _normalize_content_image_title(value: Any) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip())
+
+
+def _normalize_content_optional_text(value: Any) -> Optional[str]:
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    return text or None
+
+
+def _is_http_image_url(value: str) -> bool:
+    url = str(value or "").strip().lower()
+    return url.startswith("http://") or url.startswith("https://")
+
+
+def _image_asset_to_dict(asset: ImageAsset) -> dict:
+    return {
+        "id": int(asset.id),
+        "hotel_id": int(asset.hotel_id),
+        "title": str(asset.title or "").strip(),
+        "description": str(asset.description or "").strip(),
+        "image_url": str(asset.image_url or "").strip(),
+        "category": str(asset.category or "").strip(),
+        "tags": asset.tags if isinstance(asset.tags, list) else [],
+        "source_label": str(asset.source_label or "").strip(),
+        "is_active": bool(asset.is_active),
+        "priority": int(asset.priority or 0),
+    }
+
+
+@router.get("/api/content/hotel-images")
+async def list_content_hotel_images(request: Request):
+    """
+    List image rows from bot_hotel_images_scraper for the currently scoped hotel.
+
+    Hotel scope is resolved from x-hotel-code (via router dependency).
+    """
+    scoped_code = _normalize_tenant(str(getattr(request.state, "hotel_code", "") or "").strip())
+    hotel_id = await db_config_service.get_current_hotel_id()
+
+    async with AsyncSessionLocal() as session:
+        hotel_row = (
+            await session.execute(select(Hotel).where(Hotel.id == hotel_id))
+        ).scalar_one_or_none()
+        if hotel_row is None:
+            raise HTTPException(status_code=404, detail="Active hotel not found")
+
+        rows = (
+            await session.execute(
+                select(ImageAsset)
+                .where(ImageAsset.hotel_id == hotel_id)
+                .order_by(ImageAsset.priority.desc(), ImageAsset.id.asc())
+            )
+        ).scalars().all()
+
+    images = [_image_asset_to_dict(row) for row in rows]
+    return {
+        "hotel": {
+            "id": int(hotel_row.id),
+            "code": _normalize_tenant(str(hotel_row.code or scoped_code or "default")),
+            "name": str(hotel_row.name or hotel_row.code or "").strip(),
+            "city": str(hotel_row.city or "").strip(),
+        },
+        "images": images,
+        "total": len(images),
+    }
+
+
+@router.post("/api/content/hotel-images")
+async def create_content_hotel_image(body: CreateContentHotelImageInput):
+    """Create one image row in bot_hotel_images_scraper for the active hotel scope."""
+    normalized_title = _normalize_content_image_title(body.title)
+    if not normalized_title:
+        raise HTTPException(status_code=400, detail="Title cannot be empty")
+
+    normalized_url = str(body.image_url or "").strip()
+    if not _is_http_image_url(normalized_url):
+        raise HTTPException(status_code=400, detail="Image URL must start with http:// or https://")
+
+    hotel_id = await db_config_service.get_current_hotel_id()
+    source_label = _normalize_content_optional_text(body.source_label)
+
+    async with AsyncSessionLocal() as session:
+        row = ImageAsset(
+            hotel_id=hotel_id,
+            title=normalized_title,
+            image_url=normalized_url,
+            source_label=source_label,
+            is_active=True,
+            priority=0,
+        )
+        session.add(row)
+        await session.commit()
+        await session.refresh(row)
+
+    return {"image": _image_asset_to_dict(row)}
+
+
+@router.put("/api/content/hotel-images/{image_id}")
+async def update_content_hotel_image(image_id: int, body: UpdateContentHotelImageInput):
+    """
+    Update editable content-manager fields for one image row
+    (currently title + image_url) scoped to the active hotel.
+    """
+    updates: Dict[str, Any] = {}
+    if body.title is not None:
+        normalized_title = _normalize_content_image_title(body.title)
+        if not normalized_title:
+            raise HTTPException(status_code=400, detail="Title cannot be empty")
+        updates["title"] = normalized_title
+    if body.image_url is not None:
+        normalized_url = str(body.image_url or "").strip()
+        if not _is_http_image_url(normalized_url):
+            raise HTTPException(status_code=400, detail="Image URL must start with http:// or https://")
+        updates["image_url"] = normalized_url
+    if body.source_label is not None:
+        updates["source_label"] = _normalize_content_optional_text(body.source_label)
+    if not updates:
+        raise HTTPException(status_code=400, detail="At least one editable field is required")
+
+    hotel_id = await db_config_service.get_current_hotel_id()
+
+    async with AsyncSessionLocal() as session:
+        row = (
+            await session.execute(
+                select(ImageAsset).where(
+                    ImageAsset.id == image_id,
+                    ImageAsset.hotel_id == hotel_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Image not found for selected hotel")
+
+        for key, value in updates.items():
+            setattr(row, key, value)
+        await session.commit()
+        await session.refresh(row)
+
+    return {"image": _image_asset_to_dict(row)}
+
+
+@router.delete("/api/content/hotel-images/{image_id}")
+async def delete_content_hotel_image(image_id: int):
+    """Delete one image row from bot_hotel_images_scraper for active hotel scope."""
+    hotel_id = await db_config_service.get_current_hotel_id()
+
+    async with AsyncSessionLocal() as session:
+        row = (
+            await session.execute(
+                select(ImageAsset).where(
+                    ImageAsset.id == image_id,
+                    ImageAsset.hotel_id == hotel_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="Image not found for selected hotel")
+
+        await session.delete(row)
+        await session.commit()
+
+    return {"deleted": True, "image_id": image_id}
 
 
 class CreateGuestInput(BaseModel):
