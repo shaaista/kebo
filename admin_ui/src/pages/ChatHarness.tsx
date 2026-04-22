@@ -1119,6 +1119,20 @@ const ChatHarness = () => {
     postEmbedEvent("widget:ready");
   }, [embedMode, hotelCode, phase, postEmbedEvent]);
 
+  const getWidgetFrameSize = useCallback(() => {
+    const width = Math.min(widgetExpanded ? WIDGET_EXPANDED_WIDTH : widgetDefaultWidth, 600);
+    if (widgetMinimized) {
+      return { width, height: 56 };
+    }
+    const height = Math.min(widgetExpanded ? WIDGET_EXPANDED_HEIGHT : widgetDefaultHeight, 900);
+    return { width, height };
+  }, [widgetDefaultHeight, widgetDefaultWidth, widgetExpanded, widgetMinimized]);
+
+  useEffect(() => {
+    if (!embedMode) return;
+    postEmbedEvent("widget:resize", getWidgetFrameSize());
+  }, [embedMode, getWidgetFrameSize, postEmbedEvent]);
+
   useEffect(() => {
     const panel = messagesScrollRef.current;
     if (!panel) return;
@@ -2256,17 +2270,15 @@ const ChatHarness = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-0.5">
-                  {!embedMode && (
-                    <button
-                      type="button"
-                      onClick={() => setWidgetMinimized((v) => !v)}
-                      className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-                      title={widgetMinimized ? "Restore" : "Minimize"}
-                    >
-                      {widgetMinimized ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
-                    </button>
-                  )}
-                  {!embedMode && !widgetMinimized && !isMobile && (
+                  <button
+                    type="button"
+                    onClick={() => setWidgetMinimized((v) => !v)}
+                    className="rounded-lg p-2 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                    title={widgetMinimized ? "Restore" : "Minimize"}
+                  >
+                    {widgetMinimized ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                  </button>
+                  {!widgetMinimized && (!isMobile || embedMode) && (
                     <button
                       type="button"
                       onClick={() => setWidgetExpanded((v) => !v)}

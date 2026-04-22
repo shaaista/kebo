@@ -34,8 +34,8 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
   const widgetHost = typeof window === "undefined" ? "https://your-widget-host.com" : window.location.origin;
   const normalizedPropertyCode = String(propertyCode || "default").trim().toLowerCase() || "default";
   const resolvedBotName = String(botName || "Assistant").trim() || "Assistant";
-  const previewWidth = Math.min(Math.max(Number(data.widgetWidth) || 380, 280), 420);
-  const previewHeight = Math.min(Math.max(Number(data.widgetHeight) || 600, 350), 560);
+  const previewWidth = 380;
+  const previewHeight = 560;
 
   const embedCode = `<script src="${widgetHost}/static/embed/kebo-widget-loader.js"
   data-widget-id="${normalizedPropertyCode}"
@@ -46,9 +46,7 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
   data-bg-color="${data.bgColor}"
   data-text-color="${data.textColor}"
   data-bot-name="${resolvedBotName}"
-  data-position="${data.widgetPosition}"
-  data-width="${data.widgetWidth}"
-  data-height="${data.widgetHeight}">
+  data-position="${data.widgetPosition}">
 </script>`;
 
   const handleCopy = () => {
@@ -99,7 +97,7 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
             Widget Preview
           </Label>
           <p className="text-xs text-muted-foreground">
-            Live preview of current colors and size configuration.
+            Live preview of current color configuration.
           </p>
           <div className="rounded-xl border bg-slate-100 p-3">
             <div
@@ -166,7 +164,7 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-1">
         <div className="space-y-1.5">
           <Label>Widget Position</Label>
           <Select value={data.widgetPosition} onValueChange={(v) => onChange("widgetPosition", v)}>
@@ -176,36 +174,6 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
               <SelectItem value="left">Bottom Left</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Widget Width (px)</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={280}
-              max={600}
-              step={10}
-              value={data.widgetWidth}
-              onChange={(e) => onChange("widgetWidth", Number(e.target.value))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">280–600</span>
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label>Widget Height (px)</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min={350}
-              max={800}
-              step={10}
-              value={data.widgetHeight}
-              onChange={(e) => onChange("widgetHeight", Number(e.target.value))}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-            <span className="text-xs text-muted-foreground whitespace-nowrap">350–800</span>
-          </div>
         </div>
       </div>
 
@@ -227,10 +195,6 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
           <label className="flex items-center gap-2">
             <Checkbox checked={data.webEnabled} onCheckedChange={(v) => onChange("webEnabled", !!v)} />
             <span className="text-sm">Web Widget Enabled</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <Checkbox checked={data.whatsappEnabled} onCheckedChange={(v) => onChange("whatsappEnabled", !!v)} />
-            <span className="text-sm">WhatsApp Enabled</span>
           </label>
         </div>
       </div>
@@ -262,3 +226,4 @@ const ChannelsStep = ({ data, propertyCode, botName, onChange, onSave }: Channel
 
 export default ChannelsStep;
 export type { ChannelsData };
+

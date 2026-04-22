@@ -1,6 +1,9 @@
 (function () {
   "use strict";
 
+  var LOCAL_WIDGET_WIDTH = 380;
+  var LOCAL_WIDGET_HEIGHT = 620;
+
   // ---------------------------------------------------------------------
   // Universal embeddable chat widget loader.
   //
@@ -95,8 +98,8 @@
     hotelCode: String(data.hotelCode || data.propertyCode || data.widgetId || "").trim().toLowerCase(),
     phase: String(data.phase || "").trim().toLowerCase(),
     position: data.position ? normalizePosition(data.position) : null,
-    width: data.width != null ? parseNumber(data.width, 380, 280, 600) : null,
-    height: data.height != null ? parseNumber(data.height, 620, 360, 900) : null,
+    width: null,
+    height: null,
     offset: parseNumber(data.offset, 20, 8, 64),
     zIndex: parseNumber(data.zIndex, 2147482000, 1000, 2147483647),
     brandColor: data.brandColor ? normalizeColor(data.brandColor, null) : null,
@@ -145,14 +148,13 @@
 
   function mergeConfig(boot) {
     var theme = (boot && boot.theme) || {};
-    var size = (boot && boot.size) || {};
     return {
       widgetKey: overrides.widgetKey || boot.widget_key || "",
       hotelCode: overrides.hotelCode || boot.hotel_code || "default",
       phase: overrides.phase || boot.phase || "pre_booking",
       position: overrides.position || boot.position || "right",
-      width: overrides.width != null ? overrides.width : (size.width || 380),
-      height: overrides.height != null ? overrides.height : (size.height || 620),
+      width: LOCAL_WIDGET_WIDTH,
+      height: LOCAL_WIDGET_HEIGHT,
       offset: overrides.offset,
       zIndex: overrides.zIndex,
       brandColor: overrides.brandColor || theme.brand_color || "#C72C41",
@@ -224,6 +226,9 @@
     root.style.width = config.width + "px";
     root.style.height = config.height + "px";
     root.style.overflow = "visible";
+    var requestedWidth = config.width;
+    var requestedHeight = config.height;
+    var teaserDismissed = Boolean(config.autoOpen);
 
     var frameContainer = document.createElement("div");
     frameContainer.setAttribute("data-kebo-widget-frame", "true");
@@ -232,7 +237,7 @@
     frameContainer.style.width = config.width + "px";
     frameContainer.style.height = config.height + "px";
     frameContainer.style.maxWidth = "min(calc(100vw - 16px), 600px)";
-    frameContainer.style.maxHeight = "min(calc(100vh - 16px), 900px)";
+    frameContainer.style.maxHeight = "min(calc(100vh - 48px), 900px)";
     frameContainer.style.background = config.bgColor;
     frameContainer.style.border = "1px solid rgba(15, 23, 42, 0.12)";
     frameContainer.style.borderRadius = "16px";
@@ -257,6 +262,59 @@
     iframe.style.border = "0";
     iframe.style.background = config.bgColor;
     frameContainer.appendChild(iframe);
+
+    var teaser = document.createElement("div");
+    teaser.setAttribute("data-kebo-widget-teaser", "true");
+    teaser.style.position = "absolute";
+    teaser.style.bottom = "72px";
+    teaser.style.maxWidth = "220px";
+    teaser.style.padding = "10px 12px";
+    teaser.style.background = "#ffffff";
+    teaser.style.border = "1px solid rgba(15, 23, 42, 0.12)";
+    teaser.style.borderRadius = "12px";
+    teaser.style.boxShadow = "0 12px 28px rgba(15, 23, 42, 0.18)";
+    teaser.style.transition = "opacity 180ms ease, transform 180ms ease";
+    teaser.style.transformOrigin = config.position === "left" ? "bottom left" : "bottom right";
+    teaser.style.opacity = "0";
+    teaser.style.transform = "translateY(8px) scale(0.98)";
+    teaser.style.pointerEvents = "none";
+    if (config.position === "left") teaser.style.left = "0";
+    else teaser.style.right = "0";
+
+    var teaserClose = document.createElement("button");
+    teaserClose.type = "button";
+    teaserClose.setAttribute("aria-label", "Dismiss chat hint");
+    teaserClose.style.position = "absolute";
+    teaserClose.style.top = "-8px";
+    teaserClose.style.right = "-8px";
+    teaserClose.style.width = "18px";
+    teaserClose.style.height = "18px";
+    teaserClose.style.border = "1px solid rgba(15, 23, 42, 0.12)";
+    teaserClose.style.borderRadius = "999px";
+    teaserClose.style.background = "#ffffff";
+    teaserClose.style.color = "#64748b";
+    teaserClose.style.cursor = "pointer";
+    teaserClose.style.padding = "0";
+    teaserClose.style.lineHeight = "1";
+    teaserClose.style.fontSize = "12px";
+    teaserClose.textContent = "x";
+
+    var teaserTitle = document.createElement("div");
+    teaserTitle.style.fontSize = "12px";
+    teaserTitle.style.fontWeight = "600";
+    teaserTitle.style.color = "#0f172a";
+    teaserTitle.textContent = "Hi there!";
+
+    var teaserBody = document.createElement("div");
+    teaserBody.style.marginTop = "2px";
+    teaserBody.style.fontSize = "11px";
+    teaserBody.style.lineHeight = "1.35";
+    teaserBody.style.color = "#64748b";
+    teaserBody.textContent = "Need help? Chat with " + config.botName;
+
+    teaser.appendChild(teaserClose);
+    teaser.appendChild(teaserTitle);
+    teaser.appendChild(teaserBody);
 
     var launcher = document.createElement("button");
     launcher.type = "button";
@@ -286,11 +344,13 @@
     }
 
     root.appendChild(frameContainer);
+    root.appendChild(teaser);
     root.appendChild(launcher);
 
     var isOpen = Boolean(config.autoOpen);
 
     function applyState() {
+      var showTeaser = !isOpen && !teaserDismissed;
       if (isOpen) {
         frameContainer.style.opacity = "1";
         frameContainer.style.pointerEvents = "auto";
@@ -306,20 +366,47 @@
         launcher.style.pointerEvents = "auto";
         launcher.style.transform = "scale(1)";
       }
+
+      if (showTeaser) {
+        teaser.style.opacity = "1";
+        teaser.style.pointerEvents = "auto";
+        teaser.style.transform = "translateY(0) scale(1)";
+      } else {
+        teaser.style.opacity = "0";
+        teaser.style.pointerEvents = "none";
+        teaser.style.transform = "translateY(8px) scale(0.98)";
+      }
     }
 
-    function openWidget() { isOpen = true; applyState(); }
+    function openWidget() { isOpen = true; teaserDismissed = true; applyState(); }
     function closeWidget() { isOpen = false; applyState(); }
     function toggleWidget() { isOpen = !isOpen; applyState(); }
 
+    function setRequestedSize(nextWidth, nextHeight) {
+      var changed = false;
+      if (Number.isFinite(nextWidth)) {
+        requestedWidth = parseNumber(nextWidth, requestedWidth, 260, 600);
+        changed = true;
+      }
+      if (Number.isFinite(nextHeight)) {
+        requestedHeight = parseNumber(nextHeight, requestedHeight, 56, 900);
+        changed = true;
+      }
+      if (changed) applyAnchorAndSize();
+    }
+
     function onMessage(event) {
       if (event.origin !== hostOrigin) return;
+      if (event.source !== iframe.contentWindow) return;
       var payload = event.data;
       if (!payload || typeof payload !== "object") return;
       if (payload.source !== "kebo-widget") return;
       if (payload.type === "widget:close" || payload.type === "close") return closeWidget();
       if (payload.type === "widget:open" || payload.type === "open") return openWidget();
       if (payload.type === "widget:toggle" || payload.type === "toggle") return toggleWidget();
+      if (payload.type === "widget:resize" || payload.type === "widget:size" || payload.type === "resize") {
+        return setRequestedSize(Number(payload.width), Number(payload.height));
+      }
     }
 
     function onKeyDown(event) {
@@ -344,8 +431,11 @@
     function applyAnchorAndSize() {
       var vw = getViewportWidth();
       var vh = getViewportHeight();
-      var width = Math.min(config.width, Math.max(260, vw - 16));
-      var height = Math.min(config.height, Math.max(320, vh - 16));
+      var width = Math.min(requestedWidth, Math.max(260, vw - 16));
+      var availableHeight = Math.max(56, vh - 48);
+      var height = requestedHeight <= 80
+        ? 56
+        : Math.min(requestedHeight, availableHeight);
       root.style.width = width + "px";
       root.style.height = height + "px";
       frameContainer.style.width = width + "px";
@@ -373,6 +463,12 @@
     }
 
     launcher.addEventListener("click", openWidget);
+    teaserClose.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      teaserDismissed = true;
+      applyState();
+    });
     window.addEventListener("message", onMessage);
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", applyAnchorAndSize, { passive: true });
@@ -397,6 +493,7 @@
       open: openWidget,
       close: closeWidget,
       toggle: toggleWidget,
+      resize: setRequestedSize,
       destroy: destroyWidget,
       isOpen: function () { return isOpen; },
     };

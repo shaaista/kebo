@@ -143,7 +143,7 @@ const defaultChannels: ChannelsData = {
   textColor: "#1A1A2E",
   widgetPosition: "right",
   widgetWidth: 380,
-  widgetHeight: 600,
+  widgetHeight: 620,
   industryFeatures: "",
   webEnabled: true,
   whatsappEnabled: false,
