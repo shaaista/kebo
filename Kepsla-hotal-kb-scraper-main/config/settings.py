@@ -49,8 +49,10 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_port: int = 8501
 
-    # -- Database --
+    # -- Database -- toggle DB_BACKEND=mysql or DB_BACKEND=postgres in .env
+    db_backend: str = "mysql"
     database_url: str = "sqlite+aiosqlite:///./scraper.db"
+    pg_database_url: str = "postgresql+asyncpg://nexoria:nexoria123@35.154.99.170:5433/bsp_platform"
 
     # -- OpenAI (for LLM structuring) --
     openai_api_key: str = ""
@@ -142,5 +144,8 @@ class Settings(BaseSettings):
     output_dir: str = "./output"
 
 settings = Settings()
-settings.database_url = _resolve_sqlite_database_url(settings.database_url)
+if settings.db_backend == "postgres":
+    settings.database_url = settings.pg_database_url
+else:
+    settings.database_url = _resolve_sqlite_database_url(settings.database_url)
 settings.output_dir = _resolve_project_path(settings.output_dir)

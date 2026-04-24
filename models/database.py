@@ -60,7 +60,7 @@ def _build_connect_args(database_url: str) -> dict[str, Any]:
     if backend == "mysql" and "aiomysql" in driver:
         return {"connect_timeout": 30}
     if backend in {"postgresql", "postgres"} and "asyncpg" in driver:
-        return {"timeout": 30}
+        return {"timeout": 30, "server_settings": {"search_path": "guest_chatbot"}}
     if backend == "sqlite":
         # timeout=30 makes SQLite wait up to 30s for a write lock instead of
         # immediately raising "database is locked" under concurrent load.

@@ -1,7 +1,7 @@
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 
 class Settings(BaseSettings):
@@ -59,9 +59,17 @@ class Settings(BaseSettings):
     log_retention_cleanup_interval_minutes: int = 360
     log_retention_include_root_temp_logs: bool = True
 
-    # Database (SQLite for dev, PostgreSQL for production)
+    # Database — toggle DB_BACKEND=mysql or DB_BACKEND=postgres in .env
+    db_backend: str = "mysql"
     database_url: str = "sqlite+aiosqlite:///./kepsla_bot.db"
+    pg_database_url: str = "postgresql+asyncpg://nexoria:nexoria123@35.154.99.170:5433/bsp_platform"
     database_echo: bool = False
+
+    @model_validator(mode="after")
+    def _apply_db_backend(self) -> "Settings":
+        if self.db_backend == "postgres":
+            self.database_url = self.pg_database_url
+        return self
     admin_db_fast_fallback_timeout_seconds: float = 30.0
     admin_db_unavailable_backoff_seconds: float = 5.0
 
